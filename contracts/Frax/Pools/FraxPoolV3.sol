@@ -27,6 +27,8 @@ pragma solidity >=0.8.0;
 // Dennis: github.com/denett
 // Hameed
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 import "../../Math/SafeMath.sol";
 import '../../Uniswap/TransferHelper.sol';
 import "../../Staking/Owned.sol";
@@ -34,7 +36,7 @@ import "../../FXS/IFxs.sol";
 import "../../Frax/IFrax.sol";
 import "../../Oracle/AggregatorV3Interface.sol";
 import "../../Frax/IFraxAMOMinter.sol";
-import "../../ERC20/ERC20.sol";
+
 
 contract FraxPoolV3 is Owned {
     using SafeMath for uint256;

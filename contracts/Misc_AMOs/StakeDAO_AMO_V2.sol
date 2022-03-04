@@ -28,7 +28,7 @@ import "../Frax/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import "../Misc_AMOs/stakedao/IStakeDaoVault.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Math/SafeMath.sol";
 import "../Proxy/Initializable.sol";
 import "../Staking/Owned.sol";

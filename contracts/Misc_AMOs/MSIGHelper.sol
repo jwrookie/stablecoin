@@ -25,7 +25,7 @@ import "../Math/Math.sol";
 import "../Frax/IFrax.sol";
 import "../FXS/IFxs.sol";
 import "../Frax/IFraxAMOMinter.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '../Uniswap/TransferHelper.sol';
 import "../Staking/Owned.sol";
 

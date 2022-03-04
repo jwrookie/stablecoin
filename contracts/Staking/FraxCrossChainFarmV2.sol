@@ -38,9 +38,9 @@ import "../Curve/IveFXS.sol";
 import "../Curve/FraxCrossChainRewarder.sol";
 import "../ERC20/__CROSSCHAIN/IanyFXS.sol";
 import "../ERC20/__CROSSCHAIN/CrossChainCanonicalFXS.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 import '../Misc_AMOs/curve/I2pool.sol'; // Curve 2-token
 // import '../Misc_AMOs/curve/I3pool.sol'; // Curve 3-token

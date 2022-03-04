@@ -26,11 +26,13 @@ pragma solidity >=0.6.11;
 // 1) Have to call getVirtualReserves() on every update of the reserve, such that we can call _update with the averages of the reserve
 
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+
 import "../../Math/Math.sol";
 import "../../Math/SafeMath.sol";
 import "../../FXS/FXS.sol";
 import "../../Frax/Frax.sol";
-import "../../ERC20/ERC20.sol";
+
 import "../../Uniswap/UniswapV2Library.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "../../Governance/AccessControl.sol";

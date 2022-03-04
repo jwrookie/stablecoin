@@ -27,7 +27,7 @@ import "../Math/SafeMath.sol";
 import "../Oracle/AggregatorV3Interface.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Staking/Owned.sol";
 
 contract TokenTrackerAMO is Owned {

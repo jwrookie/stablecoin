@@ -36,9 +36,9 @@ import "../Math/Math.sol";
 import "../Math/SafeMath.sol";
 import "../Curve/IveFXS.sol";
 import "../Curve/FraxCrossChainRewarder.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 // import '../Misc_AMOs/impossible/IStableXPair.sol'; // Impossible
 // import '../Misc_AMOs/mstable/IFeederPool.sol'; // mStable

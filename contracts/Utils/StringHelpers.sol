@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.11;
+pragma solidity >=0.8.0;
 
 
 library StringHelpers {
@@ -189,7 +189,7 @@ library StringHelpers {
         bytes memory bstr = new bytes(len);
         uint k = len - 1;
         while (_i != 0) {
-            bstr[k--] = byte(uint8(48 + _i % 10));
+            bstr[k--] = bytes1(uint8(48 + _i % 10));
             _i /= 10;
         }
         return string(bstr);

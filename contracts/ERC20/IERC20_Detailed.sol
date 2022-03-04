@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.11;
 
-import "../Common/Context.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
 import "../Math/SafeMath.sol";
 
 /**

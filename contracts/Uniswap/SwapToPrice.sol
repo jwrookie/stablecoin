@@ -5,7 +5,7 @@ import './Interfaces/IUniswapV2Pair.sol';
 import '../Math/Babylonian.sol';
 import '../Math/SafeMath.sol';
 import './TransferHelper.sol';
-import '../ERC20/IERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import './Interfaces/IUniswapV2Router01.sol';
 import './UniswapV2Library.sol';
 

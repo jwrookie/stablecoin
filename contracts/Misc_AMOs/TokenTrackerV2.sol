@@ -28,7 +28,7 @@ import "../Oracle/ComboOracle.sol";
 import "../Frax/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Staking/Owned.sol";
 
 contract TokenTrackerV2 is Owned {

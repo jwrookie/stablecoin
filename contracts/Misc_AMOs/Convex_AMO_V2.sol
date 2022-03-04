@@ -32,7 +32,7 @@ import "../Misc_AMOs/convex/IcvxRewardPool.sol";
 import "../Frax/Frax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Math/SafeMath.sol";
 import "../Proxy/Initializable.sol";
 import "../Staking/Owned.sol";

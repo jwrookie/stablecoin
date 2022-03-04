@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity 0.6.11;
+pragma solidity >=0.8.0;
 pragma experimental ABIEncoderV2;
 
 // ====================================================================
@@ -26,7 +26,7 @@ pragma experimental ABIEncoderV2;
 import "./IStableSwap3Pool.sol";
 import "./IMetaImplementationUSD.sol";
 import "../Misc_AMOs/yearn/IYearnVault.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Frax/Frax.sol";
 import "../FXS/FXS.sol";
 import "../Math/SafeMath.sol";

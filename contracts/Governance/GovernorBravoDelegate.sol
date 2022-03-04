@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.11;
+pragma solidity >=0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./GovernorBravoInterfaces.sol";
@@ -82,33 +82,33 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
 
         uint latestProposalId = latestProposalIds[msg.sender];
         if (latestProposalId != 0) {
-          ProposalState proposersLatestProposalState = state(latestProposalId);
-          require(proposersLatestProposalState != ProposalState.Active, "GovernorBravo::propose: one live proposal per proposer, found an already active proposal");
-          require(proposersLatestProposalState != ProposalState.Pending, "GovernorBravo::propose: one live proposal per proposer, found an already pending proposal");
+            ProposalState proposersLatestProposalState = state(latestProposalId);
+            require(proposersLatestProposalState != ProposalState.Active, "GovernorBravo::propose: one live proposal per proposer, found an already active proposal");
+            require(proposersLatestProposalState != ProposalState.Pending, "GovernorBravo::propose: one live proposal per proposer, found an already pending proposal");
         }
 
         uint startBlock = add256(block.number, votingDelay);
         uint endBlock = add256(startBlock, votingPeriod);
 
         proposalCount++;
-        Proposal memory newProposal = Proposal({
-            id: proposalCount,
-            proposer: msg.sender,
-            eta: 0,
-            targets: targets,
-            values: values,
-            signatures: signatures,
-            calldatas: calldatas,
-            startBlock: startBlock,
-            endBlock: endBlock,
-            forVotes: 0,
-            againstVotes: 0,
-            abstainVotes: 0,
-            canceled: false,
-            executed: false
-        });
+        Proposal storage newProposal = proposals[proposalCount];
 
-        proposals[newProposal.id] = newProposal;
+        newProposal.id = proposalCount;
+        newProposal.proposer = msg.sender;
+        newProposal.eta = 0;
+        newProposal.targets = targets;
+        newProposal.values = values;
+        newProposal.signatures = signatures;
+        newProposal.calldatas = calldatas;
+        newProposal.startBlock = startBlock;
+        newProposal.endBlock = endBlock;
+        newProposal.forVotes = 0;
+        newProposal.againstVotes = 0;
+        newProposal.abstainVotes = 0;
+        newProposal.canceled = false;
+        newProposal.executed = false;
+
+
         latestProposalIds[newProposal.proposer] = newProposal.id;
 
         emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
@@ -144,7 +144,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
-            timelock.executeTransaction{value: proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+            timelock.executeTransaction{value : proposal.values[i]}(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
         emit ProposalExecuted(proposalId);
     }
@@ -281,7 +281,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         uint oldVotingDelay = votingDelay;
         votingDelay = newVotingDelay;
 
-        emit VotingDelaySet(oldVotingDelay,votingDelay);
+        emit VotingDelaySet(oldVotingDelay, votingDelay);
     }
 
     /**
@@ -376,9 +376,9 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV1, GovernorBravoE
         return a - b;
     }
 
-    function getChainIdInternal() internal pure returns (uint) {
+    function getChainIdInternal() internal view returns (uint) {
         uint chainId;
-        assembly { chainId := chainid() }
+        assembly {chainId := chainid()}
         return chainId;
     }
 }

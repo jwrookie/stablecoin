@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
-import '../../ERC20/IERC20.sol';
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 // https://etherscan.io/address/0x5f18C75AbDAe578b483E5F43f12a39cF75b973a9
 // Some functions were omitted for brevity. See the contract for details

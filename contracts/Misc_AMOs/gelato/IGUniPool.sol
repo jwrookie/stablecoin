@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
-import { IERC20 } from "../../ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { IUniswapV3Pool } from "../../Uniswap_V3/IUniswapV3Pool.sol";
 
 interface IGUniPool {

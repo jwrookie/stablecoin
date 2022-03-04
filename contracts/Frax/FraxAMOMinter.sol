@@ -30,7 +30,7 @@ import "./IFrax.sol";
 import "../FXS/IFxs.sol";
 import "../Frax/Pools/FraxPoolV3.sol";
 import "../Frax/Pools/IFraxPool.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Staking/Owned.sol";
 import '../Uniswap/TransferHelper.sol';
 import '../Misc_AMOs/IAMO.sol';

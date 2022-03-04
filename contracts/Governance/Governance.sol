@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.11;
+pragma solidity >=0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "../FXS/FXS.sol";
@@ -11,22 +11,22 @@ contract GovernorAlpha {
     string public constant name = "FXS Governor Alpha";
 
     /// @notice The number of votes in support of a proposal required in order for a quorum to be reached and for a vote to succeed
-    function quorumVotes() public pure returns (uint) { return 4000000e18; } // 4,000,000 = 4% of FXS
+    function quorumVotes() public pure returns (uint) {return 4000000e18;} // 4,000,000 = 4% of FXS
 
     /// @notice The number of votes required in order for a voter to become a proposer
-    function proposalThreshold() public pure returns (uint) { return 1000000e18; } // 1,000,000 = 1% of FXS
+    function proposalThreshold() public pure returns (uint) {return 1000000e18;} // 1,000,000 = 1% of FXS
 
     /// @notice The maximum number of actions that can be included in a proposal
-    function proposalMaxOperations() public pure returns (uint) { return 10; } // 10 actions
+    function proposalMaxOperations() public pure returns (uint) {return 10;} // 10 actions
 
     /// @notice The delay before voting on a proposal may take place, once proposed
     // This also helps protect against flash loan attacks because only the vote balance at the proposal start block is considered
-    function votingDelay() public pure returns (uint) { return 1; } // 1 block
+    function votingDelay() public pure returns (uint) {return 1;} // 1 block
 
     /// @notice The duration of voting on a proposal, in blocks
     // function votingPeriod() public pure returns (uint) { return 17280; } // ~3 days in blocks (assuming 15s blocks)
     uint public votingPeriod = 17280;
-    
+
     /// @notice The address of the Timelock
     TimelockInterface public timelock;
 
@@ -86,7 +86,7 @@ contract GovernorAlpha {
         string description;
 
         // @notice Receipts of ballots for the entire set of voters
-        mapping (address => Receipt) receipts;
+        mapping(address => Receipt) receipts;
     }
 
     /// @notice Ballot receipt record for a voter
@@ -114,10 +114,10 @@ contract GovernorAlpha {
     }
 
     /// @notice The official record of all proposals ever proposed
-    mapping (uint => Proposal) public proposals;
+    mapping(uint => Proposal) public proposals;
 
     /// @notice The latest proposal for each proposer
-    mapping (address => uint) public latestProposalIds;
+    mapping(address => uint) public latestProposalIds;
 
     /// @notice The EIP-712 typehash for the contract's domain
     bytes32 public constant DOMAIN_TYPEHASH = keccak256("EIP712Domain(string name,uint256 chainId,address verifyingContract)");
@@ -154,34 +154,33 @@ contract GovernorAlpha {
 
         uint latestProposalId = latestProposalIds[msg.sender];
         if (latestProposalId != 0) {
-          ProposalState proposersLatestProposalState = state(latestProposalId);
-          require(proposersLatestProposalState != ProposalState.Active, "GovernorAlpha::propose: one live proposal per proposer, found an already active proposal");
-          require(proposersLatestProposalState != ProposalState.Pending, "GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal");
+            ProposalState proposersLatestProposalState = state(latestProposalId);
+            require(proposersLatestProposalState != ProposalState.Active, "GovernorAlpha::propose: one live proposal per proposer, found an already active proposal");
+            require(proposersLatestProposalState != ProposalState.Pending, "GovernorAlpha::propose: one live proposal per proposer, found an already pending proposal");
         }
 
         uint startBlock = add256(block.number, votingDelay());
         uint endBlock = add256(startBlock, votingPeriod);
 
         proposalCount++;
-        Proposal memory newProposal = Proposal({
-            id: proposalCount,
-            proposer: msg.sender,
-            eta: 0,
-            targets: targets,
-            values: values,
-            signatures: signatures,
-            calldatas: calldatas,
-            startBlock: startBlock,
-            endBlock: endBlock,
-            forVotes: 0,
-            againstVotes: 0,
-            canceled: false,
-            executed: false,
-            title: title,
-            description: description
-        });
+        Proposal storage newProposal = proposals[proposalCount];
+        newProposal.id = proposalCount;
+        newProposal.proposer = msg.sender;
+        newProposal.eta = 0;
+        newProposal.targets = targets;
+        newProposal.values = values;
+        newProposal.signatures = signatures;
+        newProposal.calldatas = calldatas;
+        newProposal.startBlock = startBlock;
+        newProposal.endBlock = endBlock;
+        newProposal.forVotes = 0;
+        newProposal.againstVotes = 0;
+        newProposal.canceled = false;
+        newProposal.executed = false;
 
-        proposals[newProposal.id] = newProposal;
+        newProposal.title = title;
+        newProposal.description = description;
+
         latestProposalIds[newProposal.proposer] = newProposal.id;
 
         emit ProposalCreated(newProposal.id, msg.sender, targets, values, signatures, calldatas, startBlock, endBlock, description);
@@ -334,19 +333,25 @@ contract GovernorAlpha {
         return a - b;
     }
 
-    function getChainId() internal pure returns (uint) {
+    function getChainId() internal view returns (uint) {
         uint chainId;
-        assembly { chainId := chainid() }
+        assembly {chainId := chainid()}
         return chainId;
     }
 }
 
 interface TimelockInterface {
     function delay() external view returns (uint);
+
     function GRACE_PERIOD() external view returns (uint);
+
     function acceptAdmin() external;
+
     function queuedTransactions(bytes32 hash) external view returns (bool);
+
     function queueTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external returns (bytes32);
+
     function cancelTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external;
+
     function executeTransaction(address target, uint value, string calldata signature, bytes calldata data, uint eta) external payable returns (bytes memory);
 }

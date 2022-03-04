@@ -2,7 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "../ERC20/ERC20Custom.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Math/SafeMath.sol";
 
 /**

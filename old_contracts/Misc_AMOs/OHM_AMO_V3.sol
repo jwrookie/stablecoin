@@ -21,7 +21,7 @@ pragma solidity >=0.8.0;
 // Sam Kazemian: https://github.com/samkazemian
 
 import "../Math/SafeMath.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../ERC20/Variants/Comp.sol";
 import "../Frax/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";

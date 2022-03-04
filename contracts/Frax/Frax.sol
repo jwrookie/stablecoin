@@ -21,10 +21,9 @@ pragma solidity >=0.6.11;
 // Reviewer(s) / Contributor(s)
 // Sam Sun: https://github.com/samczsun
 
-import "../Common/Context.sol";
-import "../ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../ERC20/ERC20Custom.sol";
-import "../ERC20/ERC20.sol";
 import "../Math/SafeMath.sol";
 import "../Staking/Owned.sol";
 import "../FXS/FXS.sol";

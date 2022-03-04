@@ -37,9 +37,9 @@ pragma experimental ABIEncoderV2;
 
 import "../Math/Math.sol";
 import "../Math/SafeMath.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Curve/IveFXS.sol";
-import "../ERC20/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import '../Uniswap/TransferHelper.sol';
 
 // -------------------- VARIES --------------------

@@ -26,7 +26,7 @@ import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 import "../Misc_AMOs/morganle/ITC.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Frax/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import "../Math/SafeMath.sol";

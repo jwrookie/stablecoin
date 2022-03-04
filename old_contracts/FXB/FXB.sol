@@ -20,10 +20,10 @@ pragma solidity >=0.6.11;
 // Jason Huan: https://github.com/jasonhuan
 // Sam Kazemian: https://github.com/samkazemian
 
-import "../Common/Context.sol";
-import "../ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../ERC20/ERC20Custom.sol";
-import "../ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Math/SafeMath.sol";
 import "../Governance/AccessControl.sol";
 
