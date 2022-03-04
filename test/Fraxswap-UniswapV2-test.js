@@ -76,11 +76,11 @@ async function setupContracts() {
 	await token1.mint(user3.address,"1000000000000000000000");
 
 	// Deploy UniswapV2Factory
-	const UniswapV2Factory = await ethers.getContractFactory("UniswapV2Factory");
+	const UniswapV2Factory = await ethers.getContractFactory("UniV2TWAMMFactory");
 	var factory = await UniswapV2Factory.deploy(owner.address);
 
 	// Create UniswapV2Pair
-	const UniswapV2Pair = await ethers.getContractFactory("UniswapV2Pair");
+	const UniswapV2Pair = await ethers.getContractFactory("UniV2TWAMMPair");
 	await factory.createPair(token0.address,token1.address);
 	var pair = UniswapV2Pair.attach(await factory.allPairs(0));
 
