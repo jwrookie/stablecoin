@@ -21,7 +21,7 @@ pragma solidity >=0.6.11;
 // Travis Moore: https://github.com/FortisFortuna
 
 import '../Frax/Frax.sol';
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./ReserveTracker.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 

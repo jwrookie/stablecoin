@@ -2,7 +2,7 @@
 pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/utils/Context.sol";
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @dev Interface of the ERC20 standard as defined in the EIP. Does not include

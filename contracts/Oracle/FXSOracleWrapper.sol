@@ -23,7 +23,7 @@ pragma solidity >=0.6.11;
 // Travis Moore: https://github.com/FortisFortuna
 // Sam Kazemian: https://github.com/samkazemian
 
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./AggregatorV3Interface.sol";
 import "../Staking/Owned.sol";
 

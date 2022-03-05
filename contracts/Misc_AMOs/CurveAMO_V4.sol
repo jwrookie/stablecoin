@@ -29,7 +29,7 @@ import '../Uniswap/TransferHelper.sol';
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Frax/Frax.sol";
 import "../Frax/IFraxAMOMinter.sol";
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Proxy/Initializable.sol";
 import "../Staking/Owned.sol";
 

@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 import './Interfaces/IUniswapV2Pair.sol';
 import '../Math/Babylonian.sol';
-import '../Math/SafeMath.sol';
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import './TransferHelper.sol';
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import './Interfaces/IUniswapV2Router01.sol';

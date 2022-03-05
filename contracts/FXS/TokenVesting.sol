@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 import "../ERC20/ERC20Custom.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 /**
  * @title TokenVesting

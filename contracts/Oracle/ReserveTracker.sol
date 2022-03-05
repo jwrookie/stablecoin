@@ -20,7 +20,7 @@ pragma solidity >=0.6.11;
 // Reviewer(s) / Contributor(s)
 // Travis Moore: https://github.com/FortisFortuna
 
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Math/Math.sol";
 import "../Uniswap/Interfaces/IUniswapV2Pair.sol";
 import "../Staking/Owned.sol";

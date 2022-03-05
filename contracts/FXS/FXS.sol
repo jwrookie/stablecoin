@@ -26,7 +26,7 @@ import "../ERC20/ERC20Custom.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../Frax/Frax.sol";
 import "../Staking/Owned.sol";
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Governance/AccessControl.sol";
 
 contract FRAXShares is ERC20Custom, AccessControl, Owned {

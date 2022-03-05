@@ -27,7 +27,7 @@ pragma solidity >=0.8.0;
 // https://github.com/Synthetixio/synthetix/blob/develop/contracts/StakingRewards.sol
 
 import "../Math/Math.sol";
-import "../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Curve/IveFXS.sol";
 import "../Uniswap/TransferHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";

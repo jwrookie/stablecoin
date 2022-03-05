@@ -26,8 +26,9 @@ pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Math/Math.sol";
-import "../Math/SafeMath.sol";
+
 
 import '../Uniswap/TransferHelper.sol';
 import "../Staking/Owned.sol";

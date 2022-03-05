@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 import "../../Math/Math.sol";
-import "../../Math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 contract TestDriftingReserves {
     using SafeMath for uint256;
     uint end_dift;
