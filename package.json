@@ -4,7 +4,8 @@
   "description": "Frax Finance smart contracts and testing",
   "main": "src/index.js",
   "scripts": {
-    "test": "npm test",
+    "compile": "hardhat compile",
+    "test": "hardhat test",
     "tsc": "tsc"
   },
   "keywords": [
