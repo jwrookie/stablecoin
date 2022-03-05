@@ -29,7 +29,6 @@ import "../Frax/Pools/FraxPoolV3.sol";
 import "../Oracle/UniswapPairOracle.sol";
 import '../Uniswap/TransferHelper.sol';
 import '../Uniswap/Interfaces/IUniswapV2Router02.sol';
-import "../Proxy/Initializable.sol";
 import "../Staking/Owned.sol";
 import "../Staking/veFXSYieldDistributorV4.sol";
 

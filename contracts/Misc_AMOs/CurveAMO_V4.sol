@@ -21,16 +21,15 @@ pragma solidity >=0.6.11;
 // Sam Kazemian: https://github.com/samkazemian
 // Dennis: github.com/denett
 
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 import "../Misc_AMOs/yearn/IYearnVault.sol";
 import '../Uniswap/TransferHelper.sol';
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "../Frax/Frax.sol";
 import "../Frax/IFraxAMOMinter.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../Proxy/Initializable.sol";
 import "../Staking/Owned.sol";
 
 contract CurveAMO_V4 is Owned {
