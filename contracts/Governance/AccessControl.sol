@@ -2,7 +2,7 @@
 
 pragma solidity >=0.6.11;
 
-import "../Utils/EnumerableSet.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/utils/Context.sol";
 

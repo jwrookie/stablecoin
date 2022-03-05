@@ -36,7 +36,7 @@ import '../Uniswap/TransferHelper.sol';
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../Frax/Frax.sol";
 import "../Uniswap/Interfaces/IUniswapV2Pair.sol";
-import "../Utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Inheritance
 import "./Owned.sol";

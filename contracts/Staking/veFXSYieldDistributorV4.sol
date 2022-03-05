@@ -32,7 +32,7 @@ import "../Curve/IveFXS.sol";
 import "../Uniswap/TransferHelper.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./Owned.sol";
 
 contract veFXSYieldDistributorV4 is Owned, ReentrancyGuard {

@@ -63,7 +63,7 @@ import '../Misc_AMOs/stakedao/IOpynPerpVault.sol';
 
 import "../Curve/IFraxGaugeController.sol";
 import "../Curve/IFraxGaugeFXSRewardsDistributor.sol";
-import "../Utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 // Inheritance
 import "./Owned.sol";

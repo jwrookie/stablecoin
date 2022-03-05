@@ -32,7 +32,7 @@ import "../Math/Math.sol";
 
 import '../Uniswap/TransferHelper.sol';
 import "../Staking/Owned.sol";
-import "../Utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract FraxCrossChainRewarder is Owned, ReentrancyGuard {
     using SafeMath for uint256;

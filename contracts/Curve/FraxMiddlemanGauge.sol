@@ -34,7 +34,7 @@ import "../Misc_AMOs/polygon/IRootChainManager.sol";
 import "../Misc_AMOs/solana/IWormhole.sol";
 import '../Uniswap/TransferHelper.sol';
 import "../Staking/Owned.sol";
-import "../Utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 contract FraxMiddlemanGauge is Owned, ReentrancyGuard {
     using SafeMath for uint256;
