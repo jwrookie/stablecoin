@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import { IUniswapV3Pool } from "../../Uniswap_V3/IUniswapV3Pool.sol";
+import { IUniswapV3Pool } from "@uniswap/v3-core/contracts/interfaces/IUniswapV3Pool.sol";
 
 interface IGUniPool {
     function mint(uint256 mintAmount, address receiver)

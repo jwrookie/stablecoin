@@ -60,7 +60,9 @@
     "util": "^0.12.4",
     "web3-eth-contract": "^1.7.0",
     "web3-utils": "^1.7.0",
-    "ws": "^8.5.0"
+    "ws": "^8.5.0",
+    "@uniswap/v3-core": "1.0.0",
+    "@uniswap/v3-periphery": "^1.0.1"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.5",
