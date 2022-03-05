@@ -25,6 +25,8 @@ pragma solidity ^0.8.0;
 // Travis Moore: https://github.com/FortisFortuna
 // Sam Kazemian: https://github.com/samkazemian
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import '../core/interfaces/IUniswapV2FactoryV5.sol';
 import '../core/interfaces/IUniV2TWAMMPair.sol';
 import '../libraries/TransferHelper.sol';
@@ -32,7 +34,6 @@ import '../libraries/TransferHelper.sol';
 import './interfaces/IUniswapV2Router02V5.sol';
 import './libraries/UniV2TWAMMLibrary.sol';
 import './libraries/SafeMath.sol';
-import './interfaces/IERC20.sol';
 import './interfaces/IWETH.sol';
 
 contract UniV2TWAMMRouter is IUniswapV2Router02V5 {
