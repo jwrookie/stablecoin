@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 pragma abicoder v2;
-
-import '../ERC721/IERC721.sol';
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 // Originally INonfungiblePositionManager
 interface IUniswapV3PositionsNFT is IERC721 {
