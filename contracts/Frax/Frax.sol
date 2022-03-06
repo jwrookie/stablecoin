@@ -35,6 +35,31 @@ import "../Governance/AccessControl.sol";
 contract FRAXStablecoin is ERC20Custom, AccessControl, Owned {
     using SafeMath for uint256;
 
+    /* ========== EVENTS ========== */
+
+    // Track FRAX burned
+    event FRAXBurned(address indexed from, address indexed to, uint256 amount);
+
+    // Track FRAX minted
+    event FRAXMinted(address indexed from, address indexed to, uint256 amount);
+
+    event CollateralRatioRefreshed(uint256 global_collateral_ratio);
+    event PoolAdded(address pool_address);
+    event PoolRemoved(address pool_address);
+    event RedemptionFeeSet(uint256 red_fee);
+    event MintingFeeSet(uint256 min_fee);
+    event FraxStepSet(uint256 new_step);
+    event PriceTargetSet(uint256 new_price_target);
+    event RefreshCooldownSet(uint256 new_cooldown);
+    event FXSAddressSet(address _fxs_address);
+    event ETHUSDOracleSet(address eth_usd_consumer_address);
+    event TimelockSet(address new_timelock);
+    event ControllerSet(address controller_address);
+    event PriceBandSet(uint256 price_band);
+    event FRAXETHOracleSet(address frax_oracle_addr, address weth_address);
+    event FXSEthOracleSet(address fxs_oracle_addr, address weth_address);
+    event CollateralRatioToggled(bool collateral_ratio_paused);
+
     /* ========== STATE VARIABLES ========== */
     enum PriceChoice { FRAX, FXS }
     ChainlinkETHUSDPriceConsumer private eth_usd_pricer;
@@ -360,28 +385,5 @@ contract FRAXStablecoin is ERC20Custom, AccessControl, Owned {
         emit CollateralRatioToggled(collateral_ratio_paused);
     }
 
-    /* ========== EVENTS ========== */
 
-    // Track FRAX burned
-    event FRAXBurned(address indexed from, address indexed to, uint256 amount);
-
-    // Track FRAX minted
-    event FRAXMinted(address indexed from, address indexed to, uint256 amount);
-
-    event CollateralRatioRefreshed(uint256 global_collateral_ratio);
-    event PoolAdded(address pool_address);
-    event PoolRemoved(address pool_address);
-    event RedemptionFeeSet(uint256 red_fee);
-    event MintingFeeSet(uint256 min_fee);
-    event FraxStepSet(uint256 new_step);
-    event PriceTargetSet(uint256 new_price_target);
-    event RefreshCooldownSet(uint256 new_cooldown);
-    event FXSAddressSet(address _fxs_address);
-    event ETHUSDOracleSet(address eth_usd_consumer_address);
-    event TimelockSet(address new_timelock);
-    event ControllerSet(address controller_address);
-    event PriceBandSet(uint256 price_band);
-    event FRAXETHOracleSet(address frax_oracle_addr, address weth_address);
-    event FXSEthOracleSet(address fxs_oracle_addr, address weth_address);
-    event CollateralRatioToggled(bool collateral_ratio_paused);
 }
