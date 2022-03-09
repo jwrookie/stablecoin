@@ -40,8 +40,6 @@ contract FraxPool is AccessControl, Owned {
     ERC20 private collateral_token;
     address private collateral_address;
 
-    address private frax_contract_address;
-    address private fxs_contract_address;
     address private timelock_address;
     FRAXShares private FXS;
     FRAXStablecoin private FRAX;
@@ -131,8 +129,6 @@ contract FraxPool is AccessControl, Owned {
         , "Zero address detected"); 
         FRAX = FRAXStablecoin(_frax_contract_address);
         FXS = FRAXShares(_fxs_contract_address);
-        frax_contract_address = _frax_contract_address;
-        fxs_contract_address = _fxs_contract_address;
         collateral_address = _collateral_address;
         timelock_address = _timelock_address;
         collateral_token = ERC20(_collateral_address);
