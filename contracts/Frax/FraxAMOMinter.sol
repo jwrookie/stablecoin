@@ -26,7 +26,7 @@ pragma solidity >=0.8.0;
 // Hameed
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./IFrax.sol";
+import "../interface/IFrax.sol";
 import "../FXS/IFxs.sol";
 import "../Frax/Pools/FraxPoolV3.sol";
 import "../Frax/Pools/IFraxPool.sol";

@@ -26,7 +26,7 @@ pragma solidity >=0.8.0;
 // Jack Corddry: https://github.com/corddry
 
 import "./FPI.sol";
-import "../Frax/IFrax.sol";
+import "../interface/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import "../Staking/Owned.sol";
 import "../Oracle/AggregatorV3Interface.sol";

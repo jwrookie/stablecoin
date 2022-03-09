@@ -33,7 +33,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '../../Uniswap/TransferHelper.sol';
 import "../../Staking/Owned.sol";
 import "../../FXS/IFxs.sol";
-import "../../Frax/IFrax.sol";
+import "../../interface/IFrax.sol";
 import "../../Oracle/AggregatorV3Interface.sol";
 import "../../Frax/IFraxAMOMinter.sol";
 

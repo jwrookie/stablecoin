@@ -23,7 +23,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../FXS/IFxs.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Frax/IFrax.sol";
+import "../interface/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import "../Frax/Pools/FraxPoolV3.sol";
 import "../Oracle/UniswapPairOracle.sol";

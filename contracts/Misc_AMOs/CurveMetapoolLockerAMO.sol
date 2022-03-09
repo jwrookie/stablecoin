@@ -27,7 +27,7 @@ import "../Curve/IMetaImplementationUSD.sol";
 import "../Misc_AMOs/morganle/ITC.sol";
 import '../Uniswap/TransferHelper.sol';
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Frax/IFrax.sol";
+import "../interface/IFrax.sol";
 import "../Frax/IFraxAMOMinter.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Staking/Owned.sol";
