@@ -8,6 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
+import "./AbstractPausable.sol";
 import "../FXS/IFxs.sol";
 import "../Staking/Owned.sol";
 import "../FXS/FXS.sol";
@@ -16,7 +17,7 @@ import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
 import "../Governance/AccessControl.sol";
 
-contract FRAXStablecoin is ERC20Burnable, Ownable, Pausable {
+contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     /* ========== EVENTS ========== */
@@ -313,14 +314,6 @@ contract FRAXStablecoin is ERC20Burnable, Ownable, Pausable {
         weth = _weth_address;
 
         emit FXSEthOracleSet(_fxs_oracle_addr, _weth_address);
-    }
-
-    function togglePause() public onlyOwner {
-        if (paused()) {
-            _unpause();
-        } else {
-            _pause();
-        }
     }
 
 
