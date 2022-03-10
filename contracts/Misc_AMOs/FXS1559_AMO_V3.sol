@@ -111,7 +111,7 @@ contract FXS1559_AMO_V3 is Owned {
 
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
         frax_val_e18 = FRAX.balanceOf(address(this));
-        collat_val_e18 = frax_val_e18.mul(COLLATERAL_RATIO_PRECISION).div(FRAX.global_collateral_ratio());
+        collat_val_e18 = frax_val_e18.mul(COLLATERAL_RATIO_PRECISION).div(FRAX.globalCollateralRatio());
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
@@ -146,7 +146,7 @@ contract FXS1559_AMO_V3 is Owned {
     function swapBurn(uint256 override_frax_amount, bool use_override) public onlyByOwnGov {
         uint256 mintable_frax;
         if (use_override){
-            // mintable_frax = override_USDC_amount.mul(10 ** missing_decimals).mul(COLLATERAL_RATIO_PRECISION).div(FRAX.global_collateral_ratio());
+            // mintable_frax = override_USDC_amount.mul(10 ** missing_decimals).mul(COLLATERAL_RATIO_PRECISION).div(FRAX.globalCollateralRatio());
             mintable_frax = override_frax_amount;
         }
         else {

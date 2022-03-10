@@ -182,9 +182,9 @@ contract FraxAMOMinter is Owned {
     function oldPoolRedeem(uint256 frax_amount) external onlyByOwnGov {
         uint256 redemption_fee = old_pool.redemption_fee();
         uint256 col_price_usd = old_pool.getCollateralPrice();
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 redeem_amount_E6 = ((frax_amount * (uint256(1e6) - redemption_fee)) / 1e6) / (10 ** missing_decimals);
-        uint256 expected_collat_amount = (redeem_amount_E6 * global_collateral_ratio) / 1e6;
+        uint256 expected_collat_amount = (redeem_amount_E6 * globalCollateralRatio) / 1e6;
         expected_collat_amount = (expected_collat_amount * 1e6) / col_price_usd;
 
         require((collat_borrowed_sum + int256(expected_collat_amount)) <= collat_borrow_cap, "Borrow cap");

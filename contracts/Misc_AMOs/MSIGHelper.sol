@@ -149,7 +149,7 @@ contract MSIGHelper is Owned {
         uint256[10] memory allocations = showAllocations();
 
         // FRAX portion is Frax * CR
-        uint256 frax_portion_with_cr = (allocations[0] * FRAX.global_collateral_ratio()) / PRICE_PRECISION;
+        uint256 frax_portion_with_cr = (allocations[0] * FRAX.globalCollateralRatio()) / PRICE_PRECISION;
 
         // Collateral portion
         uint256 collat_portion = allocations[6];

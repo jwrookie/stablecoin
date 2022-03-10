@@ -60,7 +60,7 @@ contract FRAXShares is ERC20Burnable, AccessControl, Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyPools() {
-        require(FRAX.frax_pools(msg.sender) == true, "Only frax pools can mint new FRAX");
+        require(FRAX.isFraxPools(msg.sender) == true, "Only frax pools can mint new FRAX");
         _;
     }
 

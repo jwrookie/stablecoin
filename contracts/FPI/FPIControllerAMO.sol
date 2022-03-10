@@ -104,7 +104,7 @@ contract FPIControllerAMO is Owned {
     // Needed as an AMO
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
         frax_val_e18 = FRAX.balanceOf(address(this));
-        collat_val_e18 = (frax_val_e18 * 1e6) / FRAX.global_collateral_ratio();
+        collat_val_e18 = (frax_val_e18 * 1e6) / FRAX.globalCollateralRatio();
     }
 
     function getFRAXPriceE18() public view returns (uint256) {

@@ -310,10 +310,10 @@ contract FraxPoolvAMM is AccessControl {
 
     function availableExcessCollatDV() public view returns (uint256) {
         uint256 total_supply = FRAX.totalSupply();
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
 
-        uint256 target_collat_value = total_supply.mul(global_collateral_ratio).div(1e6);
+        uint256 target_collat_value = total_supply.mul(globalCollateralRatio).div(1e6);
 
         if(global_collat_value > target_collat_value){
             return global_collat_value.sub(target_collat_value);
@@ -349,18 +349,18 @@ contract FraxPoolvAMM is AccessControl {
     /* ========== PUBLIC FUNCTIONS ========== */
 
     function mintFractionalFRAX(uint256 collateral_amount, uint256 fxs_amount, uint256 FRAX_out_min) public notMintPaused returns (uint256, uint256, uint256) {
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         // Do not need to equalize decimals between FXS and collateral, getAmountOut & reserves takes care of it
         // Still need to adjust for FRAX (18 decimals) and collateral (not always 18 decimals)
         uint256 total_frax_mint;
         uint256 collat_needed;
         uint256 fxs_needed;
-        if (global_collateral_ratio == 1e6) { // 1-to-1
+        if (globalCollateralRatio == 1e6) { // 1-to-1
             total_frax_mint = collateral_amount.mul(10 ** missing_decimals);
             collat_needed = collateral_amount;
             fxs_needed = 0;
-        } else if (global_collateral_ratio == 0) { // Algorithmic
+        } else if (globalCollateralRatio == 0) { // Algorithmic
             // Assumes 1 collat = 1 FRAX at all times 
             total_frax_mint = getAmountOut(fxs_amount, fxs_virtual_reserves, collat_virtual_reserves, minting_fee);
             _update(fxs_virtual_reserves.add(fxs_amount), collat_virtual_reserves.sub(total_frax_mint), fxs_virtual_reserves, collat_virtual_reserves);
@@ -373,7 +373,7 @@ contract FraxPoolvAMM is AccessControl {
             uint256 frax_mint_from_fxs = getAmountOut(fxs_amount, fxs_virtual_reserves, collat_virtual_reserves, minting_fee);
             _update(fxs_virtual_reserves.add(fxs_amount), collat_virtual_reserves.sub(frax_mint_from_fxs), fxs_virtual_reserves, collat_virtual_reserves);
 
-            collat_needed = frax_mint_from_fxs.mul(1e6).div(uint(1e6).sub(global_collateral_ratio)); // find collat needed at collateral ratio
+            collat_needed = frax_mint_from_fxs.mul(1e6).div(uint(1e6).sub(globalCollateralRatio)); // find collat needed at collateral ratio
             require(collat_needed <= collateral_amount, "Not enough collateral inputted");
 
             uint256 frax_mint_from_collat = collat_needed.mul(10 ** missing_decimals);
@@ -392,34 +392,34 @@ contract FraxPoolvAMM is AccessControl {
         // Using collateral_needed here could cause problems if the reserves are off
         // Useful in case of a sandwich attack or some other fault with the virtual reserves
         // Assumes $1 collateral (USDC, USDT, DAI, etc)
-        require(total_frax_mint <= collateral_amount.mul(10 ** missing_decimals).mul(uint256(1e6).add(max_drift_band)).div(global_collateral_ratio), "[max_drift_band] Too much FRAX being minted");
+        require(total_frax_mint <= collateral_amount.mul(10 ** missing_decimals).mul(uint256(1e6).add(max_drift_band)).div(globalCollateralRatio), "[max_drift_band] Too much FRAX being minted");
         FRAX.pool_mint(msg.sender, total_frax_mint);
 
         return (total_frax_mint, collat_needed, fxs_needed);
     }
 
     function redeemFractionalFRAX(uint256 FRAX_amount, uint256 fxs_out_min, uint256 collateral_out_min) public notRedeemPaused returns (uint256, uint256, uint256) {
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         uint256 collat_out;
         uint256 fxs_out;
 
         uint256 collat_equivalent = FRAX_amount.div(10 ** missing_decimals);
 
-        if(global_collateral_ratio == 1e6) { // 1-to-1
+        if(globalCollateralRatio == 1e6) { // 1-to-1
             collat_out = collat_equivalent;
             fxs_out = 0;
 
-        } else if (global_collateral_ratio == 0) { // Algorithmic
+        } else if (globalCollateralRatio == 0) { // Algorithmic
             fxs_out = getAmountOut(collat_equivalent, collat_virtual_reserves, fxs_virtual_reserves, redemption_fee); // switch FRAX to units of collateral and swap
             collat_out = 0;
 
             _update(fxs_virtual_reserves.sub(fxs_out), collat_virtual_reserves.add(collat_equivalent), fxs_virtual_reserves, collat_virtual_reserves);
         } else { // Fractional
-            collat_out = collat_equivalent.mul(global_collateral_ratio).div(1e6);
-            fxs_out = getAmountOut(collat_equivalent.mul((uint(1e6).sub(global_collateral_ratio))).div(1e6), collat_virtual_reserves, fxs_virtual_reserves, redemption_fee);
+            collat_out = collat_equivalent.mul(globalCollateralRatio).div(1e6);
+            fxs_out = getAmountOut(collat_equivalent.mul((uint(1e6).sub(globalCollateralRatio))).div(1e6), collat_virtual_reserves, fxs_virtual_reserves, redemption_fee);
 
-            _update(fxs_virtual_reserves.sub(fxs_out), collat_virtual_reserves.add(collat_equivalent.mul((uint(1e6).sub(global_collateral_ratio))).div(1e6)), fxs_virtual_reserves, collat_virtual_reserves);
+            _update(fxs_virtual_reserves.sub(fxs_out), collat_virtual_reserves.add(collat_equivalent.mul((uint(1e6).sub(globalCollateralRatio))).div(1e6)), fxs_virtual_reserves, collat_virtual_reserves);
         }
 
         require(collat_out <= collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral), "Not enough collateral in pool");
@@ -434,7 +434,7 @@ contract FraxPoolvAMM is AccessControl {
         // traded and that may approximate a sane transaction.
         // Alternatively, maybe it could be done as it is done on lines 496 and 497.
 
-        require(collat_out.mul(10 ** missing_decimals) <= FRAX_amount.mul(global_collateral_ratio).mul(uint256(1e6).add(max_drift_band)).div(1e12), "[max_drift_band] Too much collateral being released");
+        require(collat_out.mul(10 ** missing_decimals) <= FRAX_amount.mul(globalCollateralRatio).mul(uint256(1e6).add(max_drift_band)).div(1e12), "[max_drift_band] Too much collateral being released");
         
         redeemCollateralBalances[msg.sender] = redeemCollateralBalances[msg.sender].add(collat_out);
         unclaimedPoolCollateral = unclaimedPoolCollateral.add(collat_out);
@@ -495,9 +495,9 @@ contract FraxPoolvAMM is AccessControl {
         require(fxs_out >= FXS_out_min, "Slippage limit reached");
 
         uint256 total_supply = FRAX.totalSupply();
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
-        uint256 target_collat_value = total_supply.mul(global_collateral_ratio);
+        uint256 target_collat_value = total_supply.mul(globalCollateralRatio);
 
         require(target_collat_value >= global_collat_value + collateral_amount.mul(10 ** missing_decimals), "Too much recollateralize inputted");
 

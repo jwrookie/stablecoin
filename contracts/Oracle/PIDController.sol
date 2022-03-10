@@ -114,7 +114,7 @@ contract PIDController is Owned {
 
         uint256 new_growth_ratio = fxs_liquidity.div(frax_supply); // (E18 + E6) / E18
 
-        uint256 last_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 last_collateral_ratio = FRAX.globalCollateralRatio();
         uint256 new_collateral_ratio = last_collateral_ratio;
 
         if(FIP_6){

@@ -68,7 +68,7 @@ contract CurveAMO_V4 is Owned {
     // Convergence window
     uint256 public convergence_window; // 0.1 cent
 
-    // Default will use global_collateral_ratio()
+    // Default will use globalCollateralRatio()
     bool public custom_floor;    
     uint256 public frax_floor;
 
@@ -140,7 +140,7 @@ contract CurveAMO_V4 is Owned {
         lp_owned = lp_owned.add(lp_value_in_vault);
 
         // ------------3pool Withdrawable------------
-        // Uses iterate() to get metapool withdrawable amounts at FRAX floor price (global_collateral_ratio)
+        // Uses iterate() to get metapool withdrawable amounts at FRAX floor price (globalCollateralRatio)
         uint256 frax3crv_supply = frax3crv_metapool.totalSupply();
 
         uint256 frax_withdrawable;
@@ -227,7 +227,7 @@ contract CurveAMO_V4 is Owned {
         if(custom_floor){
             return frax_floor;
         } else {
-            return FRAX.global_collateral_ratio();
+            return FRAX.globalCollateralRatio();
         }
     }
 
@@ -235,7 +235,7 @@ contract CurveAMO_V4 is Owned {
         if(set_discount){
             return discount_rate;
         } else {
-            return FRAX.global_collateral_ratio();
+            return FRAX.globalCollateralRatio();
         }
     }
 
@@ -411,13 +411,13 @@ contract CurveAMO_V4 is Owned {
         convergence_window = _window;
     }
 
-    // in terms of 1e6 (overriding global_collateral_ratio)
+    // in terms of 1e6 (overriding globalCollateralRatio)
     function setCustomFloor(bool _state, uint256 _floor_price) external onlyByOwnGov {
         custom_floor = _state;
         frax_floor = _floor_price;
     }
 
-    // in terms of 1e6 (overriding global_collateral_ratio)
+    // in terms of 1e6 (overriding globalCollateralRatio)
     function setDiscountRate(bool _state, uint256 _discount_rate) external onlyByOwnGov {
         set_discount = _state;
         discount_rate = _discount_rate;

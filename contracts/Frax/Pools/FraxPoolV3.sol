@@ -293,11 +293,11 @@ contract FraxPoolV3 is Owned {
     // Also has throttling to avoid dumps during large price movements
     function buybackAvailableCollat() public view returns (uint256) {
         uint256 total_supply = FRAX.totalSupply();
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
 
-        if (global_collateral_ratio > PRICE_PRECISION) global_collateral_ratio = PRICE_PRECISION; // Handles an overcollateralized contract with CR > 1
-        uint256 required_collat_dollar_value_d18 = (total_supply.mul(global_collateral_ratio)).div(PRICE_PRECISION); // Calculates collateral needed to back each 1 FRAX with $1 of collateral at current collat ratio
+        if (globalCollateralRatio > PRICE_PRECISION) globalCollateralRatio = PRICE_PRECISION; // Handles an overcollateralized contract with CR > 1
+        uint256 required_collat_dollar_value_d18 = (total_supply.mul(globalCollateralRatio)).div(PRICE_PRECISION); // Calculates collateral needed to back each 1 FRAX with $1 of collateral at current collat ratio
         
         if (global_collat_value > required_collat_dollar_value_d18) {
             // Get the theoretical buyback amount
@@ -317,7 +317,7 @@ contract FraxPoolV3 is Owned {
         uint256 frax_total_supply = FRAX.totalSupply();
         uint256 effective_collateral_ratio = FRAX.globalCollateralValue().mul(PRICE_PRECISION).div(frax_total_supply); // Returns it in 1e6
         
-        uint256 desired_collat_e24 = (FRAX.global_collateral_ratio()).mul(frax_total_supply);
+        uint256 desired_collat_e24 = (FRAX.globalCollateralRatio()).mul(frax_total_supply);
         uint256 effective_collat_e24 = effective_collateral_ratio.mul(frax_total_supply);
 
         // Return 0 if already overcollateralized
@@ -370,19 +370,19 @@ contract FraxPoolV3 is Owned {
         // Prevent unneccessary mints
         require(getFRAXPrice() >= mint_price_threshold, "Frax price too low");
 
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
-        if (one_to_one_override || global_collateral_ratio >= PRICE_PRECISION) { 
+        if (one_to_one_override || globalCollateralRatio >= PRICE_PRECISION) {
             // 1-to-1, overcollateralized, or user selects override
             collat_needed = getFRAXInCollateral(col_idx, frax_amt);
             fxs_needed = 0;
-        } else if (global_collateral_ratio == 0) { 
+        } else if (globalCollateralRatio == 0) {
             // Algorithmic
             collat_needed = 0;
             fxs_needed = frax_amt.mul(PRICE_PRECISION).div(getFXSPrice());
         } else { 
             // Fractional
-            uint256 frax_for_collat = frax_amt.mul(global_collateral_ratio).div(PRICE_PRECISION);
+            uint256 frax_for_collat = frax_amt.mul(globalCollateralRatio).div(PRICE_PRECISION);
             uint256 frax_for_fxs = frax_amt.sub(frax_for_collat);
             collat_needed = getFRAXInCollateral(col_idx, frax_for_collat);
             fxs_needed = frax_for_fxs.mul(PRICE_PRECISION).div(getFXSPrice());
@@ -421,15 +421,15 @@ contract FraxPoolV3 is Owned {
         // Prevent unnecessary redemptions that could adversely affect the FXS price
         require(getFRAXPrice() <= redeem_price_threshold, "Frax price too high");
 
-        uint256 global_collateral_ratio = FRAX.global_collateral_ratio();
+        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 frax_after_fee = (frax_amount.mul(PRICE_PRECISION.sub(redemption_fee[col_idx]))).div(PRICE_PRECISION);
 
         // Assumes $1 FRAX in all cases
-        if(global_collateral_ratio >= PRICE_PRECISION) { 
+        if(globalCollateralRatio >= PRICE_PRECISION) {
             // 1-to-1 or overcollateralized
             collat_out = getFRAXInCollateral(col_idx, frax_after_fee);
             fxs_out = 0;
-        } else if (global_collateral_ratio == 0) { 
+        } else if (globalCollateralRatio == 0) {
             // Algorithmic
             fxs_out = frax_after_fee
                             .mul(PRICE_PRECISION)
@@ -438,10 +438,10 @@ contract FraxPoolV3 is Owned {
         } else { 
             // Fractional
             collat_out = getFRAXInCollateral(col_idx, frax_after_fee)
-                            .mul(global_collateral_ratio)
+                            .mul(globalCollateralRatio)
                             .div(PRICE_PRECISION);
             fxs_out = frax_after_fee
-                            .mul(PRICE_PRECISION.sub(global_collateral_ratio))
+                            .mul(PRICE_PRECISION.sub(globalCollateralRatio))
                             .div(getFXSPrice()); // PRICE_PRECISIONS CANCEL OUT
         }
 

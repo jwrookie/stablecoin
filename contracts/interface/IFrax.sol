@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 interface IFrax is IERC20 {
     function globalCollateralValue() external view returns (uint256);
 
-    function global_collateral_ratio() external view returns (uint256);
+    function globalCollateralRatio() external view returns (uint256);
 
     function pool_burn_from(address b_address, uint256 b_amount) external;
 
