@@ -67,17 +67,16 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     mapping(address => bool) public isFraxPools;
 
 
-
     uint256 public globalCollateralRatio; // 6 decimals of precision, e.g. 924102 = 0.924102
-    uint256 public redemption_fee; // 6 decimals of precision, divide by 1000000 in calculations for fee
-    uint256 public minting_fee; // 6 decimals of precision, divide by 1000000 in calculations for fee
-    uint256 public frax_step; // Amount to change the collateralization ratio by upon refreshCollateralRatio()
-    uint256 public refresh_cooldown; // Seconds to wait before being able to run refreshCollateralRatio() again
-    uint256 public price_target; // The price of FRAX at which the collateral ratio will respond to; this value is only used for the collateral ratio mechanism and not for minting and redeeming which are hardcoded at $1
-    uint256 public price_band; // The bound above and below the price target at which the refreshCollateralRatio() will not change the collateral ratio
+    uint256 public redemptionFee; // 6 decimals of precision, divide by 1000000 in calculations for fee
+    uint256 public mintingFee; // 6 decimals of precision, divide by 1000000 in calculations for fee
+    uint256 public fraxStep; // Amount to change the collateralization ratio by upon refreshCollateralRatio()
+    uint256 public refreshCooldown; // Seconds to wait before being able to run refreshCollateralRatio() again
+    uint256 public priceTarget; // The price of FRAX at which the collateral ratio will respond to; this value is only used for the collateral ratio mechanism and not for minting and redeeming which are hardcoded at $1
+    uint256 public priceBand; // The bound above and below the price target at which the refreshCollateralRatio() will not change the collateral ratio
 
     bool public collateral_ratio_paused = false;
-
+    uint256 public last_call_time; // Last time the refreshCollateralRatio function was called
 
     modifier onlyPools() {
         require(isFraxPools[msg.sender] == true, "Only frax pools can call this function");
@@ -99,22 +98,22 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
         string memory _symbol
     ) public ERC20(_name, _symbol){
         _mint(msg.sender, GENESIS_SUPPLY);
-        frax_step = 2500;
+        fraxStep = 2500;
         // 6 decimals of precision, equal to 0.25%
         globalCollateralRatio = 1000000;
         // Frax system starts off fully collateralized (6 decimals of precision)
-        refresh_cooldown = 3600;
+        refreshCooldown = 3600;
         // Refresh cooldown period is set to 1 hour (3600 seconds) at genesis
-        price_target = 1000000;
+        priceTarget = 1000000;
         // Collateral ratio will adjust according to the $1 price target at genesis
-        price_band = 5000;
+        priceBand = 5000;
         // Collateral ratio will not adjust if between $0.995 and $1.005 at genesis
     }
 
     /* ========== VIEWS ========== */
 
     // Choice = 'FRAX' or 'FXS' for now
-    function oracle_price(PriceChoice choice) internal view returns (uint256) {
+    function oraclePrice(PriceChoice choice) internal view returns (uint256) {
         // Get the ETH / USD price first, and cut it down to 1e6 precision
         uint256 __eth_usd_price = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
         uint256 price_vs_eth = 0;
@@ -134,30 +133,30 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     }
 
     // Returns X FRAX = 1 USD
-    function frax_price() public view returns (uint256) {
-        return oracle_price(PriceChoice.FRAX);
+    function fraxPrice() public view returns (uint256) {
+        return oraclePrice(PriceChoice.FRAX);
     }
 
     // Returns X FXS = 1 USD
-    function fxs_price() public view returns (uint256) {
-        return oracle_price(PriceChoice.FXS);
+    function fxsPrice() public view returns (uint256) {
+        return oraclePrice(PriceChoice.FXS);
     }
 
-    function eth_usd_price() public view returns (uint256) {
+    function ethUsdPrice() public view returns (uint256) {
         return uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
     }
 
     // This is needed to avoid costly repeat calls to different getter functions
     // It is cheaper gas-wise to just dump everything and only use some of the info
-    function frax_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function fraxInfo() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         return (
-        oracle_price(PriceChoice.FRAX), // frax_price()
-        oracle_price(PriceChoice.FXS), // fxs_price()
+        oraclePrice(PriceChoice.FRAX), // frax_price()
+        oraclePrice(PriceChoice.FXS), // fxs_price()
         totalSupply(), // totalSupply()
         globalCollateralRatio, // globalCollateralRatio()
         globalCollateralValue(), // globalCollateralValue
-        minting_fee, // minting_fee()
-        redemption_fee, // redemption_fee()
+        mintingFee, // minting_fee()
+        redemptionFee, // redemption_fee()
         uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals) //eth_usd_price
         );
     }
@@ -179,26 +178,26 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     /* ========== PUBLIC FUNCTIONS ========== */
 
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
-    uint256 public last_call_time; // Last time the refreshCollateralRatio function was called
+
     function refreshCollateralRatio() public {
         require(collateral_ratio_paused == false, "Collateral Ratio has been paused");
-        uint256 frax_price_cur = frax_price();
-        require(block.timestamp - last_call_time >= refresh_cooldown, "Must wait for the refresh cooldown since last refresh");
+        uint256 frax_price_cur = fraxPrice();
+        require(block.timestamp - last_call_time >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
 
         // Step increments are 0.25% (upon genesis, changable by setFraxStep()) 
 
-        if (frax_price_cur > price_target.add(price_band)) {//decrease collateral ratio
-            if (globalCollateralRatio <= frax_step) {//if within a step of 0, go to 0
+        if (frax_price_cur > priceTarget.add(priceBand)) {//decrease collateral ratio
+            if (globalCollateralRatio <= fraxStep) {//if within a step of 0, go to 0
                 globalCollateralRatio = 0;
             } else {
-                globalCollateralRatio = globalCollateralRatio.sub(frax_step);
+                globalCollateralRatio = globalCollateralRatio.sub(fraxStep);
             }
-        } else if (frax_price_cur < price_target.sub(price_band)) {//increase collateral ratio
-            if (globalCollateralRatio.add(frax_step) >= 1000000) {
+        } else if (frax_price_cur < priceTarget.sub(priceBand)) {//increase collateral ratio
+            if (globalCollateralRatio.add(fraxStep) >= 1000000) {
                 globalCollateralRatio = 1000000;
                 // cap collateral ratio at 1.000000
             } else {
-                globalCollateralRatio = globalCollateralRatio.add(frax_step);
+                globalCollateralRatio = globalCollateralRatio.add(fraxStep);
             }
         }
 
@@ -254,27 +253,27 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     }
 
     function setRedemptionFee(uint256 red_fee) public onlyOwner {
-        redemption_fee = red_fee;
+        redemptionFee = red_fee;
         emit RedemptionFeeSet(red_fee);
     }
 
     function setMintingFee(uint256 min_fee) public onlyOwner {
-        minting_fee = min_fee;
+        mintingFee = min_fee;
         emit MintingFeeSet(min_fee);
     }
 
     function setFraxStep(uint256 _new_step) public onlyOwner {
-        frax_step = _new_step;
+        fraxStep = _new_step;
         emit FraxStepSet(_new_step);
     }
 
     function setPriceTarget(uint256 _new_price_target) public onlyOwner {
-        price_target = _new_price_target;
+        priceTarget = _new_price_target;
         emit PriceTargetSet(_new_price_target);
     }
 
     function setRefreshCooldown(uint256 _new_cooldown) public onlyOwner {
-        refresh_cooldown = _new_cooldown;
+        refreshCooldown = _new_cooldown;
         emit RefreshCooldownSet(_new_cooldown);
     }
 
@@ -293,7 +292,7 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     }
 
     function setPriceBand(uint256 _price_band) external onlyOwner {
-        price_band = _price_band;
+        priceBand = _price_band;
         emit PriceBandSet(_price_band);
     }
 

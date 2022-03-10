@@ -150,7 +150,7 @@ contract FraxPool is AccessControl, Owned {
         if(collateralPricePaused == true){
             return (collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral)).mul(10 ** missing_decimals).mul(pausedPrice).div(PRICE_PRECISION);
         } else {
-            uint256 eth_usd_price = FRAX.eth_usd_price();
+            uint256 eth_usd_price = FRAX.ethUsdPrice();
             uint256 eth_collat_price = collatEthOracle.consult(weth_address, (PRICE_PRECISION * (10 ** missing_decimals)));
 
             uint256 collat_usd_price = eth_usd_price.mul(PRICE_PRECISION).div(eth_collat_price);
@@ -177,7 +177,7 @@ contract FraxPool is AccessControl, Owned {
         if(collateralPricePaused == true){
             return pausedPrice;
         } else {
-            uint256 eth_usd_price = FRAX.eth_usd_price();
+            uint256 eth_usd_price = FRAX.ethUsdPrice();
             return eth_usd_price.mul(PRICE_PRECISION).div(collatEthOracle.consult(weth_address, PRICE_PRECISION * (10 ** missing_decimals)));
         }
     }
@@ -209,7 +209,7 @@ contract FraxPool is AccessControl, Owned {
 
     // 0% collateral-backed
     function mintAlgorithmicFRAX(uint256 fxs_amount_d18, uint256 FRAX_out_min) external notMintPaused {
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
         require(FRAX.globalCollateralRatio() == 0, "Collateral ratio must be 0");
         
         (uint256 frax_amount_d18) = FraxPoolLibrary.calcMintAlgorithmicFRAX(
@@ -227,7 +227,7 @@ contract FraxPool is AccessControl, Owned {
     // Will fail if fully collateralized or fully algorithmic
     // > 0% and < 100% collateral-backed
     function mintFractionalFRAX(uint256 collateral_amount, uint256 fxs_amount, uint256 FRAX_out_min) external notMintPaused {
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0, "Collateral ratio needs to be between .000001 and .999999");
@@ -279,7 +279,7 @@ contract FraxPool is AccessControl, Owned {
     // Will fail if fully collateralized or algorithmic
     // Redeem FRAX for collateral and FXS. > 0% and < 100% collateral-backed
     function redeemFractionalFRAX(uint256 FRAX_amount, uint256 FXS_out_min, uint256 COLLATERAL_out_min) external notRedeemPaused {
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0, "Collateral ratio needs to be between .000001 and .999999");
@@ -315,7 +315,7 @@ contract FraxPool is AccessControl, Owned {
 
     // Redeem FRAX for FXS. 0% collateral-backed
     function redeemAlgorithmicFRAX(uint256 FRAX_amount, uint256 FXS_out_min) external notRedeemPaused {
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio == 0, "Collateral ratio must be 0");
@@ -379,7 +379,7 @@ contract FraxPool is AccessControl, Owned {
     function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external {
         require(recollateralizePaused == false, "Recollateralize is paused");
         uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
         uint256 frax_total_supply = FRAX.totalSupply();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
@@ -406,7 +406,7 @@ contract FraxPool is AccessControl, Owned {
     // This can also happen if the collateral ratio > 1
     function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external {
         require(buyBackPaused == false, "Buyback is paused");
-        uint256 fxs_price = FRAX.fxs_price();
+        uint256 fxs_price = FRAX.fxsPrice();
     
         FraxPoolLibrary.BuybackFXS_Params memory input_params = FraxPoolLibrary.BuybackFXS_Params(
             availableExcessCollatDV(),

@@ -158,7 +158,7 @@ contract PIDController is Owned {
             }
 
             FRAX.setFraxStep(delta_collateral_ratio); // Change by the delta
-            uint256 cooldown_before = FRAX.refresh_cooldown(); // Note the existing cooldown period
+            uint256 cooldown_before = FRAX.refreshCooldown(); // Note the existing cooldown period
             FRAX.setRefreshCooldown(0); // Unlock the CR cooldown
 
             FRAX.refreshCollateralRatio(); // Refresh CR
