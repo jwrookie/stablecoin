@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/Pausable.sol";
 
 import "../FXS/IFxs.sol";
 import "../Staking/Owned.sol";
@@ -15,7 +16,7 @@ import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
 import "../Governance/AccessControl.sol";
 
-contract FRAXStablecoin is ERC20Burnable, Ownable {
+contract FRAXStablecoin is ERC20Burnable, Ownable, Pausable {
     using SafeMath for uint256;
 
     /* ========== EVENTS ========== */
@@ -41,7 +42,6 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     event PriceBandSet(uint256 price_band);
     event FRAXETHOracleSet(address frax_oracle_addr, address weth_address);
     event FXSEthOracleSet(address fxs_oracle_addr, address weth_address);
-    event CollateralRatioToggled(bool collateral_ratio_paused);
 
     uint256 public constant GENESIS_SUPPLY = 2000000e18; // 2M FRAX (only for testing, genesis supply will be 5k on Mainnet). This is to help with establishing the Uniswap pools, as they need liquidity
     // Constants for various precisions
@@ -75,7 +75,6 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
     uint256 public priceTarget; // The price of FRAX at which the collateral ratio will respond to; this value is only used for the collateral ratio mechanism and not for minting and redeeming which are hardcoded at $1
     uint256 public priceBand; // The bound above and below the price target at which the refreshCollateralRatio() will not change the collateral ratio
 
-    bool public collateral_ratio_paused = false;
     uint256 public last_call_time; // Last time the refreshCollateralRatio function was called
 
     modifier onlyPools() {
@@ -179,8 +178,7 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
 
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
 
-    function refreshCollateralRatio() public {
-        require(collateral_ratio_paused == false, "Collateral Ratio has been paused");
+    function refreshCollateralRatio() public whenNotPaused {
         uint256 frax_price_cur = fraxPrice();
         require(block.timestamp - last_call_time >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
 
@@ -317,9 +315,12 @@ contract FRAXStablecoin is ERC20Burnable, Ownable {
         emit FXSEthOracleSet(_fxs_oracle_addr, _weth_address);
     }
 
-    function toggleCollateralRatio() public onlyOwner {
-        collateral_ratio_paused = !collateral_ratio_paused;
-        emit CollateralRatioToggled(collateral_ratio_paused);
+    function togglePause() public onlyOwner {
+        if (paused()) {
+            _unpause();
+        } else {
+            _pause();
+        }
     }
 
 
