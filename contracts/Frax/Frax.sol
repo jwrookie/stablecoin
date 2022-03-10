@@ -5,6 +5,7 @@ import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../FXS/IFxs.sol";
 import "../Staking/Owned.sol";
@@ -14,7 +15,7 @@ import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
 import "../Governance/AccessControl.sol";
 
-contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
+contract FRAXStablecoin is ERC20Burnable, Ownable {
     using SafeMath for uint256;
 
     /* ========== EVENTS ========== */
@@ -48,9 +49,7 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
     uint8 private eth_usd_pricer_decimals;
     UniswapPairOracle private fraxEthOracle;
     UniswapPairOracle private fxsEthOracle;
-    address public creator_address;
-    address public timelock_address; // Governance timelock address
-    address public controller_address; // Controller contract to dynamically adjust system parameters automatically
+
     address public fxs_address;
     address public frax_eth_oracle_address;
     address public fxs_eth_oracle_address;
@@ -81,25 +80,15 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
 
     /* ========== MODIFIERS ========== */
 
-    modifier onlyCollateralRatioPauser() {
-        require(hasRole(COLLATERAL_RATIO_PAUSER, msg.sender));
-        _;
-    }
 
     modifier onlyPools() {
         require(frax_pools[msg.sender] == true, "Only frax pools can call this function");
         _;
     }
 
-    modifier onlyByOwnerGovernanceOrController() {
-        require(msg.sender == owner || msg.sender == timelock_address || msg.sender == controller_address, "Not the owner, controller, or the governance timelock");
-        _;
-    }
-
     modifier onlyByOwnerGovernanceOrPool() {
         require(
-            msg.sender == owner
-            || msg.sender == timelock_address
+            msg.sender == owner()
             || frax_pools[msg.sender] == true,
             "Not the owner, the governance timelock, or a pool");
         _;
@@ -109,18 +98,9 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
 
     constructor (
         string memory _name,
-        string memory _symbol,
-        address _creator_address,
-        address _timelock_address
-    ) public Owned(_creator_address) ERC20(_name, _symbol){
-        require(_timelock_address != address(0), "Zero address detected");
-        creator_address = _creator_address;
-        timelock_address = _timelock_address;
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        DEFAULT_ADMIN_ADDRESS = _msgSender();
-        _mint(creator_address, genesis_supply);
-        grantRole(COLLATERAL_RATIO_PAUSER, creator_address);
-        grantRole(COLLATERAL_RATIO_PAUSER, timelock_address);
+        string memory _symbol
+    ) public ERC20(_name, _symbol){
+        _mint(msg.sender, genesis_supply);
         frax_step = 2500;
         // 6 decimals of precision, equal to 0.25%
         global_collateral_ratio = 1000000;
@@ -245,7 +225,7 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
     }
 
     // Adds collateral addresses supported, such as tether and busd, must be ERC20 
-    function addPool(address pool_address) public onlyByOwnerGovernanceOrController {
+    function addPool(address pool_address) public onlyOwner {
         require(pool_address != address(0), "Zero address detected");
 
         require(frax_pools[pool_address] == false, "Address already exists");
@@ -256,7 +236,7 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
     }
 
     // Remove a pool 
-    function removePool(address pool_address) public onlyByOwnerGovernanceOrController {
+    function removePool(address pool_address) public onlyOwner {
         require(pool_address != address(0), "Zero address detected");
         require(frax_pools[pool_address] == true, "Address nonexistant");
 
@@ -275,38 +255,38 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
         emit PoolRemoved(pool_address);
     }
 
-    function setRedemptionFee(uint256 red_fee) public onlyByOwnerGovernanceOrController {
+    function setRedemptionFee(uint256 red_fee) public onlyOwner {
         redemption_fee = red_fee;
         emit RedemptionFeeSet(red_fee);
     }
 
-    function setMintingFee(uint256 min_fee) public onlyByOwnerGovernanceOrController {
+    function setMintingFee(uint256 min_fee) public onlyOwner {
         minting_fee = min_fee;
         emit MintingFeeSet(min_fee);
     }
 
-    function setFraxStep(uint256 _new_step) public onlyByOwnerGovernanceOrController {
+    function setFraxStep(uint256 _new_step) public onlyOwner {
         frax_step = _new_step;
         emit FraxStepSet(_new_step);
     }
 
-    function setPriceTarget(uint256 _new_price_target) public onlyByOwnerGovernanceOrController {
+    function setPriceTarget(uint256 _new_price_target) public onlyOwner {
         price_target = _new_price_target;
         emit PriceTargetSet(_new_price_target);
     }
 
-    function setRefreshCooldown(uint256 _new_cooldown) public onlyByOwnerGovernanceOrController {
+    function setRefreshCooldown(uint256 _new_cooldown) public onlyOwner {
         refresh_cooldown = _new_cooldown;
         emit RefreshCooldownSet(_new_cooldown);
     }
 
-    function setFXSAddress(address _fxs_address) public onlyByOwnerGovernanceOrController {
+    function setFXSAddress(address _fxs_address) public onlyOwner {
         require(_fxs_address != address(0), "Zero address detected");
         fxs_address = _fxs_address;
         emit FXSAddressSet(_fxs_address);
     }
 
-    function setETHUSDOracle(address _eth_usd_consumer_address) public onlyByOwnerGovernanceOrController {
+    function setETHUSDOracle(address _eth_usd_consumer_address) public onlyOwner {
         require(_eth_usd_consumer_address != address(0), "Zero address detected");
         eth_usd_consumer_address = _eth_usd_consumer_address;
         eth_usd_pricer = ChainlinkETHUSDPriceConsumer(eth_usd_consumer_address);
@@ -314,25 +294,13 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
         emit ETHUSDOracleSet(_eth_usd_consumer_address);
     }
 
-    function setTimelock(address new_timelock) external onlyByOwnerGovernanceOrController {
-        require(new_timelock != address(0), "Zero address detected");
-        timelock_address = new_timelock;
-        emit TimelockSet(new_timelock);
-    }
-
-    function setController(address _controller_address) external onlyByOwnerGovernanceOrController {
-        require(_controller_address != address(0), "Zero address detected");
-        controller_address = _controller_address;
-        emit ControllerSet(_controller_address);
-    }
-
-    function setPriceBand(uint256 _price_band) external onlyByOwnerGovernanceOrController {
+    function setPriceBand(uint256 _price_band) external onlyOwner {
         price_band = _price_band;
         emit PriceBandSet(_price_band);
     }
 
     // Sets the FRAX_ETH Uniswap oracle address 
-    function setFRAXEthOracle(address _frax_oracle_addr, address _weth_address) public onlyByOwnerGovernanceOrController {
+    function setFRAXEthOracle(address _frax_oracle_addr, address _weth_address) public onlyOwner {
         require((_frax_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
         frax_eth_oracle_address = _frax_oracle_addr;
         fraxEthOracle = UniswapPairOracle(_frax_oracle_addr);
@@ -342,7 +310,7 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
     }
 
     // Sets the FXS_ETH Uniswap oracle address 
-    function setFXSEthOracle(address _fxs_oracle_addr, address _weth_address) public onlyByOwnerGovernanceOrController {
+    function setFXSEthOracle(address _fxs_oracle_addr, address _weth_address) public onlyOwner {
         require((_fxs_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
 
         fxs_eth_oracle_address = _fxs_oracle_addr;
@@ -352,9 +320,8 @@ contract FRAXStablecoin is ERC20Burnable, AccessControl, Owned {
         emit FXSEthOracleSet(_fxs_oracle_addr, _weth_address);
     }
 
-    function toggleCollateralRatio() public onlyCollateralRatioPauser {
+    function toggleCollateralRatio() public onlyOwner {
         collateral_ratio_paused = !collateral_ratio_paused;
-
         emit CollateralRatioToggled(collateral_ratio_paused);
     }
 
