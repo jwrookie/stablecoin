@@ -34,7 +34,7 @@ import "../Curve/IveFXS.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import '../Uniswap/TransferHelper.sol';
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../Frax/Frax.sol";
+import "../token/Frax.sol";
 import "../Uniswap/Interfaces/IUniswapV2Pair.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 

@@ -28,8 +28,8 @@ import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 import "../Misc_AMOs/yearn/IYearnVault.sol";
 import '../Uniswap/TransferHelper.sol';
-import "../Frax/Frax.sol";
-import "../Frax/IFraxAMOMinter.sol";
+import "../token/Frax.sol";
+import "../token/IFraxAMOMinter.sol";
 import "../Staking/Owned.sol";
 
 contract CurveAMO_V4 is Owned {

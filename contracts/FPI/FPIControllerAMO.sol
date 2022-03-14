@@ -27,7 +27,7 @@ pragma solidity >=0.8.0;
 
 import "./FPI.sol";
 import "../interface/IFrax.sol";
-import "../Frax/IFraxAMOMinter.sol";
+import "../token/IFraxAMOMinter.sol";
 import "../Staking/Owned.sol";
 import "../Oracle/AggregatorV3Interface.sol";
 import "../Oracle/CPITrackerOracle.sol";

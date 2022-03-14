@@ -34,7 +34,7 @@ import '../../Uniswap/TransferHelper.sol';
 import "../../FXS/IFxs.sol";
 import "../../interface/IFrax.sol";
 import "../../Oracle/AggregatorV3Interface.sol";
-import "../../Frax/IFraxAMOMinter.sol";
+import "../../token/IFraxAMOMinter.sol";
 
 import "../AbstractPausable.sol";
 

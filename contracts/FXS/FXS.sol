@@ -26,7 +26,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../Frax/Frax.sol";
+import "../token/Frax.sol";
 import "../Staking/Owned.sol";
 import "../Governance/AccessControl.sol";
 

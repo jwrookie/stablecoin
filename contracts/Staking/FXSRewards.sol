@@ -49,7 +49,7 @@ import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 import "../Curve/IveFXS.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Frax/Frax.sol";
+import "../token/Frax.sol";
 import "../FXS/FXS.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Oracle/ChainlinkFXSUSDPriceConsumer.sol";

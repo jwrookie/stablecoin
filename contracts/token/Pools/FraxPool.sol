@@ -29,7 +29,7 @@ import "../AbstractPausable.sol";
 import '../../Uniswap/TransferHelper.sol';
 import "../../Staking/Owned.sol";
 import "../../FXS/FXS.sol";
-import "../../Frax/Frax.sol";
+import "../../token/Frax.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "../../Governance/AccessControl.sol";
 import "./FraxPoolLibrary.sol";
