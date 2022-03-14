@@ -27,7 +27,7 @@ pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interface/IFrax.sol";
-import "../FXS/IFxs.sol";
+import "../token/FXS/IFxs.sol";
 import "../token/Pools/FraxPoolV3.sol";
 import "../token/Pools/IFraxPool.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";

@@ -30,7 +30,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
 import "../../Math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../../FXS/FXS.sol";
+import "../../token/FXS/FXS.sol";
 import "../../token/Frax.sol";
 
 import "../../Uniswap/UniswapV2Library.sol";

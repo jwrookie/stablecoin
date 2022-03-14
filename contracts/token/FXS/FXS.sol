@@ -26,9 +26,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../token/Frax.sol";
-import "../Staking/Owned.sol";
-import "../Governance/AccessControl.sol";
+import "../Frax.sol";
+import "../../Staking/Owned.sol";
+import "../../Governance/AccessControl.sol";
 
 contract FRAXShares is ERC20Burnable, AccessControl, Owned {
     using SafeMath for uint256;

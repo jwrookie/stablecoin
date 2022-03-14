@@ -31,7 +31,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import '../../Uniswap/TransferHelper.sol';
-import "../../FXS/IFxs.sol";
+import "../../token/FXS/IFxs.sol";
 import "../../interface/IFrax.sol";
 import "../../Oracle/AggregatorV3Interface.sol";
 import "../../token/IFraxAMOMinter.sol";
