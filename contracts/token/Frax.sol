@@ -208,7 +208,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     // Used by pools when user redeems
-    function pool_burn_from(address b_address, uint256 b_amount) public onlyPools {
+    function poolBurnFrom(address b_address, uint256 b_amount) public onlyPools {
         super.burnFrom(b_address, b_amount);
         emit FRAXBurned(b_address, msg.sender, b_amount);
     }

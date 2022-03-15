@@ -182,7 +182,7 @@ contract FraxPool is AbstractPausable {
         frax_amount_d18 = (frax_amount_d18.mul(uint(1e6).sub(minting_fee))).div(1e6);
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
-        FXS.pool_burn_from(msg.sender, fxs_amount_d18);
+        FXS.poolBurnFrom(msg.sender, fxs_amount_d18);
         FRAX.pool_mint(msg.sender, frax_amount_d18);
     }
 
@@ -210,7 +210,7 @@ contract FraxPool is AbstractPausable {
         require(FRAX_out_min <= mint_amount, "Slippage limit reached");
         require(fxs_needed <= fxs_amount, "Not enough FXS inputted");
 
-        FXS.pool_burn_from(msg.sender, fxs_needed);
+        FXS.poolBurnFrom(msg.sender, fxs_needed);
         TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_amount);
         FRAX.pool_mint(msg.sender, mint_amount);
     }
@@ -235,7 +235,7 @@ contract FraxPool is AbstractPausable {
         lastRedeemed[msg.sender] = block.number;
 
         // Move all external functions to the end
-        FRAX.pool_burn_from(msg.sender, FRAX_amount);
+        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
     }
 
     // Will fail if fully collateralized or algorithmic
@@ -271,8 +271,8 @@ contract FraxPool is AbstractPausable {
         lastRedeemed[msg.sender] = block.number;
 
         // Move all external functions to the end
-        FRAX.pool_burn_from(msg.sender, FRAX_amount);
-        FXS.pool_mint(address(this), fxs_amount);
+        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
+        FXS.poolMint(address(this), fxs_amount);
     }
 
     // Redeem FRAX for FXS. 0% collateral-backed
@@ -295,8 +295,8 @@ contract FraxPool is AbstractPausable {
 
         require(FXS_out_min <= fxs_amount, "Slippage limit reached");
         // Move all external functions to the end
-        FRAX.pool_burn_from(msg.sender, FRAX_amount);
-        FXS.pool_mint(address(this), fxs_amount);
+        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
+        FXS.poolMint(address(this), fxs_amount);
     }
 
     // After a redemption happens, transfer the newly minted FXS and owed collateral from this pool
@@ -361,7 +361,7 @@ contract FraxPool is AbstractPausable {
 
         require(FXS_out_min <= fxs_paid_back, "Slippage limit reached");
         TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_units_precision);
-        FXS.pool_mint(msg.sender, fxs_paid_back);
+        FXS.poolMint(msg.sender, fxs_paid_back);
 
     }
 
@@ -383,7 +383,7 @@ contract FraxPool is AbstractPausable {
 
         require(COLLATERAL_out_min <= collateral_precision, "Slippage limit reached");
         // Give the sender their desired collateral and burn the FXS
-        FXS.pool_burn_from(msg.sender, FXS_amount);
+        FXS.poolBurnFrom(msg.sender, FXS_amount);
         TransferHelper.safeTransfer(address(collateral_token), msg.sender, collateral_precision);
     }
 

@@ -385,7 +385,7 @@ contract FraxPoolvAMM is AccessControl {
         require(total_frax_mint >= FRAX_out_min, "Slippage limit reached");
         require(collateral_token.balanceOf(address(this)).add(collateral_invested).sub(unclaimedPoolCollateral).add(collat_needed) <= pool_ceiling, "Pool ceiling reached, no more FRAX can be minted with this collateral");
 
-        FXS.pool_burn_from(msg.sender, fxs_needed);
+        FXS.poolBurnFrom(msg.sender, fxs_needed);
         collateral_token.transferFrom(msg.sender, address(this), collat_needed);
 
         // Sanity check to make sure the FRAX mint amount is close to the expected amount from the collateral input
@@ -444,8 +444,8 @@ contract FraxPoolvAMM is AccessControl {
 
         lastRedeemed[msg.sender] = block.number;
 
-        FRAX.pool_burn_from(msg.sender, FRAX_amount);
-        FXS.pool_mint(address(this), fxs_out);
+        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
+        FXS.poolMint(address(this), fxs_out);
 
         return (FRAX_amount, collat_out, fxs_out);
     }
@@ -513,7 +513,7 @@ contract FraxPoolvAMM is AccessControl {
         // Add in the bonus
         fxs_out = fxs_out.add(fxs_out.mul(bonus_rate).div(1e6));
 
-        FXS.pool_mint(msg.sender, fxs_out);
+        FXS.poolMint(msg.sender, fxs_out);
 
         return (collateral_amount, fxs_out);
     }
@@ -528,7 +528,7 @@ contract FraxPoolvAMM is AccessControl {
         require(collat_out >= COLLATERAL_out_min, "Slippage limit reached");
         _update(fxs_virtual_reserves.sub(FXS_amount), collat_virtual_reserves.add(collat_out), fxs_virtual_reserves, collat_virtual_reserves);
 
-        FXS.pool_burn_from(msg.sender, FXS_amount);
+        FXS.poolBurnFrom(msg.sender, FXS_amount);
 
         // Sanity check to make sure the value of the outgoing collat amount is close to the expected amount based on the FXS input
         // Useful in case of a sandwich attack or some other fault with the virtual reserves

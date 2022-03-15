@@ -27,8 +27,8 @@ interface IFxs {
   function numCheckpoints(address) external view returns(uint32);
   function oracle_address() external view returns(address);
   function owner_address() external view returns(address);
-  function pool_burn_from(address b_address, uint256 b_amount) external;
-  function pool_mint(address m_address, uint256 m_amount) external;
+  function poolBurnFrom(address b_address, uint256 b_amount) external;
+  function poolMint(address m_address, uint256 m_amount) external;
   function renounceRole(bytes32 role, address account) external;
   function revokeRole(bytes32 role, address account) external;
   function setFRAXAddress(address frax_contract_address) external;

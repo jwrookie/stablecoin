@@ -396,7 +396,7 @@ contract FraxPoolV3 is AbstractPausable {
         require(freeCollatBalance(col_idx).add(collat_needed) <= pool_ceilings[col_idx], "Pool ceiling");
 
         // Take the FXS and collateral first
-        FXS.pool_burn_from(msg.sender, fxs_needed);
+        FXS.poolBurnFrom(msg.sender, fxs_needed);
         TransferHelper.safeTransferFrom(collateral_addresses[col_idx], msg.sender, address(this), collat_needed);
 
         // Mint the FRAX
@@ -456,8 +456,8 @@ contract FraxPoolV3 is AbstractPausable {
 
         lastRedeemed[msg.sender] = block.number;
 
-        FRAX.pool_burn_from(msg.sender, frax_amount);
-        FXS.pool_mint(address(this), fxs_out);
+        FRAX.poolBurnFrom(msg.sender, frax_amount);
+        FXS.poolMint(address(this), fxs_out);
     }
 
     // After a redemption happens, transfer the newly minted FXS and owed collateral from this pool
@@ -519,7 +519,7 @@ contract FraxPoolV3 is AbstractPausable {
         require(col_out >= col_out_min, "Collateral slippage");
 
         // Take in and burn the FXS, then send out the collateral
-        FXS.pool_burn_from(msg.sender, fxs_amount);
+        FXS.poolBurnFrom(msg.sender, fxs_amount);
         TransferHelper.safeTransfer(collateral_addresses[col_idx], msg.sender, col_out);
 
         // Increment the outbound collateral, in E18, for that hour
@@ -553,7 +553,7 @@ contract FraxPoolV3 is AbstractPausable {
 
         // Take in the collateral and pay out the FXS
         TransferHelper.safeTransferFrom(collateral_addresses[col_idx], msg.sender, address(this), collateral_amount);
-        FXS.pool_mint(msg.sender, fxs_out);
+        FXS.poolMint(msg.sender, fxs_out);
 
         // Increment the outbound FXS, in E18
         // Used for recollat throttling

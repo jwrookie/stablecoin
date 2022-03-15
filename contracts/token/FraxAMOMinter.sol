@@ -222,7 +222,7 @@ contract FraxAMOMinter is Owned {
     // ------------------------------ FRAX ------------------------------
     // ------------------------------------------------------------------
 
-    // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like pool_mint and pool_burn_from
+    // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like pool_mint and poolBurnFrom
     // on the main FRAX contract
     function mintFraxForAMO(address destination_amo, uint256 frax_amount) external onlyByOwnGov validAMO(destination_amo) {
         int256 frax_amt_i256 = int256(frax_amount);
@@ -251,7 +251,7 @@ contract FraxAMOMinter is Owned {
         int256 frax_amt_i256 = int256(frax_amount);
 
         // Burn first
-        FRAX.pool_burn_from(msg.sender, frax_amount);
+        FRAX.poolBurnFrom(msg.sender, frax_amount);
 
         // Then update the balances
         frax_mint_balances[msg.sender] -= frax_amt_i256;
@@ -274,7 +274,7 @@ contract FraxAMOMinter is Owned {
         fxs_mint_sum += fxs_amt_i256;
 
         // Mint the FXS to the AMO
-        FXS.pool_mint(destination_amo, fxs_amount);
+        FXS.poolMint(destination_amo, fxs_amount);
 
         // Sync
         syncDollarBalances();
@@ -284,7 +284,7 @@ contract FraxAMOMinter is Owned {
         int256 fxs_amt_i256 = int256(fxs_amount);
 
         // Burn first
-        FXS.pool_burn_from(msg.sender, fxs_amount);
+        FXS.poolBurnFrom(msg.sender, fxs_amount);
 
         // Then update the balances
         fxs_mint_balances[msg.sender] -= fxs_amt_i256;
