@@ -59,11 +59,6 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public min_collateral_ratio = 850000;
 
 
-    bool public issuingPaused = false;
-    bool public buyingPaused = false;
-    bool public sellingPaused = false;
-    bool public redeemingPaused = false;
-
     // Virtual balances
     uint256 public vBal_FRAX;
     uint256 public vBal_FXB;
