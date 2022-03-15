@@ -26,11 +26,12 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
+import "../AbstractPausable.sol";
 import "../Frax.sol";
 import "../../Staking/Owned.sol";
 import "../../Governance/AccessControl.sol";
 
-contract FRAXShares is ERC20Burnable, AccessControl, Owned {
+contract FRAXShares is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
@@ -64,44 +65,32 @@ contract FRAXShares is ERC20Burnable, AccessControl, Owned {
         _;
     }
 
-    modifier onlyByOwnGov() {
-        require(msg.sender == owner || msg.sender == timelock_address, "You are not an owner or the governance timelock");
-        _;
-    }
-
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
         string memory _name,
         string memory _symbol,
-        address _oracle_address,
-        address _creator_address,
-        address _timelock_address
-    ) public Owned(_creator_address) ERC20(_name, _symbol){
-        require((_oracle_address != address(0)) && (_timelock_address != address(0)), "Zero address detected");
+        address _oracle_address
+    ) public ERC20(_name, _symbol){
+        require((_oracle_address != address(0)), "Zero address detected");
         oracle_address = _oracle_address;
-        timelock_address = _timelock_address;
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        _mint(_creator_address, genesis_supply);
-
-        // Do a checkpoint for the owner
-        _writeCheckpoint(_creator_address, 0, 0, uint96(genesis_supply));
+        _mint(msg.sender, genesis_supply);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function setOracle(address new_oracle) external onlyByOwnGov {
+    function setOracle(address new_oracle) external onlyOwner {
         require(new_oracle != address(0), "Zero address detected");
 
         oracle_address = new_oracle;
     }
 
-    function setTimelock(address new_timelock) external onlyByOwnGov {
+    function setTimelock(address new_timelock) external onlyOwner {
         require(new_timelock != address(0), "Timelock address cannot be 0");
         timelock_address = new_timelock;
     }
 
-    function setFRAXAddress(address frax_contract_address) external onlyByOwnGov {
+    function setFRAXAddress(address frax_contract_address) external onlyOwner {
         require(frax_contract_address != address(0), "Zero address detected");
 
         FRAX = FRAXStablecoin(frax_contract_address);
@@ -143,7 +132,7 @@ contract FRAXShares is ERC20Burnable, AccessControl, Owned {
         emit FXSBurned(b_address, address(this), b_amount);
     }
 
-    function toggleVotes() external onlyByOwnGov {
+    function toggleVotes() external onlyOwner {
         trackingVotes = !trackingVotes;
     }
 

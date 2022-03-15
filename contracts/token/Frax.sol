@@ -15,7 +15,6 @@ import "./FXS/FXS.sol";
 import "./Pools/FraxPool.sol";
 import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
-import "../Governance/AccessControl.sol";
 
 contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
