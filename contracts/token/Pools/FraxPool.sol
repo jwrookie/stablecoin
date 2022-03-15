@@ -166,7 +166,7 @@ contract FraxPool is AbstractPausable {
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
         TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_amount);
-        FRAX.pool_mint(msg.sender, frax_amount_d18);
+        FRAX.poolMint(msg.sender, frax_amount_d18);
     }
 
     // 0% collateral-backed
@@ -183,7 +183,7 @@ contract FraxPool is AbstractPausable {
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
         FXS.poolBurnFrom(msg.sender, fxs_amount_d18);
-        FRAX.pool_mint(msg.sender, frax_amount_d18);
+        FRAX.poolMint(msg.sender, frax_amount_d18);
     }
 
     // Will fail if fully collateralized or fully algorithmic
@@ -212,7 +212,7 @@ contract FraxPool is AbstractPausable {
 
         FXS.poolBurnFrom(msg.sender, fxs_needed);
         TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_amount);
-        FRAX.pool_mint(msg.sender, mint_amount);
+        FRAX.poolMint(msg.sender, mint_amount);
     }
 
     // Redeem collateral. 100% collateral-backed
