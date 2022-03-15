@@ -94,7 +94,6 @@ contract FraxBondIssuer is AbstractPausable {
         // 1 nonexistant USDC
     }
 
-
     // Liquidity balances for the floor price
     function getVirtualFloorLiquidityBalances() public view returns (uint256 frax_balance, uint256 fxb_balance) {
         frax_balance = targetLiquidityFxb.mul(floor_price()).div(PRICE_PRECISION);
@@ -170,7 +169,6 @@ contract FraxBondIssuer is AbstractPausable {
     }
 
     function buyUnissuedFXB(uint256 frax_in, uint256 fxb_out_min) public whenNotPaused returns (uint256 fxb_out, uint256 fxb_fee_amt) {
-        require(isInEpoch(), 'Not in an epoch');
         require(issuableFxb > 0, 'No new FXB to issue');
         require(FRAX.fraxPrice() < PRICE_PRECISION, "FRAX price must be less than $1");
         require(FRAX.globalCollateralRatio() >= minCollateralRatio, "FRAX is already too undercollateralized");
@@ -218,7 +216,6 @@ contract FraxBondIssuer is AbstractPausable {
     }
 
     function buyFXBfromAMM(uint256 frax_in, uint256 fxb_out_min) external whenNotPaused returns (uint256 fxb_out, uint256 fxb_fee_amt) {
-        require(isInEpoch(), 'Not in an epoch');
 
         // Get the vAMM price
         uint256 spot_price = amm_spot_price();
@@ -267,8 +264,6 @@ contract FraxBondIssuer is AbstractPausable {
     }
 
     function sellFXBintoAMM(uint256 fxb_in, uint256 frax_out_min) external whenNotPaused returns (uint256 fxb_bought_above_floor, uint256 fxb_sold_under_floor, uint256 frax_out, uint256 frax_fee_amt) {
-        require(isInEpoch(), 'Not in an epoch');
-
         fxb_bought_above_floor = fxb_in;
         fxb_sold_under_floor = 0;
 
@@ -336,8 +331,6 @@ contract FraxBondIssuer is AbstractPausable {
     }
 
     function redeemFXB(uint256 fxb_in) external whenNotPaused returns (uint256 frax_out, uint256 frax_fee) {
-        require(!isInEpoch(), 'Not in the cooldown period or outside an epoch');
-
         // Burn FXB from the sender
         FXB.burnFrom(msg.sender, fxb_in);
 
@@ -409,7 +402,6 @@ contract FraxBondIssuer is AbstractPausable {
     // Allows for expanding the liquidity mid-epoch
     // The expansion must occur at the current vAMM price
     function expand_AMM_liquidity(uint256 fxb_expansion_amount, bool do_rebalance) external onlyOwner {
-        require(isInEpoch(), 'Not in an epoch');
         require(FRAX.globalCollateralRatio() >= minCollateralRatio, "FRAX is already too undercollateralized");
 
         // Expand the FXB target liquidity
@@ -424,8 +416,6 @@ contract FraxBondIssuer is AbstractPausable {
     // Allows for contracting the liquidity mid-epoch
     // The expansion must occur at the current vAMM price
     function contract_AMM_liquidity(uint256 fxb_contraction_amount, bool do_rebalance) external onlyOwner {
-        require(isInEpoch(), 'Not in an epoch');
-
         // Expand the FXB target liquidity
         targetLiquidityFxb = targetLiquidityFxb.sub(fxb_contraction_amount);
 
