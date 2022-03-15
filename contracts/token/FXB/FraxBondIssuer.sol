@@ -94,17 +94,6 @@ contract FraxBondIssuer is AbstractPausable {
         // 1 nonexistant USDC
     }
 
-    // Checks if the bond is in a maturity epoch
-    function isInEpoch() public view returns (bool in_epoch) {
-        //        in_epoch = ((block.timestamp >= epoch_start) && (block.timestamp < epoch_end));
-        return true;
-    }
-
-    // Checks if the bond is in the cooldown period
-    function isInCooldown() public view returns (bool in_cooldown) {
-        //        in_cooldown = ((block.timestamp >= epoch_end) && (block.timestamp < epoch_end.add(cooldownPeriod)));
-        return true;
-    }
 
     // Liquidity balances for the floor price
     function getVirtualFloorLiquidityBalances() public view returns (uint256 frax_balance, uint256 fxb_balance) {
