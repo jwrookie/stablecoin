@@ -4,6 +4,12 @@ import "../Oracle/AggregatorV3Interface.sol";
 
 contract MockChainLink is AggregatorV3Interface {
 
+    uint256 public  answer = 1;
+
+    function setAnswer(uint256 _answer) external {
+        answer = _answer;
+    }
+
     function getRoundData(uint80 _roundId)
     external
     view
@@ -14,7 +20,7 @@ contract MockChainLink is AggregatorV3Interface {
         uint256 updatedAt,
         uint80 answeredInRound
     ){
-        return (1, 1, 1, 1, 1);
+        return (1, answer, 1, 1, 1);
     }
 
     function latestRoundData()
@@ -27,7 +33,7 @@ contract MockChainLink is AggregatorV3Interface {
         uint256 updatedAt,
         uint80 answeredInRound
     ){
-        return (1, 1, 1, 1, 1);
+        return (1, answer, 1, 1, 1);
     }
 
 
