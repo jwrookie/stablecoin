@@ -37,7 +37,7 @@ contract MockChainLink is AggregatorV3Interface {
     }
 
 
-    function decimals() external view returns (uint8){
+    function () external view returns (uint8){
         return 18;
     }
 

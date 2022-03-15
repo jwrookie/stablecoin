@@ -16,7 +16,6 @@ const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waff
 const {ethers, waffle} = require("hardhat");
 
 
-
 function encodeParameters(types, values) {
     const abi = new ethers.utils.AbiCoder();
     return abi.encode(types, values);
@@ -28,7 +27,7 @@ async function main() {
     // let usdc = "0x42d903C9503c22a83a92e216F088d8BaDff0c699"
     let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
 
-let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
+    let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
     let timeLock = "0x4e5726cB91A518B55c02E67822925e947bE56F46"
 
     for (const account of accounts) {
@@ -38,16 +37,14 @@ let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
     let deployer = accounts[0]
     console.log('deployer:' + deployer.address)
     // We get the contract to deploy
-    console.log('Account balance:', (await deployer.getBalance()).toString()/10**18)
+    console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-
-
-   // timeLock = await deployContract(deployer, {
-   //      bytecode: Timelock.bytecode,
-   //      abi: Timelock.abi
-   //  }, [deployer.address, 0]);
-   //  console.log("timeLock:" + timeLock.address)
+    // timeLock = await deployContract(deployer, {
+    //      bytecode: Timelock.bytecode,
+    //      abi: Timelock.abi
+    //  }, [deployer.address, 0]);
+    //  console.log("timeLock:" + timeLock.address)
 
 
     // const TimeLock = await ethers.getContractFactory("TimeLock");
@@ -75,9 +72,9 @@ let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
     // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy();
     // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
 
-     const ChainlinkFXSUSDPriceConsumer = await ethers.getContractFactory("ChainlinkFXSUSDPriceConsumer");
-    chainlinkFXSUSDPriceConsumer = await ChainlinkFXSUSDPriceConsumer.deploy();
-    console.log("chainlinkFXSUSDPriceConsumer:" + chainlinkFXSUSDPriceConsumer.address);
+    //  const ChainlinkFXSUSDPriceConsumer = await ethers.getContractFactory("ChainlinkFXSUSDPriceConsumer");
+    // chainlinkFXSUSDPriceConsumer = await ChainlinkFXSUSDPriceConsumer.deploy();
+    // console.log("chainlinkFXSUSDPriceConsumer:" + chainlinkFXSUSDPriceConsumer.address);
 
 
     // const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
@@ -93,6 +90,14 @@ let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
     // pool = await Pool_USDC.deploy(frax,fxs,usdc,100);
     // console.log("pool:" + pool.address);
 
+    const MockChainLink = await ethers.getContractFactory("MockChainLink");
+    chainLink = await MockChainLink.deploy();
+    console.log("chainLink:" + chainLink.address);
+
+
+    const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
+    chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
+    console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
 
 
 }
