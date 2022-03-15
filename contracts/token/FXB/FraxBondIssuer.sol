@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
+import '../../Math/Math.sol';
 import "../Frax.sol";
 import "./FXB.sol";
 
@@ -417,14 +418,14 @@ contract FraxBondIssuer is AbstractPausable {
 
     function getBoundedIn(DirectionChoice choice, uint256 the_price) internal view returns (uint256 bounded_amount) {
         if (choice == DirectionChoice.BELOW_TO_PRICE_FRAX_IN) {
-            uint256 numerator = sqrt(vBal_FRAX).mul(sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
+            uint256 numerator = Math.sqrt(vBal_FRAX).mul(Math.sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
             // The "price" here needs to be inverted 
-            uint256 denominator = sqrt((PRICE_PRECISION_SQUARED).div(the_price));
+            uint256 denominator = Math.sqrt((PRICE_PRECISION_SQUARED).div(the_price));
             bounded_amount = numerator.div(denominator).sub(vBal_FRAX);
         }
         else if (choice == DirectionChoice.ABOVE_TO_PRICE) {
-            uint256 numerator = sqrt(vBal_FRAX).mul(sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
-            uint256 denominator = sqrt(the_price);
+            uint256 numerator = Math.sqrt(vBal_FRAX).mul(Math.sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
+            uint256 denominator = Math.sqrt(the_price);
             bounded_amount = numerator.div(denominator).sub(vBal_FXB);
         }
     }
@@ -539,23 +540,6 @@ contract FraxBondIssuer is AbstractPausable {
     function emergencyRecoverERC20(address destination_address, address tokenAddress, uint256 tokenAmount) external onlyOwner {
         ERC20(tokenAddress).transfer(destination_address, tokenAmount);
         emit Recovered(tokenAddress, destination_address, tokenAmount);
-    }
-
-    /* ========== PURE FUNCTIONS ========== */
-
-    // Babylonian method
-    function sqrt(uint y) internal pure returns (uint z) {
-        if (y > 3) {
-            z = y;
-            uint x = y / 2 + 1;
-            while (x < z) {
-                z = x;
-                x = (y / x + x) / 2;
-            }
-        } else if (y != 0) {
-            z = 1;
-        }
-        // else z = 0
     }
 
     /* ========== EVENTS ========== */
