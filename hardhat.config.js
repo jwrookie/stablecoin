@@ -43,6 +43,13 @@ module.exports = {
 			// gasPrice: 20000000000,
 			// accounts: {mnemonic: mnemonic}
 		},
+		 ethtest: {
+            url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+            chainId: 4,
+            accounts: ['a169188d442a35eff327a448d864d82523f95e07a20e76247230ba38c596d0dd']
+            // gasPrice: 20000000000,
+            // accounts: {mnemonic: mnemonic}
+        },
 	},
 	solidity: {
 		compilers: [

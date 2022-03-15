@@ -43,19 +43,6 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
 
         pool  = await Pool_USDC.deploy(frax.address,fxs.address,usdc.address,100);
 
-        // let eta = (await time.latest()).add(time.duration.days(4));
-        // await timelock.queueTransaction(
-        //     timelock.address, '0', 'setDelay(uint256)',
-        //     encodeParameters(['uint256'],
-        //         ['300000']), eta,
-        // );
-        // await time.increase(time.duration.days(4));
-        // await timelock.executeTransaction(
-        //     timelock.address, '0', 'setDelay(uint256)',
-        //     encodeParameters(['uint256'],
-        //         ['300000']), eta,
-        // );
-        // assert.equal(await timelock.delay(), "300000");
 
 
     });
@@ -65,7 +52,7 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
         console.log("stablecoin:" + frax.address)
 
 
-        //console.log("pool:"+pool.address)
+        console.log("pool:"+pool.address)
 
 
     });
