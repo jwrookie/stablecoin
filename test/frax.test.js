@@ -1,10 +1,11 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const ethers = require('ethers');
+const {ethers, waffle} = require("hardhat");
 const TestOwnableToken = artifacts.require('TestOwnableToken');
+const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
 const Timelock = artifacts.require('Timelock');
 const FRAXShares = artifacts.require('FRAXShares');
 const FRAXStablecoin = artifacts.require('FRAXStablecoin');
-const Pool_USDC = artifacts.require('Pool_USDC');
+// const Pool_USDC = artifacts.require('Pool_USDC');
 const TestERC20 = artifacts.require('TestERC20');
 const TestOracle = artifacts.require('TestOracle')
 
@@ -29,8 +30,18 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
         assert.equal(await fxs.oracle(), oracle.address);
         // assert.equal(await frax.fxsAddress(),fxs.address);
         //   console.log("")
+        fraxPoolLibrary = await FraxPoolLibrary.new();
+        // await Pool_USDC.link( fraxPoolLibrary.address)
 
-        //pool  = await Pool_USDC.new(frax.address,fxs.address,usdc.address,100);
+        Pool_USDC= await ethers.getContractFactory('Pool_USDC', {
+            libraries: {
+                FraxPoolLibrary: fraxPoolLibrary.address,
+            },
+        });
+
+
+
+        pool  = await Pool_USDC.deploy(frax.address,fxs.address,usdc.address,100);
 
         // let eta = (await time.latest()).add(time.duration.days(4));
         // await timelock.queueTransaction(
