@@ -173,7 +173,7 @@ contract FXSRewards {
 
         // Mint the frax 
         minted_frax_historical = minted_frax_historical.add(frax_amount);
-        FRAX.pool_mint(address(this), frax_amount);
+        FRAX.poolMint(address(this), frax_amount);
     }
 
     // wrap the minting function

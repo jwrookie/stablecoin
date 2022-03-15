@@ -400,7 +400,7 @@ contract FraxPoolV3 is AbstractPausable {
         TransferHelper.safeTransferFrom(collateral_addresses[col_idx], msg.sender, address(this), collat_needed);
 
         // Mint the FRAX
-        FRAX.pool_mint(msg.sender, total_frax_mint);
+        FRAX.poolMint(msg.sender, total_frax_mint);
     }
 
     function redeemFrax(

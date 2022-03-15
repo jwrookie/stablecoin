@@ -75,7 +75,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public priceTarget; // The price of FRAX at which the collateral ratio will respond to; this value is only used for the collateral ratio mechanism and not for minting and redeeming which are hardcoded at $1
     uint256 public priceBand; // The bound above and below the price target at which the refreshCollateralRatio() will not change the collateral ratio
 
-    uint256 public last_call_time; // Last time the refreshCollateralRatio function was called
+    uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
     modifier onlyPools() {
         require(isFraxPools[msg.sender] == true, "Only frax pools can call this function");
@@ -108,8 +108,6 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         priceBand = 5000;
         // Collateral ratio will not adjust if between $0.995 and $1.005 at genesis
     }
-
-    /* ========== VIEWS ========== */
 
     // Choice = 'FRAX' or 'FXS' for now
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
@@ -180,7 +178,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
 
     function refreshCollateralRatio() public whenNotPaused {
         uint256 frax_price_cur = fraxPrice();
-        require(block.timestamp - last_call_time >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
+        require(block.timestamp - lastCallTime >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
 
         // Step increments are 0.25% (upon genesis, changable by setFraxStep()) 
 
@@ -199,7 +197,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
             }
         }
 
-        last_call_time = block.timestamp;
+        lastCallTime = block.timestamp;
         // Set the time of the last expansion
 
         emit CollateralRatioRefreshed(globalCollateralRatio);
@@ -214,7 +212,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     // This function is what other frax pools will call to mint new FRAX 
-    function pool_mint(address m_address, uint256 m_amount) public onlyPools {
+    function poolMint(address m_address, uint256 m_amount) public onlyPools {
         super._mint(m_address, m_amount);
         emit FRAXMinted(msg.sender, m_address, m_amount);
     }

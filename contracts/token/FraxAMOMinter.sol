@@ -191,7 +191,7 @@ contract FraxAMOMinter is Owned {
         collat_borrowed_sum += int256(expected_collat_amount);
 
         // Mint the frax 
-        FRAX.pool_mint(address(this), frax_amount);
+        FRAX.poolMint(address(this), frax_amount);
 
         // Redeem the frax
         FRAX.approve(address(old_pool), frax_amount);
@@ -222,7 +222,7 @@ contract FraxAMOMinter is Owned {
     // ------------------------------ FRAX ------------------------------
     // ------------------------------------------------------------------
 
-    // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like pool_mint and poolBurnFrom
+    // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like poolMint and poolBurnFrom
     // on the main FRAX contract
     function mintFraxForAMO(address destination_amo, uint256 frax_amount) external onlyByOwnGov validAMO(destination_amo) {
         int256 frax_amt_i256 = int256(frax_amount);
@@ -241,7 +241,7 @@ contract FraxAMOMinter is Owned {
         require(new_cr >= min_cr, "CR would be too low");
 
         // Mint the FRAX to the AMO
-        FRAX.pool_mint(destination_amo, frax_amount);
+        FRAX.poolMint(destination_amo, frax_amount);
 
         // Sync
         syncDollarBalances();

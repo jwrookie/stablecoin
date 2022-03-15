@@ -10,7 +10,7 @@ interface IFrax is IERC20 {
 
     function poolBurnFrom(address b_address, uint256 b_amount) external;
 
-    function pool_mint(address m_address, uint256 m_amount) external;
+    function poolMint(address m_address, uint256 m_amount) external;
 
     //  function COLLATERAL_RATIO_PAUSER() external view returns (bytes32);
     //  function DEFAULT_ADMIN_ADDRESS() external view returns (address);

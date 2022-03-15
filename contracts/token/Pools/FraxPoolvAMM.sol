@@ -393,7 +393,7 @@ contract FraxPoolvAMM is AccessControl {
         // Useful in case of a sandwich attack or some other fault with the virtual reserves
         // Assumes $1 collateral (USDC, USDT, DAI, etc)
         require(total_frax_mint <= collateral_amount.mul(10 ** missing_decimals).mul(uint256(1e6).add(max_drift_band)).div(globalCollateralRatio), "[max_drift_band] Too much FRAX being minted");
-        FRAX.pool_mint(msg.sender, total_frax_mint);
+        FRAX.poolMint(msg.sender, total_frax_mint);
 
         return (total_frax_mint, collat_needed, fxs_needed);
     }
