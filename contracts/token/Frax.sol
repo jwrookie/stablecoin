@@ -220,7 +220,6 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     // Adds collateral addresses supported, such as tether and busd, must be ERC20 
     function addPool(address pool_address) public onlyOwner {
         require(pool_address != address(0), "Zero address detected");
-
         require(isFraxPools[pool_address] == false, "Address already exists");
         isFraxPools[pool_address] = true;
         fraxPoolAddress.push(pool_address);
@@ -244,7 +243,6 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
                 break;
             }
         }
-
         emit PoolRemoved(pool_address);
     }
 
