@@ -26,24 +26,24 @@ contract FraxBondIssuer is AbstractPausable {
 
     // Minimum cooldown period before a new epoch, in seconds
     // Bonds should be redeemed during this time, or they risk being rebalanced with a new epoch
-    uint256 public cooldown_period = 864000; // 10 days
+    uint256 public cooldownPeriod = 864000; // 10 days
 
     // Max FXB outstanding
-    uint256 public max_fxb_outstanding = 1000000e18;
+    uint256 public maxFxbOutstanding = 1000000e18;
 
     // Target liquidity of FXB for the vAMM
-    uint256 public target_liquidity_fxb = 500000e18;
+    uint256 public targetLiquidityFxb = 500000e18;
 
     // Issuable FXB
     // This will be sold at the floor price until depleted, and bypass the vAMM
-    uint256 public issuable_fxb = 80000e18;
-    uint256 public issue_price = 750000;
+    uint256 public issuableFxb = 80000e18;
+    uint256 public issuePrice = 750000;
 
     // Set fees, E6
-    uint256 public issue_fee = 500; // 0.05% initially
-    uint256 public buying_fee = 1500; // 0.15% initially
-    uint256 public selling_fee = 1500; // 0.15% initially
-    uint256 public redemption_fee = 500; // 0.05% initially
+    uint256 public issueFee = 500; // 0.05% initially
+    uint256 public buyingFee = 1500; // 0.15% initially
+    uint256 public sellingFee = 1500; // 0.15% initially
+    uint256 public redemptionFee = 500; // 0.05% initially
 
     // Epoch start and end times
     uint256 public epoch_start;
@@ -53,15 +53,15 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public epoch_length = 31536000; // 1 year
 
     // Initial discount rates per epoch, in E6
-    uint256 public initial_discount = 200000; // 20% initially
+    uint256 public initialDiscount = 200000; // 20% initially
 
     // Minimum collateral ratio
-    uint256 public min_collateral_ratio = 850000;
+    uint256 public minCollateralRatio = 850000;
 
 
     // Virtual balances
-    uint256 public vBal_FRAX;
-    uint256 public vBal_FXB;
+    uint256 public vBalFarx;
+    uint256 public vBalFxb;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -73,8 +73,8 @@ contract FraxBondIssuer is AbstractPausable {
         FXB = FraxBond(_fxb_contract_address);
 
         // Needed for initialization
-        epoch_start = (block.timestamp).sub(cooldown_period).sub(epoch_length);
-        epoch_end = (block.timestamp).sub(cooldown_period);
+        epoch_start = (block.timestamp).sub(cooldownPeriod).sub(epoch_length);
+        epoch_end = (block.timestamp).sub(cooldownPeriod);
 
     }
 
@@ -83,11 +83,11 @@ contract FraxBondIssuer is AbstractPausable {
     // Returns some info
     function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool, bool, uint256, uint256) {
         return (
-        issue_fee,
-        buying_fee,
-        selling_fee,
-        redemption_fee,
-        issuable_fxb,
+        issueFee,
+        buyingFee,
+        sellingFee,
+        redemptionFee,
+        issuableFxb,
         epoch_start,
         epoch_end,
         maximum_fxb_AMM_sellable_above_floor(),
@@ -95,8 +95,8 @@ contract FraxBondIssuer is AbstractPausable {
         floor_price(),
         isInEpoch(),
         isInCooldown(),
-        cooldown_period,
-        issue_price
+        cooldownPeriod,
+        issuePrice
         );
     }
 
@@ -113,19 +113,19 @@ contract FraxBondIssuer is AbstractPausable {
 
     // Checks if the bond is in the cooldown period
     function isInCooldown() public view returns (bool in_cooldown) {
-        in_cooldown = ((block.timestamp >= epoch_end) && (block.timestamp < epoch_end.add(cooldown_period)));
+        in_cooldown = ((block.timestamp >= epoch_end) && (block.timestamp < epoch_end.add(cooldownPeriod)));
     }
 
     // Liquidity balances for the floor price
     function getVirtualFloorLiquidityBalances() public view returns (uint256 frax_balance, uint256 fxb_balance) {
-        frax_balance = target_liquidity_fxb.mul(floor_price()).div(PRICE_PRECISION);
-        fxb_balance = target_liquidity_fxb;
+        frax_balance = targetLiquidityFxb.mul(floor_price()).div(PRICE_PRECISION);
+        fxb_balance = targetLiquidityFxb;
     }
 
     // vAMM price for 1 FXB, in FRAX
     // The contract won't necessarily sell or buy at this price
     function amm_spot_price() public view returns (uint256 fxb_price) {
-        fxb_price = vBal_FRAX.mul(PRICE_PRECISION).div(vBal_FXB);
+        fxb_price = vBalFarx.mul(PRICE_PRECISION).div(vBalFxb);
     }
 
     // FXB floor price for 1 FXB, in FRAX
@@ -133,17 +133,17 @@ contract FraxBondIssuer is AbstractPausable {
     // Also allows the vAMM to buy back cheap FXB under the floor and retire it, meaning less to pay back later at face value
     function floor_price() public view returns (uint256 _floor_price) {
         uint256 time_into_epoch = (block.timestamp).sub(epoch_start);
-        _floor_price = (PRICE_PRECISION.sub(initial_discount)).add(initial_discount.mul(time_into_epoch).div(epoch_length));
+        _floor_price = (PRICE_PRECISION.sub(initialDiscount)).add(initialDiscount.mul(time_into_epoch).div(epoch_length));
     }
 
     function initial_price() public view returns (uint256 _initial_price) {
-        _initial_price = (PRICE_PRECISION.sub(initial_discount));
+        _initial_price = (PRICE_PRECISION.sub(initialDiscount));
     }
 
     // How much FRAX is needed to buy out the remaining unissued FXB
     function frax_to_buy_out_issue() public view returns (uint256 frax_value) {
-        uint256 fxb_fee_amt = issuable_fxb.mul(issue_fee).div(PRICE_PRECISION);
-        frax_value = (issuable_fxb.add(fxb_fee_amt)).mul(issue_price).div(PRICE_PRECISION);
+        uint256 fxb_fee_amt = issuableFxb.mul(issueFee).div(PRICE_PRECISION);
+        frax_value = (issuableFxb.add(fxb_fee_amt)).mul(issuePrice).div(PRICE_PRECISION);
     }
 
     // Maximum amount of FXB you can sell into the vAMM at market prices before it hits the floor price and either cuts off
@@ -163,8 +163,8 @@ contract FraxBondIssuer is AbstractPausable {
 
     // Used for buying up to the issue price from below
     function frax_from_spot_to_issue() public view returns (uint256 frax_spot_to_issue) {
-        if (amm_spot_price() < issue_price) {
-            frax_spot_to_issue = getBoundedIn(DirectionChoice.BELOW_TO_PRICE_FRAX_IN, issue_price);
+        if (amm_spot_price() < issuePrice) {
+            frax_spot_to_issue = getBoundedIn(DirectionChoice.BELOW_TO_PRICE_FRAX_IN, issuePrice);
         }
         else {
             frax_spot_to_issue = 0;
@@ -192,15 +192,15 @@ contract FraxBondIssuer is AbstractPausable {
 
     function buyUnissuedFXB(uint256 frax_in, uint256 fxb_out_min) public whenNotPaused returns (uint256 fxb_out, uint256 fxb_fee_amt) {
         require(isInEpoch(), 'Not in an epoch');
-        require(issuable_fxb > 0, 'No new FXB to issue');
+        require(issuableFxb > 0, 'No new FXB to issue');
         require(FRAX.fraxPrice() < PRICE_PRECISION, "FRAX price must be less than $1");
-        require(FRAX.globalCollateralRatio() >= min_collateral_ratio, "FRAX is already too undercollateralized");
+        require(FRAX.globalCollateralRatio() >= minCollateralRatio, "FRAX is already too undercollateralized");
 
         // Issue at the issue_price or the floor_price, whichever is higher
-        uint256 price_to_use = issue_price;
+        uint256 price_to_use = issuePrice;
         {
             uint256 the_floor_price = floor_price();
-            if (the_floor_price > issue_price) {
+            if (the_floor_price > issuePrice) {
                 price_to_use = the_floor_price;
             }
         }
@@ -209,7 +209,7 @@ contract FraxBondIssuer is AbstractPausable {
         fxb_out = frax_in.mul(PRICE_PRECISION).div(price_to_use);
 
         // Calculate and apply the normal buying fee
-        fxb_fee_amt = fxb_out.mul(issue_fee).div(PRICE_PRECISION);
+        fxb_fee_amt = fxb_out.mul(issueFee).div(PRICE_PRECISION);
 
         // Apply the fee
         fxb_out = fxb_out.sub(fxb_fee_amt);
@@ -218,17 +218,17 @@ contract FraxBondIssuer is AbstractPausable {
         require(fxb_out >= fxb_out_min, "[buyUnissuedFXB fxb_out_min]: Slippage limit reached");
 
         // Check the limit
-        require(fxb_out <= issuable_fxb, 'Trying to buy too many unissued bonds');
+        require(fxb_out <= issuableFxb, 'Trying to buy too many unissued bonds');
 
         // Safety check
-        require(((FXB.totalSupply()).add(fxb_out)) <= max_fxb_outstanding, "New issue would exceed max_fxb_outstanding");
+        require(((FXB.totalSupply()).add(fxb_out)) <= maxFxbOutstanding, "New issue would exceed max_fxb_outstanding");
 
         // Decrement the unissued amount
-        issuable_fxb = issuable_fxb.sub(fxb_out);
+        issuableFxb = issuableFxb.sub(fxb_out);
 
         // Zero out precision-related crumbs if less than 1 FXB left 
-        if (issuable_fxb < uint256(1e18)) {
-            issuable_fxb = 0;
+        if (issuableFxb < uint256(1e18)) {
+            issuableFxb = 0;
         }
 
         // Burn FRAX from the sender. No vAMM balance change here
@@ -254,10 +254,10 @@ contract FraxBondIssuer is AbstractPausable {
         }
 
         // Calculate the FXB output
-        fxb_out = getAmountOutNoFee(frax_in, vBal_FRAX, vBal_FXB);
+        fxb_out = getAmountOutNoFee(frax_in, vBalFarx, vBalFxb);
 
         // Calculate and apply the normal buying fee
-        fxb_fee_amt = fxb_out.mul(buying_fee).div(PRICE_PRECISION);
+        fxb_fee_amt = fxb_out.mul(buyingFee).div(PRICE_PRECISION);
 
         // Apply the fee
         fxb_out = fxb_out.sub(fxb_fee_amt);
@@ -266,15 +266,15 @@ contract FraxBondIssuer is AbstractPausable {
         require(fxb_out >= fxb_out_min, "[buyFXBfromAMM fxb_out_min]: Slippage limit reached");
 
         // Safety check
-        require(((FXB.totalSupply()).add(fxb_out)) <= max_fxb_outstanding, "New issue would exceed max_fxb_outstanding");
+        require(((FXB.totalSupply()).add(fxb_out)) <= maxFxbOutstanding, "New issue would exceed max_fxb_outstanding");
 
         // Burn FRAX from the sender and increase the virtual balance
         FRAX.burnFrom(msg.sender, frax_in);
-        vBal_FRAX = vBal_FRAX.add(frax_in);
+        vBalFarx = vBalFarx.add(frax_in);
 
         // Mint FXB to the sender and decrease the virtual balance
         FXB.issuer_mint(msg.sender, fxb_out);
-        vBal_FXB = vBal_FXB.sub(fxb_out);
+        vBalFxb = vBalFxb.sub(fxb_out);
 
         // vAMM will burn FRAX if the effective sale price is above 1. It is essentially free FRAX and a protocol-level profit
         {
@@ -308,10 +308,10 @@ contract FraxBondIssuer is AbstractPausable {
         // Get the expected amount of FRAX from above the floor
         uint256 frax_out_above_floor = 0;
         if (fxb_bought_above_floor > 0) {
-            frax_out_above_floor = getAmountOutNoFee(fxb_bought_above_floor, vBal_FXB, vBal_FRAX);
+            frax_out_above_floor = getAmountOutNoFee(fxb_bought_above_floor, vBalFxb, vBalFarx);
 
             // Apply the normal selling fee to this portion
-            uint256 fee_above_floor = frax_out_above_floor.mul(selling_fee).div(PRICE_PRECISION);
+            uint256 fee_above_floor = frax_out_above_floor.mul(sellingFee).div(PRICE_PRECISION);
             frax_out_above_floor = frax_out_above_floor.sub(fee_above_floor);
 
             // Informational for return values
@@ -328,7 +328,7 @@ contract FraxBondIssuer is AbstractPausable {
             frax_out_under_floor = getAmountOutNoFee(fxb_sold_under_floor, fxb_floor_balance_virtual.add(fxb_bought_above_floor), frax_floor_balance_virtual.sub(frax_out_above_floor));
 
             // Apply the normal selling fee to this portion
-            uint256 fee_below_floor = frax_out_under_floor.mul(selling_fee).div(PRICE_PRECISION);
+            uint256 fee_below_floor = frax_out_under_floor.mul(sellingFee).div(PRICE_PRECISION);
             frax_out_under_floor = frax_out_under_floor.sub(fee_below_floor);
 
             // Informational for return values
@@ -341,11 +341,11 @@ contract FraxBondIssuer is AbstractPausable {
 
         // Take FXB from the sender and increase the virtual balance
         FXB.burnFrom(msg.sender, fxb_in);
-        vBal_FXB = vBal_FXB.add(fxb_in);
+        vBalFxb = vBalFxb.add(fxb_in);
 
         // Give FRAX to sender from the vAMM and decrease the virtual balance
         FRAX.poolMint(msg.sender, frax_out);
-        vBal_FRAX = vBal_FRAX.sub(frax_out);
+        vBalFarx = vBalFarx.sub(frax_out);
 
         // If any FXB was sold under the floor price, retire / burn it and rebalance the pool
         // This is less FXB that will have to be redeemed at full value later and is essentially a protocol-level profit
@@ -363,7 +363,7 @@ contract FraxBondIssuer is AbstractPausable {
         FXB.burnFrom(msg.sender, fxb_in);
 
         // Give 1 FRAX per 1 FXB, minus the redemption fee
-        frax_fee = fxb_in.mul(redemption_fee).div(PRICE_PRECISION);
+        frax_fee = fxb_in.mul(redemptionFee).div(PRICE_PRECISION);
         frax_out = fxb_in.sub(frax_fee);
 
         // Give the FRAX to the redeemer
@@ -377,51 +377,51 @@ contract FraxBondIssuer is AbstractPausable {
     function _rebalance_AMM_FRAX_to_price(uint256 rebalance_price) internal {
         // Safety checks
         require(rebalance_price <= PRICE_PRECISION, "Rebalance price too high");
-        require(rebalance_price >= (PRICE_PRECISION.sub(initial_discount)), "Rebalance price too low");
+        require(rebalance_price >= (PRICE_PRECISION.sub(initialDiscount)), "Rebalance price too low");
 
-        uint256 frax_required = target_liquidity_fxb.mul(rebalance_price).div(PRICE_PRECISION);
-        if (frax_required > vBal_FRAX) {
+        uint256 frax_required = targetLiquidityFxb.mul(rebalance_price).div(PRICE_PRECISION);
+        if (frax_required > vBalFarx) {
             // Virtually add the deficiency
-            vBal_FRAX = vBal_FRAX.add(frax_required.sub(vBal_FRAX));
+            vBalFarx = vBalFarx.add(frax_required.sub(vBalFarx));
         }
-        else if (frax_required < vBal_FRAX) {
+        else if (frax_required < vBalFarx) {
             // Virtually subtract the excess
-            vBal_FRAX = vBal_FRAX.sub(vBal_FRAX.sub(frax_required));
+            vBalFarx = vBalFarx.sub(vBalFarx.sub(frax_required));
         }
-        else if (frax_required == vBal_FRAX) {
+        else if (frax_required == vBalFarx) {
             // Do nothing
         }
     }
 
     function _rebalance_AMM_FXB() internal {
-        uint256 fxb_required = target_liquidity_fxb;
-        if (fxb_required > vBal_FXB) {
+        uint256 fxb_required = targetLiquidityFxb;
+        if (fxb_required > vBalFxb) {
             // Virtually add the deficiency
-            vBal_FXB = vBal_FXB.add(fxb_required.sub(vBal_FXB));
+            vBalFxb = vBalFxb.add(fxb_required.sub(vBalFxb));
         }
-        else if (fxb_required < vBal_FXB) {
+        else if (fxb_required < vBalFxb) {
             // Virtually subtract the excess
-            vBal_FXB = vBal_FXB.sub(vBal_FXB.sub(fxb_required));
+            vBalFxb = vBalFxb.sub(vBalFxb.sub(fxb_required));
         }
-        else if (fxb_required == vBal_FXB) {
+        else if (fxb_required == vBalFxb) {
             // Do nothing
         }
 
         // Quick safety check
-        require(((FXB.totalSupply()).add(issuable_fxb)) <= max_fxb_outstanding, "Rebalance would exceed max_fxb_outstanding");
+        require(((FXB.totalSupply()).add(issuableFxb)) <= maxFxbOutstanding, "Rebalance would exceed max_fxb_outstanding");
     }
 
     function getBoundedIn(DirectionChoice choice, uint256 the_price) internal view returns (uint256 bounded_amount) {
         if (choice == DirectionChoice.BELOW_TO_PRICE_FRAX_IN) {
-            uint256 numerator = Math.sqrt(vBal_FRAX).mul(Math.sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
+            uint256 numerator = Math.sqrt(vBalFarx).mul(Math.sqrt(vBalFxb)).mul(PRICE_PRECISION_SQRT);
             // The "price" here needs to be inverted 
             uint256 denominator = Math.sqrt((PRICE_PRECISION_SQUARED).div(the_price));
-            bounded_amount = numerator.div(denominator).sub(vBal_FRAX);
+            bounded_amount = numerator.div(denominator).sub(vBalFarx);
         }
         else if (choice == DirectionChoice.ABOVE_TO_PRICE) {
-            uint256 numerator = Math.sqrt(vBal_FRAX).mul(Math.sqrt(vBal_FXB)).mul(PRICE_PRECISION_SQRT);
+            uint256 numerator = Math.sqrt(vBalFarx).mul(Math.sqrt(vBalFxb)).mul(PRICE_PRECISION_SQRT);
             uint256 denominator = Math.sqrt(the_price);
-            bounded_amount = numerator.div(denominator).sub(vBal_FXB);
+            bounded_amount = numerator.div(denominator).sub(vBalFxb);
         }
     }
 
@@ -431,10 +431,10 @@ contract FraxBondIssuer is AbstractPausable {
     // The expansion must occur at the current vAMM price
     function expand_AMM_liquidity(uint256 fxb_expansion_amount, bool do_rebalance) external onlyOwner {
         require(isInEpoch(), 'Not in an epoch');
-        require(FRAX.globalCollateralRatio() >= min_collateral_ratio, "FRAX is already too undercollateralized");
+        require(FRAX.globalCollateralRatio() >= minCollateralRatio, "FRAX is already too undercollateralized");
 
         // Expand the FXB target liquidity
-        target_liquidity_fxb = target_liquidity_fxb.add(fxb_expansion_amount);
+        targetLiquidityFxb = targetLiquidityFxb.add(fxb_expansion_amount);
 
         // Optionally do the rebalance. If not, it will be done at an applicable time in one of the buy / sell functions
         if (do_rebalance) {
@@ -448,7 +448,7 @@ contract FraxBondIssuer is AbstractPausable {
         require(isInEpoch(), 'Not in an epoch');
 
         // Expand the FXB target liquidity
-        target_liquidity_fxb = target_liquidity_fxb.sub(fxb_contraction_amount);
+        targetLiquidityFxb = targetLiquidityFxb.sub(fxb_contraction_amount);
 
         // Optionally do the rebalance. If not, it will be done at an applicable time in one of the buy / sell functions
         if (do_rebalance) {
@@ -471,49 +471,49 @@ contract FraxBondIssuer is AbstractPausable {
         require(!isInCooldown(), 'Bonds are currently settling in the cooldown');
 
         // Rebalance the vAMM liquidity
-        rebalance_AMM_liquidity_to_price(PRICE_PRECISION.sub(initial_discount));
+        rebalance_AMM_liquidity_to_price(PRICE_PRECISION.sub(initialDiscount));
 
         // Set state variables
         epoch_start = block.timestamp;
         epoch_end = epoch_start.add(epoch_length);
 
-        emit FXB_EpochStarted(msg.sender, epoch_start, epoch_end, epoch_length, initial_discount, max_fxb_outstanding);
+        emit FXB_EpochStarted(msg.sender, epoch_start, epoch_end, epoch_length, initialDiscount, maxFxbOutstanding);
     }
 
 
     function setMaxFXBOutstanding(uint256 _max_fxb_outstanding) external onlyOwner {
-        max_fxb_outstanding = _max_fxb_outstanding;
+        maxFxbOutstanding = _max_fxb_outstanding;
     }
 
     function setTargetLiquidity(uint256 _target_liquidity_fxb, bool _rebalance_vAMM) external onlyOwner {
-        target_liquidity_fxb = _target_liquidity_fxb;
+        targetLiquidityFxb = _target_liquidity_fxb;
         if (_rebalance_vAMM) {
             rebalance_AMM_liquidity_to_price(amm_spot_price());
         }
     }
 
     function clearIssuableFXB() external onlyOwner {
-        issuable_fxb = 0;
-        issue_price = PRICE_PRECISION;
+        issuableFxb = 0;
+        issuePrice = PRICE_PRECISION;
     }
 
     function setIssuableFXB(uint256 _issuable_fxb, uint256 _issue_price) external onlyOwner {
-        if (_issuable_fxb > issuable_fxb) {
-            require(((FXB.totalSupply()).add(_issuable_fxb)) <= max_fxb_outstanding, "New issue would exceed max_fxb_outstanding");
+        if (_issuable_fxb > issuableFxb) {
+            require(((FXB.totalSupply()).add(_issuable_fxb)) <= maxFxbOutstanding, "New issue would exceed max_fxb_outstanding");
         }
-        issuable_fxb = _issuable_fxb;
-        issue_price = _issue_price;
+        issuableFxb = _issuable_fxb;
+        issuePrice = _issue_price;
     }
 
     function setFees(uint256 _issue_fee, uint256 _buying_fee, uint256 _selling_fee, uint256 _redemption_fee) external onlyOwner {
-        issue_fee = _issue_fee;
-        buying_fee = _buying_fee;
-        selling_fee = _selling_fee;
-        redemption_fee = _redemption_fee;
+        issueFee = _issue_fee;
+        buyingFee = _buying_fee;
+        sellingFee = _selling_fee;
+        redemptionFee = _redemption_fee;
     }
 
     function setCooldownPeriod(uint256 _cooldown_period) external onlyOwner {
-        cooldown_period = _cooldown_period;
+        cooldownPeriod = _cooldown_period;
     }
 
     function setEpochLength(uint256 _epoch_length) external onlyOwner {
@@ -521,13 +521,13 @@ contract FraxBondIssuer is AbstractPausable {
     }
 
     function setMinCollateralRatio(uint256 _min_collateral_ratio) external onlyOwner {
-        min_collateral_ratio = _min_collateral_ratio;
+        minCollateralRatio = _min_collateral_ratio;
     }
 
     function setInitialDiscount(uint256 _initial_discount, bool _rebalance_AMM) external onlyOwner {
-        initial_discount = _initial_discount;
+        initialDiscount = _initial_discount;
         if (_rebalance_AMM) {
-            rebalance_AMM_liquidity_to_price(PRICE_PRECISION.sub(initial_discount));
+            rebalance_AMM_liquidity_to_price(PRICE_PRECISION.sub(initialDiscount));
         }
     }
 
