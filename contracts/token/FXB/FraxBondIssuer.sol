@@ -17,12 +17,14 @@ contract FraxBondIssuer is AbstractPausable {
     /* ========== STATE VARIABLES ========== */
     enum DirectionChoice {BELOW_TO_PRICE_FRAX_IN, ABOVE_TO_PRICE}
 
-    FRAXStablecoin private FRAX;
-    FraxBond private FXB;
 
     uint256 public constant PRICE_PRECISION = 1e6;
     uint256 private constant PRICE_PRECISION_SQUARED = 1e12;
     uint256 private constant PRICE_PRECISION_SQRT = 1e3;
+
+    FRAXStablecoin public FRAX;
+    FraxBond public FXB;
+
 
     // Minimum cooldown period before a new epoch, in seconds
     // Bonds should be redeemed during this time, or they risk being rebalanced with a new epoch
@@ -45,8 +47,7 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public sellingFee = 1500; // 0.15% initially
     uint256 public redemptionFee = 500; // 0.05% initially
 
-    // Epoch length
-    uint256 public epoch_length = 31536000; // 1 year
+
 
     // Initial discount rates per epoch, in E6
     uint256 public initialDiscount = 200000; // 20% initially
@@ -73,7 +74,7 @@ contract FraxBondIssuer is AbstractPausable {
     /* ========== VIEWS ========== */
 
     // Returns some info
-    function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool, bool, uint256, uint256) {
+    function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         return (
         issueFee,
         buyingFee,
@@ -83,9 +84,6 @@ contract FraxBondIssuer is AbstractPausable {
         maximum_fxb_AMM_sellable_above_floor(),
         amm_spot_price(),
         floor_price(),
-        isInEpoch(),
-        isInCooldown(),
-        cooldownPeriod,
         issuePrice
         );
     }
@@ -124,8 +122,8 @@ contract FraxBondIssuer is AbstractPausable {
     // Will be used to help prevent someone from doing a huge arb with cheap bonds right before they mature
     // Also allows the vAMM to buy back cheap FXB under the floor and retire it, meaning less to pay back later at face value
     function floor_price() public view returns (uint256 _floor_price) {
-//        uint256 time_into_epoch = (block.timestamp).sub(epoch_start);
-//        _floor_price = (PRICE_PRECISION.sub(initialDiscount)).add(initialDiscount.mul(time_into_epoch).div(epoch_length));
+        //        uint256 time_into_epoch = (block.timestamp).sub(epoch_start);
+        //        _floor_price = (PRICE_PRECISION.sub(initialDiscount)).add(initialDiscount.mul(time_into_epoch).div(epoch_length));
     }
 
     function initial_price() public view returns (uint256 _initial_price) {
@@ -486,14 +484,6 @@ contract FraxBondIssuer is AbstractPausable {
         buyingFee = _buying_fee;
         sellingFee = _selling_fee;
         redemptionFee = _redemption_fee;
-    }
-
-    function setCooldownPeriod(uint256 _cooldown_period) external onlyOwner {
-        cooldownPeriod = _cooldown_period;
-    }
-
-    function setEpochLength(uint256 _epoch_length) external onlyOwner {
-        epoch_length = _epoch_length;
     }
 
     function setMinCollateralRatio(uint256 _min_collateral_ratio) external onlyOwner {
