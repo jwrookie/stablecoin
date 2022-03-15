@@ -45,10 +45,6 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public sellingFee = 1500; // 0.15% initially
     uint256 public redemptionFee = 500; // 0.05% initially
 
-    // Epoch start and end times
-    uint256 public epoch_start;
-    uint256 public epoch_end;
-
     // Epoch length
     uint256 public epoch_length = 31536000; // 1 year
 
@@ -72,24 +68,18 @@ contract FraxBondIssuer is AbstractPausable {
         FRAX = FRAXStablecoin(_frax_contract_address);
         FXB = FraxBond(_fxb_contract_address);
 
-        // Needed for initialization
-        epoch_start = (block.timestamp).sub(cooldownPeriod).sub(epoch_length);
-        epoch_end = (block.timestamp).sub(cooldownPeriod);
-
     }
 
     /* ========== VIEWS ========== */
 
     // Returns some info
-    function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool, bool, uint256, uint256) {
+    function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, bool, bool, uint256, uint256) {
         return (
         issueFee,
         buyingFee,
         sellingFee,
         redemptionFee,
         issuableFxb,
-        epoch_start,
-        epoch_end,
         maximum_fxb_AMM_sellable_above_floor(),
         amm_spot_price(),
         floor_price(),
@@ -108,12 +98,14 @@ contract FraxBondIssuer is AbstractPausable {
 
     // Checks if the bond is in a maturity epoch
     function isInEpoch() public view returns (bool in_epoch) {
-        in_epoch = ((block.timestamp >= epoch_start) && (block.timestamp < epoch_end));
+        //        in_epoch = ((block.timestamp >= epoch_start) && (block.timestamp < epoch_end));
+        return true;
     }
 
     // Checks if the bond is in the cooldown period
     function isInCooldown() public view returns (bool in_cooldown) {
-        in_cooldown = ((block.timestamp >= epoch_end) && (block.timestamp < epoch_end.add(cooldownPeriod)));
+        //        in_cooldown = ((block.timestamp >= epoch_end) && (block.timestamp < epoch_end.add(cooldownPeriod)));
+        return true;
     }
 
     // Liquidity balances for the floor price
@@ -132,8 +124,8 @@ contract FraxBondIssuer is AbstractPausable {
     // Will be used to help prevent someone from doing a huge arb with cheap bonds right before they mature
     // Also allows the vAMM to buy back cheap FXB under the floor and retire it, meaning less to pay back later at face value
     function floor_price() public view returns (uint256 _floor_price) {
-        uint256 time_into_epoch = (block.timestamp).sub(epoch_start);
-        _floor_price = (PRICE_PRECISION.sub(initialDiscount)).add(initialDiscount.mul(time_into_epoch).div(epoch_length));
+//        uint256 time_into_epoch = (block.timestamp).sub(epoch_start);
+//        _floor_price = (PRICE_PRECISION.sub(initialDiscount)).add(initialDiscount.mul(time_into_epoch).div(epoch_length));
     }
 
     function initial_price() public view returns (uint256 _initial_price) {
@@ -465,22 +457,6 @@ contract FraxBondIssuer is AbstractPausable {
         _rebalance_AMM_FRAX_to_price(rebalance_price);
     }
 
-    // Starts a new epoch and rebalances the vAMM
-    function startNewEpoch() external onlyOwner {
-        require(!isInEpoch(), 'Already in an existing epoch');
-        require(!isInCooldown(), 'Bonds are currently settling in the cooldown');
-
-        // Rebalance the vAMM liquidity
-        rebalance_AMM_liquidity_to_price(PRICE_PRECISION.sub(initialDiscount));
-
-        // Set state variables
-        epoch_start = block.timestamp;
-        epoch_end = epoch_start.add(epoch_length);
-
-        emit FXB_EpochStarted(msg.sender, epoch_start, epoch_end, epoch_length, initialDiscount, maxFxbOutstanding);
-    }
-
-
     function setMaxFXBOutstanding(uint256 _max_fxb_outstanding) external onlyOwner {
         maxFxbOutstanding = _max_fxb_outstanding;
     }
@@ -543,7 +519,6 @@ contract FraxBondIssuer is AbstractPausable {
 
     // Track bond redeeming
     event FXB_Redeemed(address indexed from, uint256 fxb_amount, uint256 frax_out);
-    event FXB_EpochStarted(address indexed from, uint256 _epoch_start, uint256 _epoch_end, uint256 _epoch_length, uint256 _initial_discount, uint256 _max_fxb_amount);
 }
 
 
