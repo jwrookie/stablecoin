@@ -25,10 +25,12 @@ async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     // let usdc = "0x42d903C9503c22a83a92e216F088d8BaDff0c699"
-    let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
-
-    let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
-    let timeLock = "0x4e5726cB91A518B55c02E67822925e947bE56F46"
+    // let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
+    //
+    // let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
+    let timeLock = "0x7E923e174895f2b49118aF90C6692db7C1F6C69C"
+    let poolAddr = "0xC15b8A16A63Ddde4DdD35B6085c0B1De73d7ab66"
+    // pool = await Pool_USDC.attach(poolAddr)
 
     for (const account of accounts) {
         //console.log('Account address' + account.address)
@@ -90,14 +92,26 @@ async function main() {
     // pool = await Pool_USDC.deploy(frax,fxs,usdc,100);
     // console.log("pool:" + pool.address);
 
-    const MockChainLink = await ethers.getContractFactory("MockChainLink");
-    chainLink = await MockChainLink.deploy();
-    console.log("chainLink:" + chainLink.address);
+    // const MockChainLink = await ethers.getContractFactory("MockChainLink");
+    // chainLink = await MockChainLink.deploy();
+    // console.log("chainLink:" + chainLink.address);
+    //
+    //
+    // const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
+    // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
+    // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
+
+     const FRAXOracleWrapper = await ethers.getContractFactory("FRAXOracleWrapper");
+    fraxOracle = await FRAXOracleWrapper.deploy(deployer.address,timeLock);
+    console.log("fraxOracle:" + fraxOracle.address);
+
+     const FXSOracleWrapper = await ethers.getContractFactory("FXSOracleWrapper");
+    fxsOracle = await FXSOracleWrapper.deploy(eployer.address,timeLock);
+    console.log("fxsOracle:" + fxsOracle.address);
+
+    await fraxOracle.setChainlinkFRAXETHOracle()
 
 
-    const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
-    chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
-    console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
 
 
 }
