@@ -83,20 +83,7 @@ contract FraxBondIssuer is AbstractPausable {
 
     /* ========== VIEWS ========== */
 
-    // Returns some info
-    function issuer_info() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
-        return (
-        issueFee,
-        buyingFee,
-        sellingFee,
-        redemptionFee,
-        issuableFxb,
-        maximum_fxb_AMM_sellable_above_floor(),
-        amm_spot_price(),
-        floor_price(),
-        issuePrice
-        );
-    }
+
 
     // Needed for the Frax contract to function without bricking
     function collatDollarBalance() external pure returns (uint256) {
@@ -134,30 +121,7 @@ contract FraxBondIssuer is AbstractPausable {
         frax_value = (issuableFxb.add(fxb_fee_amt)).mul(issuePrice).div(PRICE_PRECISION);
     }
 
-    // Maximum amount of FXB you can sell into the vAMM at market prices before it hits the floor price and either cuts off
-    // or sells at the floor price, dependingon how sellFXBintoAMM is called
-    // If the vAMM price is above the floor, you may sell FXB until doing so would push the price down to the floor
-    // Will be 0 if the vAMM price is at or below the floor price
-    function maximum_fxb_AMM_sellable_above_floor() public view returns (uint256 maximum_fxb_for_sell) {
-        uint256 the_floor_price = floor_price();
 
-        if (amm_spot_price() > the_floor_price) {
-            maximum_fxb_for_sell = getBoundedIn(DirectionChoice.ABOVE_TO_PRICE, the_floor_price);
-        }
-        else {
-            maximum_fxb_for_sell = 0;
-        }
-    }
-
-    // Used for buying up to the issue price from below
-    function frax_from_spot_to_issue() public view returns (uint256 frax_spot_to_issue) {
-        if (amm_spot_price() < issuePrice) {
-            frax_spot_to_issue = getBoundedIn(DirectionChoice.BELOW_TO_PRICE_FRAX_IN, issuePrice);
-        }
-        else {
-            frax_spot_to_issue = 0;
-        }
-    }
 
     /* ========== PUBLIC FUNCTIONS ========== */
 
@@ -223,120 +187,6 @@ contract FraxBondIssuer is AbstractPausable {
         FXB.issuer_mint(msg.sender, fxb_out);
     }
 
-    function buyFXBfromAMM(uint256 frax_in, uint256 fxb_out_min) external whenNotPaused returns (uint256 fxb_out, uint256 fxb_fee_amt) {
-
-        // Get the vAMM price
-        uint256 spot_price = amm_spot_price();
-
-        // Rebalance the vAMM if applicable
-        // This may be the case if the floor price moved up slowly and nobody made any purchases for a while
-        {
-            if (spot_price < floor_price()) {
-                _rebalance_AMM_FXB();
-                _rebalance_AMM_FRAX_to_price(floor_price());
-            }
-        }
-
-        // Calculate the FXB output
-        fxb_out = getAmountOutNoFee(frax_in, vBalFarx, vBalFxb);
-
-        // Calculate and apply the normal buying fee
-        fxb_fee_amt = fxb_out.mul(buyingFee).div(PRICE_PRECISION);
-
-        // Apply the fee
-        fxb_out = fxb_out.sub(fxb_fee_amt);
-
-        // Check fxb_out_min
-        require(fxb_out >= fxb_out_min, "[buyFXBfromAMM fxb_out_min]: Slippage limit reached");
-
-        // Safety check
-        require(((FXB.totalSupply()).add(fxb_out)) <= maxFxbOutstanding, "New issue would exceed max_fxb_outstanding");
-
-        // Burn FRAX from the sender and increase the virtual balance
-        FRAX.burnFrom(msg.sender, frax_in);
-        vBalFarx = vBalFarx.add(frax_in);
-
-        // Mint FXB to the sender and decrease the virtual balance
-        FXB.issuer_mint(msg.sender, fxb_out);
-        vBalFxb = vBalFxb.sub(fxb_out);
-
-        // vAMM will burn FRAX if the effective sale price is above 1. It is essentially free FRAX and a protocol-level profit
-        {
-            uint256 effective_sale_price = frax_in.mul(PRICE_PRECISION).div(fxb_out);
-            if (effective_sale_price > PRICE_PRECISION) {
-                // Rebalance to $1
-                _rebalance_AMM_FXB();
-                _rebalance_AMM_FRAX_to_price(PRICE_PRECISION);
-            }
-        }
-    }
-
-    function sellFXBintoAMM(uint256 fxb_in, uint256 frax_out_min) external whenNotPaused returns (uint256 fxb_bought_above_floor, uint256 fxb_sold_under_floor, uint256 frax_out, uint256 frax_fee_amt) {
-        fxb_bought_above_floor = fxb_in;
-        fxb_sold_under_floor = 0;
-
-        // The vAMM will buy back FXB at market rates in all cases
-        // However, any FXB bought back under the floor price will be burned
-        uint256 max_above_floor_sellable_fxb = maximum_fxb_AMM_sellable_above_floor();
-        if (fxb_in >= max_above_floor_sellable_fxb) {
-            fxb_bought_above_floor = max_above_floor_sellable_fxb;
-            fxb_sold_under_floor = fxb_in.sub(max_above_floor_sellable_fxb);
-        }
-        else {
-            // no change to fxb_bought_above_floor
-            fxb_sold_under_floor = 0;
-        }
-
-        // Get the expected amount of FRAX from above the floor
-        uint256 frax_out_above_floor = 0;
-        if (fxb_bought_above_floor > 0) {
-            frax_out_above_floor = getAmountOutNoFee(fxb_bought_above_floor, vBalFxb, vBalFarx);
-
-            // Apply the normal selling fee to this portion
-            uint256 fee_above_floor = frax_out_above_floor.mul(sellingFee).div(PRICE_PRECISION);
-            frax_out_above_floor = frax_out_above_floor.sub(fee_above_floor);
-
-            // Informational for return values
-            frax_fee_amt += fee_above_floor;
-            frax_out += frax_out_above_floor;
-        }
-
-        // Get the expected amount of FRAX from below the floor
-        // Need to adjust the balances virtually for this
-        uint256 frax_out_under_floor = 0;
-        if (fxb_sold_under_floor > 0) {
-            // Get the virtual amount under the floor
-            (uint256 frax_floor_balance_virtual, uint256 fxb_floor_balance_virtual) = getVirtualFloorLiquidityBalances();
-            frax_out_under_floor = getAmountOutNoFee(fxb_sold_under_floor, fxb_floor_balance_virtual.add(fxb_bought_above_floor), frax_floor_balance_virtual.sub(frax_out_above_floor));
-
-            // Apply the normal selling fee to this portion
-            uint256 fee_below_floor = frax_out_under_floor.mul(sellingFee).div(PRICE_PRECISION);
-            frax_out_under_floor = frax_out_under_floor.sub(fee_below_floor);
-
-            // Informational for return values
-            frax_fee_amt += fee_below_floor;
-            frax_out += frax_out_under_floor;
-        }
-
-        // Check frax_out_min
-        require(frax_out >= frax_out_min, "[sellFXBintoAMM frax_out_min]: Slippage limit reached");
-
-        // Take FXB from the sender and increase the virtual balance
-        FXB.burnFrom(msg.sender, fxb_in);
-        vBalFxb = vBalFxb.add(fxb_in);
-
-        // Give FRAX to sender from the vAMM and decrease the virtual balance
-        FRAX.poolMint(msg.sender, frax_out);
-        vBalFarx = vBalFarx.sub(frax_out);
-
-        // If any FXB was sold under the floor price, retire / burn it and rebalance the pool
-        // This is less FXB that will have to be redeemed at full value later and is essentially a protocol-level profit
-        if (fxb_sold_under_floor > 0) {
-            // Rebalance to the floor
-            _rebalance_AMM_FXB();
-            _rebalance_AMM_FRAX_to_price(floor_price());
-        }
-    }
 
     function mintBond(uint256 fraxIn) external whenNotPaused returns (uint256 fxbOut, uint256 fraxFee) {
         FRAX.poolBurnFrom(msg.sender, fraxIn);
