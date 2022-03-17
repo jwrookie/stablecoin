@@ -103,9 +103,9 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
     });
 
     it('test ', async () => {
-        console.log("Answer:" + await chainLink.answer())
-        console.log("getDecimals:" + await chainlinkETHUSDPriceConsumer.getDecimals())
-        //await frax.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address)
+        // console.log("Answer:" + await chainLink.answer())
+        // console.log("getDecimals:" + await chainlinkETHUSDPriceConsumer.getDecimals())
+        // //await frax.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address)
 
         // assert.equal(await frax.isFraxPools(pool.address), false)
         // await frax.addPool(pool.address);
@@ -116,31 +116,6 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
         // console.log("fxs:" + await fxs.balanceOf(owner))
         // // // await fxs.mint(owner,1000)
         // //  console.log("fxs:"+await fxs.balanceOf(owner))
-
-
-    });
-    it('test mint1t1FRAX ', async () => {
-        console.log("ethUsdPrice:" + await frax.ethUsdPrice())
-        //console.log("getCollateralPrice:"+await pool.getCollateralPrice())
-        //  console.log("usdc:"+await usdc.balanceOf(pool.address))
-        //  console.log("unclaimedPoolCollateral:"+await pool.unclaimedPoolCollateral())
-
-        //  //console.log("ethUsdPrice:"+await frax.ethUsdPrice())
-        // // console.log("collatDollarBalance:"+await pool.collatDollarBalance())
-        // await pool.mint1t1FRAX(toWei('1'),0)
-        // assert.equal(await frax.isFraxPools(pool.address), false)
-        //
-        //  console.log("getLatestPrice:"+await chainlinkETHUSDPriceConsumer.getLatestPrice())
-        // await frax.addPool(pool.address);
-        // assert.equal(await frax.isFraxPools(pool.address), true)
-        // //await fxs.poolMint(owner,1000);
-        // await frax.mint(owner,1000);
-        // console.log("frax:" + await frax.balanceOf(owner))
-        // console.log("fxs:" + await fxs.balanceOf(owner))
-        // // // await fxs.mint(owner,1000)
-        // //  console.log("fxs:"+await fxs.balanceOf(owner))
-        // console.log("usdc:" + await usdc.balanceOf(owner))
-        //await pool.mint1t1FRAX("10000000",0)
 
 
     });
