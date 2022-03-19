@@ -203,7 +203,7 @@ contract FraxBondIssuer is AbstractPausable {
         // Decrement the unissued amount
         issuableFxb = issuableFxb.sub(fxb_out);
 
-        // Zero out precision-related crumbs if less than 1 FXB left 
+        // Zero out precision-related crumbs if less than 1 FXB left
         if (issuableFxb < uint256(1e18)) {
             issuableFxb = 0;
         }

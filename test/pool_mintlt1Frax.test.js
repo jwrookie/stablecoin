@@ -123,7 +123,7 @@ contract('Pool_USDC', () => {
         assert.equal(await frax.fraxEthOracleAddress(), uniswapOracle.address);
 
         await frax.setFXSEthOracle(uniswapOracle.address, weth.address);
-        assert.equal(await frax.fxsEthOracleAddress(), uniswapOracle.address)
+        assert.equal(await frax.fxsEthOracleAddress(), uniswapOracle.address);
 
 
     });

@@ -16,7 +16,6 @@ const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waff
 const {ethers, waffle} = require("hardhat");
 
 
-
 function encodeParameters(types, values) {
     const abi = new ethers.utils.AbiCoder();
     return abi.encode(types, values);
@@ -25,7 +24,7 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-   let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = "0x4e5726cB91A518B55c02E67822925e947bE56F46"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
     let fxs = "0x023fEF5136601d7aF29B8EAA9056b65736B9A8B6"
@@ -39,62 +38,62 @@ async function main() {
     let deployer = accounts[0]
     console.log('deployer:' + deployer.address)
     // We get the contract to deploy
-    console.log('Account balance:', (await deployer.getBalance()).toString()/10**18)
+    console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-   //  const TestERC20 = await ethers.getContractFactory("TestERC20");
-   //  usdc = await TestERC20.deploy();
-   //  console.log("usdc:" + usdc.address);
-   //
-   //
-   //  busd = await TestERC20.deploy();
-   //  console.log("busd:" + busd.address);
-   //
-   //
-   //  dai = await TestERC20.deploy();
-   //  console.log("dai:" + dai.address);
-   //
-   //
-   //
-   // timeLock = await deployContract(deployer, {
-   //      bytecode: Timelock.bytecode,
-   //      abi: Timelock.abi
-   //  }, [deployer.address, 0]);
-   //  console.log("timeLock:" + timeLock.address)
-   //
-   //
-   //  // const TimeLock = await ethers.getContractFactory("TimeLock");
-   //  // timeLock = await TimeLock.deploy(deployer.address, 0);
-   //  // console.log("timeLock:" + timeLock.address);
-   //
-   //     const TestOracle = await ethers.getContractFactory("TestOracle");
-   //  oracle = await TestOracle.deploy();
-   //  console.log("oracle:" + oracle.address);
-   //
-   //  const FRAXShares = await ethers.getContractFactory("FRAXShares");
-   //  fxs = await FRAXShares.deploy("fxs","fxs",oracle.address);
-   //  console.log("fxs:" + fxs.address);
-   //
-   //  const FRAXStablecoin = await ethers.getContractFactory("FRAXStablecoin");
-   //  frax = await FRAXStablecoin.deploy( "frax", "frax");
-   //  console.log("frax:" + frax.address);
-   //
-   //   await fxs.setFraxAddress(frax.address);
-   //      await frax.setFXSAddress(fxs.address);
-   //
-   //
-   //  const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
-   //  fraxPoolLibrary = await FraxPoolLibrary.deploy();
-   //  console.log("fraxPoolLibrary:" + fraxPoolLibrary.address);
+    //  const TestERC20 = await ethers.getContractFactory("TestERC20");
+    //  usdc = await TestERC20.deploy();
+    //  console.log("usdc:" + usdc.address);
+    //
+    //
+    //  busd = await TestERC20.deploy();
+    //  console.log("busd:" + busd.address);
+    //
+    //
+    //  dai = await TestERC20.deploy();
+    //  console.log("dai:" + dai.address);
+    //
+    //
+    //
+    // timeLock = await deployContract(deployer, {
+    //      bytecode: Timelock.bytecode,
+    //      abi: Timelock.abi
+    //  }, [deployer.address, 0]);
+    //  console.log("timeLock:" + timeLock.address)
+    //
+    //
+    //  // const TimeLock = await ethers.getContractFactory("TimeLock");
+    //  // timeLock = await TimeLock.deploy(deployer.address, 0);
+    //  // console.log("timeLock:" + timeLock.address);
+    //
+    //     const TestOracle = await ethers.getContractFactory("TestOracle");
+    //  oracle = await TestOracle.deploy();
+    //  console.log("oracle:" + oracle.address);
+    //
+    //  const FRAXShares = await ethers.getContractFactory("FRAXShares");
+    //  fxs = await FRAXShares.deploy("fxs","fxs",oracle.address);
+    //  console.log("fxs:" + fxs.address);
+    //
+    //  const FRAXStablecoin = await ethers.getContractFactory("FRAXStablecoin");
+    //  frax = await FRAXStablecoin.deploy( "frax", "frax");
+    //  console.log("frax:" + frax.address);
+    //
+    //   await fxs.setFraxAddress(frax.address);
+    //      await frax.setFXSAddress(fxs.address);
+    //
+    //
+    //  const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
+    //  fraxPoolLibrary = await FraxPoolLibrary.deploy();
+    //  console.log("fraxPoolLibrary:" + fraxPoolLibrary.address);
 
 
     const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
-            libraries: {
-                FraxPoolLibrary: fraxPoolLibrary,
-            },
-        });
-    pool = await Pool_USDC.deploy(frax,fxs,usdc,toWei('100'));
-    console.log("pool:" + pool.address);
+        libraries: {
+            FraxPoolLibrary: fraxPoolLibrary,
+        },
+    });
+    pool1 = await Pool_USDC.deploy(frax, fxs, usdc, toWei('100'));
+    console.log("pool1:" + pool1.address);
 
     //  const MockChainLink = await ethers.getContractFactory("MockChainLink");
     // chainLink = await MockChainLink.deploy();
@@ -104,7 +103,6 @@ async function main() {
     // const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
     // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
     // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
-
 
 
 }
