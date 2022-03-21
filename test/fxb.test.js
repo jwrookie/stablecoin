@@ -151,7 +151,7 @@ contract('FraxBond', () => {
             toWei('100')
         );
 
-       // console.log("poolvAMMC:"+poolvAMMC.address)
+        // console.log("poolvAMMC:"+poolvAMMC.address)
 
     });
 
@@ -205,54 +205,56 @@ contract('FraxBond', () => {
         await uniswapOracle.setPeriod(1);
 
         await uniswapOracle.update();
+        // console.log("oraclePrice:" + await uniswapOracle.consult(weth.address, 10 ** 6))
+        // console.log("price0Average:" + await uniswapOracle.price0Average())
+        // console.log("price1Average:" + await uniswapOracle.price1Average())
+        //
+        // console.log("floor_price:" + await fraxBondIssuer.floor_price())
+        //
+        //
+        // console.log("fraxPrice:" + await frax.fraxPrice())
+        // console.log("fxb:"+await fxb.balanceOf(owner.address))
+        //
+        await fraxBondIssuer.buyUnissuedFXB(1000, 0)
+        //   console.log("fxb:"+await fxb.balanceOf(owner.address))
+        //console.log("amm_spot_price:"+await fraxBondIssuer.amm_spot_price())
+        //  let info = await fraxBondIssuer.issuer_info()
+        //  console.log("issueFee:"+await info[0])
+
+
+        // await fraxBondIssuer.sellFXBintoAMM(1000,0)
+
+    });
+    it("test buyFXBfromAMM", async () => {
+        assert.equal(await fxb.bond_issuers(owner.address), false)
+        await fxb.addIssuer(owner.address);
+        await fxb.addIssuer(fraxBondIssuer.address);
+        assert.equal(await fxb.bond_issuers(owner.address), true)
+        // console.log("fxb:"+await fxb.balanceOf(fraxBondIssuer.address))
+        await fxb.issuer_mint(fraxBondIssuer.address, 200000)
+        await fxb.issuer_mint(owner.address, 100000)
+
+
+        await frax.approve(fraxBondIssuer.address, toWei('1000'))
+        await fxb.approve(fraxBondIssuer.address, toWei('1000'))
+        await frax.addPool(fraxBondIssuer.address)
+
+        await uniswapOracle.setPeriod(1);
+
+
+        await uniswapOracle.update();
         console.log("oraclePrice:" + await uniswapOracle.consult(weth.address, 10 ** 6))
         console.log("price0Average:" + await uniswapOracle.price0Average())
         console.log("price1Average:" + await uniswapOracle.price1Average())
 
-        console.log("floor_price:" + await fraxBondIssuer.floor_price())
+            //  console.log("floor_price:" + await fraxBondIssuer.floor_price())
+       console.log("amm_spot_price:" + await fraxBondIssuer.amm_spot_price())
+        // await fraxBondIssuer.buyFXBfromAMM(1000,10)
 
 
-        console.log("fraxPrice:" + await frax.fraxPrice())
-        console.log("fxb:"+await fxb.balanceOf(owner.address))
+        //await fraxBondIssuer.sellFXBintoAMM(1000,0)
 
-        await fraxBondIssuer.buyUnissuedFXB(1000, 0)
-        console.log("fxb:"+await fxb.balanceOf(owner.address))
-       // console.log("amm_spot_price:"+await fraxBondIssuer.amm_spot_price())
-
-       // await fraxBondIssuer.sellFXBintoAMM(1000,0)
 
     });
-    // it("test buyFXBfromAMM",async () => {
-    //     assert.equal(await fxb.bond_issuers(owner.address), false)
-    //     await fxb.addIssuer(owner.address);
-    //     await fxb.addIssuer(fraxBondIssuer.address);
-    //     assert.equal(await fxb.bond_issuers(owner.address), true)
-    //     // console.log("fxb:"+await fxb.balanceOf(fraxBondIssuer.address))
-    //     await fxb.issuer_mint(fraxBondIssuer.address, 200000)
-    //     await fxb.issuer_mint(owner.address, 100000)
-    //
-    //
-    //     await frax.approve(fraxBondIssuer.address, toWei('1000'))
-    //     await fxb.approve(fraxBondIssuer.address, toWei('1000'))
-    //     await frax.addPool(fraxBondIssuer.address)
-    //
-    //     await uniswapOracle.setPeriod(1);
-    //
-    //
-    //     await uniswapOracle.update();
-    //     console.log("oraclePrice:" + await uniswapOracle.consult(weth.address, 10 ** 6))
-    //     console.log("price0Average:" + await uniswapOracle.price0Average())
-    //     console.log("price1Average:" + await uniswapOracle.price1Average())
-    //
-    //     console.log("floor_price:" + await fraxBondIssuer.floor_price())
-    //     // await fraxBondIssuer.buyFXBfromAMM(1000,10)
-    //
-    //     // let consults = await uniswapOracle.
-    //
-    //
-    //     console.log("fraxPrice:" + await frax.fraxPrice())
-    //     await fraxBondIssuer.buyFXBfromAMM(1000, 0)
-    //
-    // });
 
 });
