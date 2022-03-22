@@ -148,7 +148,7 @@ contract FraxPool is AbstractPausable {
         weth_address = _weth_address;
     }
 
-    // We separate out the 1t1, fractional and algorithmic minting functions for gas efficiency 
+    // We separate out the 1t1, fractional and algorithmic minting functions for gas efficiency
     function mint1t1FRAX(uint256 collateral_amount, uint256 FRAX_out_min) external whenNotPaused {
         uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
 
