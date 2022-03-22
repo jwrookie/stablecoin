@@ -68,6 +68,8 @@ contract FraxBondIssuer is AbstractPausable {
     ) {
         FRAX = FRAXStablecoin(_frax_contract_address);
         FXB = FraxBond(_fxb_contract_address);
+        vBalFarx = 1e18;
+        vBalFxb = 1e18;
 
     }
 
