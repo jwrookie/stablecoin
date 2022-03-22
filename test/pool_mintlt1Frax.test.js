@@ -158,64 +158,64 @@ contract('Pool_USDC', () => {
 
 
     });
-    it('test mintAlgorithmicFRAX and redeemAlgorithmicFRAX ', async () => {
-        await uniswapOracle.setPeriod(1);
-        await uniswapOracle.update();
-
-        assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
-        assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
-
-        assert.equal(await frax.fxsPrice(), "100000000");
-        assert.equal(await frax.globalCollateralRatio(), "1000000");
-        assert.equal(await frax.fraxStep(), "2500");
-
-        await frax.setFraxStep("2500000");
-        assert.equal(await frax.fraxStep(), "2500000");
-        await frax.refreshCollateralRatio();
-
-        assert.equal(await frax.globalCollateralRatio(), 0);
-
-        await pool.mintAlgorithmicFRAX("1000", "100");
-        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000100000");
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999000");
-
-        await pool.redeemAlgorithmicFRAX("1000", 0);
-        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000099000");
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999000");
-
-
-    });
-    it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
-        await uniswapOracle.setPeriod(1);
-        await uniswapOracle.update();
-
-        assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
-        assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
-        assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
-        assert.equal(await fxs.balanceOf(pool.address), 0);
-        assert.equal(await usdc.balanceOf(pool.address), 0);
-
-        assert.equal(await frax.fxsPrice(), "100000000");
-        assert.equal(await frax.globalCollateralRatio(), "1000000");
-        await frax.setFraxStep("250000");
-        await frax.refreshCollateralRatio();
-        assert.equal(await frax.globalCollateralRatio(), "750000");
-
-        await pool.mintFractionalFRAX("1000", "1000", 0);
-        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-        assert.equal(await fxs.balanceOf(pool.address), 0);
-        assert.equal(await usdc.balanceOf(pool.address), "1000");
-
-        await pool.redeemFractionalFRAX("100000", 0, 0);
-        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000033333");
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-        assert.equal(await fxs.balanceOf(pool.address), "250");
-        assert.equal(await usdc.balanceOf(pool.address), "1000");
-
-
-    });
+    // it('test mintAlgorithmicFRAX and redeemAlgorithmicFRAX ', async () => {
+    //     await uniswapOracle.setPeriod(1);
+    //     await uniswapOracle.update();
+    //
+    //     assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
+    //     assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
+    //
+    //     assert.equal(await frax.fxsPrice(), "100000000");
+    //     assert.equal(await frax.globalCollateralRatio(), "1000000");
+    //     assert.equal(await frax.fraxStep(), "2500");
+    //
+    //     await frax.setFraxStep("2500000");
+    //     assert.equal(await frax.fraxStep(), "2500000");
+    //     await frax.refreshCollateralRatio();
+    //
+    //     assert.equal(await frax.globalCollateralRatio(), 0);
+    //
+    //     await pool.mintAlgorithmicFRAX("1000", "100");
+    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000100000");
+    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999000");
+    //
+    //     await pool.redeemAlgorithmicFRAX("1000", 0);
+    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000099000");
+    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999000");
+    //
+    //
+    // });
+    // it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
+    //     await uniswapOracle.setPeriod(1);
+    //     await uniswapOracle.update();
+    //
+    //     assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
+    //     assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
+    //     assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
+    //     assert.equal(await fxs.balanceOf(pool.address), 0);
+    //     assert.equal(await usdc.balanceOf(pool.address), 0);
+    //
+    //     assert.equal(await frax.fxsPrice(), "100000000");
+    //     assert.equal(await frax.globalCollateralRatio(), "1000000");
+    //     await frax.setFraxStep("250000");
+    //     await frax.refreshCollateralRatio();
+    //     assert.equal(await frax.globalCollateralRatio(), "750000");
+    //
+    //     await pool.mintFractionalFRAX("1000", "1000", 0);
+    //     assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
+    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+    //     assert.equal(await fxs.balanceOf(pool.address), 0);
+    //     assert.equal(await usdc.balanceOf(pool.address), "1000");
+    //
+    //     await pool.redeemFractionalFRAX("100000", 0, 0);
+    //     assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000033333");
+    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+    //     assert.equal(await fxs.balanceOf(pool.address), "250");
+    //     assert.equal(await usdc.balanceOf(pool.address), "1000");
+    //
+    //
+    // });
 
 });
