@@ -29,8 +29,8 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public lastInterestTime;
     uint256 public exchangeRate;
     uint256 public interestRate;
-
-
+    uint256 public minInterestRate;
+    uint256 public maxInterestRate;
 
     // Max FXB outstanding
     uint256 public maxFxbOutstanding = 1000000e18;
@@ -53,6 +53,9 @@ contract FraxBondIssuer is AbstractPausable {
     ) {
         FRAX = FRAXStablecoin(_frax_contract_address);
         FXB = FraxBond(_fxb_contract_address);
+        minInterestRate = 1e16;
+        maxInterestRate = 3e16;
+        interestRate = 1e16;
 
     }
 
@@ -81,6 +84,16 @@ contract FraxBondIssuer is AbstractPausable {
         fraxFee = fraxOut.mul(redemptionFee).div(PRICE_PRECISION);
         FRAX.poolMint(msg.sender, fraxOut);
         emit BondRedeemed(msg.sender, fxbIn, fraxOut);
+    }
+
+    function setRangeInterestRate(uint256 min, uint256 max) external onlyOwner {
+        minInterestRate = min;
+        maxInterestRate = max;
+    }
+
+    function setInterestRate(uint256 _interestRate) external onlyOwner {
+        require(maxInterestRate >= _interestRate && _interestRate >= minInterestRate, "rate  in range");
+        interestRate = _interestRate;
     }
 
     function setFees(uint256 _issue_fee, uint256 _redemption_fee) external onlyOwner {
