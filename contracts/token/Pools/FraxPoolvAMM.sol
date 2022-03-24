@@ -35,9 +35,9 @@ import "../../token/Frax.sol";
 
 import "../../Uniswap/UniswapV2Library.sol";
 import "../../Oracle/UniswapPairOracle.sol";
-import "../../Governance/AccessControl.sol";
+import "../AbstractPausable.sol";
 
-contract FraxPoolvAMM is AccessControl {
+contract FraxPoolvAMM is AbstractPausable {
     using SafeMath for uint256;
     
     ERC20 private collateral_token;
@@ -93,19 +93,6 @@ contract FraxPoolvAMM is AccessControl {
     uint256 public collateral_invested = 0; // Keeps track of how much collateral the investor was given
     address public investor_contract_address; // All of the investing code logic will be offloaded to the investor contract
 
-    // AccessControl Roles
-    bytes32 private constant MINT_PAUSER = keccak256("MINT_PAUSER");
-    bytes32 private constant REDEEM_PAUSER = keccak256("REDEEM_PAUSER");
-    bytes32 private constant BUYBACK_PAUSER = keccak256("BUYBACK_PAUSER");
-    bytes32 private constant RECOLLATERALIZE_PAUSER = keccak256("RECOLLATERALIZE_PAUSER");
-    bytes32 private constant COLLATERAL_PRICE_PAUSER = keccak256("COLLATERAL_PRICE_PAUSER");
-
-    // AccessControl state variables
-    bool public mintPaused = false;
-    bool public redeemPaused = false;
-    bool public recollateralizePaused = false;
-    bool public buyBackPaused = false;
-    bool public collateralPricePaused = false;
 
     // Drift related
     uint256 public drift_end_time = 0;
@@ -122,27 +109,12 @@ contract FraxPoolvAMM is AccessControl {
     uint256 public drift_refresh_period = 0;
     uint256 public k_virtual_amm = 0;
 
-    /* ========== MODIFIERS ========== */
-
-    modifier onlyByOwnGov() {
-        require(msg.sender == timelock_address || msg.sender == owner_address, "Not owner or timelock");
-        _;
-    }
 
     modifier onlyInvestor() {
         require(msg.sender == investor_contract_address, "You are not the investor");
         _;
     }
 
-    modifier notMintPaused() {
-        require(mintPaused == false, "Minting is paused");
-        _;
-    }
-
-    modifier notRedeemPaused() {
-        require(redeemPaused == false, "Redeeming is paused");
-        _;
-    }
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -150,8 +122,6 @@ contract FraxPoolvAMM is AccessControl {
         address _frax_contract_address,
         address _fxs_contract_address,
         address _collateral_address,
-        address _creator_address,
-        address _timelock_address,
         address _uniswap_factory_address,
         address _fxs_usdc_oracle_addr,
         uint256 _pool_ceiling
@@ -161,8 +131,6 @@ contract FraxPoolvAMM is AccessControl {
         frax_contract_address = _frax_contract_address;
         fxs_contract_address = _fxs_contract_address;
         collateral_address = _collateral_address;
-        timelock_address = _timelock_address;
-        owner_address = _creator_address;
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
         uniswap_factory = _uniswap_factory_address;
@@ -196,13 +164,6 @@ contract FraxPoolvAMM is AccessControl {
             fxs_virtual_reserves = reserve1;
             collat_virtual_reserves = reserve0;
         }
-
-        _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
-        grantRole(MINT_PAUSER, timelock_address);
-        grantRole(REDEEM_PAUSER, timelock_address);
-        grantRole(RECOLLATERALIZE_PAUSER, timelock_address);
-        grantRole(BUYBACK_PAUSER, timelock_address);
-        grantRole(COLLATERAL_PRICE_PAUSER, timelock_address);
     }
 
 
@@ -348,7 +309,7 @@ contract FraxPoolvAMM is AccessControl {
 
     /* ========== PUBLIC FUNCTIONS ========== */
 
-    function mintFractionalFRAX(uint256 collateral_amount, uint256 fxs_amount, uint256 FRAX_out_min) public notMintPaused returns (uint256, uint256, uint256) {
+    function mintFractionalFRAX(uint256 collateral_amount, uint256 fxs_amount, uint256 FRAX_out_min) public whenNotPaused returns (uint256, uint256, uint256) {
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         // Do not need to equalize decimals between FXS and collateral, getAmountOut & reserves takes care of it
@@ -398,7 +359,7 @@ contract FraxPoolvAMM is AccessControl {
         return (total_frax_mint, collat_needed, fxs_needed);
     }
 
-    function redeemFractionalFRAX(uint256 FRAX_amount, uint256 fxs_out_min, uint256 collateral_out_min) public notRedeemPaused returns (uint256, uint256, uint256) {
+    function redeemFractionalFRAX(uint256 FRAX_amount, uint256 fxs_out_min, uint256 collateral_out_min) public whenNotPaused returns (uint256, uint256, uint256) {
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         uint256 collat_out;
@@ -487,8 +448,7 @@ contract FraxPoolvAMM is AccessControl {
         return (CollateralAmount, FXSAmount);
     }
 
-    function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external returns (uint256, uint256) {
-        require(recollateralizePaused == false, "Recollateralize is paused");
+    function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external whenNotPaused returns (uint256, uint256) {
         uint256 fxs_out = getAmountOut(collateral_amount, collat_virtual_reserves, fxs_virtual_reserves, recollat_fee);
 
         _update(fxs_virtual_reserves.sub(fxs_out), collat_virtual_reserves.add(collateral_amount), fxs_virtual_reserves, collat_virtual_reserves);
@@ -518,8 +478,8 @@ contract FraxPoolvAMM is AccessControl {
         return (collateral_amount, fxs_out);
     }
 
-    function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external returns (uint256, uint256) {
-        require(buyBackPaused == false, "Buyback is paused");
+    function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external whenNotPaused returns (uint256, uint256) {
+
         uint256 buyback_available = availableExcessCollatDV().div(10 ** missing_decimals);
         uint256 collat_out = getAmountOut(FXS_amount, fxs_virtual_reserves, collat_virtual_reserves, buyback_fee);
 
@@ -569,39 +529,14 @@ contract FraxPoolvAMM is AccessControl {
         }
     }
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function toggleMinting(bool state) external {
-        require(hasRole(MINT_PAUSER, msg.sender));
-        mintPaused = state;
-    }
 
-    function toggleRedeeming(bool state) external {
-        require(hasRole(REDEEM_PAUSER, msg.sender));
-        redeemPaused = state;
-    }
-
-    function toggleRecollateralize(bool state) external {
-        require(hasRole(RECOLLATERALIZE_PAUSER, msg.sender));
-        recollateralizePaused = state;
-    }
-    
-    function toggleBuyBack(bool state) external {
-        require(hasRole(BUYBACK_PAUSER, msg.sender));
-        buyBackPaused = state;
-    }
-
-    function toggleCollateralPrice(bool state, uint256 _new_price) external {
-        require(hasRole(COLLATERAL_PRICE_PAUSER, msg.sender));
-        collateralPricePaused = state;
-
-        if(collateralPricePaused == true){
+    function toggleCollateralPrice( uint256 _new_price) onlyOwner external {
             pausedPrice = _new_price;
-        }
     }
 
     // Combined into one function due to 24KiB contract memory limit
-    function setPoolParameters(uint256 new_ceiling, uint256 new_bonus_rate, uint256 new_redemption_delay, uint256 new_mint_fee, uint256 new_redeem_fee, uint256 new_buyback_fee, uint256 new_recollat_fee, uint256 _reserve_refresh_cooldown, uint256 _max_drift_band) external onlyByOwnGov {
+    function setPoolParameters(uint256 new_ceiling, uint256 new_bonus_rate, uint256 new_redemption_delay, uint256 new_mint_fee, uint256 new_redeem_fee, uint256 new_buyback_fee, uint256 new_recollat_fee, uint256 _reserve_refresh_cooldown, uint256 _max_drift_band) external onlyOwner {
         pool_ceiling = new_ceiling;
         bonus_rate = new_bonus_rate;
         redemption_delay = new_redemption_delay;
@@ -615,21 +550,21 @@ contract FraxPoolvAMM is AccessControl {
     
 
     // Sets the FXS_USDC Uniswap oracle address 
-    function setFXSUSDCOracle(address _fxs_usdc_oracle_addr) public onlyByOwnGov {
+    function setFXSUSDCOracle(address _fxs_usdc_oracle_addr) public onlyOwner {
         fxs_usdc_oracle_address = _fxs_usdc_oracle_addr;
         fxsUSDCOracle = UniswapPairOracle(_fxs_usdc_oracle_addr);
     }
 
-    function setTimelock(address new_timelock) external onlyByOwnGov {
+    function setTimelock(address new_timelock) external onlyOwner {
         require(new_timelock != address(0), "Timelock address cannot be 0");
         timelock_address = new_timelock;
     }
 
-    function setOwner(address _owner_address) external onlyByOwnGov {
+    function setOwner(address _owner_address) external onlyOwner {
         owner_address = _owner_address;
     }
 
-    function setInvestorParameters(address _investor_contract_address, uint256 _global_investment_cap_percentage) external onlyByOwnGov {
+    function setInvestorParameters(address _investor_contract_address, uint256 _global_investment_cap_percentage) external onlyOwner {
         investor_contract_address = _investor_contract_address;
         global_investment_cap_percentage = _global_investment_cap_percentage;
     }
