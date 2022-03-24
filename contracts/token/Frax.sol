@@ -211,6 +211,11 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         emit FRAXBurned(b_address, msg.sender, b_amount);
     }
 
+    function poolBurn(address b_address, uint256 b_amount) public onlyPools {
+        super.burn(b_amount);
+        emit FRAXBurned(b_address, msg.sender, b_amount);
+    }
+
     // This function is what other frax pools will call to mint new FRAX 
     function poolMint(address m_address, uint256 m_amount) public onlyPools {
         super._mint(m_address, m_amount);

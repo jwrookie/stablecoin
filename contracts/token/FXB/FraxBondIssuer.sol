@@ -49,6 +49,9 @@ contract FraxBondIssuer is AbstractPausable {
         minInterestRate = 1e16;
         maxInterestRate = 3e16;
         interestRate = 1e16;
+        exchangeRate = 1e18;
+        TransferHelper.safeApprove(address(stableCoin), address(this), type(uint256).max);
+        TransferHelper.safeApprove(address(bond), address(bond), type(uint256).max);
 
     }
 
@@ -78,7 +81,7 @@ contract FraxBondIssuer is AbstractPausable {
         fee = fee.add(fraxFee);
 
         uint amount = fraxIn.sub(fraxFee);
-        stableCoin.poolBurnFrom(address(this), amount);
+        stableCoin.poolBurn(msg.sender, amount);
 
         fxbOut = fraxIn.mul(1e18).div(exchangeRate);
         bond.issuer_mint(msg.sender, fxbOut);

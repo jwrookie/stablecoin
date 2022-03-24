@@ -176,7 +176,7 @@ contract('FraxBond', () => {
         // await fxb.issuer_mint(owner.address, "200000");
 
 
-        await fraxBondIssuer.mintBond("1000");
+        await fraxBondIssuer.mintBond("1000000000");
         console.log("fxb:" + await fxb.balanceOf(owner.address))
         console.log("frax:" + await frax.balanceOf(owner.address))
         console.log("exchangeRate:" + await fraxBondIssuer.exchangeRate())
