@@ -185,37 +185,50 @@ contract('Pool_USDC', () => {
     //
     //
     // });
-    // it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
-    //     await uniswapOracle.setPeriod(1);
-    //     await uniswapOracle.update();
-    //
-    //     assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
-    //     assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
-    //     assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
-    //     assert.equal(await fxs.balanceOf(pool.address), 0);
-    //     assert.equal(await usdc.balanceOf(pool.address), 0);
-    //
-    //     assert.equal(await frax.fxsPrice(), "100000000");
-    //     assert.equal(await frax.globalCollateralRatio(), "1000000");
-    //     await frax.setFraxStep("250000");
-    //     await frax.refreshCollateralRatio();
-    //     assert.equal(await frax.globalCollateralRatio(), "750000");
-    //
-    //     await pool.mintFractionalFRAX("1000", "1000", 0);
-    //     assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
-    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-    //     assert.equal(await fxs.balanceOf(pool.address), 0);
-    //     assert.equal(await usdc.balanceOf(pool.address), "1000");
-    //
-    //     await pool.redeemFractionalFRAX("100000", 0, 0);
-    //     assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000033333");
-    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-    //     assert.equal(await fxs.balanceOf(pool.address), "250");
-    //     assert.equal(await usdc.balanceOf(pool.address), "1000");
-    //
-    //
-    // });
+    it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
+          console.log("globalCollateralRatio:"+await frax.globalCollateralRatio())
+        await uniswapOracle.setPeriod(1);
+
+
+        await uniswapOracle.update();
+
+        assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
+        assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
+        assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
+        assert.equal(await fxs.balanceOf(pool.address), 0);
+        assert.equal(await usdc.balanceOf(pool.address), 0);
+
+        assert.equal(await frax.fxsPrice(), "100000000");
+        assert.equal(await frax.globalCollateralRatio(), "1000000");
+        await frax.setFraxStep("250000");
+        await frax.refreshCollateralRatio();
+        assert.equal(await frax.globalCollateralRatio(), "750000");
+
+          let info =  await frax.fraxInfo()
+        console.log("frax_price:"+info[0])
+        console.log("fxs_price:"+info[1])
+        console.log("totalSupply:"+info[2])
+        console.log("globalCollateralRatio:"+info[3])
+        console.log("globalCollateralValue:"+info[4])
+        console.log("minting_fee:"+info[5])
+        console.log("redemption_fee:"+info[6])
+        console.log("eth_usd_price:"+info[7])
+
+        await pool.mintFractionalFRAX("1000", "1000", 0);
+        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
+        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+        assert.equal(await fxs.balanceOf(pool.address), 0);
+        assert.equal(await usdc.balanceOf(pool.address), "1000");
+
+        await pool.redeemFractionalFRAX("100000", 0, 0);
+        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000033333");
+        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+        assert.equal(await fxs.balanceOf(pool.address), "250");
+        assert.equal(await usdc.balanceOf(pool.address), "1000");
+
+
+    });
 
 });
