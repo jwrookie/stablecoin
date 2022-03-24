@@ -101,15 +101,6 @@ async function main() {
     // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
     // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
 
-     const FRAXOracleWrapper = await ethers.getContractFactory("FRAXOracleWrapper");
-    fraxOracle = await FRAXOracleWrapper.deploy(deployer.address,timeLock);
-    console.log("fraxOracle:" + fraxOracle.address);
-
-     const FXSOracleWrapper = await ethers.getContractFactory("FXSOracleWrapper");
-    fxsOracle = await FXSOracleWrapper.deploy(eployer.address,timeLock);
-    console.log("fxsOracle:" + fxsOracle.address);
-
-    await fraxOracle.setChainlinkFRAXETHOracle()
 
 
 
