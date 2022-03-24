@@ -31,7 +31,6 @@ import "../../Staking/Owned.sol";
 import "../FXS/FXS.sol";
 import "../../token/Frax.sol";
 import "../../Oracle/UniswapPairOracle.sol";
-import "../../Governance/AccessControl.sol";
 import "./FraxPoolLibrary.sol";
 
 contract FraxPool is AbstractPausable {
