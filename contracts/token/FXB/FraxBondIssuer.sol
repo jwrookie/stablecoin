@@ -67,7 +67,7 @@ contract FraxBondIssuer is AbstractPausable {
     function calInterest() public {
         if (block.timestamp > lastInterestTime) {
             uint256 timePast = block.timestamp.sub(lastInterestTime);
-            uint256 interest = currentInterestRate().mul(timePast).div(ONE_YEAR).div(1e18);
+            uint256 interest = currentInterestRate().mul(timePast).div(ONE_YEAR);
             exchangeRate = exchangeRate.add(interest);
             lastInterestTime = block.timestamp;
         }
