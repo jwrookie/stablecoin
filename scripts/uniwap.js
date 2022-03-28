@@ -28,7 +28,7 @@ async function main() {
     // let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
     //
     // let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
-    let timeLock = "0x604D340ac430A872B0d0b70ebFcDfd9999d265B7"
+    let timeLock = "0x9205322Df5d5E763C3B98919c18c763A4caB7E14"
     let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     let tokenA = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     let tokenB = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
