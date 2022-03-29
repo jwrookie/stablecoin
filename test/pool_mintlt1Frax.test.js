@@ -14,6 +14,7 @@ function encodeParameters(types, values) {
     return abi.encode(types, values);
 }
 
+
 contract('Pool_USDC', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
@@ -132,9 +133,11 @@ contract('Pool_USDC', () => {
     //     assert.equal(await frax.ethUsdPrice(), "100000000");
     //     assert.equal(await uniswapOracle.price0Average(), 0);
     //     assert.equal(await uniswapOracle.price1Average(), 0);
+    //     console.log("globalCollateralRatio:"+await frax.globalCollateralRatio())
     //
     //     await uniswapOracle.setPeriod(1);
     //     await uniswapOracle.update();
+    //      console.log("globalCollateralRatio:"+await frax.globalCollateralRatio())
     //     let consults = await uniswapOracle.consult(weth.address, toWei('100000'));
     //     console.log("consults:" + consults);
     //
@@ -221,26 +224,38 @@ contract('Pool_USDC', () => {
         assert.equal(await fxs.balanceOf(pool.address), 0);
         assert.equal(await usdc.balanceOf(pool.address), "1000");
 
-        await pool.redeemFractionalFRAX("133340", 0, 0);
-        assert.equal(await frax.balanceOf(owner.address), "1999999999999999999999993");
-        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-        assert.equal(await usdc.balanceOf(pool.address), "1000");
-        assert.equal(await fxs.balanceOf(pool.address), "333");
+        // await pool.redeemFractionalFRAX("133340", 0, 0);
+        // assert.equal(await frax.balanceOf(owner.address), "1999999999999999999999993");
+        // assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+        // assert.equal(await usdc.balanceOf(pool.address), "1000");
+        // assert.equal(await fxs.balanceOf(pool.address), "333");
+        //
+        // assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+        // assert.equal(await pool.unclaimedPoolCollateral(), "1000");
+        // assert.equal(await pool.unclaimedPoolFXS(), "333");
+        // assert.equal(await pool.redeemCollateralBalances(owner.address), "1000");
+        //
+        // await pool.collectRedemption();
+        // assert.equal(await usdc.balanceOf(owner.address), "100000000000000000000");
+        // assert.equal(await usdc.balanceOf(pool.address), 0);
+        // assert.equal(await fxs.balanceOf(pool.address), 0);
+        //
+        // assert.equal(await fxs.balanceOf(owner.address), "100000000000000000000000000");
+        // assert.equal(await pool.unclaimedPoolCollateral(), 0);
+        // assert.equal(await pool.unclaimedPoolFXS(), 0);
+        // assert.equal(await pool.redeemCollateralBalances(owner.address), 0);
 
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-        assert.equal(await pool.unclaimedPoolCollateral(), "1000");
-        assert.equal(await pool.unclaimedPoolFXS(), "333");
-        assert.equal(await pool.redeemCollateralBalances(owner.address), "1000");
+        // console.log("redemption_delay:"+await pool.redemption_delay())
 
-        await pool.collectRedemption();
-        assert.equal(await usdc.balanceOf(owner.address), "100000000000000000000");
-        assert.equal(await usdc.balanceOf(pool.address), 0);
-        assert.equal(await fxs.balanceOf(pool.address), 0);
+        //  await pool.multicall(
+        // [pool.interface.encodeFunctionData('redeemFractionalFRAX',['10000','0','0']),
+        //     pool.interface.encodeFunctionData('collectRedemption')]
 
-        assert.equal(await fxs.balanceOf(owner.address), "100000000000000000000000000");
-        assert.equal(await pool.unclaimedPoolCollateral(), 0);
-        assert.equal(await pool.unclaimedPoolFXS(), 0);
-        assert.equal(await pool.redeemCollateralBalances(owner.address), 0);
+        console.log("lastRedeemed:" + await pool.lastRedeemed(owner.address))
+
+        await pool.multicall(
+            [pool.interface.encodeFunctionData('redeemFractionalFRAX', ['10000', '0', '0']),
+                pool.interface.encodeFunctionData('collectRedemption')]);
 
 
     });
