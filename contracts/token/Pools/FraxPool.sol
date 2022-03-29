@@ -32,8 +32,9 @@ import "../FXS/FXS.sol";
 import "../../token/Frax.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "./FraxPoolLibrary.sol";
+import "../../tools/Multicall.sol";
 
-contract FraxPool is AbstractPausable {
+contract FraxPool is AbstractPausable, Multicall {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
