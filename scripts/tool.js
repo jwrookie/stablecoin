@@ -27,9 +27,9 @@ async function main() {
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0x03cE829Bc52e48A1c0472a2e4c86B13dDc66fE0D"
-    let frax = "0x9898e53D70e472C4627cd3F23B742e205D3c1716"
-   let pool = "0xAAEfFe8b0F35E6eb970e33318434dd976227C607"
+    let fxs = "0xEF70CAbcFd003F9fD56cfF75e6b6c300069Bc5Af"
+    let frax = "0x6E99889DE9585d77ae8889CB07CccE2d8Ff7A5DF"
+   let pool = "0x5b1963038e8efa1790B43D4eD7574511405f2BA6"
     // //let fxb = ""
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
@@ -186,7 +186,7 @@ async function main() {
 
      const MintTool = await ethers.getContractFactory('MintTool', {
         libraries: {
-            FraxPoolLibrary: "0x3f65384eC29ab44ea88495aaa05B082a8ED2f438",
+            FraxPoolLibrary: "0x130b12A9C25963d5d6703735b819E6C1244B725B",
         },
     });
 

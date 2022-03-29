@@ -51,7 +51,7 @@ contract('Pool_USDC', () => {
                 FraxPoolLibrary: fraxPoolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('100'));
+        pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
         assert.equal(await pool.USDC_address(), usdc.address);
 
 
@@ -68,9 +68,9 @@ contract('Pool_USDC', () => {
         assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
         await usdc.mint(owner.address, toWei('1'));
 
-        await frax.approve(pool.address, toWei('1000'));
-        await fxs.approve(pool.address, toWei('1000'));
-        await usdc.approve(pool.address, toWei('1000'));
+        await frax.approve(pool.address, toWei('10000000000'));
+        await fxs.approve(pool.address, toWei('10000000000'));
+        await usdc.approve(pool.address, toWei('10000000000'));
         await frax.addPool(pool.address);
 
         factory = await deployContract(owner, {
@@ -99,7 +99,7 @@ contract('Pool_USDC', () => {
 
         await usdc.approve(router.address, toWei('1000'))
         await weth.approve(router.address, toWei('1000'))
-        await usdc.mint(owner.address, toWei('100'))
+        await usdc.mint(owner.address, toWei('1000000000000'))
         //await busd.mint(owner.address, toWei('100'))
         await weth.deposit({value: toWei('100')})
         assert.equal(await weth.balanceOf(owner.address), toWei('100'));
@@ -202,95 +202,93 @@ contract('Pool_USDC', () => {
     //
     //
     // });
-    it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
-        await uniswapOracle.setPeriod(1);
-        await uniswapOracle.update();
-
-        assert.equal(await frax.fxsPrice(), "100000000");
-        assert.equal(await frax.globalCollateralRatio(), "1000000");
-        await frax.setFraxStep("250000");
-        await frax.refreshCollateralRatio();
-        assert.equal(await frax.globalCollateralRatio(), "750000");
-        assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
-        assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
-        assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
-        assert.equal(await fxs.balanceOf(pool.address), 0);
-        assert.equal(await usdc.balanceOf(pool.address), 0);
-
-        await pool.mintFractionalFRAX("1000", "1000", 0);
-        assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-        assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
-        assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-        assert.equal(await fxs.balanceOf(pool.address), 0);
-        assert.equal(await usdc.balanceOf(pool.address), "1000");
-
-        // await pool.redeemFractionalFRAX("133340", 0, 0);
-        // assert.equal(await frax.balanceOf(owner.address), "1999999999999999999999993");
-        // assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
-        // assert.equal(await usdc.balanceOf(pool.address), "1000");
-        // assert.equal(await fxs.balanceOf(pool.address), "333");
-        //
-        // assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
-        // assert.equal(await pool.unclaimedPoolCollateral(), "1000");
-        // assert.equal(await pool.unclaimedPoolFXS(), "333");
-        // assert.equal(await pool.redeemCollateralBalances(owner.address), "1000");
-        //
-        // await pool.collectRedemption();
-        // assert.equal(await usdc.balanceOf(owner.address), "100000000000000000000");
-        // assert.equal(await usdc.balanceOf(pool.address), 0);
-        // assert.equal(await fxs.balanceOf(pool.address), 0);
-        //
-        // assert.equal(await fxs.balanceOf(owner.address), "100000000000000000000000000");
-        // assert.equal(await pool.unclaimedPoolCollateral(), 0);
-        // assert.equal(await pool.unclaimedPoolFXS(), 0);
-        // assert.equal(await pool.redeemCollateralBalances(owner.address), 0);
-
-        // console.log("redemption_delay:"+await pool.redemption_delay())
-
-        //  await pool.multicall(
-        // [pool.interface.encodeFunctionData('redeemFractionalFRAX',['10000','0','0']),
-        //     pool.interface.encodeFunctionData('collectRedemption')]
-
-        console.log("lastRedeemed:" + await pool.lastRedeemed(owner.address))
-
-        await pool.multicall(
-            [pool.interface.encodeFunctionData('redeemFractionalFRAX', ['10000', '0', '0']),
-                pool.interface.encodeFunctionData('collectRedemption')]);
-
-
-    });
-    // it("test buyBackFXS", async () => {
+    // it('test mintFractionalFRAX and redeemFractionalFRAX ', async () => {
     //     await uniswapOracle.setPeriod(1);
     //     await uniswapOracle.update();
-    //     await frax.burn(toWei('1999900'))
-    //     console.log("totalSupply:" + await frax.totalSupply())
     //
-    //     //await frax.setFraxStep("250000");
-    //     //  await frax.refreshCollateralRatio();
+    //     assert.equal(await frax.fxsPrice(), "100000000");
+    //     assert.equal(await frax.globalCollateralRatio(), "1000000");
+    //     await frax.setFraxStep("250000");
+    //     await frax.refreshCollateralRatio();
+    //     assert.equal(await frax.globalCollateralRatio(), "750000");
+    //     assert.equal(await usdc.balanceOf(owner.address), toWei('100'));
+    //     assert.equal(await frax.balanceOf(owner.address), toWei('2000000'));
+    //     assert.equal(await fxs.balanceOf(owner.address), toWei('100000000'));
+    //     assert.equal(await fxs.balanceOf(pool.address), 0);
+    //     assert.equal(await usdc.balanceOf(pool.address), 0);
     //
-    //     await pool.mint1t1FRAX(toWei('100'), "1000");
+    //     await pool.mintFractionalFRAX("1000", "1000", 0);
+    //     assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+    //     assert.equal(await frax.balanceOf(owner.address), "2000000000000000000133333");
+    //     assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+    //     assert.equal(await fxs.balanceOf(pool.address), 0);
+    //     assert.equal(await usdc.balanceOf(pool.address), "1000");
     //
-    //     let info = await frax.fraxInfo()
-    //     console.log("frax_price:" + info[0])
-    //     console.log("globalCollateralRatio:" + await frax.globalCollateralRatio())
-    //     console.log("globalCollateralValue:" + await frax.globalCollateralValue())
-    //
-    //     console.log("availableExcessCollatDV:" + await pool.availableExcessCollatDV())
-    //     console.log("totalSupply:" + await frax.totalSupply())
-    //
-    //
-    //     await pool.redeem1t1FRAX(toWei('1'), "1000")
-    //     // console.log("redeemCollateralBalances:" + await pool.redeemCollateralBalances(owner.address))
+    //     // await pool.redeemFractionalFRAX("133340", 0, 0);
+    //     // assert.equal(await frax.balanceOf(owner.address), "1999999999999999999999993");
+    //     // assert.equal(await usdc.balanceOf(owner.address), "99999999999999999000");
+    //     // assert.equal(await usdc.balanceOf(pool.address), "1000");
+    //     // assert.equal(await fxs.balanceOf(pool.address), "333");
     //     //
-    //     // console.log("unclaimedPoolCollateral:" + await pool.unclaimedPoolCollateral())
+    //     // assert.equal(await fxs.balanceOf(owner.address), "99999999999999999999999667");
+    //     // assert.equal(await pool.unclaimedPoolCollateral(), "1000");
+    //     // assert.equal(await pool.unclaimedPoolFXS(), "333");
+    //     // assert.equal(await pool.redeemCollateralBalances(owner.address), "1000");
+    //     //
+    //     // await pool.collectRedemption();
+    //     // assert.equal(await usdc.balanceOf(owner.address), "100000000000000000000");
+    //     // assert.equal(await usdc.balanceOf(pool.address), 0);
+    //     // assert.equal(await fxs.balanceOf(pool.address), 0);
+    //     //
+    //     // assert.equal(await fxs.balanceOf(owner.address), "100000000000000000000000000");
+    //     // assert.equal(await pool.unclaimedPoolCollateral(), 0);
+    //     // assert.equal(await pool.unclaimedPoolFXS(), 0);
+    //     // assert.equal(await pool.redeemCollateralBalances(owner.address), 0);
     //
-    //     console.log("availableExcessCollatDV:" + await pool.availableExcessCollatDV())
+    //     // console.log("redemption_delay:"+await pool.redemption_delay())
     //
+    //     //  await pool.multicall(
+    //     // [pool.interface.encodeFunctionData('redeemFractionalFRAX',['10000','0','0']),
+    //     //     pool.interface.encodeFunctionData('collectRedemption')]
     //
-    //     // await pool.buyBackFXS("1000",0)
+    //     console.log("lastRedeemed:" + await pool.lastRedeemed(owner.address))
+    //
+    //     await pool.multicall(
+    //         [pool.interface.encodeFunctionData('redeemFractionalFRAX', ['10000', '0', '0']),
+    //             pool.interface.encodeFunctionData('collectRedemption')]);
     //
     //
     // });
+    it("test buyBackFXS", async () => {
+        await uniswapOracle.setPeriod(1);
+        await uniswapOracle.update();
+        await frax.burn(toWei('2000000'))
+        // console.log("totalSupply:" + await frax.totalSupply())
+        // console.log("ethUsdPrice:" + await frax.ethUsdPrice())
+
+
+        await frax.setFraxStep("250000");
+        await frax.refreshCollateralRatio();
+        console.log("availableExcessCollatDV:" + await pool.availableExcessCollatDV())
+
+
+        await pool.mintFractionalFRAX(toWei('1000000'), toWei('1000000'), 0);
+        //await pool.redeemFractionalFRAX(toWei('1000'), 0, 0);
+
+        console.log("fxsPrice:" + await frax.fxsPrice())
+        console.log("globalCollateralRatio:" + await frax.globalCollateralRatio())
+        console.log("globalCollateralValue:" + await frax.globalCollateralValue())
+
+        console.log("availableExcessCollatDV:" + await pool.availableExcessCollatDV())
+        console.log("totalSupply:" + await frax.totalSupply())
+
+        //await pool.redeem1t1FRAX(toWei('1'), "1000")
+
+        await pool.buyBackFXS("1000",0);
+
+
+
+    });
 
 
 });
