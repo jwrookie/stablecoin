@@ -251,6 +251,23 @@
     nano-base32 "^1.0.1"
     ripemd160 "^2.0.2"
 
+"@ensdomains/buffer@^0.0.13":
+  version "0.0.13"
+  resolved "https://registry.yarnpkg.com/@ensdomains/buffer/-/buffer-0.0.13.tgz#b9f60defb78fc5f2bee30faca17e63dfbef19253"
+  integrity sha512-8aA+U/e4S54ebPwcge1HHvvpgXLKxPd6EOSegMlrTvBnKB8RwB3OpNyflaikD6KqzIwDaBaH8bvnTrMcfpV7oQ==
+  dependencies:
+    "@nomiclabs/hardhat-truffle5" "^2.0.0"
+
+"@ensdomains/ens-contracts@0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@ensdomains/ens-contracts/-/ens-contracts-0.0.8.tgz#883a280956468ea7b38f2694e5f0cc2711843431"
+  integrity sha512-krSovhDB0udRknzwK1bj2aLXM6E58jWDi+/Kw9KzVGpLsXv3im+KODJfGbCi39L+EeoVTYcDEmfV9NQ+l367EA==
+  dependencies:
+    "@ensdomains/buffer" "^0.0.13"
+    "@ensdomains/solsha1" "0.0.3"
+    "@openzeppelin/contracts" "^4.1.0"
+    dns-packet "^5.3.0"
+
 "@ensdomains/ens@0.4.5", "@ensdomains/ens@^0.4.4":
   version "0.4.5"
   resolved "https://registry.yarnpkg.com/@ensdomains/ens/-/ens-0.4.5.tgz#e0aebc005afdc066447c6e22feb4eda89a5edbfc"
@@ -280,6 +297,13 @@
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/@ensdomains/resolver/-/resolver-0.2.4.tgz#c10fe28bf5efbf49bff4666d909aed0265efbc89"
   integrity sha512-bvaTH34PMCbv6anRa9I/0zjLJgY4EuznbEMgbV77JBCQ9KNC46rzi0avuxpOfu+xDjPEtSFGqVEOr5GlUSGudA==
+
+"@ensdomains/solsha1@0.0.3":
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/@ensdomains/solsha1/-/solsha1-0.0.3.tgz#fd479da9d40aadb59ff4fb4ec50632e7d2275a83"
+  integrity sha512-uhuG5LzRt/UJC0Ux83cE2rCKwSleRePoYdQVcqPN1wyf3/ekMzT/KZUF9+v7/AG5w9jlMLCQkUM50vfjr0Yu9Q==
+  dependencies:
+    hash-test-vectors "^1.3.2"
 
 "@ethereum-waffle/chai@^3.4.0":
   version "3.4.3"
@@ -968,6 +992,11 @@
   resolved "https://registry.yarnpkg.com/@ledgerhq/logs/-/logs-5.50.0.tgz#29c6419e8379d496ab6d0426eadf3c4d100cd186"
   integrity sha512-swKHYCOZUGyVt4ge0u8a7AwNcA//h4nx5wIi0sruGye1IJ5Cva0GyK9L2/WdX+kWVTKp92ZiEo1df31lrWGPgA==
 
+"@leichtgewicht/ip-codec@^2.0.1":
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/@leichtgewicht/ip-codec/-/ip-codec-2.0.3.tgz#0300943770e04231041a51bd39f0439b5c7ab4f0"
+  integrity sha512-nkalE/f1RvRGChwBnEIoBfSEYOXnCRdleKuv6+lePbMDrMZXeDQnqak5XDOeBgrPPyPfAdcCu/B5z+v3VhplGg==
+
 "@metamask/eth-sig-util@^4.0.0":
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/@metamask/eth-sig-util/-/eth-sig-util-4.0.0.tgz#11553ba06de0d1352332c1bde28c8edd00e0dcf6"
@@ -1017,7 +1046,7 @@
     semver "^6.3.0"
     undici "^4.14.1"
 
-"@nomiclabs/hardhat-truffle5@^2.0.5":
+"@nomiclabs/hardhat-truffle5@^2.0.0", "@nomiclabs/hardhat-truffle5@^2.0.5":
   version "2.0.5"
   resolved "https://registry.yarnpkg.com/@nomiclabs/hardhat-truffle5/-/hardhat-truffle5-2.0.5.tgz#28a4c33a0ebbca3e48f50e12824a3a94ed557916"
   integrity sha512-taTWfieMP3Rvj+y90DgdNpviUJ4zxgjpW0V8D++uPkg5R7HXVWBTf43a1PYw+cBhcqN29P9gB1zSS1HC+uz1Mw==
@@ -1082,7 +1111,7 @@
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-3.4.1-solc-0.7-2.tgz#371c67ebffe50f551c3146a9eec5fe6ffe862e92"
   integrity sha512-tAG9LWg8+M2CMu7hIsqHPaTyG4uDzjr6mhvH96LvOpLZZj6tgzTluBt+LsCf1/QaYrlis6pITvpIaIhE+iZB+Q==
 
-"@openzeppelin/contracts@^4.5.0":
+"@openzeppelin/contracts@^4.1.0", "@openzeppelin/contracts@^4.5.0":
   version "4.5.0"
   resolved "https://registry.yarnpkg.com/@openzeppelin/contracts/-/contracts-4.5.0.tgz#3fd75d57de172b3743cdfc1206883f56430409cc"
   integrity sha512-fdkzKPYMjrRiPK6K4y64e6GzULR7R7RwxSigHS8DDp7aWDeoReqsQI+cxHV1UuhAqX69L1lAaWDxenfP+xiqzA==
@@ -5425,6 +5454,13 @@ dns-over-http-resolver@^1.0.0:
     native-fetch "^3.0.0"
     receptacle "^1.3.2"
 
+dns-packet@^5.3.0:
+  version "5.3.1"
+  resolved "https://registry.yarnpkg.com/dns-packet/-/dns-packet-5.3.1.tgz#eb94413789daec0f0ebe2fcc230bdc9d7c91b43d"
+  integrity sha512-spBwIj0TK0Ey3666GwIdWVfUpLyubpU53BTCu8iPn4r4oXd9O14Hjg3EHw3ts2oed77/SeckunUYCyRlSngqHw==
+  dependencies:
+    "@leichtgewicht/ip-codec" "^2.0.1"
+
 dom-serializer@0:
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/dom-serializer/-/dom-serializer-0.2.2.tgz#1afb81f533717175d478655debc5e332d9f9bb51"
@@ -7651,6 +7687,11 @@ hash-base@^3.0.0:
     inherits "^2.0.4"
     readable-stream "^3.6.0"
     safe-buffer "^5.2.0"
+
+hash-test-vectors@^1.3.2:
+  version "1.3.2"
+  resolved "https://registry.yarnpkg.com/hash-test-vectors/-/hash-test-vectors-1.3.2.tgz#f050fde1aff46ec28dcf4f70e4e3238cd5000f4c"
+  integrity sha1-8FD94a/0bsKNz09w5OMjjNUAD0w=
 
 hash.js@1.1.3:
   version "1.1.3"
