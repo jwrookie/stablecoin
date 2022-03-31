@@ -16,6 +16,7 @@ const {expectRevert, time} = require('@openzeppelin/test-helpers');
         // Use function
         await operatable.setOperator(secondOwner);
         assert.equal(await operatable.operator(), secondOwner);
+
     });
 
     it('test Ownable', async () => {
