@@ -22,16 +22,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     using SafeERC20
     for IERC20;
 
-    /* ========== STATE VARIABLES ========== */
-
-    struct Reward {
-        bool useBoost;
-        uint40 periodFinish;
-        uint208 rewardRate;
-        uint40 lastUpdateTime;
-        uint208 rewardPerTokenStored;
-    }
-
     struct Balances {
         uint112 locked;
         uint112 boosted;
@@ -44,18 +34,13 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         uint32 unlockTime;
     }
 
-    struct EarnedData {
-        address token;
-        uint256 amount;
-    }
-
     struct Epoch {
         uint224 supply; //epoch boosted supply
         uint32 date; //epoch start date
     }
 
     //token constants
-    IERC20 public immutable stakingToken; //cvx
+    IERC20 public immutable stakingToken;
 
     // Duration that rewards are streamed over
     uint256 public constant rewardsDuration = 86400 * 7;
@@ -63,12 +48,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     // Duration of lock/earned penalty period
     uint256 public constant lockDuration = rewardsDuration * 16;
 
-    // reward token -> distributor -> is approved to add rewards
-    mapping(address => mapping(address => bool)) public rewardDistributors;
-
-    // user -> reward token -> amount
-    mapping(address => mapping(address => uint256)) public userRewardPerTokenPaid;
-    mapping(address => mapping(address => uint256)) public rewards;
 
     //supplies and epochs
     uint256 public lockedSupply;
@@ -116,34 +95,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     }
 
 
-
-    // Modify approval for an address to call notifyRewardAmount
-    function approveRewardDistributor(
-        address _rewardsToken,
-        address _distributor,
-        bool _approved
-    ) external onlyOwner {
-//        require(rewardData[_rewardsToken].lastUpdateTime > 0);
-        rewardDistributors[_rewardsToken][_distributor] = _approved;
-    }
-
-    //Set the staking contract for the underlying cvx
-    function setStakingContract(address _staking) external onlyOwner {
-        require(stakingProxy == address(0), "!assign");
-
-        stakingProxy = _staking;
-    }
-
-    //set staking limits. will stake the mean of the two once either ratio is crossed
-    function setStakeLimits(uint256 _minimum, uint256 _maximum) external onlyOwner {
-        require(_minimum <= denominator, "min range");
-        require(_maximum <= denominator, "max range");
-        require(_minimum <= _maximum, "min range");
-        minimumStake = _minimum;
-        maximumStake = _maximum;
-        updateStakeRatio(0);
-    }
-
     //set boost parameters
     function setBoost(uint256 _max, uint256 _rate, address _receivingAddress) external onlyOwner {
         require(_max < 1500, "over max payment");
@@ -166,23 +117,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         kickRewardPerEpoch = _rate;
         kickRewardEpochDelay = _delay;
     }
-
-    //shutdown the contract. unstake all tokens. release all locks
-    function shutdown() external onlyOwner {
-        if (stakingProxy != address(0)) {
-            uint256 stakeBalance = IStakingProxy(stakingProxy).getBalance();
-            IStakingProxy(stakingProxy).withdraw(stakeBalance);
-        }
-        isShutdown = true;
-    }
-
-    //set approvals for staking cvx and cvxcrv
-    function setApprovals() external {
-        IERC20(stakingToken).safeApprove(stakingProxy, 0);
-        IERC20(stakingToken).safeApprove(stakingProxy, type(uint256).max);
-    }
-
-
 
 
     // Total BOOSTED balance of an account, including unlocked but not withdrawn tokens
@@ -535,7 +469,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         }
 
         //update staking, allow a bit of leeway for smaller deposits to reduce gas
-        updateStakeRatio(stakeOffsetOnLock);
 
         emit Staked(_account, lockEpoch, _amount, lockAmount, boostedAmount);
     }
@@ -606,9 +539,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
         //send process incentive
         if (reward > 0) {
-            //if theres a reward(kicked), it will always be a withdraw only
-            //preallocate enough cvx from stake contract to pay for both reward and withdraw
-            allocateCVXForTransfer(uint256(locked));
 
             //reduce return amount by the kick reward
             locked = locked.sub(reward.to112());
@@ -618,8 +548,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
             emit KickReward(_rewardAddress, _account, reward);
         } else if (_spendRatio > 0) {
-            //preallocate enough cvx to transfer the boost cost
-            allocateCVXForTransfer(uint256(locked).mul(_spendRatio).div(denominator));
         }
 
         //relock or return to user
@@ -645,64 +573,18 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         _processExpiredLocks(_account, false, 0, _account, msg.sender, rewardsDuration.mul(kickRewardEpochDelay));
     }
 
-    //pull required amount of cvx from staking for an upcoming transfer
-    function allocateCVXForTransfer(uint256 _amount) internal {
-        uint256 balance = stakingToken.balanceOf(address(this));
-        if (_amount > balance) {
-            IStakingProxy(stakingProxy).withdraw(_amount.sub(balance));
-        }
-    }
-
     //transfer helper: pull enough from staking, transfer, updating staking ratio
     function transferCVX(address _account, uint256 _amount, bool _updateStake) internal {
         //allocate enough cvx from staking for the transfer
-        allocateCVXForTransfer(_amount);
         //transfer
         stakingToken.safeTransfer(_account, _amount);
-
-        //update staking
-        if (_updateStake) {
-            updateStakeRatio(0);
-        }
     }
-
-    //calculate how much cvx should be staked. update if needed
-    function updateStakeRatio(uint256 _offset) internal {
-        if (isShutdown) return;
-
-        //get balances
-        uint256 local = stakingToken.balanceOf(address(this));
-        uint256 staked = IStakingProxy(stakingProxy).getBalance();
-        uint256 total = local.add(staked);
-
-        if (total == 0) return;
-
-        //current staked ratio
-        uint256 ratio = staked.mul(denominator).div(total);
-        //mean will be where we reset to if unbalanced
-        uint256 mean = maximumStake.add(minimumStake).div(2);
-        uint256 max = maximumStake.add(_offset);
-        uint256 min = Math.min(minimumStake, minimumStake - _offset);
-        if (ratio > max) {
-            //remove
-            uint256 remove = staked.sub(total.mul(mean).div(denominator));
-            IStakingProxy(stakingProxy).withdraw(remove);
-        } else if (ratio < min) {
-            //add
-            uint256 increase = total.mul(mean).div(denominator).sub(staked);
-            stakingToken.safeTransfer(stakingProxy, increase);
-            IStakingProxy(stakingProxy).stake();
-        }
-    }
-
-
-
 
 
     // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
         require(_tokenAddress != address(stakingToken), "Cannot withdraw staking token");
-//        require(rewardData[_tokenAddress].lastUpdateTime == 0, "Cannot withdraw reward token");
+        //        require(rewardData[_tokenAddress].lastUpdateTime == 0, "Cannot withdraw reward token");
         IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
     }
