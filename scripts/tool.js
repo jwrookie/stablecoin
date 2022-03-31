@@ -3,10 +3,10 @@ const TestOwnableToken = artifacts.require('TestOwnableToken');
 // const Timelock = artifacts.require('Timelock');
 const FRAXShares = artifacts.require('FRAXShares');
 const FRAXStablecoin = artifacts.require('FRAXStablecoin');
-const Pool_USDC = artifacts.require('Pool_USDC');
+// const Pool_USDC = artifacts.require('Pool_USDC');
 const TestERC20 = artifacts.require('TestERC20');
 const TestOracle = artifacts.require('TestOracle')
-const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
+// const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
 const {toWei} = web3.utils;
 // const Router = require('../test/mock/Timelock.json');
 // const {BigNumber} = require('ethers');
@@ -26,9 +26,10 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-   //  let fxs = "0x13C81210D605c8B16889A689D92446C71376085d"
-   // let frax = "0x9898e53D70e472C4627cd3F23B742e205D3c1716"
-   // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
+    // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
+    let fxs = "0xEF70CAbcFd003F9fD56cfF75e6b6c300069Bc5Af"
+    let frax = "0x6E99889DE9585d77ae8889CB07CccE2d8Ff7A5DF"
+   let pool = "0x5b1963038e8efa1790B43D4eD7574511405f2BA6"
     // //let fxb = ""
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
@@ -38,7 +39,9 @@ async function main() {
     //
     // // let fraxAddr = "0x19cdB8EFB4Df6AAB7A6c0EABeD8Fe6cfE5351159"
     // // let poolAddr ="0x5ca013872bB0729134725EBa04dF3caB8d256a58"
-  let oracle = "0x68Ee762b68fF05e7651CBD4e281FF6C87C8cfaDf"
+   // let fraxPoolLibraryAddr ="0x8F9d19A4CB0ee7161b98e40A9C8b944f803a400D"
+   //  fraxPoolLibrary = await FraxPoolLibrary.at(fraxPoolLibraryAddr)
+   // let oracle = "0x68Ee762b68fF05e7651CBD4e281FF6C87C8cfaDf"
 
 
 
@@ -88,42 +91,42 @@ async function main() {
     // oracle = await TestOracle.deploy();
     // console.log("oracle:" + oracle.address);
     //
-    const FRAXShares = await ethers.getContractFactory("FRAXShares");
-    fxs = await FRAXShares.deploy("fxs", "fxs", oracle);
-    console.log("fxs:" + fxs.address);
-
-    const FRAXStablecoin = await ethers.getContractFactory("FRAXStablecoin");
-    frax = await FRAXStablecoin.deploy("frax", "frax");
-    console.log("frax:" + frax.address);
-
-    await fxs.setFraxAddress(frax.address);
-    await frax.setFXSAddress(fxs.address);
-
-
-    const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
-    fraxPoolLibrary = await FraxPoolLibrary.deploy();
-    console.log("fraxPoolLibrary:" + fraxPoolLibrary.address);
-
-
-    const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
-        libraries: {
-            FraxPoolLibrary: fraxPoolLibrary.address,
-        },
-    });
-    pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc, toWei('100'));
-    console.log("pool:" + pool.address);
-
-    const MockChainLink = await ethers.getContractFactory("MockChainLink");
-    chainLink = await MockChainLink.deploy();
-    console.log("chainLink:" + chainLink.address);
-    await chainLink.setAnswer(toWei('100'));
-
-
-    const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
-    chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
-    console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
+    // const FRAXShares = await ethers.getContractFactory("FRAXShares");
+    // fxs = await FRAXShares.deploy("fxs", "fxs", oracle);
+    // console.log("fxs:" + fxs.address);
+    //
+    // const FRAXStablecoin = await ethers.getContractFactory("FRAXStablecoin");
+    // frax = await FRAXStablecoin.deploy("frax", "frax");
+    // console.log("frax:" + frax.address);
+    //
+    // await fxs.setFraxAddress(frax.address);
+    // await frax.setFXSAddress(fxs.address);
+    // //
+    // //
+    // const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
+    // fraxPoolLibrary = await FraxPoolLibrary.deploy();
+    // console.log("fraxPoolLibrary:" + fraxPoolLibrary.address);
+    //
+    //
+    // const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+    //     libraries: {
+    //         FraxPoolLibrary: fraxPoolLibrary.address,
+    //     },
+    // });
+    // pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc, toWei('100'));
+    // console.log("pool:" + pool.address);
+    //
+    // const MockChainLink = await ethers.getContractFactory("MockChainLink");
+    // chainLink = await MockChainLink.deploy();
+    // console.log("chainLink:" + chainLink.address);
+    //
+    //
+    // const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
+    // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
+    // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);
 
     // await frax.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
+    // await chainLink.setAnswer(toWei('100'));
 
 
     // await usdc.mint(deployer.address, toWei('100000000'));
@@ -161,9 +164,9 @@ async function main() {
     // const FraxBond = await ethers.getContractFactory("FraxBond");
     // fxb = await FraxBond.deploy("fxb", "fxb");
     // console.log("fxb:" + fxb.address)
-    //
+
     // const FraxBondIssuer = await ethers.getContractFactory('FraxBondIssuer');
-    // fraxBondIssuer = await FraxBondIssuer.deploy(frax, fxb.address);
+    // fraxBondIssuer = await FraxBondIssuer.deploy(frax, fxb);
     // console.log("fraxBondIssuer:" + fraxBondIssuer.address)
 
     // await fxb.addIssuer(deployer.address);
@@ -181,14 +184,15 @@ async function main() {
     // tool = await Tool.deploy(pool,frax, fxs,usdc);
     // console.log("tool:" + tool.address)
 
-    //  const Tool = await ethers.getContractFactory('Tool', {
-    //     libraries: {
-    //         FraxPoolLibrary: fraxPoolLibrary.address,
-    //     },
-    // });
-    //
-    //  tool = await Tool.deploy(frax, fxs,usdc,toWei('100'));
-    // console.log("tool:" + tool.address)
+     const MintTool = await ethers.getContractFactory('MintTool', {
+        libraries: {
+            FraxPoolLibrary: "0x130b12A9C25963d5d6703735b819E6C1244B725B",
+        },
+    });
+
+     mintTool = await MintTool.deploy(pool,frax, fxs,usdc);
+
+    console.log("mintTool:" + mintTool.address)
 
 
 }
