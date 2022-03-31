@@ -56,11 +56,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
     //token constants
     IERC20 public immutable stakingToken; //cvx
-    address public constant cvxCrv = address(0x62B9c7356A2Dc64a1969e19C23e4f579F9810Aa7);
-
-    //rewards
-    address[] public rewardTokens;
-    mapping(address => Reward) public rewardData;
 
     // Duration that rewards are streamed over
     uint256 public constant rewardsDuration = 86400 * 7;
@@ -85,7 +80,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     mapping(address => LockedBalance[]) public userLocks;
 
     //boost
-    address public boostPayment = address(0x1389388d01708118b497f59521f6943Be2541bb7);
+    //    address public boostPayment = address(0x1389388d01708118b497f59521f6943Be2541bb7);
     uint256 public maximumBoostPayment = 0;
     uint256 public boostRate = 10000;
     uint256 public nextMaximumBoostPayment = 0;
@@ -96,7 +91,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     uint256 public minimumStake = 10000;
     uint256 public maximumStake = 10000;
     address public stakingProxy;
-    address public constant cvxcrvStaking = address(0x3Fe65692bfCD0e6CF84cB1E7d24108E434A7587e);
     uint256 public constant stakeOffsetOnLock = 500; //allow broader range for staking when depositing
 
     //management
@@ -129,7 +123,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         address _distributor,
         bool _approved
     ) external onlyOwner {
-        require(rewardData[_rewardsToken].lastUpdateTime > 0);
+//        require(rewardData[_rewardsToken].lastUpdateTime > 0);
         rewardDistributors[_rewardsToken][_distributor] = _approved;
     }
 
@@ -160,7 +154,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         //must point somewhere valid
         nextMaximumBoostPayment = _max;
         nextBoostRate = _rate;
-        boostPayment = _receivingAddress;
+        //        boostPayment = _receivingAddress;
     }
 
     //set kick incentive
@@ -184,52 +178,10 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
     //set approvals for staking cvx and cvxcrv
     function setApprovals() external {
-        IERC20(cvxCrv).safeApprove(cvxcrvStaking, 0);
-        IERC20(cvxCrv).safeApprove(cvxcrvStaking, type(uint256).max);
-
         IERC20(stakingToken).safeApprove(stakingProxy, 0);
         IERC20(stakingToken).safeApprove(stakingProxy, type(uint256).max);
     }
 
-    /* ========== VIEWS ========== */
-
-    function _rewardPerToken(address _rewardsToken) internal view returns (uint256) {
-        if (boostedSupply == 0) {
-            return rewardData[_rewardsToken].rewardPerTokenStored;
-        }
-        return
-        uint256(rewardData[_rewardsToken].rewardPerTokenStored).add(
-            _lastTimeRewardApplicable(rewardData[_rewardsToken].periodFinish).sub(
-                rewardData[_rewardsToken].lastUpdateTime).mul(
-                rewardData[_rewardsToken].rewardRate).mul(1e18).div(rewardData[_rewardsToken].useBoost ? boostedSupply : lockedSupply)
-        );
-    }
-
-    function _earned(
-        address _user,
-        address _rewardsToken,
-        uint256 _balance
-    ) internal view returns (uint256) {
-        return _balance.mul(
-            _rewardPerToken(_rewardsToken).sub(userRewardPerTokenPaid[_user][_rewardsToken])
-        ).div(1e18).add(rewards[_user][_rewardsToken]);
-    }
-
-    function _lastTimeRewardApplicable(uint256 _finishTime) internal view returns (uint256){
-        return Math.min(block.timestamp, _finishTime);
-    }
-
-    function lastTimeRewardApplicable(address _rewardsToken) public view returns (uint256) {
-        return _lastTimeRewardApplicable(rewardData[_rewardsToken].periodFinish);
-    }
-
-    function rewardPerToken(address _rewardsToken) external view returns (uint256) {
-        return _rewardPerToken(_rewardsToken);
-    }
-
-    function getRewardForDuration(address _rewardsToken) external view returns (uint256) {
-        return uint256(rewardData[_rewardsToken].rewardRate).mul(rewardsDuration);
-    }
 
 
 
@@ -579,7 +531,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
         //send boost payment
         if (spendAmount > 0) {
-            stakingToken.safeTransfer(boostPayment, spendAmount);
+            //            stakingToken.safeTransfer(boostPayment, spendAmount);
         }
 
         //update staking, allow a bit of leeway for smaller deposits to reduce gas
@@ -750,7 +702,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
         require(_tokenAddress != address(stakingToken), "Cannot withdraw staking token");
-        require(rewardData[_tokenAddress].lastUpdateTime == 0, "Cannot withdraw reward token");
+//        require(rewardData[_tokenAddress].lastUpdateTime == 0, "Cannot withdraw reward token");
         IERC20(_tokenAddress).safeTransfer(owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
     }
