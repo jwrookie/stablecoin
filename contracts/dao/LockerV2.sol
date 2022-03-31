@@ -121,22 +121,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         }));
     }
 
-    /* ========== ADMIN CONFIGURATION ========== */
 
-    // Add a new reward token to be distributed to stakers
-    function addReward(
-        address _rewardsToken,
-        address _distributor,
-        bool _useBoost
-    ) public onlyOwner {
-        require(rewardData[_rewardsToken].lastUpdateTime == 0);
-        require(_rewardsToken != address(stakingToken));
-        rewardTokens.push(_rewardsToken);
-        rewardData[_rewardsToken].lastUpdateTime = uint40(block.timestamp);
-        rewardData[_rewardsToken].periodFinish = uint40(block.timestamp);
-        rewardData[_rewardsToken].useBoost = _useBoost;
-        rewardDistributors[_rewardsToken][_distributor] = true;
-    }
 
     // Modify approval for an address to call notifyRewardAmount
     function approveRewardDistributor(
@@ -246,18 +231,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         return uint256(rewardData[_rewardsToken].rewardRate).mul(rewardsDuration);
     }
 
-    // Address and claimable amount of all reward tokens for the given account
-    function claimableRewards(address _account) external view returns (EarnedData[] memory userRewards) {
-        userRewards = new EarnedData[](rewardTokens.length);
-        Balances storage userBalance = balances[_account];
-        uint256 boostedBal = userBalance.boosted;
-        for (uint256 i = 0; i < userRewards.length; i++) {
-            address token = rewardTokens[i];
-            userRewards[i].token = token;
-            userRewards[i].amount = _earned(_account, token, rewardData[token].useBoost ? boostedBal : userBalance.locked);
-        }
-        return userRewards;
-    }
+
 
     // Total BOOSTED balance of an account, including unlocked but not withdrawn tokens
     function rewardWeightOf(address _user) view external returns (uint256 amount) {
@@ -499,7 +473,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     }
 
     // Locked tokens cannot be withdrawn for lockDuration and are eligible to receive stakingReward rewards
-    function lock(address _account, uint256 _amount, uint256 _spendRatio) external nonReentrant updateReward(_account) {
+    function lock(address _account, uint256 _amount, uint256 _spendRatio) external nonReentrant {
 
         //pull tokens
         stakingToken.safeTransferFrom(msg.sender, address(this), _amount);
@@ -615,7 +589,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     }
 
     // Withdraw all currently locked tokens where the unlock time has passed
-    function _processExpiredLocks(address _account, bool _relock, uint256 _spendRatio, address _withdrawTo, address _rewardAddress, uint256 _checkDelay) internal updateReward(_account) {
+    function _processExpiredLocks(address _account, bool _relock, uint256 _spendRatio, address _withdrawTo, address _rewardAddress, uint256 _checkDelay) internal {
         LockedBalance[] storage locks = userLocks[_account];
         Balances storage userBalance = balances[_account];
         uint112 locked;
@@ -769,63 +743,9 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         }
     }
 
-    // Claim all pending rewards
-    function getReward(address _account, bool _stake) public nonReentrant updateReward(_account) {
-        for (uint i; i < rewardTokens.length; i++) {
-            address _rewardsToken = rewardTokens[i];
-            uint256 reward = rewards[_account][_rewardsToken];
-            if (reward > 0) {
-                rewards[_account][_rewardsToken] = 0;
-                if (_rewardsToken == cvxCrv && _stake) {
-                    IRewardStaking(cvxcrvStaking).stakeFor(_account, reward);
-                } else {
-                    IERC20(_rewardsToken).safeTransfer(_account, reward);
-                }
-                emit RewardPaid(_account, _rewardsToken, reward);
-            }
-        }
-    }
-
-    // claim all pending rewards
-    function getReward(address _account) external {
-        getReward(_account, false);
-    }
 
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function _notifyReward(address _rewardsToken, uint256 _reward) internal {
-        Reward storage rdata = rewardData[_rewardsToken];
-
-        if (block.timestamp >= rdata.periodFinish) {
-            rdata.rewardRate = _reward.div(rewardsDuration).to208();
-        } else {
-            uint256 remaining = uint256(rdata.periodFinish).sub(block.timestamp);
-            uint256 leftover = remaining.mul(rdata.rewardRate);
-            rdata.rewardRate = _reward.add(leftover).div(rewardsDuration).to208();
-        }
-
-        rdata.lastUpdateTime = block.timestamp.to40();
-        rdata.periodFinish = block.timestamp.add(rewardsDuration).to40();
-    }
-
-    function notifyRewardAmount(address _rewardsToken, uint256 _reward) external updateReward(address(0)) {
-        require(rewardDistributors[_rewardsToken][msg.sender]);
-        require(_reward > 0, "No reward");
-
-        _notifyReward(_rewardsToken, _reward);
-
-        // handle the transfer of reward tokens via `transferFrom` to reduce the number
-        // of transactions required and ensure correctness of the _reward amount
-        IERC20(_rewardsToken).safeTransferFrom(msg.sender, address(this), _reward);
-
-        emit RewardAdded(_rewardsToken, _reward);
-
-        if (_rewardsToken == cvxCrv) {
-            //update staking ratio if main reward
-            updateStakeRatio(0);
-        }
-    }
 
     // Added to support recovering LP Rewards from other systems such as BAL to be distributed to holders
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
@@ -835,25 +755,7 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         emit Recovered(_tokenAddress, _tokenAmount);
     }
 
-    /* ========== MODIFIERS ========== */
 
-    modifier updateReward(address _account) {
-        {//stack too deep
-            Balances storage userBalance = balances[_account];
-            uint256 boostedBal = userBalance.boosted;
-            for (uint i = 0; i < rewardTokens.length; i++) {
-                address token = rewardTokens[i];
-                rewardData[token].rewardPerTokenStored = _rewardPerToken(token).to208();
-                rewardData[token].lastUpdateTime = _lastTimeRewardApplicable(rewardData[token].periodFinish).to40();
-                if (_account != address(0)) {
-                    //check if reward is boostable or not. use boosted or locked balance accordingly
-                    rewards[_account][token] = _earned(_account, token, rewardData[token].useBoost ? boostedBal : userBalance.locked);
-                    userRewardPerTokenPaid[_account][token] = rewardData[token].rewardPerTokenStored;
-                }
-            }
-        }
-        _;
-    }
 
     /* ========== EVENTS ========== */
     event RewardAdded(address indexed _token, uint256 _reward);
