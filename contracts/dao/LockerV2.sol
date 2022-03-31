@@ -13,7 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
-contract CvxLockerV2 is ReentrancyGuard, Ownable {
+contract LockerV2 is ReentrancyGuard, Ownable {
 
     using BoringMath for uint256;
     using BoringMath224 for uint224;
@@ -120,7 +120,7 @@ contract CvxLockerV2 is ReentrancyGuard, Ownable {
         date : uint32(currentEpoch)
         }));
     }
-    
+
     /* ========== ADMIN CONFIGURATION ========== */
 
     // Add a new reward token to be distributed to stakers
