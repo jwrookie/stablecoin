@@ -25,7 +25,7 @@ abstract contract TokenReward is CheckOper {
     // How many blocks (90 days) are halved 2592000
     uint256 public period;
 
-    uint256 public mintPeriod;
+    uint256 public mintMulti;
 
     uint256 public minTokenReward = 1.75e17;
 
@@ -42,7 +42,7 @@ abstract contract TokenReward is CheckOper {
         startBlock = _startBlock;
         period = _period;
         periodEndBlock = _startBlock.add(_period);
-        mintPeriod = 28800;
+        mintMulti = 1000;
     }
 
     modifier reduceBlockReward() {
@@ -62,8 +62,8 @@ abstract contract TokenReward is CheckOper {
         period = _block;
     }
 
-    function setMintPeriod(uint256 _block) public onlyOperator {
-        mintPeriod = _block;
+    function setMintMulti(uint256 _multi) public onlyOperator {
+        mintMulti = _multi;
     }
 
     function setMinTokenReward(uint256 _reward) public onlyOperator {
@@ -91,7 +91,7 @@ abstract contract TokenReward is CheckOper {
     function _mintRewardToken(uint256 _amount) private {
         uint256 bal = swapToken.balanceOf(address(this));
         if (bal < _amount) {
-            swapToken.mint(address(this), _amount.mul(mintPeriod));
+            swapToken.mint(address(this), _amount.mul(mintMulti));
         }
     }
 
