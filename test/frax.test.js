@@ -1,6 +1,7 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {ethers, waffle} = require("hardhat");
-const {toWei} = web3.utils;
+const { expectRevert, time } = require('@openzeppelin/test-helpers');
+const { expect } = require('chai');
+const { ethers, waffle } = require("hardhat");
+const { toWei } = web3.utils;
 
 function encodeParameters(types, values) {
     const abi = new ethers.utils.AbiCoder();
@@ -88,7 +89,7 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
         //     0,
         //     owner,
         //     Math.round(new Date() / 1000 + 1000)
-        //
+
         // )
 
         // const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
@@ -118,6 +119,14 @@ contract('FRAXStablecoin', ([owner, alice, bob, carol]) => {
         // //  console.log("fxs:"+await fxs.balanceOf(owner))
 
 
+    });
+
+    it('should return the correct number of frax pools', async () => {
+        await frax.addPool(pool.address);
+
+        const count = await frax.fraxPoolAddressCount()
+
+        expect(count).to.be.eq(1)
     });
 
 
