@@ -70,10 +70,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
     address public stakingProxy;
     uint256 public constant stakeOffsetOnLock = 500; //allow broader range for staking when depositing
 
-    //management
-    uint256 public kickRewardPerEpoch = 100;
-    uint256 public kickRewardEpochDelay = 4;
-
     //shutdown
     bool public isShutdown = false;
 
@@ -104,16 +100,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         nextMaximumBoostPayment = _max;
         nextBoostRate = _rate;
         //        boostPayment = _receivingAddress;
-    }
-
-    //set kick incentive
-    function setKickIncentive(uint256 _rate, uint256 _delay) external onlyOwner {
-        require(_rate <= 500, "over max rate");
-        //max 5% per epoch
-        require(_delay >= 2, "min delay");
-        //minimum 2 epochs of grace
-        kickRewardPerEpoch = _rate;
-        kickRewardEpochDelay = _delay;
     }
 
 
@@ -488,16 +474,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
             //dont delete, just set next index
             userBalance.nextUnlockIndex = length.to32();
 
-            //check for kick reward
-            //this wont have the exact reward rate that you would get if looped through
-            //but this section is supposed to be for quick and easy low gas processing of all locks
-            //we'll assume that if the reward was good enough someone would have processed at an earlier epoch
-            if (_checkDelay > 0) {
-                uint256 currentEpoch = block.timestamp.sub(_checkDelay).div(rewardsDuration).mul(rewardsDuration);
-                uint256 epochsover = currentEpoch.sub(uint256(locks[length - 1].unlockTime)).div(rewardsDuration);
-                uint256 rRate = MathUtil.min(kickRewardPerEpoch.mul(epochsover + 1), denominator);
-                reward = uint256(locks[length - 1].amount).mul(rRate).div(denominator);
-            }
         } else {
 
             //use a processed index(nextUnlockIndex) to not loop as much
@@ -511,14 +487,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
                 locked = locked.add(locks[i].amount);
                 boostedAmount = boostedAmount.add(locks[i].boosted);
 
-                //check for kick reward
-                //each epoch over due increases reward
-                if (_checkDelay > 0) {
-                    uint256 currentEpoch = block.timestamp.sub(_checkDelay).div(rewardsDuration).mul(rewardsDuration);
-                    uint256 epochsover = currentEpoch.sub(uint256(locks[i].unlockTime)).div(rewardsDuration);
-                    uint256 rRate = MathUtil.min(kickRewardPerEpoch.mul(epochsover + 1), denominator);
-                    reward = reward.add(uint256(locks[i].amount).mul(rRate).div(denominator));
-                }
                 //set next unlock index
                 nextUnlockIndex++;
             }
@@ -534,19 +502,6 @@ contract LockerV2 is ReentrancyGuard, Ownable {
         boostedSupply = boostedSupply.sub(boostedAmount);
 
         emit Withdrawn(_account, locked, _relock);
-
-        //send process incentive
-        if (reward > 0) {
-
-            //reduce return amount by the kick reward
-            locked = locked.sub(reward.to112());
-
-            //transfer reward
-            transferCVX(_rewardAddress, reward, false);
-
-            emit KickReward(_rewardAddress, _account, reward);
-        } else if (_spendRatio > 0) {
-        }
 
         //relock or return to user
         if (_relock) {
@@ -568,13 +523,11 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
     function kickExpiredLocks(address _account) external nonReentrant {
         //allow kick after grace period of 'kickRewardEpochDelay'
-        _processExpiredLocks(_account, false, 0, _account, msg.sender, rewardsDuration.mul(kickRewardEpochDelay));
+        _processExpiredLocks(_account, false, 0, _account, msg.sender, rewardsDuration);
     }
 
     //transfer helper: pull enough from staking, transfer, updating staking ratio
     function transferCVX(address _account, uint256 _amount, bool _updateStake) internal {
-        //allocate enough cvx from staking for the transfer
-        //transfer
         stakingToken.safeTransfer(_account, _amount);
     }
 
@@ -590,10 +543,8 @@ contract LockerV2 is ReentrancyGuard, Ownable {
 
 
     /* ========== EVENTS ========== */
-    event RewardAdded(address indexed _token, uint256 _reward);
+
     event Staked(address indexed _user, uint256 indexed _epoch, uint256 _paidAmount, uint256 _lockedAmount, uint256 _boostedAmount);
     event Withdrawn(address indexed _user, uint256 _amount, bool _relocked);
-    event KickReward(address indexed _user, address indexed _kicked, uint256 _reward);
-    event RewardPaid(address indexed _user, address indexed _rewardsToken, uint256 _reward);
     event Recovered(address _token, uint256 _amount);
 }
