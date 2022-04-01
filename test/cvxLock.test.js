@@ -92,6 +92,8 @@ contract('LockerV2', () => {
 
         // await lock.kickExpiredLocks(owner.address)
 
+        // await lock.processExpiredLocks(true)
+
         console.log("epochCount:"+await lock.epochCount())
 
         console.log("findEpochId:"+await lock.findEpochId("1658966400"))
