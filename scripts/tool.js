@@ -184,15 +184,15 @@ async function main() {
     // tool = await Tool.deploy(pool,frax, fxs,usdc);
     // console.log("tool:" + tool.address)
 
-     const MintTool = await ethers.getContractFactory('MintTool', {
+     const FraxTool = await ethers.getContractFactory('FraxTool', {
         libraries: {
             FraxPoolLibrary: "0x130b12A9C25963d5d6703735b819E6C1244B725B",
         },
     });
 
-     mintTool = await MintTool.deploy(pool,frax, fxs,usdc);
+     fraxTool = await FraxTool.deploy(pool,frax, fxs,usdc);
 
-    console.log("mintTool:" + mintTool.address)
+    console.log("fraxTool:" + fraxTool.address)
 
 
 }
