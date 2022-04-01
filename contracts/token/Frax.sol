@@ -158,6 +158,10 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         );
     }
 
+    function fraxPoolAddressCount() public view returns (uint256) {
+        return (fraxPoolAddress.length);
+    }
+
     // Iterate through all frax pools and calculate all value of collateral in all pools globally 
     function globalCollateralValue() public view returns (uint256) {
         uint256 total_collateral_value_d18 = 0;
