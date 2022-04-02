@@ -8,7 +8,7 @@ const {time} = require('@openzeppelin/test-helpers');
 const { on } = require('events');
 // Local dependencies
 const RewardPool = artifacts.require('./contracts/dao/RewardPool.sol');
-const TestERC20 = artifacts.require('./contracts/mock/TestERC20.sol');
+const MockToken = artifacts.require('./contracts/mock/MockToken.sol');
 const Operatable = artifacts.require('./contracts/tools/Operatable.sol');
 const Locker = artifacts.require('./contracts/dao/Locker.sol');
 // const { assert } = require('console');
@@ -18,24 +18,34 @@ contract('RewardPool', ([owner, secondObject]) => {
     // The initial number
     let initNumber = 10000000
     let initSecondNumber = 20000000
+    // Parameters of new MockToken object
+    let temporaryName = "HelloWorld"
+    let temporarySymbol = "newObject"
+    let decimals = 18
+    let total = 1
+
+    // Get MockToken by factory
+    // const testMockToken = await ethers.getContractFactory('MockToken')
+    // mockToken = await testMockToken.depoly(temporaryName, temporarySymbol, decimals, total)
+
     beforeEach(async () => {
         // Introduce internal dependencies through the factory approach
         // const testRewardPool = await ethers.getContractFactory('RewardPool')
         // Introduce internal dependencies through the factory approach--->This factory object is used to obtain the token
-        // const testTestERC20 = await ethers.getContractFactory('TestERC20')
+        // const testmockToken = await ethers.getContractFactory('mockToken')
         // Get the factory object through this constant function deploy4
         // rewardPool = await testRewardPool.depoly(owner, testRewardPool.address, secondObject, 1, 1, 1)
         // Instantiate the parameters required by the test object
         // operatormsg object
         operatable = await Operatable.new()
         // swaptoken object
-        testERC20 = await TestERC20.new()
+        mockToken = await MockToken.new(temporaryName, temporarySymbol, decimals, total)
         // token lock object
-        tokenLock = await Locker.new(testERC20.address)
-        rewardPool = await RewardPool.new(operatable.address, testERC20.address, tokenLock.address, 1, 1, 1)
+        tokenLock = await Locker.new(mockToken.address)
+        rewardPool = await RewardPool.new(operatable.address, mockToken.address, tokenLock.address, 1, 1, 1)
 
         // Get this object currency
-        await testERC20.mint(owner, 10000000)
+        await mockToken.mint(owner, 10000000)
     });
     
     /**
@@ -153,12 +163,12 @@ contract('RewardPool', ([owner, secondObject]) => {
         // In the numerical
         let needNumeerical = 10000
         // When you want to deposi you need to obtain authorization
-        await testERC20.approve(rewardPool.address, authorNumber)
+        await mockToken.approve(rewardPool.address, authorNumber)
         // Check whether the authorization is obtained successfully
         // assert.equal(getAuthorization, successfully)
 
         // When you want to deposit something you need to add something in pool
-        await rewardPool.add(100, testERC20.address, sureBoolean)
+        await rewardPool.add(100, mockToken.address, sureBoolean)
         // Add something in pool
         // await rewardPool.add(100, tokenLock.address, sureBoolean)
         // Call deposit function -> This function need two parameters => pid and uint
@@ -166,10 +176,10 @@ contract('RewardPool', ([owner, secondObject]) => {
 
         // We need to get information of user to check whether it is the same as the written information
         // Pool user information and struct user information
-        // let userInfoInPool = await testERC20.balanceOf(rewardPool.address)
+        // let userInfoInPool = await mockToken.balanceOf(rewardPool.address)
 
         // Assertion determines whether the same or not
-        assert.equal(await testERC20.balanceOf(rewardPool.address), needNumeerical)
+        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumeerical)
 
         // User informatoin
         let userInfo = await rewardPool.userInfo(0, owner)
@@ -182,22 +192,28 @@ contract('RewardPool', ([owner, secondObject]) => {
         let authorNumber = 100000
         let needNumber = 10000
         // Obtain authorization
-        await testERC20.approve(rewardPool.address, authorNumber)
+        await mockToken.approve(rewardPool.address, authorNumber)
 
         // Check pool number whether the quantity is consistent with the authorized quantity
-        assert.equal(await testERC20.balanceOf(owner), initNumber)
+        // assert.equal(await mockToken.balanceOf(owner), initNumber)
 
         // Add something in the pool
-        await rewardPool.add(1, testERC20.address, successfully)
+        await rewardPool.add(1, mockToken.address, successfully)
 
         // Call deploy function
         await rewardPool.deposit(0, needNumber, {from: owner})
 
+        // Time Lock
+        let nowTime = await time.latestBlock()
+        // console.log(nowTime)
+        await time.advanceBlockTo(parseInt(nowTime) + 10)
+        
+
         // Call withdraw function
-        // await rewardPool.withdraw(0, needNumber)
+        await rewardPool.withdraw(0, needNumber)
 
         // Check pool number whether the quantity is consistent whit at first
-        assert.equal(await testERC20.balanceOf(owner), initNumber - needNumber)
+        assert.equal(await mockToken.balanceOf(owner), initNumber - needNumber)
     });
     
     it('test pending', async () => {
@@ -206,12 +222,12 @@ contract('RewardPool', ([owner, secondObject]) => {
         let authorNumber = 100000
         let needNumber = 10000
         // Obtain authorization
-        await testERC20.approve(rewardPool.address, authorNumber)
+        await mockToken.approve(rewardPool.address, authorNumber)
         // Check object number
-        assert.equal(await testERC20.balanceOf(owner), initNumber)
+        assert.equal(await mockToken.balanceOf(owner), initNumber)
 
         // Authrization pool add something
-        await rewardPool.add(1, testERC20.address, fail)
+        await rewardPool.add(1, mockToken.address, fail)
 
         // Determine the values in the pool ---> user.amount == 0
         assert.equal(await rewardPool.pending(0, owner), 0)
@@ -231,7 +247,7 @@ contract('RewardPool', ([owner, secondObject]) => {
         let tokenPerBlock = await rewardPool.tokenPerBlock()
         let mul = await (await time.latestBlock() - poolInfo.lastRewardBlock)
         let tokenReward = tokenPerBlock * mul * poolInfo.allocPoint / totalAllocPoint
-        let lpSupply = await testERC20.balanceOf(rewardPool.address)
+        let lpSupply = await mockToken.balanceOf(rewardPool.address)
         let accTokenPerShare = poolInfo.accTokenPerShare + tokenReward * initNumber / lpSupply;
         let currPending2 = userInfo.amount * accTokenPerShare / initNumber - userInfo.rewardDebt;
         assert.equal(await rewardPool.pending(0, owner), currPending2);
@@ -244,20 +260,20 @@ contract('RewardPool', ([owner, secondObject]) => {
         let needNumber = 10000
         let secondNumber = 20000
         // Obtain object
-        await testERC20.approve(rewardPool.address, authorNumber)
+        await mockToken.approve(rewardPool.address, authorNumber)
         // Instantiate the second object
-        await testERC20.mint(secondObject, initSecondNumber)
+        await mockToken.mint(secondObject, initSecondNumber)
         // Obtain object and send number from second object
-        await testERC20.approve(rewardPool.address, secondNumber, {from: secondObject})
+        await mockToken.approve(rewardPool.address, secondNumber, {from: secondObject})
         // Add something in pool
-        await rewardPool.add(200, testERC20.address, successfully)
+        await rewardPool.add(200, mockToken.address, successfully)
         // Change each other number
         await rewardPool.deposit(0, needNumber, {from: owner})
-        // await rewardPool.deposit(0, secondNumber, {from: secondObject})
+        await rewardPool.deposit(0, secondNumber, {from: secondObject})
 
         // Check each other number
         await rewardPool.emergencyWithdraw(0, {from: secondObject})
-        // assert.equal(await testERC20.balanceOf(secondObject), secondNumber)
-        assert.equal(await testERC20.balanceOf(rewardPool.address), needNumber)
+        // assert.equal(await mockToken.balanceOf(secondObject), secondNumber)
+        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumber)
     });
 });
