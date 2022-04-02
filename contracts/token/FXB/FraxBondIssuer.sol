@@ -64,6 +64,11 @@ contract FraxBondIssuer is AbstractPausable {
         }
     }
 
+    function collatDollarBalance() external pure returns (uint256) {
+        return uint256(1e18);
+
+    }
+
     function calInterest() public {
         if (block.timestamp > lastInterestTime) {
             uint256 timePast = block.timestamp.sub(lastInterestTime);
