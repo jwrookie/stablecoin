@@ -41,7 +41,6 @@ contract RewardPool is TokenReward {
     constructor(
         address _operatorMsg,
         IToken _swapToken,
-        address _tokenLock,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period
