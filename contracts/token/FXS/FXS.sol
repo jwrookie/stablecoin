@@ -48,8 +48,9 @@ contract FRAXShares is ERC20Burnable, AbstractPausable {
         emit FRAXAddressSet(_address);
     }
 
-    function mint(address to, uint256 amount) public onlyPools {
+    function mint(address to, uint256 amount) public onlyPools returns (bool){
         _mint(to, amount);
+        return true;
     }
 
     // This function is what other frax pools will call to mint new FXS (similar to the FRAX mint) 
