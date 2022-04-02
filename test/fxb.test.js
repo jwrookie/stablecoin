@@ -284,7 +284,7 @@ contract('FraxBond', () => {
         await fxs_uniswapOracle.setPeriod(1);
         await fxs_uniswapOracle.update();
 
-        await frax.globalCollateralValue();
+        expect(await frax.globalCollateralValue()).to.be.eq(toWei('1'));
     })
 
 

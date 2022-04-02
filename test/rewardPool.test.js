@@ -30,14 +30,14 @@ contract('RewardPool', () => {
         CheckOper = await ethers.getContractFactory("CheckOper");
         checkOper = await CheckOper.deploy(operatable.address);
 
-        Locker = await ethers.getContractFactory("Locker");
-
-        lock = await Locker.deploy(frax.address);
+        // Locker = await ethers.getContractFactory("Locker");
+        //
+        // lock = await Locker.deploy(frax.address);
 
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock)
         const RewardPool = await ethers.getContractFactory("RewardPool");
-        rewardPool = await RewardPool.deploy(checkOper.address, fxs.address, lock.address, "100000", parseInt(lastBlock), 10);
+        rewardPool = await RewardPool.deploy(checkOper.address, fxs.address, "100000", parseInt(lastBlock), 10);
 
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
@@ -63,21 +63,21 @@ contract('RewardPool', () => {
 
         console.log("fxs:" + await fxs.balanceOf(dev.address))
 
-
         //   await rewardPool.deposit(0, "100000");
         await rewardPool.connect(dev).deposit(0, "100000");
+        expect(await usdc.balanceOf(rewardPool.address)).to.be.eq("100000")
 
-         stratBlock = await time.latestBlock();
+        stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
         await time.advanceBlockTo(parseInt(stratBlock) + 10);
 
         console.log("fxs:" + await fxs.balanceOf(dev.address))
         //
-          console.log("awount:" + await rewardPool.pending(0, dev.address))
+        console.log("awount:" + await rewardPool.pending(0, dev.address))
         //
-        //   await time.advanceBlockTo(parseInt(stratBlock) + 10);
-        // await rewardPool.connect(dev).deposit(0, 0);
-        //   console.log("fxs:" + await fxs.balanceOf(dev.address))
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
+        await rewardPool.connect(dev).deposit(0, 0);
+          console.log("fxs:" + await fxs.balanceOf(dev.address))
         // await rewardPool.connect(dev).withdraw(0, "1");
 
 
