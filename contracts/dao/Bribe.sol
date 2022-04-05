@@ -14,6 +14,13 @@ interface IBaseV1Voter {
 // Bribes pay out rewards for a given pool based on the votes that were received from the user (goes hand in hand with BaseV1Gauges.vote())
 contract Bribe {
 
+
+    event Deposit(address indexed from, uint tokenId, uint amount);
+    event Withdraw(address indexed from, uint tokenId, uint amount);
+    event NotifyReward(address indexed from, address indexed reward, uint amount);
+    event ClaimRewards(address indexed from, address indexed reward, uint amount);
+
+
     address public immutable factory; // only factory can modify balances (since it only happens on vote())
     address public immutable _ve;
 
@@ -62,11 +69,6 @@ contract Bribe {
     mapping (address => mapping (uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
 
     mapping (address => uint) public rewardPerTokenNumCheckpoints;
-
-    event Deposit(address indexed from, uint tokenId, uint amount);
-    event Withdraw(address indexed from, uint tokenId, uint amount);
-    event NotifyReward(address indexed from, address indexed reward, uint amount);
-    event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
     constructor(address _factory) {
         factory = _factory;

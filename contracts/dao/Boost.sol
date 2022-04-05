@@ -45,6 +45,17 @@ interface IBribe {
 
 contract Boost is ReentrancyGuard {
 
+    event GaugeCreated(address indexed gauge, address creator, address indexed bribe, address indexed pool);
+    event Voted(address indexed voter, uint tokenId, int256 weight);
+    event Abstained(uint tokenId, int256 weight);
+    event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
+    event Withdraw(address indexed lp, address indexed gauge, uint tokenId, uint amount);
+    event NotifyReward(address indexed sender, address indexed reward, uint amount);
+    event DistributeReward(address indexed sender, address indexed gauge, uint amount);
+    event Attach(address indexed owner, address indexed gauge, uint tokenId);
+    event Detach(address indexed owner, address indexed gauge, uint tokenId);
+    event Whitelisted(address indexed whitelister, address indexed token);
+
     address public immutable _ve; // the ve token that governs these contracts
     address public immutable factory; // the BaseV1Factory
     address internal immutable base;
@@ -66,16 +77,9 @@ contract Boost is ReentrancyGuard {
     mapping(address => bool) public isGauge;
     mapping(address => bool) public isWhitelisted;
 
-    event GaugeCreated(address indexed gauge, address creator, address indexed bribe, address indexed pool);
-    event Voted(address indexed voter, uint tokenId, int256 weight);
-    event Abstained(uint tokenId, int256 weight);
-    event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
-    event Withdraw(address indexed lp, address indexed gauge, uint tokenId, uint amount);
-    event NotifyReward(address indexed sender, address indexed reward, uint amount);
-    event DistributeReward(address indexed sender, address indexed gauge, uint amount);
-    event Attach(address indexed owner, address indexed gauge, uint tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint tokenId);
-    event Whitelisted(address indexed whitelister, address indexed token);
+    uint internal index;
+    mapping(address => uint) internal supplyIndex;
+    mapping(address => uint) public claimable;
 
     constructor(address __ve, address _factory, address _gauges, address _bribes) {
         _ve = __ve;
@@ -251,9 +255,7 @@ contract Boost is ReentrancyGuard {
         return pools.length;
     }
 
-    uint internal index;
-    mapping(address => uint) internal supplyIndex;
-    mapping(address => uint) public claimable;
+
 
     function notifyRewardAmount(uint amount) external {
         _safeTransferFrom(base, msg.sender, address(this), amount);
