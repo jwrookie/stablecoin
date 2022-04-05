@@ -113,7 +113,7 @@ contract Gauge is ReentrancyGuard {
         voter = _voter;
     }
 
-    function claimFees() external lock returns (uint claimed0, uint claimed1) {
+    function claimFees() external nonReentrant returns (uint claimed0, uint claimed1) {
         return _claimFees();
     }
 
@@ -141,6 +141,7 @@ contract Gauge is ReentrancyGuard {
             emit ClaimFees(msg.sender, claimed0, claimed1);
         }
     }
+
 
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
         uint nCheckpoints = numCheckpoints[account];
@@ -285,11 +286,9 @@ contract Gauge is ReentrancyGuard {
         return Math.min(block.timestamp, periodFinish[token]);
     }
 
-    function getReward(address account, address[] memory tokens) external lock {
+    function getReward(address account, address[] memory tokens) external nonReentrant {
         require(msg.sender == account || msg.sender == voter);
-        _unlocked = 1;
         Voter(voter).distribute(address(this));
-        _unlocked = 2;
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
@@ -443,7 +442,7 @@ contract Gauge is ReentrancyGuard {
         deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function deposit(uint amount, uint tokenId) public lock {
+    function deposit(uint amount, uint tokenId) public nonReentrant {
         require(amount > 0);
 
         _safeTransferFrom(stake, msg.sender, address(this), amount);
@@ -486,7 +485,7 @@ contract Gauge is ReentrancyGuard {
         withdrawToken(amount, tokenId);
     }
 
-    function withdrawToken(uint amount, uint tokenId) public lock {
+    function withdrawToken(uint amount, uint tokenId) public nonReentrant {
         totalSupply -= amount;
         balanceOf[msg.sender] -= amount;
         _safeTransfer(stake, msg.sender, amount);
@@ -518,7 +517,7 @@ contract Gauge is ReentrancyGuard {
         return _remaining * rewardRate[token];
     }
 
-    function notifyRewardAmount(address token, uint amount) external lock {
+    function notifyRewardAmount(address token, uint amount) external nonReentrant {
         require(token != stake);
         require(amount > 0);
         if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
