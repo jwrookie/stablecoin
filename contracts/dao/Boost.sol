@@ -3,6 +3,7 @@ pragma solidity 0.8.10;
 
 import "../interface/IVeToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
@@ -46,7 +47,7 @@ interface IMinter {
     function update_period() external returns (uint);
 }
 
-contract Boost {
+contract Boost is ReentrancyGuard {
 
     address public immutable _ve; // the ve token that governs these contracts
     address public immutable factory; // the BaseV1Factory
@@ -87,15 +88,6 @@ contract Boost {
         gaugefactory = _gauges;
         bribefactory = _bribes;
         minter = msg.sender;
-    }
-
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1);
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
     }
 
     function initialize(address[] memory _tokens, address _minter) external {
@@ -346,7 +338,7 @@ contract Boost {
         }
     }
 
-    function distribute(address _gauge) public lock {
+    function distribute(address _gauge) public nonReentrant {
         IMinter(minter).update_period();
         _updateFor(_gauge);
         uint _claimable = claimable[_gauge];
