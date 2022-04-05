@@ -1,39 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-library Math {
-    function max(uint a, uint b) internal pure returns (uint) {
-        return a >= b ? a : b;
-    }
 
-    function min(uint a, uint b) internal pure returns (uint) {
-        return a < b ? a : b;
-    }
-}
-
-interface erc20 {
-    function totalSupply() external view returns (uint256);
-
-    function transfer(address recipient, uint amount) external returns (bool);
-
-    function balanceOf(address) external view returns (uint);
-
-    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
-
-    function approve(address spender, uint value) external returns (bool);
-}
-
-interface ve {
-    function token() external view returns (address);
-
-    function balanceOfNFT(uint) external view returns (uint);
-
-    function isApprovedOrOwner(address, uint) external view returns (bool);
-
-    function ownerOf(uint) external view returns (address);
-
-    function transferFrom(address, address, uint) external;
-}
+import "../interface/IVeToken.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 interface IBaseV1Factory {
     function isPair(address) external view returns (bool);
@@ -64,7 +36,7 @@ interface Voter {
 }
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
-contract Gauge {
+contract Gauge is ReentrancyGuard {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable _ve; // the ve token used for gauges
@@ -141,15 +113,6 @@ contract Gauge {
         voter = _voter;
     }
 
-    // simple re-entrancy check
-    uint internal _unlocked = 1;
-    modifier lock() {
-        require(_unlocked == 1);
-        _unlocked = 2;
-        _;
-        _unlocked = 1;
-    }
-
     function claimFees() external lock returns (uint claimed0, uint claimed1) {
         return _claimFees();
     }
@@ -179,13 +142,6 @@ contract Gauge {
         }
     }
 
-    /**
-    * @notice Determine the prior balance for an account as of a block number
-    * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
-    * @param account The address of the account to check
-    * @param timestamp The timestamp to get the balance at
-    * @return The balance the account had as of the given block
-    */
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
         uint nCheckpoints = numCheckpoints[account];
         if (nCheckpoints == 0) {
@@ -369,9 +325,9 @@ contract Gauge {
         uint _balance = balanceOf[account];
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
-        uint _supply = erc20(_ve).totalSupply();
-        if (account == ve(_ve).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = ve(_ve).balanceOfNFT(_tokenId);
+        uint _supply = IERC20(_ve).totalSupply();
+        if (account == IVeToken(_ve).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = IVeToken(_ve).balanceOfNFT(_tokenId);
             _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
@@ -484,7 +440,7 @@ contract Gauge {
     }
 
     function depositAll(uint tokenId) external {
-        deposit(erc20(stake).balanceOf(msg.sender), tokenId);
+        deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
     function deposit(uint amount, uint tokenId) public lock {
@@ -495,7 +451,7 @@ contract Gauge {
         balanceOf[msg.sender] += amount;
 
         if (tokenId > 0) {
-            require(ve(_ve).ownerOf(tokenId) == msg.sender);
+            require(IVeToken(_ve).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
                 Voter(voter).attachTokenToGauge(tokenId, msg.sender);
@@ -580,7 +536,7 @@ contract Gauge {
             rewardRate[token] = (amount + _left) / DURATION;
         }
         require(rewardRate[token] > 0);
-        uint balance = erc20(token).balanceOf(address(this));
+        uint balance = IERC20(token).balanceOf(address(this));
         require(rewardRate[token] <= balance / DURATION, "Provided reward too high");
         periodFinish[token] = block.timestamp + DURATION;
         if (!isReward[token]) {
@@ -594,21 +550,21 @@ contract Gauge {
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.transfer.selector, to, value));
+        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.transferFrom.selector, from, to, value));
+        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
     function _safeApprove(address token, address spender, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.approve.selector, spender, value));
+        token.call(abi.encodeWithSelector(IERC20.approve.selector, spender, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
