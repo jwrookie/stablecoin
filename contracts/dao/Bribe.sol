@@ -1,24 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-
 import "../interface/IVeToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
-interface erc20 {
-    function totalSupply() external view returns (uint256);
-    function transfer(address recipient, uint amount) external returns (bool);
-    function balanceOf(address) external view returns (uint);
-    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
-}
-
-interface ve {
-    function isApprovedOrOwner(address, uint) external view returns (bool);
-    function ownerOf(uint) external view returns (address);
-}
 
 interface IBaseV1Voter {
     function _ve() external view returns (address);
@@ -247,7 +234,7 @@ contract Bribe {
 
     // allows a user to claim rewards for a given token
     function getReward(uint tokenId, address[] memory tokens) external lock  {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, tokenId));
+        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, tokenId));
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
 
@@ -263,7 +250,7 @@ contract Bribe {
     // used by BaseV1Voter to allow batched reward claims
     function getRewardForOwner(uint tokenId, address[] memory tokens) external lock  {
         require(msg.sender == factory);
-        address _owner = ve(_ve).ownerOf(tokenId);
+        address _owner = IVeToken(_ve).ownerOf(tokenId);
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
 
@@ -434,7 +421,7 @@ contract Bribe {
             rewardRate[token] = (amount + _left) / DURATION;
         }
         require(rewardRate[token] > 0);
-        uint balance = erc20(token).balanceOf(address(this));
+        uint balance = IERC20(token).balanceOf(address(this));
         require(rewardRate[token] <= balance / DURATION, "Provided reward too high");
         periodFinish[token] = block.timestamp + DURATION;
         if (!isReward[token]) {
@@ -448,14 +435,14 @@ contract Bribe {
     function _safeTransfer(address token, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.transfer.selector, to, value));
+        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.transferFrom.selector, from, to, value));
+        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
