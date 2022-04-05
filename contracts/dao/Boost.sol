@@ -43,10 +43,6 @@ interface IBribe {
     function getRewardForOwner(uint tokenId, address[] memory tokens) external;
 }
 
-interface IMinter {
-    function update_period() external returns (uint);
-}
-
 contract Boost is ReentrancyGuard {
 
     address public immutable _ve; // the ve token that governs these contracts
@@ -339,7 +335,8 @@ contract Boost is ReentrancyGuard {
     }
 
     function distribute(address _gauge) public nonReentrant {
-        IMinter(minter).update_period();
+        //todo minter token for gauge
+        //        IMinter(minter).update_period();
         _updateFor(_gauge);
         uint _claimable = claimable[_gauge];
         if (_claimable > IGauge(_gauge).left(base) && _claimable / DURATION > 0) {
