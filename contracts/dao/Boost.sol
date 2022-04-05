@@ -1,31 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-library Math {
-    function min(uint a, uint b) internal pure returns (uint) {
-        return a < b ? a : b;
-    }
-}
+import "../interface/IVeToken.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface erc20 {
-    function totalSupply() external view returns (uint256);
-    function transfer(address recipient, uint amount) external returns (bool);
-    function balanceOf(address) external view returns (uint);
-    function transferFrom(address sender, address recipient, uint amount) external returns (bool);
-    function approve(address spender, uint value) external returns (bool);
-}
-
-interface ve {
-    function token() external view returns (address);
-    function balanceOfNFT(uint) external view returns (uint);
-    function isApprovedOrOwner(address, uint) external view returns (bool);
-    function ownerOf(uint) external view returns (address);
-    function transferFrom(address, address, uint) external;
-    function attach(uint tokenId) external;
-    function detach(uint tokenId) external;
-    function voting(uint tokenId) external;
-    function abstain(uint tokenId) external;
-}
 
 interface IBaseV1Factory {
     function isPair(address) external view returns (bool);
@@ -33,6 +12,7 @@ interface IBaseV1Factory {
 
 interface IBaseV1Core {
     function claimFees() external returns (uint, uint);
+
     function tokens() external returns (address, address);
 }
 
@@ -46,14 +26,19 @@ interface IBaseV1BribeFactory {
 
 interface IGauge {
     function notifyRewardAmount(address token, uint amount) external;
+
     function getReward(address account, address[] memory tokens) external;
+
     function claimFees() external returns (uint claimed0, uint claimed1);
+
     function left(address token) external view returns (uint);
 }
 
 interface IBribe {
     function _deposit(uint amount, uint tokenId) external;
+
     function _withdraw(uint amount, uint tokenId) external;
+
     function getRewardForOwner(uint tokenId, address[] memory tokens) external;
 }
 
@@ -95,10 +80,10 @@ contract Boost {
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Whitelisted(address indexed whitelister, address indexed token);
 
-    constructor(address __ve, address _factory, address  _gauges, address _bribes) {
+    constructor(address __ve, address _factory, address _gauges, address _bribes) {
         _ve = __ve;
         factory = _factory;
-        base = ve(__ve).token();
+        base = IVeToken(__ve).token();
         gaugefactory = _gauges;
         bribefactory = _bribes;
         minter = msg.sender;
@@ -122,13 +107,13 @@ contract Boost {
     }
 
     function listing_fee() public view returns (uint) {
-        return (erc20(base).totalSupply() - erc20(_ve).totalSupply()) / 200;
+        return (IERC20(base).totalSupply() - IERC20(_ve).totalSupply()) / 200;
     }
 
     function reset(uint _tokenId) external {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
-        ve(_ve).abstain(_tokenId);
+        IVeToken(_ve).abstain(_tokenId);
     }
 
     function _reset(uint _tokenId) internal {
@@ -173,13 +158,13 @@ contract Boost {
     function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
         _reset(_tokenId);
         uint _poolCnt = _poolVote.length;
-        int256 _weight = int256(ve(_ve).balanceOfNFT(_tokenId));
+        int256 _weight = int256(IVeToken(_ve).balanceOfNFT(_tokenId));
         int256 _totalVoteWeight = 0;
         int256 _totalWeight = 0;
         int256 _usedWeight = 0;
 
         for (uint i = 0; i < _poolCnt; i++) {
-            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : -_weights[i];
+            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
         }
 
         for (uint i = 0; i < _poolCnt; i++) {
@@ -199,28 +184,28 @@ contract Boost {
                 if (_poolWeight > 0) {
                     IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
                 } else {
-                    _poolWeight = -_poolWeight;
+                    _poolWeight = - _poolWeight;
                 }
                 _usedWeight += _poolWeight;
                 _totalWeight += _poolWeight;
                 emit Voted(msg.sender, _tokenId, _poolWeight);
             }
         }
-        if (_usedWeight > 0) ve(_ve).voting(_tokenId);
+        if (_usedWeight > 0) IVeToken(_ve).voting(_tokenId);
         totalWeight += uint256(_totalWeight);
         usedWeights[_tokenId] = uint256(_usedWeight);
     }
 
     function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, tokenId));
+        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, tokenId));
         require(_poolVote.length == _weights.length);
         _vote(tokenId, _poolVote, _weights);
     }
 
     function whitelist(address _token, uint _tokenId) public {
         if (_tokenId > 0) {
-            require(msg.sender == ve(_ve).ownerOf(_tokenId));
-            require(ve(_ve).balanceOfNFT(_tokenId) > listing_fee());
+            require(msg.sender == IVeToken(_ve).ownerOf(_tokenId));
+            require(IVeToken(_ve).balanceOfNFT(_tokenId) > listing_fee());
         } else {
             _safeTransferFrom(base, msg.sender, minter, listing_fee());
         }
@@ -241,7 +226,7 @@ contract Boost {
         require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
         address _bribe = IBaseV1BribeFactory(bribefactory).createBribe();
         address _gauge = IBaseV1GaugeFactory(gaugefactory).createGauge(_pool, _bribe, _ve);
-        erc20(base).approve(_gauge, type(uint).max);
+        IERC20(base).approve(_gauge, type(uint).max);
         bribes[_gauge] = _bribe;
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
@@ -254,7 +239,7 @@ contract Boost {
 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) ve(_ve).attach(tokenId);
+        if (tokenId > 0) IVeToken(_ve).attach(tokenId);
         emit Attach(account, msg.sender, tokenId);
     }
 
@@ -265,7 +250,7 @@ contract Boost {
 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) ve(_ve).detach(tokenId);
+        if (tokenId > 0) IVeToken(_ve).detach(tokenId);
         emit Detach(account, msg.sender, tokenId);
     }
 
@@ -283,8 +268,10 @@ contract Boost {
     mapping(address => uint) public claimable;
 
     function notifyRewardAmount(uint amount) external {
-        _safeTransferFrom(base, msg.sender, address(this), amount); // transfer the distro in
-        uint256 _ratio = amount * 1e18 / totalWeight; // 1e18 adjustment is removed during claim
+        _safeTransferFrom(base, msg.sender, address(this), amount);
+        // transfer the distro in
+        uint256 _ratio = amount * 1e18 / totalWeight;
+        // 1e18 adjustment is removed during claim
         if (_ratio > 0) {
             index += _ratio;
         }
@@ -316,15 +303,20 @@ contract Boost {
         int256 _supplied = weights[_pool];
         if (_supplied > 0) {
             uint _supplyIndex = supplyIndex[_gauge];
-            uint _index = index; // get global index0 for accumulated distro
-            supplyIndex[_gauge] = _index; // update _gauge current position to global position
-            uint _delta = _index - _supplyIndex; // see if there is any difference that need to be accrued
+            uint _index = index;
+            // get global index0 for accumulated distro
+            supplyIndex[_gauge] = _index;
+            // update _gauge current position to global position
+            uint _delta = _index - _supplyIndex;
+            // see if there is any difference that need to be accrued
             if (_delta > 0) {
-                uint _share = uint(_supplied) * _delta / 1e18; // add accrued difference for each supplied token
+                uint _share = uint(_supplied) * _delta / 1e18;
+                // add accrued difference for each supplied token
                 claimable[_gauge] += _share;
             }
         } else {
-            supplyIndex[_gauge] = index; // new users are set to the default global state
+            supplyIndex[_gauge] = index;
+            // new users are set to the default global state
         }
     }
 
@@ -335,14 +327,14 @@ contract Boost {
     }
 
     function claimBribes(address[] memory _bribes, address[][] memory _tokens, uint _tokenId) external {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
         for (uint i = 0; i < _bribes.length; i++) {
             IBribe(_bribes[i]).getRewardForOwner(_tokenId, _tokens[i]);
         }
     }
 
     function claimFees(address[] memory _fees, address[][] memory _tokens, uint _tokenId) external {
-        require(ve(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
         for (uint i = 0; i < _fees.length; i++) {
             IBribe(_fees[i]).getRewardForOwner(_tokenId, _tokens[i]);
         }
@@ -388,7 +380,7 @@ contract Boost {
     function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
         require(token.code.length > 0);
         (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(erc20.transferFrom.selector, from, to, value));
+        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
         require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }
