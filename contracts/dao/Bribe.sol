@@ -35,35 +35,32 @@ contract Bribe {
     uint public totalSupply;
     mapping(uint => uint) public balanceOf;
 
-    /// @notice A checkpoint for marking balance
     struct Checkpoint {
         uint timestamp;
         uint balanceOf;
     }
 
-    /// @notice A checkpoint for marking reward rate
+
     struct RewardPerTokenCheckpoint {
         uint timestamp;
         uint rewardPerToken;
     }
 
-    /// @notice A checkpoint for marking supply
     struct SupplyCheckpoint {
         uint timestamp;
         uint supply;
     }
 
-    /// @notice A record of balance checkpoints for each account, by index
     mapping (uint => mapping (uint => Checkpoint)) public checkpoints;
-    /// @notice The number of checkpoints for each account
+
     mapping (uint => uint) public numCheckpoints;
-    /// @notice A record of balance checkpoints for each token, by index
+
     mapping (uint => SupplyCheckpoint) public supplyCheckpoints;
-    /// @notice The number of checkpoints
+
     uint public supplyNumCheckpoints;
-    /// @notice A record of balance checkpoints for each token, by index
+
     mapping (address => mapping (uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
-    /// @notice The number of checkpoints for each token
+
     mapping (address => uint) public rewardPerTokenNumCheckpoints;
 
     event Deposit(address indexed from, uint tokenId, uint amount);
@@ -85,13 +82,7 @@ contract Bribe {
         _unlocked = 1;
     }
 
-    /**
-    * @notice Determine the prior balance for an account as of a block number
-    * @dev Block number must be a finalized block or else this function will revert to prevent misinformation.
-    * @param tokenId The token of the NFT to check
-    * @param timestamp The timestamp to get the balance at
-    * @return The balance the account had as of the given block
-    */
+
     function getPriorBalanceIndex(uint tokenId, uint timestamp) public view returns (uint) {
         uint nCheckpoints = numCheckpoints[tokenId];
         if (nCheckpoints == 0) {
