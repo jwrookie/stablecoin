@@ -21,15 +21,9 @@ contract('Locker', () => {
         stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
         //  await time.advanceBlockTo(parseInt(stratBlock) + 10);
-        const Operatable = await ethers.getContractFactory('Operatable');
-        operatable = await Operatable.deploy();
-        //
-        // const RewardPool = await ethers.getContractFactory('RewardPool');
-        // rewardPool = await RewardPool.deploy(operatable.address, "10000", parseInt(stratBlock), 100);
 
 
-
-       // await  cvx.mint(lock.address,toWei('1000'))
+        // await  cvx.mint(lock.address,toWei('1000'))
 
 
     });
@@ -38,52 +32,67 @@ contract('Locker', () => {
         expect(await lock.name()).to.be.eq("veNFT")
         expect(await lock.symbol()).to.be.eq("veNFT")
         expect(await lock.decimals()).to.be.eq(18)
-         expect(await lock.version()).to.be.eq("1.0.0")
+        expect(await lock.version()).to.be.eq("1.0.0")
 
 
     });
-    it("deposit_for", async () => {
+    it("test withdraw", async () => {
 
-      let point  = await lock.point_history(0)
-        console.log("bias:"+point[0] )
-          console.log("slope:"+point[1])
-          console.log("ts:"+point[2])
-          console.log("blk:"+point[3])
+        let point = await lock.point_history(0)
+        console.log("bias:" + point[0])
+        console.log("slope:" + point[1])
+        console.log("ts:" + point[2])
+        console.log("blk:" + point[3])
 
-        //  stratBlock = await time.latestBlock();
+        await cvx.approve(lock.address, toWei('1000'))
+        let eta = time.duration.days(1);
+        console.log("eta:" + eta);
+
+        await lock.create_lock("1000", parseInt(eta));//
+
+        stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
-         //await time.advanceBlockTo(parseInt(stratBlock) + 10);
-                // let eta = (await time.latest()).add(time.duration.days(1));
-    //  console.log("eta:"+eta)
-        await cvx.approve(lock.address,toWei('1000'))
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
 
-     await lock.create_lock("1000","1000000")
-       // await lock.deposit_for(1,1000)
-
+        // await lock.deposit_for(1,1000)
 
         //console.log("balanceOfNFT:"+await lock.balanceOfNFT(1))
 
-
-       //console.log("balanceOfNFTAt:"+await lock.balanceOfNFTAt(1,"1648810870"))
-
-       // console.log("tokenURI:"+await lock.tokenURI(1))
+        //console.log("balanceOfNFTAt:"+await lock.balanceOfNFTAt(1,"1648810870"))
 
 
-       let lockInfo =  await lock.locked(1)
-        console.log("amount:"+lockInfo[0])
-         console.log("end:"+lockInfo[1])
+        let lockInfo = await lock.locked(1)
+        console.log("amount:" + lockInfo[0])
+        console.log("end:" + lockInfo[1])
 
-        console.log("balanceOf:"+await lock.balanceOf(owner.address))
-
-        console.log("locked__end:"+await lock.locked__end(1))
-
-        console.log("latest:"+await time.latest())
-       let eta = (await time.latest()).add(time.duration.days(4));
-
-      console.log("eta:"+eta)
-        await lock.withdraw(1)
+        // console.log("balanceOf:" + await lock.balanceOf(owner.address))
 
 
+        // console.log("eta:" + eta)
+        console.log("------------------------")
+        point = await lock.point_history(0)
+        console.log("bias:" + point[0])
+        console.log("slope:" + point[1])
+        console.log("ts:" + point[2])
+        console.log("blk:" + point[3])
+
+        // console.log("get_last_user_slope:" + await lock.get_last_user_slope(1))
+        // console.log("user_point_history__ts:" + await lock.user_point_history__ts(1, 0))
+
+        console.log("locked__end1:" + await lock.locked__end(1))
+
+
+        expect(await lock.voted(1)).to.be.eq(false)
+        let eta1 = (await time.latest()).add(time.duration.days(4));
+       console.log("eta1: " + eta1);
+
+        //
+        //await lock.checkpoint();
+        //await lock.withdraw(1);
+        // lockInfo = await lock.locked(1)
+        // console.log("amount:" + lockInfo[
+        //     0])
+        // console.log("end:" + lockInfo[1])
 
 
     });

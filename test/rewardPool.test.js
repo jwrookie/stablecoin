@@ -78,6 +78,22 @@ contract('RewardPool', () => {
         await time.advanceBlockTo(parseInt(stratBlock) + 10);
         await rewardPool.connect(dev).deposit(0, 0);
           console.log("fxs:" + await fxs.balanceOf(dev.address))
+
+
+          stratBlock = await time.latestBlock();
+        // console.log("block:" + stratBlock);
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
+
+
+        let info = await rewardPool.poolInfo(0)
+        console.log("accTokenPerShare:"+info[3])
+
+       let pend =  await rewardPool.pending(0,dev.address)
+        console.log("pend:"+pend)
+
+        await rewardPool.deposit(0,0)
+
+
         // await rewardPool.connect(dev).withdraw(0, "1");
 
 
