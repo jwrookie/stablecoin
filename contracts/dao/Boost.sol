@@ -6,14 +6,13 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interface/IVeToken.sol";
 import "../interface/IGauge.sol";
 import "../interface/IGaugeFactory.sol";
-import '../Uniswap/TransferHelper.sol';
-import './TokenReward.sol';
+
+import './AbstractBoost.sol';
 
 
-contract Boost is ReentrancyGuard, TokenReward {
+contract Boost is ReentrancyGuard, AbstractBoost {
     using SafeMath for uint256;
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
@@ -39,9 +38,6 @@ contract Boost is ReentrancyGuard, TokenReward {
     // pid corresponding address
     mapping(address => uint256) public LpOfPid;
 
-    address public immutable veToken; // the ve token that governs these contracts
-
-    address internal immutable base;
 
     uint public constant duration = 7 days; // rewards are released over 7 days
 
@@ -60,9 +56,8 @@ contract Boost is ReentrancyGuard, TokenReward {
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
-        uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
-        veToken = __ve;
-        base = IVeToken(__ve).token();
+        uint256 _period)AbstractBoost(_operatorMsg, __ve, _swapToken, _tokenPerBlock, _startBlock, _period) {
+
         gaugeFactory = _gauges;
 
     }
