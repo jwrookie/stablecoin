@@ -275,12 +275,12 @@ contract Gauge is ReentrancyGuard {
     function derivedBalance(address account) public view returns (uint) {
         uint _tokenId = tokenIds[account];
         uint _balance = balanceOf[account];
-        uint _derived = _balance * 40 / 100;
+        uint _derived = _balance * 30 / 100;
         uint _adjusted = 0;
-        uint _supply = IERC20(veToken).totalSupply();
+        uint _supply = IBoost(boost).weights(stake);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = IVeToken(veToken).balanceOfNFT(_tokenId);
-            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
+            _adjusted = IBoost(boost).votes(_tokenId, stake);
+            _adjusted = (totalSupply * _adjusted / _supply) * 70 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
     }
