@@ -57,10 +57,6 @@ contract Boost is ReentrancyGuard, TokenReward {
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
     mapping(address => bool) public isGauge;
 
-    uint internal index;
-    mapping(address => uint) internal supplyIndex;
-    mapping(address => uint) public claimable;
-
     constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
@@ -256,17 +252,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         emit Withdraw(account, msg.sender, tokenId, amount);
     }
 
-    function notifyRewardAmount(uint amount) external {
-        TransferHelper.safeTransferFrom(base, msg.sender, address(this), amount);
-        // transfer the distro in
-        uint256 _ratio = amount * 1e18 / totalWeight;
-        // 1e18 adjustment is removed during claim
-        if (_ratio > 0) {
-            index += _ratio;
-        }
-        emit NotifyReward(msg.sender, base, amount);
-    }
-
     function updateAll() external {
         for (uint i = 0; i < poolLength(); i++) {
             PoolInfo memory pool = poolInfo[i];
@@ -274,30 +259,8 @@ contract Boost is ReentrancyGuard, TokenReward {
         }
     }
 
-    function updateGauge(address _gauge) external {
-        _updateForGauge(_gauge);
-    }
-
     function _updateForGauge(address _gauge) internal {
         address _pool = poolForGauge[_gauge];
-        int256 _supplied = weights[_pool];
-        if (_supplied > 0) {
-            uint _supplyIndex = supplyIndex[_gauge];
-            uint _index = index;
-            // get global index0 for accumulated distro
-            supplyIndex[_gauge] = _index;
-            // update _gauge current position to global position
-            uint _delta = _index - _supplyIndex;
-            // see if there is any difference that need to be accrued
-            if (_delta > 0) {
-                uint _share = uint(_supplied) * _delta / 1e18;
-                // add accrued difference for each supplied token
-                claimable[_gauge] += _share;
-            }
-        } else {
-            supplyIndex[_gauge] = index;
-            // new users are set to the default global state
-        }
         updatePool(LpOfPid[_pool]);
     }
 
@@ -307,33 +270,8 @@ contract Boost is ReentrancyGuard, TokenReward {
         }
     }
 
-
     function distribute(address _gauge) public nonReentrant {
-        //todo minter token for gauge
-        //        IMinter(minter).update_period();
         _updateForGauge(_gauge);
-        uint _claimable = claimable[_gauge];
-        if (_claimable > IGauge(_gauge).left(base) && _claimable / duration > 0) {
-            claimable[_gauge] = 0;
-            //todo remove notifyRewardAmount
-            emit DistributeReward(msg.sender, _gauge, _claimable);
-        }
-    }
 
-    function distribute() external {
-        distribute(0, poolLength());
-    }
-
-    function distribute(uint start, uint finish) public {
-        for (uint x = start; x < finish; x++) {
-            PoolInfo memory pool = poolInfo[x];
-            distribute(gauges[pool.lpToken]);
-        }
-    }
-
-    function distribute(address[] memory _gauges) external {
-        for (uint x = 0; x < _gauges.length; x++) {
-            distribute(_gauges[x]);
-        }
     }
 }
