@@ -33,7 +33,7 @@ module.exports = {
         testnet: {
             url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
             chainId: 97,
-            gasPrice: 40000000000,
+            gasPrice: 60000000000,
             accounts: ['67e2974ad2a8f17899325e4ddb19ec3cb4220ebb0f8753440fdd64b79cede01e'],
         },
         mainnet: {

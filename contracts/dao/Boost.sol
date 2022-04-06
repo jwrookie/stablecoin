@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../interface/IVeToken.sol";
 import "../interface/IGauge.sol";
+import "../interface/IGaugeFactory.sol";
 import '../Uniswap/TransferHelper.sol';
 import './TokenReward.sol';
-import './Gauge.sol';
+
 
 contract Boost is ReentrancyGuard, TokenReward {
     using SafeMath for uint256;
@@ -27,12 +28,13 @@ contract Boost is ReentrancyGuard, TokenReward {
 
     // Info of each pool.
     struct PoolInfo {
-        IERC20 lpToken;
+        address lpToken;
         uint256 allocPoint;
         uint256 lastRewardBlock;
         uint256 accTokenPerShare;
     }
 
+    address public immutable gaugefactory;
     uint256 public totalAllocPoint = 0;
     PoolInfo[] public poolInfo;
     // pid corresponding address
@@ -59,13 +61,14 @@ contract Boost is ReentrancyGuard, TokenReward {
     mapping(address => uint) internal supplyIndex;
     mapping(address => uint) public claimable;
 
-    constructor(address _operatorMsg, address __ve,
+    constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         _ve = __ve;
         base = IVeToken(__ve).token();
+        gaugefactory = _gauges;
 
     }
 
@@ -89,7 +92,7 @@ contract Boost is ReentrancyGuard, TokenReward {
             int256 _votes = votes[_tokenId][_pool];
 
             if (_votes != 0) {
-                _updateFor(gauges[_pool]);
+                _updateForGauge(gauges[_pool]);
                 weights[_pool] -= _votes;
                 votes[_tokenId][_pool] -= _votes;
                 if (_votes > 0) {
@@ -137,7 +140,7 @@ contract Boost is ReentrancyGuard, TokenReward {
                 int256 _poolWeight = _weights[i] * _weight / _totalVoteWeight;
                 require(votes[_tokenId][_pool] == 0);
                 require(_poolWeight != 0);
-                _updateFor(_gauge);
+                _updateForGauge(_gauge);
 
                 poolVote[_tokenId].push(_pool);
 
@@ -175,20 +178,19 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
-        lpToken : IERC20(_pool),
+        lpToken : _pool,
         allocPoint : _allocPoint,
         lastRewardBlock : lastRewardBlock,
         accTokenPerShare : 0
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = address(new Gauge(_pool, _ve, address(this)));
+        address _gauge = IGaugeFactory(gaugefactory).createGauge(_pool, _ve);
         IERC20(base).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
         isGauge[_gauge] = true;
-        _updateFor(_gauge);
-        pools.push(_pool);
+        _updateForGauge(_gauge);
         emit GaugeCreated(_gauge, msg.sender, _pool);
         return _gauge;
     }
@@ -214,7 +216,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
+        uint256 lpSupply = IERC20(pool.lpToken).balanceOf(address(this));
         if (lpSupply == 0) {
             pool.lastRewardBlock = block.number;
             return;
@@ -227,7 +229,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
             pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
-            //todo Notify the guage
         }
         pool.lastRewardBlock = block.number;
     }
@@ -255,11 +256,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         emit Withdraw(account, msg.sender, tokenId, amount);
     }
 
-    function length() external view returns (uint) {
-        return pools.length;
-    }
-
-
     function notifyRewardAmount(uint amount) external {
         TransferHelper.safeTransferFrom(base, msg.sender, address(this), amount);
         // transfer the distro in
@@ -271,27 +267,18 @@ contract Boost is ReentrancyGuard, TokenReward {
         emit NotifyReward(msg.sender, base, amount);
     }
 
-    function updateFor(address[] memory _gauges) external {
-        for (uint i = 0; i < _gauges.length; i++) {
-            _updateFor(_gauges[i]);
-        }
-    }
-
-    function updateForRange(uint start, uint end) public {
-        for (uint i = start; i < end; i++) {
-            _updateFor(gauges[pools[i]]);
-        }
-    }
-
     function updateAll() external {
-        updateForRange(0, pools.length);
+        for (uint i = 0; i < poolLength(); i++) {
+            PoolInfo memory pool = poolInfo[i];
+            _updateForGauge(gauges[pool.lpToken]);
+        }
     }
 
     function updateGauge(address _gauge) external {
-        _updateFor(_gauge);
+        _updateForGauge(_gauge);
     }
 
-    function _updateFor(address _gauge) internal {
+    function _updateForGauge(address _gauge) internal {
         address _pool = poolForGauge[_gauge];
         int256 _supplied = weights[_pool];
         if (_supplied > 0) {
@@ -311,6 +298,7 @@ contract Boost is ReentrancyGuard, TokenReward {
             supplyIndex[_gauge] = index;
             // new users are set to the default global state
         }
+        updatePool(LpOfPid[_pool]);
     }
 
     function claimRewards(address[] memory _gauges, address[][] memory _tokens) external {
@@ -323,7 +311,7 @@ contract Boost is ReentrancyGuard, TokenReward {
     function distribute(address _gauge) public nonReentrant {
         //todo minter token for gauge
         //        IMinter(minter).update_period();
-        _updateFor(_gauge);
+        _updateForGauge(_gauge);
         uint _claimable = claimable[_gauge];
         if (_claimable > IGauge(_gauge).left(base) && _claimable / duration > 0) {
             claimable[_gauge] = 0;
@@ -333,12 +321,13 @@ contract Boost is ReentrancyGuard, TokenReward {
     }
 
     function distribute() external {
-        distribute(0, pools.length);
+        distribute(0, poolLength());
     }
 
     function distribute(uint start, uint finish) public {
         for (uint x = start; x < finish; x++) {
-            distribute(gauges[pools[x]]);
+            PoolInfo memory pool = poolInfo[x];
+            distribute(gauges[pool.lpToken]);
         }
     }
 

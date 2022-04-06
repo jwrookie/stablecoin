@@ -27,9 +27,9 @@ async function main() {
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0xEF70CAbcFd003F9fD56cfF75e6b6c300069Bc5Af"
-    let frax = "0x6E99889DE9585d77ae8889CB07CccE2d8Ff7A5DF"
-   let pool = "0x5b1963038e8efa1790B43D4eD7574511405f2BA6"
+    let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
+    let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
+   let pool = "0xD0B216059544a0412bd9db3A9243fA83761964D7"
     // //let fxb = ""
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
@@ -186,7 +186,7 @@ async function main() {
 
      const FraxTool = await ethers.getContractFactory('FraxTool', {
         libraries: {
-            FraxPoolLibrary: "0x130b12A9C25963d5d6703735b819E6C1244B725B",
+            FraxPoolLibrary: "0x825F3Ba51E763f9b76D627A9E2C3625d31dd8fB6",
         },
     });
 

@@ -4,7 +4,7 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
-contract('LockerV2', () => {
+contract('Locker', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         const TestERC20 = await ethers.getContractFactory('TestERC20');
@@ -16,85 +16,84 @@ contract('LockerV2', () => {
         await busd.mint(owner.address, toWei('1'))
         await cvx.mint(owner.address, toWei('1'))
 
-        const LockerV2 = await ethers.getContractFactory('LockerV2');
-        lock = await LockerV2.deploy(cvx.address);
+        const Locker = await ethers.getContractFactory('Locker');
+        lock = await Locker.deploy(cvx.address);
         stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
         //  await time.advanceBlockTo(parseInt(stratBlock) + 10);
-        const Operatable = await ethers.getContractFactory('Operatable');
-        operatable = await Operatable.deploy();
-        //
-        // const RewardPool = await ethers.getContractFactory('RewardPool');
-        // rewardPool = await RewardPool.deploy(operatable.address, "10000", parseInt(stratBlock), 100);
 
 
-        await lock.setBoost("1000", "10000", dev.address);
+        // await  cvx.mint(lock.address,toWei('1000'))
 
 
     });
 
     it('lock Info  ', async () => {
-        expect(await lock.name()).to.be.eq("Vote Locked Convex Token")
-        expect(await lock.symbol()).to.be.eq("vlCVX")
+        expect(await lock.name()).to.be.eq("veNFT")
+        expect(await lock.symbol()).to.be.eq("veNFT")
         expect(await lock.decimals()).to.be.eq(18)
+        expect(await lock.version()).to.be.eq("1.0.0")
 
 
     });
-    it("rewardWeightOf", async () => {
+    it("test withdraw", async () => {
+
+        let point = await lock.point_history(0)
+        console.log("bias:" + point[0])
+        console.log("slope:" + point[1])
+        console.log("ts:" + point[2])
+        console.log("blk:" + point[3])
+
+        await cvx.approve(lock.address, toWei('1000'))
+        let eta = time.duration.days(1);
+        console.log("eta:" + eta);
+
+        await lock.create_lock("1000", parseInt(eta));//
+
         stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
         await time.advanceBlockTo(parseInt(stratBlock) + 10);
-        let info = await lock.epochs(0);
-        console.log("supply:" + info[0])
-        console.log("date:" + info[1])
 
-        await cvx.approve(lock.address, toWei('1000'))
-        console.log("maximumBoostPayment:" + await lock.maximumBoostPayment())
-        console.log("nextMaximumBoostPayment:" + await lock.nextMaximumBoostPayment())
-        console.log("--------------------------")
+        // await lock.deposit_for(1,1000)
 
-        await lock.checkpointEpoch();
-        console.log("maximumBoostPayment:" + await lock.maximumBoostPayment())
-        console.log("nextMaximumBoostPayment:" + await lock.nextMaximumBoostPayment())
-        console.log("---------------------")
+        //console.log("balanceOfNFT:"+await lock.balanceOfNFT(1))
 
-        await lock.lock(owner.address, "10000", "1000")
-        console.log("rewardWeightOf:" + await lock.rewardWeightOf(owner.address))
-        console.log("lockedBalanceOf:" + await lock.lockedBalanceOf(owner.address))
-        console.log("balanceOf:" + await lock.balanceOf(owner.address))
+        //console.log("balanceOfNFTAt:"+await lock.balanceOfNFTAt(1,"1648810870"))
 
 
-        console.log("---------------------")
-        info = await lock.epochs(0);
-        console.log("supply:" + info[0])
-        console.log("date:" + info[1])
-
-        // console.log("totalSupplyAtEpoch:"+await lock.totalSupplyAtEpoch(1))
-
-        console.log("lockedBalances:" + await lock.lockedBalances(owner.address))
-
-        let lockInfo = await lock.userLocks(owner.address, 0)
+        let lockInfo = await lock.locked(1)
         console.log("amount:" + lockInfo[0])
-        console.log("boosted:" + lockInfo[1])
-        console.log("unlockTime:" + lockInfo[2])
+        console.log("end:" + lockInfo[1])
 
-        let balance = await lock.balances(owner.address)
-        console.log("locked:" + balance[0])
-        console.log("boosted:" + balance[1])
-        console.log("nextUnlockIndex:" + balance[2])
+        // console.log("balanceOf:" + await lock.balanceOf(owner.address))
 
 
-        //  stratBlock = await time.latestBlock();
-        // console.log("block:" + stratBlock);
-        //  await time.advanceBlockTo(parseInt(stratBlock) + 30);
-        // await lock.withdrawExpiredLocksTo(owner.address)
+        // console.log("eta:" + eta)
+        console.log("------------------------")
+        point = await lock.point_history(0)
+        console.log("bias:" + point[0])
+        console.log("slope:" + point[1])
+        console.log("ts:" + point[2])
+        console.log("blk:" + point[3])
+
+        // console.log("get_last_user_slope:" + await lock.get_last_user_slope(1))
+        // console.log("user_point_history__ts:" + await lock.user_point_history__ts(1, 0))
+
+        console.log("locked__end1:" + await lock.locked__end(1))
 
 
-        // await lock.kickExpiredLocks(owner.address)
+        expect(await lock.voted(1)).to.be.eq(false)
+        let eta1 = (await time.latest()).add(time.duration.days(4));
+       console.log("eta1: " + eta1);
 
-        console.log("epochCount:"+await lock.epochCount())
+        //
+        //await lock.checkpoint();
+        //await lock.withdraw(1);
+        // lockInfo = await lock.locked(1)
+        // console.log("amount:" + lockInfo[
+        //     0])
+        // console.log("end:" + lockInfo[1])
 
-        console.log("findEpochId:"+await lock.findEpochId("1658966400"))
 
     });
 
