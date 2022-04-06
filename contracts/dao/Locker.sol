@@ -171,7 +171,7 @@ contract Locker is IERC721, IERC721Metadata {
         return ownerToNFTokenCount[_owner];
     }
 
-    function balanceOf(address _owner) external view returns (uint) {
+    function balanceOf(address _owner) public view returns (uint) {
         return _balance(_owner);
     }
 
@@ -618,7 +618,8 @@ contract Locker is IERC721, IERC721Metadata {
         uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
         // Locktime is rounded down to weeks
 
-        require(_value > 0);
+        require(_value > 0, "v >0");
+        require(balanceOf(_to) == 0, "less than 1 nft");
         // dev: need non-zero value
         require(unlock_time > block.timestamp, 'Can only lock until time in the future');
         require(unlock_time <= block.timestamp + MAXTIME, 'Voting lock can be 4 years max');
