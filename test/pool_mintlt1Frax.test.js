@@ -162,8 +162,7 @@ contract('Pool_USDC', () => {
         expect(await frax.ethUsdPrice()).to.be.eq("100000000");
         expect(await usdc_uniswapOracle.price0Average()).to.be.eq(0);
         expect(await usdc_uniswapOracle.price1Average()).to.be.eq(0);
-        // console.log("globalCollateralRatio:"+await frax.globalCollateralRatio())
-        //
+
         await usdc_uniswapOracle.setPeriod(1);
         await usdc_uniswapOracle.update();
 
@@ -254,6 +253,7 @@ contract('Pool_USDC', () => {
         expect(await fxs.balanceOf(pool.address)).to.be.eq(0);
         expect(await usdc.balanceOf(pool.address)).to.be.eq(0);
 
+      //  console.log("globalCollateralValue:"+await frax.globalCollateralValue())
         await pool.mintFractionalFRAX("1000", "1000", 0);
         expect(await usdc.balanceOf(owner.address)).to.be.eq("999999999999999999999999999000");
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999999000000000000133333");
@@ -281,19 +281,6 @@ contract('Pool_USDC', () => {
         expect(await pool.unclaimedPoolCollateral()).to.be.eq(0);
         expect(await pool.unclaimedPoolFXS()).to.be.eq(0);
         expect(await pool.redeemCollateralBalances(owner.address)).to.be.eq(0);
-
-        // console.log("redemption_delay:"+await pool.redemption_delay())
-
-        //  await pool.multicall(
-        // [pool.interface.encodeFunctionData('redeemFractionalFRAX',['10000','0','0']),
-        //     pool.interface.encodeFunctionData('collectRedemption')]
-
-        // console.log("lastRedeemed:" + await pool.lastRedeemed(owner.address))
-        //
-        // await pool.multicall(
-        //     [pool.interface.encodeFunctionData('redeemFractionalFRAX', ['10000', '0', '0']),
-        //         pool.interface.encodeFunctionData('collectRedemption')]);
-
 
     });
     it("test buyBackFXS", async () => {
