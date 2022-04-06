@@ -1,39 +1,26 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-
-import "../interface/IVeToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IBaseV1Factory {
-    function isPair(address) external view returns (bool);
-}
-
-interface IBaseV1Core {
-    function claimFees() external returns (uint, uint);
-
-    function tokens() external returns (address, address);
-}
-
-interface Voter {
-    function attachTokenToGauge(uint _tokenId, address account) external;
-
-    function detachTokenFromGauge(uint _tokenId, address account) external;
-
-    function emitDeposit(uint _tokenId, address account, uint amount) external;
-
-    function emitWithdraw(uint _tokenId, address account, uint amount) external;
-
-    function distribute(address _gauge) external;
-}
+import "../interface/IVeToken.sol";
+import "../interface/IBoost.sol";
+import '../Uniswap/TransferHelper.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard {
 
+
+    event Deposit(address indexed from, uint tokenId, uint amount);
+    event Withdraw(address indexed from, uint tokenId, uint amount);
+    event NotifyReward(address indexed from, address indexed reward, uint amount);
+    event ClaimRewards(address indexed from, address indexed reward, uint amount);
+
+
     address public immutable stake; // the LP token that needs to be staked for rewards
-    address public immutable _ve; // the ve token used for gauges
+    address public immutable veToken; // the ve token used for gauges
     address public immutable voter;
 
     uint public derivedSupply;
@@ -88,19 +75,10 @@ contract Gauge is ReentrancyGuard {
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
-    uint public fees0;
-    uint public fees1;
-
-    event Deposit(address indexed from, uint tokenId, uint amount);
-    event Withdraw(address indexed from, uint tokenId, uint amount);
-    event NotifyReward(address indexed from, address indexed reward, uint amount);
-    event ClaimFees(address indexed from, uint claimed0, uint claimed1);
-    event ClaimRewards(address indexed from, address indexed reward, uint amount);
-
-    constructor(address _stake, address _bribe, address __ve, address _voter) {
+    constructor(address _stake, address __ve, address _voter) {
         stake = _stake;
         //        bribe = _bribe;
-        _ve = __ve;
+        veToken = __ve;
         voter = _voter;
     }
 
@@ -249,7 +227,7 @@ contract Gauge is ReentrancyGuard {
 
     function getReward(address account, address[] memory tokens) external nonReentrant {
         require(msg.sender == account || msg.sender == voter);
-        Voter(voter).distribute(address(this));
+        IBoost(voter).distribute(address(this));
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
@@ -257,7 +235,8 @@ contract Gauge is ReentrancyGuard {
             uint _reward = earned(tokens[i], account);
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
-            if (_reward > 0) _safeTransfer(tokens[i], account, _reward);
+            if (_reward > 0) {
+                TransferHelper.safeTransfer(tokens[i], account, _reward);}
 
             emit ClaimRewards(msg.sender, tokens[i], _reward);
         }
@@ -285,9 +264,9 @@ contract Gauge is ReentrancyGuard {
         uint _balance = balanceOf[account];
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
-        uint _supply = IERC20(_ve).totalSupply();
-        if (account == IVeToken(_ve).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = IVeToken(_ve).balanceOfNFT(_tokenId);
+        uint _supply = IERC20(veToken).totalSupply();
+        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = IVeToken(veToken).balanceOfNFT(_tokenId);
             _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
@@ -406,15 +385,15 @@ contract Gauge is ReentrancyGuard {
     function deposit(uint amount, uint tokenId) public nonReentrant {
         require(amount > 0);
 
-        _safeTransferFrom(stake, msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(stake, msg.sender, address(this), amount);
         totalSupply += amount;
         balanceOf[msg.sender] += amount;
 
         if (tokenId > 0) {
-            require(IVeToken(_ve).ownerOf(tokenId) == msg.sender);
+            require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
-                Voter(voter).attachTokenToGauge(tokenId, msg.sender);
+                IBoost(voter).attachTokenToGauge(tokenId, msg.sender);
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
@@ -430,7 +409,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        Voter(voter).emitDeposit(tokenId, msg.sender, amount);
+        IBoost(voter).emitDeposit(tokenId, msg.sender, amount);
         emit Deposit(msg.sender, tokenId, amount);
     }
 
@@ -449,12 +428,12 @@ contract Gauge is ReentrancyGuard {
     function withdrawToken(uint amount, uint tokenId) public nonReentrant {
         totalSupply -= amount;
         balanceOf[msg.sender] -= amount;
-        _safeTransfer(stake, msg.sender, amount);
+        TransferHelper.safeTransfer(stake, msg.sender, amount);
 
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
             tokenIds[msg.sender] = 0;
-            Voter(voter).detachTokenFromGauge(tokenId, msg.sender);
+            IBoost(voter).detachTokenFromGauge(tokenId, msg.sender);
         } else {
             tokenId = tokenIds[msg.sender];
         }
@@ -468,7 +447,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, derivedBalances[msg.sender]);
         _writeSupplyCheckpoint();
 
-        Voter(voter).emitWithdraw(tokenId, msg.sender, amount);
+        IBoost(voter).emitWithdraw(tokenId, msg.sender, amount);
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
@@ -486,13 +465,13 @@ contract Gauge is ReentrancyGuard {
         //        _claimFees();
 
         if (block.timestamp >= periodFinish[token]) {
-            _safeTransferFrom(token, msg.sender, address(this), amount);
+            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
             rewardRate[token] = amount / DURATION;
         } else {
             uint _remaining = periodFinish[token] - block.timestamp;
             uint _left = _remaining * rewardRate[token];
             require(amount > _left);
-            _safeTransferFrom(token, msg.sender, address(this), amount);
+            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
             rewardRate[token] = (amount + _left) / DURATION;
         }
         require(rewardRate[token] > 0);
@@ -507,38 +486,4 @@ contract Gauge is ReentrancyGuard {
         emit NotifyReward(msg.sender, token, amount);
     }
 
-    function _safeTransfer(address token, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
-
-    function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
-
-    function _safeApprove(address token, address spender, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.approve.selector, spender, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
-}
-
-contract BaseV1GaugeFactory {
-    address public last_gauge;
-
-    function createGauge(address _pool, address _bribe, address _ve) external returns (address) {
-        last_gauge = address(new Gauge(_pool, _bribe, _ve, msg.sender));
-        return last_gauge;
-    }
-
-    function createGaugeSingle(address _pool, address _bribe, address _ve, address _voter) external returns (address) {
-        last_gauge = address(new Gauge(_pool, _bribe, _ve, _voter));
-        return last_gauge;
-    }
 }
