@@ -30,7 +30,6 @@ contract SwapMining is TokenReward, ISwapMining {
     struct PoolInfo {
         address pair; // Trading pairs that can be mined
         uint256 quantity; // Current amount of LPs
-        uint256 totalQuantity; // All quantity
         uint256 allocPoint; // How many allocation points assigned to this pool
         uint256 allocSwapTokenAmount; // How many token
         uint256 lastRewardBlock; // Last transaction block
@@ -95,21 +94,20 @@ contract SwapMining is TokenReward, ISwapMining {
         address,
         uint256,
         uint256,
-        uint256,
         uint256
     )
     {
         require(_pid <= poolInfo.length - 1, 'SwapMining: Not find this pool');
         PoolInfo memory pool = poolInfo[_pid];
         //todo token get form pool
-        address token0 ;
-        address token1  ;
+        address token0;
+        address token1;
         uint256 tokenAmount = pool.allocSwapTokenAmount;
         uint256 mul = block.number.sub(pool.lastRewardBlock);
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         tokenAmount = tokenAmount.add(tokenReward);
         //token0,token1,Pool remaining reward,Total /Current transaction volume of the pool
-        return (token0, token1, tokenAmount, pool.totalQuantity, pool.quantity, pool.allocPoint);
+        return (token0, token1, tokenAmount, pool.quantity, pool.allocPoint);
     }
 
     function getQuantity(
@@ -119,7 +117,7 @@ contract SwapMining is TokenReward, ISwapMining {
         uint256 amountIn,
         uint256 amountOut) public view returns (uint256) {
         //todo token get form pool
-        address token0 ;
+        address token0;
         if (input == token0) {
             return amountIn;
         }
@@ -149,7 +147,6 @@ contract SwapMining is TokenReward, ISwapMining {
             PoolInfo({
         pair : _pool,
         quantity : 0,
-        totalQuantity : 0,
         allocPoint : _allocPoint,
         allocSwapTokenAmount : 0,
         lastRewardBlock : lastRewardBlock
@@ -211,7 +208,6 @@ contract SwapMining is TokenReward, ISwapMining {
         }
 
         pool.quantity = pool.quantity.add(quantity);
-        pool.totalQuantity = pool.totalQuantity.add(quantity);
         UserInfo storage user = userInfo[pairOfPid[pair]][account];
         user.quantity = user.quantity.add(quantity);
         user.blockNumber = block.number;
