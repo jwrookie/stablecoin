@@ -34,13 +34,13 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 accTokenPerShare;
     }
 
-    address public immutable gaugefactory;
+    address public immutable gaugeFactory;
     uint256 public totalAllocPoint = 0;
     PoolInfo[] public poolInfo;
     // pid corresponding address
     mapping(address => uint256) public LpOfPid;
 
-    address public immutable _ve; // the ve token that governs these contracts
+    address public immutable veToken; // the ve token that governs these contracts
 
     address internal immutable base;
 
@@ -62,9 +62,9 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
-        _ve = __ve;
+        veToken = __ve;
         base = IVeToken(__ve).token();
-        gaugefactory = _gauges;
+        gaugeFactory = _gauges;
 
     }
 
@@ -73,9 +73,9 @@ contract Boost is ReentrancyGuard, TokenReward {
     }
 
     function reset(uint _tokenId) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
-        IVeToken(_ve).abstain(_tokenId);
+        IVeToken(veToken).abstain(_tokenId);
     }
 
     function _reset(uint _tokenId) internal {
@@ -119,7 +119,7 @@ contract Boost is ReentrancyGuard, TokenReward {
     function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
         _reset(_tokenId);
         uint _poolCnt = _poolVote.length;
-        int256 _weight = int256(IVeToken(_ve).balanceOfNFT(_tokenId));
+        int256 _weight = int256(IVeToken(veToken).balanceOfNFT(_tokenId));
         int256 _totalVoteWeight = 0;
         int256 _totalWeight = 0;
         int256 _usedWeight = 0;
@@ -151,13 +151,13 @@ contract Boost is ReentrancyGuard, TokenReward {
                 emit Voted(msg.sender, _tokenId, _poolWeight);
             }
         }
-        if (_usedWeight > 0) IVeToken(_ve).voting(_tokenId);
+        if (_usedWeight > 0) IVeToken(veToken).voting(_tokenId);
         totalWeight += uint256(_totalWeight);
         usedWeights[_tokenId] = uint256(_usedWeight);
     }
 
     function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, tokenId));
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         require(_poolVote.length == _weights.length);
         _vote(tokenId, _poolVote, _weights);
     }
@@ -181,7 +181,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = IGaugeFactory(gaugefactory).createGauge(_pool, _ve);
+        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken);
         IERC20(base).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
@@ -232,7 +232,7 @@ contract Boost is ReentrancyGuard, TokenReward {
 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(_ve).attach(tokenId);
+        if (tokenId > 0) IVeToken(veToken).attach(tokenId);
         emit Attach(account, msg.sender, tokenId);
     }
 
@@ -243,7 +243,7 @@ contract Boost is ReentrancyGuard, TokenReward {
 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(_ve).detach(tokenId);
+        if (tokenId > 0) IVeToken(veToken).detach(tokenId);
         emit Detach(account, msg.sender, tokenId);
     }
 
