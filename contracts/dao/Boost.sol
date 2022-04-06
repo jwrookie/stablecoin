@@ -31,7 +31,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         address lpToken;
         uint256 allocPoint;
         uint256 lastRewardBlock;
-        uint256 accTokenPerShare;
     }
 
     address public immutable gaugeFactory;
@@ -174,8 +173,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         poolInfo.push(PoolInfo({
         lpToken : _pool,
         allocPoint : _allocPoint,
-        lastRewardBlock : lastRewardBlock,
-        accTokenPerShare : 0
+        lastRewardBlock : lastRewardBlock
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
