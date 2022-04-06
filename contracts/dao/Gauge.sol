@@ -1,42 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 import "../interface/IVeToken.sol";
+import "../interface/IBoost.sol";
 import '../Uniswap/TransferHelper.sol';
-
-interface IBaseV1Factory {
-    function isPair(address) external view returns (bool);
-}
-
-interface IBaseV1Core {
-    function claimFees() external returns (uint, uint);
-
-    function tokens() external returns (address, address);
-}
-
-interface Voter {
-    function attachTokenToGauge(uint _tokenId, address account) external;
-
-    function detachTokenFromGauge(uint _tokenId, address account) external;
-
-    function emitDeposit(uint _tokenId, address account, uint amount) external;
-
-    function emitWithdraw(uint _tokenId, address account, uint amount) external;
-
-    function distribute(address _gauge) external;
-}
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
-    address public immutable _ve; // the ve token used for gauges
+    address public immutable veToken; // the ve token used for gauges
     address public immutable voter;
 
     uint public derivedSupply;
@@ -103,7 +80,7 @@ contract Gauge is ReentrancyGuard {
     constructor(address _stake, address _bribe, address __ve, address _voter) {
         stake = _stake;
         //        bribe = _bribe;
-        _ve = __ve;
+        veToken = __ve;
         voter = _voter;
     }
 
@@ -252,7 +229,7 @@ contract Gauge is ReentrancyGuard {
 
     function getReward(address account, address[] memory tokens) external nonReentrant {
         require(msg.sender == account || msg.sender == voter);
-        Voter(voter).distribute(address(this));
+        IBoost(voter).distribute(address(this));
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
@@ -289,9 +266,9 @@ contract Gauge is ReentrancyGuard {
         uint _balance = balanceOf[account];
         uint _derived = _balance * 40 / 100;
         uint _adjusted = 0;
-        uint _supply = IERC20(_ve).totalSupply();
-        if (account == IVeToken(_ve).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = IVeToken(_ve).balanceOfNFT(_tokenId);
+        uint _supply = IERC20(veToken).totalSupply();
+        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = IVeToken(veToken).balanceOfNFT(_tokenId);
             _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
@@ -415,10 +392,10 @@ contract Gauge is ReentrancyGuard {
         balanceOf[msg.sender] += amount;
 
         if (tokenId > 0) {
-            require(IVeToken(_ve).ownerOf(tokenId) == msg.sender);
+            require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
-                Voter(voter).attachTokenToGauge(tokenId, msg.sender);
+                IBoost(voter).attachTokenToGauge(tokenId, msg.sender);
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
@@ -434,7 +411,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        Voter(voter).emitDeposit(tokenId, msg.sender, amount);
+        IBoost(voter).emitDeposit(tokenId, msg.sender, amount);
         emit Deposit(msg.sender, tokenId, amount);
     }
 
@@ -458,7 +435,7 @@ contract Gauge is ReentrancyGuard {
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
             tokenIds[msg.sender] = 0;
-            Voter(voter).detachTokenFromGauge(tokenId, msg.sender);
+            IBoost(voter).detachTokenFromGauge(tokenId, msg.sender);
         } else {
             tokenId = tokenIds[msg.sender];
         }
@@ -472,7 +449,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, derivedBalances[msg.sender]);
         _writeSupplyCheckpoint();
 
-        Voter(voter).emitWithdraw(tokenId, msg.sender, amount);
+        IBoost(voter).emitWithdraw(tokenId, msg.sender, amount);
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
