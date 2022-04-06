@@ -9,9 +9,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IVeToken.sol";
 import "../interface/IGauge.sol";
 import '../Uniswap/TransferHelper.sol';
+import './TokenReward.sol';
 import './Gauge.sol';
 
-contract Boost is ReentrancyGuard, Ownable {
+contract Boost is ReentrancyGuard, TokenReward {
+    using SafeMath for uint256;
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
     event Voted(address indexed voter, uint tokenId, int256 weight);
@@ -23,11 +25,23 @@ contract Boost is ReentrancyGuard, Ownable {
     event Attach(address indexed owner, address indexed gauge, uint tokenId);
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
 
+    // Info of each pool.
+    struct PoolInfo {
+        IERC20 lpToken;
+        uint256 allocPoint;
+        uint256 lastRewardBlock;
+        uint256 accTokenPerShare;
+    }
+
+    uint256 public totalAllocPoint = 0;
+    PoolInfo[] public poolInfo;
+    // pid corresponding address
+    mapping(address => uint256) public LpOfPid;
+
     address public immutable _ve; // the ve token that governs these contracts
-    address public immutable factory; // the BaseV1Factory
+
     address internal immutable base;
-    address public immutable gaugefactory;
-    address public immutable bribefactory;
+
     uint public constant duration = 7 days; // rewards are released over 7 days
 
     uint public totalWeight; // total voting weight
@@ -45,12 +59,18 @@ contract Boost is ReentrancyGuard, Ownable {
     mapping(address => uint) internal supplyIndex;
     mapping(address => uint) public claimable;
 
-    constructor(address __ve, address _factory, address _gauges, address _bribes) {
+    constructor(address _operatorMsg, address __ve,
+        IToken _swapToken,
+        uint256 _tokenPerBlock,
+        uint256 _startBlock,
+        uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         _ve = __ve;
-        factory = _factory;
         base = IVeToken(__ve).token();
-        gaugefactory = _gauges;
-        bribefactory = _bribes;
+
+    }
+
+    function poolLength() public view returns (uint256) {
+        return poolInfo.length;
     }
 
     function reset(uint _tokenId) external {
@@ -143,8 +163,24 @@ contract Boost is ReentrancyGuard, Ownable {
         _vote(tokenId, _poolVote, _weights);
     }
 
-    function createGauge(address _pool) external returns (address) {
+    function createGauge(address _pool, uint256 _allocPoint, bool _withUpdate) external returns (address) {
         require(gauges[_pool] == address(0x0), "exists");
+
+        require(address(_pool) != address(0), "_lpToken is the zero address");
+        if (_withUpdate) {
+            massUpdatePools();
+        }
+
+        //        Boost boost=
+        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+        totalAllocPoint = totalAllocPoint.add(_allocPoint);
+        poolInfo.push(PoolInfo({
+        lpToken : IERC20(_pool),
+        allocPoint : _allocPoint,
+        lastRewardBlock : lastRewardBlock,
+        accTokenPerShare : 0
+        }));
+        LpOfPid[address(_pool)] = poolLength() - 1;
 
         address _gauge = address(new Gauge(_pool, _ve, address(this)));
         IERC20(base).approve(_gauge, type(uint).max);
@@ -156,6 +192,46 @@ contract Boost is ReentrancyGuard, Ownable {
         emit GaugeCreated(_gauge, msg.sender, _pool);
         return _gauge;
     }
+
+    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+        if (_withUpdate) {
+            massUpdatePools();
+        }
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        poolInfo[_pid].allocPoint = _allocPoint;
+    }
+
+    function massUpdatePools() public override {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            updatePool(pid);
+        }
+    }
+
+    // Update reward variables of the given pool to be up-to-date.
+    function updatePool(uint256 _pid) public reduceBlockReward {
+        PoolInfo storage pool = poolInfo[_pid];
+        if (block.number <= pool.lastRewardBlock) {
+            return;
+        }
+        uint256 lpSupply = pool.lpToken.balanceOf(address(this));
+        if (lpSupply == 0) {
+            pool.lastRewardBlock = block.number;
+            return;
+        }
+        if (tokenPerBlock <= 0) {
+            return;
+        }
+        uint256 mul = block.number.sub(pool.lastRewardBlock);
+        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
+        bool minRet = swapToken.mint(address(this), tokenReward);
+        if (minRet) {
+            pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
+            //todo Notify the guage
+        }
+        pool.lastRewardBlock = block.number;
+    }
+
 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
