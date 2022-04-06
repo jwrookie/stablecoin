@@ -169,8 +169,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         if (_withUpdate) {
             massUpdatePools();
         }
-
-        //        Boost boost=
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({

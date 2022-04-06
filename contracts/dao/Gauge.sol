@@ -77,7 +77,6 @@ contract Gauge is ReentrancyGuard {
 
     constructor(address _stake, address __ve, address _voter) {
         stake = _stake;
-        //        bribe = _bribe;
         veToken = __ve;
         voter = _voter;
     }
@@ -224,6 +223,23 @@ contract Gauge is ReentrancyGuard {
     function lastTimeRewardApplicable(address token) public view returns (uint) {
         return Math.min(block.timestamp, periodFinish[token]);
     }
+//
+//    function _safeTransferFromToken(address token,uint256 _amount) private {
+//
+//        TransferHelper.safeTransfer(address(swapToken), _to, _amount);
+//        uint256 bal = swapToken.balanceOf(address(this));
+//        if (bal < _amount) {
+//            swapToken.mint(address(this), _amount.mul(mintMulti));
+//        }
+//    }
+
+    function _safeTokenTransfer(address token, address _to, uint256 _amount) internal {
+        uint256 bal = IERC20(token).balanceOf(address(this));
+        if (_amount > bal) {
+            _amount = bal;
+        }
+        TransferHelper.safeTransfer(token, _to, _amount);
+    }
 
     function getReward(address account, address[] memory tokens) external nonReentrant {
         require(msg.sender == account || msg.sender == voter);
@@ -236,8 +252,8 @@ contract Gauge is ReentrancyGuard {
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
             if (_reward > 0) {
-                TransferHelper.safeTransfer(tokens[i], account, _reward);}
-
+                _safeTokenTransfer(tokens[i], account, _reward);
+            }
             emit ClaimRewards(msg.sender, tokens[i], _reward);
         }
 
@@ -451,20 +467,13 @@ contract Gauge is ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
-    function left(address token) external view returns (uint) {
-        if (block.timestamp >= periodFinish[token]) return 0;
-        uint _remaining = periodFinish[token] - block.timestamp;
-        return _remaining * rewardRate[token];
-    }
-
     function notifyRewardAmount(address token, uint _rewardRate) external nonReentrant {
         require(token != stake, "no stake");
-        if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
+        if (rewardRate[token] == 0) {
+            _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
+        }
         (rewardPerTokenStored[token], lastUpdateTime[token]) = _updateRewardPerToken(token);
         rewardRate[token] = _rewardRate;
-        uint balance = IERC20(token).balanceOf(address(this));
-        require(rewardRate[token] <= balance / DURATION, "Provided reward too high");
-        periodFinish[token] = block.timestamp + DURATION;
         if (!isReward[token]) {
             isReward[token] = true;
             rewards.push(token);
