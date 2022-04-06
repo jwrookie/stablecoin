@@ -312,7 +312,6 @@ contract('RewardPool', ([owner, secondObject]) => {
 
         // Check each other number
         await rewardPool.emergencyWithdraw(0, {from: secondObject})
-
         // assert.equal(await mockToken.balanceOf(secondObject), secondNumber)
         assert.equal(await mockToken.balanceOf(rewardPool.address), needNumber)
     });
