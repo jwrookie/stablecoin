@@ -47,7 +47,7 @@ contract('Boost', () => {
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
-        await gaugeFactory.createGauge(gauge.address, lock.address)
+        await gaugeFactory.createGauge(usdc.address, lock.address)
 
 
         Boost = await ethers.getContractFactory("Boost");
