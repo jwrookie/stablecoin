@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-import "../interface/IVeToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
+
+import "../interface/IVeToken.sol";
+import '../Uniswap/TransferHelper.sol';
 
 interface IBaseV1Factory {
     function isPair(address) external view returns (bool);
@@ -198,7 +200,7 @@ contract Boost is ReentrancyGuard {
             require(msg.sender == IVeToken(_ve).ownerOf(_tokenId));
             require(IVeToken(_ve).balanceOfNFT(_tokenId) > listing_fee());
         } else {
-            _safeTransferFrom(base, msg.sender, minter, listing_fee());
+            TransferHelper.safeTransferFrom(base, msg.sender, minter, listing_fee());
         }
 
         _whitelist(_token);
@@ -256,7 +258,7 @@ contract Boost is ReentrancyGuard {
 
 
     function notifyRewardAmount(uint amount) external {
-        _safeTransferFrom(base, msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(base, msg.sender, address(this), amount);
         // transfer the distro in
         uint256 _ratio = amount * 1e18 / totalWeight;
         // 1e18 adjustment is removed during claim
@@ -341,12 +343,5 @@ contract Boost is ReentrancyGuard {
         for (uint x = 0; x < _gauges.length; x++) {
             distribute(_gauges[x]);
         }
-    }
-
-    function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
     }
 }

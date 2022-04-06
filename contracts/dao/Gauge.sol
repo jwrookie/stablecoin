@@ -2,10 +2,13 @@
 pragma solidity 0.8.10;
 
 
-import "../interface/IVeToken.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
+
+import "../interface/IVeToken.sol";
+import '../Uniswap/TransferHelper.sol';
 
 interface IBaseV1Factory {
     function isPair(address) external view returns (bool);
@@ -257,7 +260,8 @@ contract Gauge is ReentrancyGuard {
             uint _reward = earned(tokens[i], account);
             lastEarn[tokens[i]][account] = block.timestamp;
             userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
-            if (_reward > 0) _safeTransfer(tokens[i], account, _reward);
+            if (_reward > 0) {
+                TransferHelper.safeTransfer(tokens[i], account, _reward);}
 
             emit ClaimRewards(msg.sender, tokens[i], _reward);
         }
@@ -406,7 +410,7 @@ contract Gauge is ReentrancyGuard {
     function deposit(uint amount, uint tokenId) public nonReentrant {
         require(amount > 0);
 
-        _safeTransferFrom(stake, msg.sender, address(this), amount);
+        TransferHelper.safeTransferFrom(stake, msg.sender, address(this), amount);
         totalSupply += amount;
         balanceOf[msg.sender] += amount;
 
@@ -449,7 +453,7 @@ contract Gauge is ReentrancyGuard {
     function withdrawToken(uint amount, uint tokenId) public nonReentrant {
         totalSupply -= amount;
         balanceOf[msg.sender] -= amount;
-        _safeTransfer(stake, msg.sender, amount);
+        TransferHelper.safeTransfer(stake, msg.sender, amount);
 
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
@@ -486,13 +490,13 @@ contract Gauge is ReentrancyGuard {
         //        _claimFees();
 
         if (block.timestamp >= periodFinish[token]) {
-            _safeTransferFrom(token, msg.sender, address(this), amount);
+            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
             rewardRate[token] = amount / DURATION;
         } else {
             uint _remaining = periodFinish[token] - block.timestamp;
             uint _left = _remaining * rewardRate[token];
             require(amount > _left);
-            _safeTransferFrom(token, msg.sender, address(this), amount);
+            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
             rewardRate[token] = (amount + _left) / DURATION;
         }
         require(rewardRate[token] > 0);
@@ -507,26 +511,6 @@ contract Gauge is ReentrancyGuard {
         emit NotifyReward(msg.sender, token, amount);
     }
 
-    function _safeTransfer(address token, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transfer.selector, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
-
-    function _safeTransferFrom(address token, address from, address to, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.transferFrom.selector, from, to, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
-
-    function _safeApprove(address token, address spender, uint256 value) internal {
-        require(token.code.length > 0);
-        (bool success, bytes memory data) =
-        token.call(abi.encodeWithSelector(IERC20.approve.selector, spender, value));
-        require(success && (data.length == 0 || abi.decode(data, (bool))));
-    }
 }
 
 contract BaseV1GaugeFactory {
