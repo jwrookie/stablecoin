@@ -73,7 +73,6 @@ contract Boost is ReentrancyGuard, Ownable {
                 weights[_pool] -= _votes;
                 votes[_tokenId][_pool] -= _votes;
                 if (_votes > 0) {
-                    //                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
                     _totalWeight += _votes;
                 } else {
                     _totalWeight -= _votes;
@@ -125,7 +124,6 @@ contract Boost is ReentrancyGuard, Ownable {
                 weights[_pool] += _poolWeight;
                 votes[_tokenId][_pool] += _poolWeight;
                 if (_poolWeight > 0) {
-                    //                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
                 } else {
                     _poolWeight = - _poolWeight;
                 }

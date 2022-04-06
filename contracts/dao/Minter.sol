@@ -2,6 +2,7 @@
 pragma solidity ^0.8.10;
 
 import "./TokenReward.sol";
+import "./Boost.sol";
 
 
 contract RewardPool is TokenReward {
@@ -14,6 +15,8 @@ contract RewardPool is TokenReward {
         uint256 lastRewardBlock;  // Last block number that swap token distribution occurs.
         uint256 accTokenPerShare; // Accumulated swap token per share, times 1e12.
         uint256 totalAmount;    // Total amount of current pool deposit.
+        address boost;
+        address gauge;
     }
     // Info of each pool.
     PoolInfo[] public poolInfo;
@@ -58,6 +61,8 @@ contract RewardPool is TokenReward {
         if (_withUpdate) {
             massUpdatePools();
         }
+
+//        Boost boost=
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
@@ -106,6 +111,7 @@ contract RewardPool is TokenReward {
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
             pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
+            //todo Notify the guage
         }
         pool.lastRewardBlock = block.number;
     }
