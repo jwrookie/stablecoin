@@ -226,7 +226,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
             pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
-            //todo Notify the guage
         }
         pool.lastRewardBlock = block.number;
     }
@@ -296,6 +295,7 @@ contract Boost is ReentrancyGuard, TokenReward {
             supplyIndex[_gauge] = index;
             // new users are set to the default global state
         }
+        updatePool(LpOfPid[_pool]);
     }
 
     function claimRewards(address[] memory _gauges, address[][] memory _tokens) external {
