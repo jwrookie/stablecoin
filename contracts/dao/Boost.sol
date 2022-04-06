@@ -69,7 +69,6 @@ contract Boost is ReentrancyGuard {
     address[] public pools; // all pools viable for incentives
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
-    mapping(address => address) public bribes; // gauge => bribe
     mapping(address => int256) public weights; // pool => weight
     mapping(uint => mapping(address => int256)) public votes; // nft => pool => votes
     mapping(uint => address[]) public poolVote; // nft => pools
@@ -122,7 +121,7 @@ contract Boost is ReentrancyGuard {
                 weights[_pool] -= _votes;
                 votes[_tokenId][_pool] -= _votes;
                 if (_votes > 0) {
-//                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
+                    //                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
                     _totalWeight += _votes;
                 } else {
                     _totalWeight -= _votes;
@@ -174,7 +173,7 @@ contract Boost is ReentrancyGuard {
                 weights[_pool] += _poolWeight;
                 votes[_tokenId][_pool] += _poolWeight;
                 if (_poolWeight > 0) {
-//                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
+                    //                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
                 } else {
                     _poolWeight = - _poolWeight;
                 }
@@ -219,7 +218,7 @@ contract Boost is ReentrancyGuard {
         address _bribe = IBaseV1BribeFactory(bribefactory).createBribe();
         address _gauge = IBaseV1GaugeFactory(gaugefactory).createGauge(_pool, _bribe, _ve);
         IERC20(base).approve(_gauge, type(uint).max);
-        bribes[_gauge] = _bribe;
+        //        bribes[_gauge] = _bribe;
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
         isGauge[_gauge] = true;
@@ -254,7 +253,6 @@ contract Boost is ReentrancyGuard {
     function length() external view returns (uint) {
         return pools.length;
     }
-
 
 
     function notifyRewardAmount(uint amount) external {
@@ -327,10 +325,6 @@ contract Boost is ReentrancyGuard {
             IGauge(_gauge).notifyRewardAmount(base, _claimable);
             emit DistributeReward(msg.sender, _gauge, _claimable);
         }
-    }
-
-    function distro() external {
-        distribute(0, pools.length);
     }
 
     function distribute() external {
