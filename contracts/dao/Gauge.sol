@@ -12,6 +12,13 @@ import '../Uniswap/TransferHelper.sol';
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard {
 
+
+    event Deposit(address indexed from, uint tokenId, uint amount);
+    event Withdraw(address indexed from, uint tokenId, uint amount);
+    event NotifyReward(address indexed from, address indexed reward, uint amount);
+    event ClaimRewards(address indexed from, address indexed reward, uint amount);
+
+
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
     address public immutable voter;
@@ -68,16 +75,7 @@ contract Gauge is ReentrancyGuard {
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
-    uint public fees0;
-    uint public fees1;
-
-    event Deposit(address indexed from, uint tokenId, uint amount);
-    event Withdraw(address indexed from, uint tokenId, uint amount);
-    event NotifyReward(address indexed from, address indexed reward, uint amount);
-    event ClaimFees(address indexed from, uint claimed0, uint claimed1);
-    event ClaimRewards(address indexed from, address indexed reward, uint amount);
-
-    constructor(address _stake, address _bribe, address __ve, address _voter) {
+    constructor(address _stake, address __ve, address _voter) {
         stake = _stake;
         //        bribe = _bribe;
         veToken = __ve;
@@ -488,18 +486,4 @@ contract Gauge is ReentrancyGuard {
         emit NotifyReward(msg.sender, token, amount);
     }
 
-}
-
-contract BaseV1GaugeFactory {
-    address public last_gauge;
-
-    function createGauge(address _pool, address _bribe, address _ve) external returns (address) {
-        last_gauge = address(new Gauge(_pool, _bribe, _ve, msg.sender));
-        return last_gauge;
-    }
-
-    function createGaugeSingle(address _pool, address _bribe, address _ve, address _voter) external returns (address) {
-        last_gauge = address(new Gauge(_pool, _bribe, _ve, _voter));
-        return last_gauge;
-    }
 }

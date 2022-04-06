@@ -9,20 +9,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IVeToken.sol";
 import "../interface/IGauge.sol";
 import '../Uniswap/TransferHelper.sol';
-
-
-interface IBaseV1GaugeFactory {
-    function createGauge(address, address, address) external returns (address);
-}
-
-interface IBaseV1BribeFactory {
-    function createBribe() external returns (address);
-}
-
+import './Gauge.sol';
 
 contract Boost is ReentrancyGuard, Ownable {
 
-    event GaugeCreated(address indexed gauge, address creator, address indexed bribe, address indexed pool);
+    event GaugeCreated(address indexed gauge, address creator, address indexed pool);
     event Voted(address indexed voter, uint tokenId, int256 weight);
     event Abstained(uint tokenId, int256 weight);
     event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
@@ -156,8 +147,8 @@ contract Boost is ReentrancyGuard, Ownable {
 
     function createGauge(address _pool) external returns (address) {
         require(gauges[_pool] == address(0x0), "exists");
-        address _bribe = IBaseV1BribeFactory(bribefactory).createBribe();
-        address _gauge = IBaseV1GaugeFactory(gaugefactory).createGauge(_pool, _bribe, _ve);
+
+        address _gauge = address(new Gauge(_pool, _ve, address(this)));
         IERC20(base).approve(_gauge, type(uint).max);
         //        bribes[_gauge] = _bribe;
         gauges[_pool] = _gauge;
@@ -165,7 +156,7 @@ contract Boost is ReentrancyGuard, Ownable {
         isGauge[_gauge] = true;
         _updateFor(_gauge);
         pools.push(_pool);
-        emit GaugeCreated(_gauge, msg.sender, _bribe, _pool);
+        emit GaugeCreated(_gauge, msg.sender, _pool);
         return _gauge;
     }
 
