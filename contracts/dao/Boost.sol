@@ -28,7 +28,7 @@ contract Boost is ReentrancyGuard, Ownable {
     address internal immutable base;
     address public immutable gaugefactory;
     address public immutable bribefactory;
-    uint internal constant DURATION = 7 days; // rewards are released over 7 days
+    uint public constant duration = 7 days; // rewards are released over 7 days
 
     uint public totalWeight; // total voting weight
 
@@ -150,7 +150,6 @@ contract Boost is ReentrancyGuard, Ownable {
 
         address _gauge = address(new Gauge(_pool, _ve, address(this)));
         IERC20(base).approve(_gauge, type(uint).max);
-        //        bribes[_gauge] = _bribe;
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
         isGauge[_gauge] = true;
@@ -252,7 +251,7 @@ contract Boost is ReentrancyGuard, Ownable {
         //        IMinter(minter).update_period();
         _updateFor(_gauge);
         uint _claimable = claimable[_gauge];
-        if (_claimable > IGauge(_gauge).left(base) && _claimable / DURATION > 0) {
+        if (_claimable > IGauge(_gauge).left(base) && _claimable / duration > 0) {
             claimable[_gauge] = 0;
             IGauge(_gauge).notifyRewardAmount(base, _claimable);
             emit DistributeReward(msg.sender, _gauge, _claimable);
