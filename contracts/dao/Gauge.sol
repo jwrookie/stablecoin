@@ -26,12 +26,10 @@ contract Gauge is ReentrancyGuard {
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
 
-    uint internal constant DURATION = 7 days; // rewards are released over 7 days
     uint internal constant PRECISION = 10 ** 18;
 
     // default snx staking contract implementation
     mapping(address => uint) public rewardRate;
-    mapping(address => uint) public periodFinish;
     mapping(address => uint) public lastUpdateTime;
     mapping(address => uint) public rewardPerTokenStored;
 
@@ -221,7 +219,7 @@ contract Gauge is ReentrancyGuard {
 
     // returns the last time the reward was modified or periodFinish if the reward has ended
     function lastTimeRewardApplicable(address token) public view returns (uint) {
-        return Math.min(block.timestamp, periodFinish[token]);
+        return block.timestamp;
     }
 
     function _safeTransferFromToken(address token, uint256 _amount) private {
@@ -271,7 +269,7 @@ contract Gauge is ReentrancyGuard {
         if (derivedSupply == 0) {
             return rewardPerTokenStored[token];
         }
-        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - Math.min(lastUpdateTime[token], periodFinish[token])) * rewardRate[token] * PRECISION / derivedSupply);
+        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - lastUpdateTime[token]) * rewardRate[token] * PRECISION / derivedSupply);
     }
 
     function derivedBalance(address account) public view returns (uint) {
@@ -322,7 +320,7 @@ contract Gauge is ReentrancyGuard {
 
     function _calcRewardPerToken(address token, uint timestamp1, uint timestamp0, uint supply, uint startTimestamp) internal view returns (uint, uint) {
         uint endTime = Math.max(timestamp1, startTimestamp);
-        return (((Math.min(endTime, periodFinish[token]) - Math.min(Math.max(timestamp0, startTimestamp), periodFinish[token])) * rewardRate[token] * PRECISION / supply), endTime);
+        return (((endTime - Math.max(timestamp0, startTimestamp)) * rewardRate[token] * PRECISION / supply), endTime);
     }
 
     function _updateRewardPerToken(address token) internal returns (uint, uint) {

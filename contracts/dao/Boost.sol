@@ -188,11 +188,12 @@ contract Boost is ReentrancyGuard, TokenReward {
     }
 
     function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        poolInfo[_pid].allocPoint = _allocPoint;
         if (_withUpdate) {
             massUpdatePools();
         }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
-        poolInfo[_pid].allocPoint = _allocPoint;
     }
 
     function massUpdatePools() public override {
