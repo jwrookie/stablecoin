@@ -8,9 +8,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../interface/IVeToken.sol";
 import "../interface/IGauge.sol";
+import "../interface/IGaugeFactory.sol";
 import '../Uniswap/TransferHelper.sol';
 import './TokenReward.sol';
-import './Gauge.sol';
+
 
 contract Boost is ReentrancyGuard, TokenReward {
     using SafeMath for uint256;
@@ -33,6 +34,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 accTokenPerShare;
     }
 
+    address public immutable gaugefactory;
     uint256 public totalAllocPoint = 0;
     PoolInfo[] public poolInfo;
     // pid corresponding address
@@ -59,13 +61,14 @@ contract Boost is ReentrancyGuard, TokenReward {
     mapping(address => uint) internal supplyIndex;
     mapping(address => uint) public claimable;
 
-    constructor(address _operatorMsg, address __ve,
+    constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         _ve = __ve;
         base = IVeToken(__ve).token();
+        gaugefactory = _gauges;
 
     }
 
@@ -182,7 +185,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = address(new Gauge(_pool, _ve, address(this)));
+        address _gauge = IGaugeFactory(gaugefactory).createGauge(_pool, _ve);
         IERC20(base).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
