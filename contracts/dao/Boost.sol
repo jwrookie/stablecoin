@@ -122,7 +122,7 @@ contract Boost is ReentrancyGuard {
                 weights[_pool] -= _votes;
                 votes[_tokenId][_pool] -= _votes;
                 if (_votes > 0) {
-                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
+//                    IBribe(bribes[gauges[_pool]])._withdraw(uint256(_votes), _tokenId);
                     _totalWeight += _votes;
                 } else {
                     _totalWeight -= _votes;
@@ -174,7 +174,7 @@ contract Boost is ReentrancyGuard {
                 weights[_pool] += _poolWeight;
                 votes[_tokenId][_pool] += _poolWeight;
                 if (_poolWeight > 0) {
-                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
+//                    IBribe(bribes[_gauge])._deposit(uint256(_poolWeight), _tokenId);
                 } else {
                     _poolWeight = - _poolWeight;
                 }
@@ -316,25 +316,6 @@ contract Boost is ReentrancyGuard {
         }
     }
 
-    function claimBribes(address[] memory _bribes, address[][] memory _tokens, uint _tokenId) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
-        for (uint i = 0; i < _bribes.length; i++) {
-            IBribe(_bribes[i]).getRewardForOwner(_tokenId, _tokens[i]);
-        }
-    }
-
-    function claimFees(address[] memory _fees, address[][] memory _tokens, uint _tokenId) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
-        for (uint i = 0; i < _fees.length; i++) {
-            IBribe(_fees[i]).getRewardForOwner(_tokenId, _tokens[i]);
-        }
-    }
-
-    function distributeFees(address[] memory _gauges) external {
-        for (uint i = 0; i < _gauges.length; i++) {
-            IGauge(_gauges[i]).claimFees();
-        }
-    }
 
     function distribute(address _gauge) public nonReentrant {
         //todo minter token for gauge

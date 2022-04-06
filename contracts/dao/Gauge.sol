@@ -17,12 +17,6 @@ interface IBaseV1Core {
     function tokens() external returns (address, address);
 }
 
-interface IBribe {
-    function notifyRewardAmount(address token, uint amount) external;
-
-    function left(address token) external view returns (uint);
-}
-
 interface Voter {
     function attachTokenToGauge(uint _tokenId, address account) external;
 
@@ -40,7 +34,6 @@ contract Gauge is ReentrancyGuard {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable _ve; // the ve token used for gauges
-    address public immutable bribe;
     address public immutable voter;
 
     uint public derivedSupply;
@@ -66,35 +59,33 @@ contract Gauge is ReentrancyGuard {
     address[] public rewards;
     mapping(address => bool) public isReward;
 
-    /// @notice A checkpoint for marking balance
+
     struct Checkpoint {
         uint timestamp;
         uint balanceOf;
     }
 
-    /// @notice A checkpoint for marking reward rate
+
     struct RewardPerTokenCheckpoint {
         uint timestamp;
         uint rewardPerToken;
     }
 
-    /// @notice A checkpoint for marking supply
     struct SupplyCheckpoint {
         uint timestamp;
         uint supply;
     }
 
-    /// @notice A record of balance checkpoints for each account, by index
+
     mapping(address => mapping(uint => Checkpoint)) public checkpoints;
-    /// @notice The number of checkpoints for each account
+
     mapping(address => uint) public numCheckpoints;
-    /// @notice A record of balance checkpoints for each token, by index
+
     mapping(uint => SupplyCheckpoint) public supplyCheckpoints;
-    /// @notice The number of checkpoints
+
     uint public supplyNumCheckpoints;
-    /// @notice A record of balance checkpoints for each token, by index
+
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
-    /// @notice The number of checkpoints for each token
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
     uint public fees0;
@@ -108,40 +99,10 @@ contract Gauge is ReentrancyGuard {
 
     constructor(address _stake, address _bribe, address __ve, address _voter) {
         stake = _stake;
-        bribe = _bribe;
+        //        bribe = _bribe;
         _ve = __ve;
         voter = _voter;
     }
-
-    function claimFees() external nonReentrant returns (uint claimed0, uint claimed1) {
-        return _claimFees();
-    }
-
-    function _claimFees() internal returns (uint claimed0, uint claimed1) {
-        (claimed0, claimed1) = IBaseV1Core(stake).claimFees();
-        if (claimed0 > 0 || claimed1 > 0) {
-            uint _fees0 = fees0 + claimed0;
-            uint _fees1 = fees1 + claimed1;
-            (address _token0, address _token1) = IBaseV1Core(stake).tokens();
-            if (_fees0 > IBribe(bribe).left(_token0) && _fees0 / DURATION > 0) {
-                fees0 = 0;
-                _safeApprove(_token0, bribe, _fees0);
-                IBribe(bribe).notifyRewardAmount(_token0, _fees0);
-            } else {
-                fees0 = _fees0;
-            }
-            if (_fees1 > IBribe(bribe).left(_token1) && _fees1 / DURATION > 0) {
-                fees1 = 0;
-                _safeApprove(_token1, bribe, _fees1);
-                IBribe(bribe).notifyRewardAmount(_token1, _fees1);
-            } else {
-                fees1 = _fees1;
-            }
-
-            emit ClaimFees(msg.sender, claimed0, claimed1);
-        }
-    }
-
 
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
         uint nCheckpoints = numCheckpoints[account];
@@ -522,7 +483,7 @@ contract Gauge is ReentrancyGuard {
         require(amount > 0);
         if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
         (rewardPerTokenStored[token], lastUpdateTime[token]) = _updateRewardPerToken(token);
-        _claimFees();
+        //        _claimFees();
 
         if (block.timestamp >= periodFinish[token]) {
             _safeTransferFrom(token, msg.sender, address(this), amount);
