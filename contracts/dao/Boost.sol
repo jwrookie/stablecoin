@@ -16,14 +16,11 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     using SafeMath for uint256;
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
-    event Voted(address indexed voter, uint tokenId, int256 weight);
-    event Abstained(uint tokenId, int256 weight);
+
     event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
     event Withdraw(address indexed lp, address indexed gauge, uint tokenId, uint amount);
     event NotifyReward(address indexed sender, address indexed reward, uint amount);
     event DistributeReward(address indexed sender, address indexed gauge, uint amount);
-    event Attach(address indexed owner, address indexed gauge, uint tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint tokenId);
 
     // Info of each pool.
     struct PoolInfo {
@@ -41,15 +38,9 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     uint public constant duration = 7 days; // rewards are released over 7 days
 
-    uint public totalWeight; // total voting weight
-
     address[] public pools; // all pools viable for incentives
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
-    mapping(address => int256) public weights; // pool => weight
-    mapping(uint => mapping(address => int256)) public votes; // nft => pool => votes
-    mapping(uint => address[]) public poolVote; // nft => pools
-    mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
     mapping(address => bool) public isGauge;
 
     constructor(address _operatorMsg, address __ve, address _gauges,
@@ -72,31 +63,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         IVeToken(veToken).abstain(_tokenId);
     }
 
-    function _reset(uint _tokenId) internal {
-        address[] storage _poolVote = poolVote[_tokenId];
-        uint _poolVoteCnt = _poolVote.length;
-        int256 _totalWeight = 0;
-
-        for (uint i = 0; i < _poolVoteCnt; i ++) {
-            address _pool = _poolVote[i];
-            int256 _votes = votes[_tokenId][_pool];
-
-            if (_votes != 0) {
-                _updateForGauge(gauges[_pool]);
-                weights[_pool] -= _votes;
-                votes[_tokenId][_pool] -= _votes;
-                if (_votes > 0) {
-                    _totalWeight += _votes;
-                } else {
-                    _totalWeight -= _votes;
-                }
-                emit Abstained(_tokenId, _votes);
-            }
-        }
-        totalWeight -= uint256(_totalWeight);
-        usedWeights[_tokenId] = 0;
-        delete poolVote[_tokenId];
-    }
 
     function poke(uint _tokenId) external {
         address[] memory _poolVote = poolVote[_tokenId];
@@ -265,5 +231,8 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     function distribute(address _gauge) public nonReentrant {
         _updateForGauge(_gauge);
 
+    }
+    function _updatePoolInfo(address _pool) internal override{
+        _updateForGauge(gauges[_pool]);
     }
 }
