@@ -21,7 +21,7 @@ contract Gauge is ReentrancyGuard {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
-    address public immutable voter;
+    address public immutable boost;
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
@@ -75,10 +75,10 @@ contract Gauge is ReentrancyGuard {
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
-    constructor(address _stake, address __ve, address _voter) {
+    constructor(address _stake, address __ve, address _boost) {
         stake = _stake;
         veToken = __ve;
-        voter = _voter;
+        boost = _boost;
     }
 
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
@@ -223,17 +223,16 @@ contract Gauge is ReentrancyGuard {
     function lastTimeRewardApplicable(address token) public view returns (uint) {
         return Math.min(block.timestamp, periodFinish[token]);
     }
-//
-//    function _safeTransferFromToken(address token,uint256 _amount) private {
-//
-//        TransferHelper.safeTransfer(address(swapToken), _to, _amount);
-//        uint256 bal = swapToken.balanceOf(address(this));
-//        if (bal < _amount) {
-//            swapToken.mint(address(this), _amount.mul(mintMulti));
-//        }
-//    }
+
+    function _safeTransferFromToken(address token, uint256 _amount) private {
+        uint256 bal = IERC20(token).balanceOf(address(this));
+        if (bal < _amount) {
+            TransferHelper.safeTransferFrom(token, boost, address(this), _amount);
+        }
+    }
 
     function _safeTokenTransfer(address token, address _to, uint256 _amount) internal {
+        _safeTransferFromToken(token, _amount);
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (_amount > bal) {
             _amount = bal;
@@ -242,8 +241,8 @@ contract Gauge is ReentrancyGuard {
     }
 
     function getReward(address account, address[] memory tokens) external nonReentrant {
-        require(msg.sender == account || msg.sender == voter);
-        IBoost(voter).distribute(address(this));
+        require(msg.sender == account || msg.sender == boost);
+        IBoost(boost).distribute(address(this));
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
@@ -409,7 +408,7 @@ contract Gauge is ReentrancyGuard {
             require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
-                IBoost(voter).attachTokenToGauge(tokenId, msg.sender);
+                IBoost(boost).attachTokenToGauge(tokenId, msg.sender);
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
@@ -425,7 +424,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        IBoost(voter).emitDeposit(tokenId, msg.sender, amount);
+        IBoost(boost).emitDeposit(tokenId, msg.sender, amount);
         emit Deposit(msg.sender, tokenId, amount);
     }
 
@@ -449,7 +448,7 @@ contract Gauge is ReentrancyGuard {
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
             tokenIds[msg.sender] = 0;
-            IBoost(voter).detachTokenFromGauge(tokenId, msg.sender);
+            IBoost(boost).detachTokenFromGauge(tokenId, msg.sender);
         } else {
             tokenId = tokenIds[msg.sender];
         }
@@ -463,7 +462,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, derivedBalances[msg.sender]);
         _writeSupplyCheckpoint();
 
-        IBoost(voter).emitWithdraw(tokenId, msg.sender, amount);
+        IBoost(boost).emitWithdraw(tokenId, msg.sender, amount);
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
