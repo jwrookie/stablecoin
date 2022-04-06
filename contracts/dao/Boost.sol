@@ -4,20 +4,12 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../interface/IVeToken.sol";
+import "../interface/IGauge.sol";
 import '../Uniswap/TransferHelper.sol';
 
-interface IBaseV1Factory {
-    function isPair(address) external view returns (bool);
-}
-
-interface IBaseV1Core {
-    function claimFees() external returns (uint, uint);
-
-    function tokens() external returns (address, address);
-}
 
 interface IBaseV1GaugeFactory {
     function createGauge(address, address, address) external returns (address);
@@ -27,25 +19,8 @@ interface IBaseV1BribeFactory {
     function createBribe() external returns (address);
 }
 
-interface IGauge {
-    function notifyRewardAmount(address token, uint amount) external;
 
-    function getReward(address account, address[] memory tokens) external;
-
-    function claimFees() external returns (uint claimed0, uint claimed1);
-
-    function left(address token) external view returns (uint);
-}
-
-interface IBribe {
-    function _deposit(uint amount, uint tokenId) external;
-
-    function _withdraw(uint amount, uint tokenId) external;
-
-    function getRewardForOwner(uint tokenId, address[] memory tokens) external;
-}
-
-contract Boost is ReentrancyGuard {
+contract Boost is ReentrancyGuard, Ownable {
 
     event GaugeCreated(address indexed gauge, address creator, address indexed bribe, address indexed pool);
     event Voted(address indexed voter, uint tokenId, int256 weight);
@@ -56,7 +31,6 @@ contract Boost is ReentrancyGuard {
     event DistributeReward(address indexed sender, address indexed gauge, uint amount);
     event Attach(address indexed owner, address indexed gauge, uint tokenId);
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
-    event Whitelisted(address indexed whitelister, address indexed token);
 
     address public immutable _ve; // the ve token that governs these contracts
     address public immutable factory; // the BaseV1Factory
@@ -64,7 +38,6 @@ contract Boost is ReentrancyGuard {
     address public immutable gaugefactory;
     address public immutable bribefactory;
     uint internal constant DURATION = 7 days; // rewards are released over 7 days
-    address public minter;
 
     uint public totalWeight; // total voting weight
 
@@ -76,7 +49,6 @@ contract Boost is ReentrancyGuard {
     mapping(uint => address[]) public poolVote; // nft => pools
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
     mapping(address => bool) public isGauge;
-    mapping(address => bool) public isWhitelisted;
 
     uint internal index;
     mapping(address => uint) internal supplyIndex;
@@ -88,19 +60,6 @@ contract Boost is ReentrancyGuard {
         base = IVeToken(__ve).token();
         gaugefactory = _gauges;
         bribefactory = _bribes;
-        minter = msg.sender;
-    }
-
-    function initialize(address[] memory _tokens, address _minter) external {
-        require(msg.sender == minter);
-        for (uint i = 0; i < _tokens.length; i++) {
-            _whitelist(_tokens[i]);
-        }
-        minter = _minter;
-    }
-
-    function listing_fee() public view returns (uint) {
-        return (IERC20(base).totalSupply() - IERC20(_ve).totalSupply()) / 200;
     }
 
     function reset(uint _tokenId) external {
@@ -195,28 +154,8 @@ contract Boost is ReentrancyGuard {
         _vote(tokenId, _poolVote, _weights);
     }
 
-    function whitelist(address _token, uint _tokenId) public {
-        if (_tokenId > 0) {
-            require(msg.sender == IVeToken(_ve).ownerOf(_tokenId));
-            require(IVeToken(_ve).balanceOfNFT(_tokenId) > listing_fee());
-        } else {
-            TransferHelper.safeTransferFrom(base, msg.sender, minter, listing_fee());
-        }
-
-        _whitelist(_token);
-    }
-
-    function _whitelist(address _token) internal {
-        require(!isWhitelisted[_token]);
-        isWhitelisted[_token] = true;
-        emit Whitelisted(msg.sender, _token);
-    }
-
     function createGauge(address _pool) external returns (address) {
         require(gauges[_pool] == address(0x0), "exists");
-        require(IBaseV1Factory(factory).isPair(_pool), "!_pool");
-        (address tokenA, address tokenB) = IBaseV1Core(_pool).tokens();
-        require(isWhitelisted[tokenA] && isWhitelisted[tokenB], "!whitelisted");
         address _bribe = IBaseV1BribeFactory(bribefactory).createBribe();
         address _gauge = IBaseV1GaugeFactory(gaugefactory).createGauge(_pool, _bribe, _ve);
         IERC20(base).approve(_gauge, type(uint).max);
