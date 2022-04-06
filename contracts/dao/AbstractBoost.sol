@@ -38,6 +38,12 @@ abstract contract AbstractBoost is TokenReward {
 
     }
 
+    function reset(uint _tokenId) external {
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
+        _reset(_tokenId);
+        IVeToken(veToken).abstain(_tokenId);
+    }
+
     function _reset(uint _tokenId) internal {
         address[] storage _poolVote = poolVote[_tokenId];
         uint _poolVoteCnt = _poolVote.length;
@@ -64,6 +70,66 @@ abstract contract AbstractBoost is TokenReward {
         delete poolVote[_tokenId];
     }
 
+    function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
+        _reset(_tokenId);
+        uint _poolCnt = _poolVote.length;
+        int256 _weight = int256(IVeToken(veToken).balanceOfNFT(_tokenId));
+        int256 _totalVoteWeight = 0;
+        int256 _totalWeight = 0;
+        int256 _usedWeight = 0;
+
+        for (uint i = 0; i < _poolCnt; i++) {
+            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
+        }
+
+        for (uint i = 0; i < _poolCnt; i++) {
+            address _pool = _poolVote[i];
+
+            if (isGaugeForPool(_pool)) {
+                int256 _poolWeight = _weights[i] * _weight / _totalVoteWeight;
+                require(votes[_tokenId][_pool] == 0);
+                require(_poolWeight != 0);
+                _updatePoolInfo(_pool);
+
+                poolVote[_tokenId].push(_pool);
+
+                weights[_pool] += _poolWeight;
+                votes[_tokenId][_pool] += _poolWeight;
+                if (_poolWeight > 0) {
+                } else {
+                    _poolWeight = - _poolWeight;
+                }
+                _usedWeight += _poolWeight;
+                _totalWeight += _poolWeight;
+                emit Voted(msg.sender, _tokenId, _poolWeight);
+            }
+        }
+        if (_usedWeight > 0) IVeToken(veToken).voting(_tokenId);
+        totalWeight += uint256(_totalWeight);
+        usedWeights[_tokenId] = uint256(_usedWeight);
+    }
+
+    function poke(uint _tokenId) external {
+        address[] memory _poolVote = poolVote[_tokenId];
+        uint _poolCnt = _poolVote.length;
+        int256[] memory _weights = new int256[](_poolCnt);
+
+        for (uint i = 0; i < _poolCnt; i ++) {
+            _weights[i] = votes[_tokenId][_poolVote[i]];
+        }
+
+        _vote(_tokenId, _poolVote, _weights);
+    }
+
+
+    function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
+        require(_poolVote.length == _weights.length);
+        _vote(tokenId, _poolVote, _weights);
+    }
+
 
     function _updatePoolInfo(address _pool) internal virtual;
+
+    function isGaugeForPool(address _pool) internal virtual view returns (bool);
 }
