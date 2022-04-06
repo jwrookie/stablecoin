@@ -14,10 +14,7 @@ contract SwapMining is TokenReward, ISwapMining {
     event SwapMining(
         address indexed account,
         address indexed pair,
-        address input,
-        address output,
-        uint256 amountIn,
-        uint256 amountOut
+        uint256 quantity
     );
 
     event ChangeRouter(address indexed oldRouter, address indexed newRouter);
@@ -110,20 +107,6 @@ contract SwapMining is TokenReward, ISwapMining {
         return (token0, token1, tokenAmount, pool.quantity, pool.allocPoint);
     }
 
-    function getQuantity(
-        address pair,
-        address input,
-        address /** output **/,
-        uint256 amountIn,
-        uint256 amountOut) public view returns (uint256) {
-        //todo token get form pool
-        address token0;
-        if (input == token0) {
-            return amountIn;
-        }
-        return amountOut;
-    }
-
     function poolLength() public view returns (uint256) {
         return poolInfo.length;
     }
@@ -181,14 +164,9 @@ contract SwapMining is TokenReward, ISwapMining {
     function swap(
         address account,
         address pair,
-        address input,
-        address output,
-        uint256 amountIn,
-        uint256 amountOut
+        uint256 quantity
     ) public override onlyRouter returns (bool) {
         require(account != address(0), 'SwapMining: taker swap account is the zero address');
-        require(input != address(0), 'SwapMining: taker swap input is the zero address');
-        require(output != address(0), 'SwapMining: taker swap output is the zero address');
         require(pair != address(0), 'SwapMining: taker swap pair is the zero address');
 
         if (poolLength() == 0) {
@@ -202,7 +180,6 @@ contract SwapMining is TokenReward, ISwapMining {
         }
 
         updatePool(_pid);
-        uint256 quantity = getQuantity(pair, input, output, amountIn, amountOut);
         if (quantity == 0) {
             return false;
         }
@@ -211,7 +188,7 @@ contract SwapMining is TokenReward, ISwapMining {
         UserInfo storage user = userInfo[pairOfPid[pair]][account];
         user.quantity = user.quantity.add(quantity);
         user.blockNumber = block.number;
-        emit SwapMining(account, pair, input, output, amountIn, amountOut);
+        emit SwapMining(account, pair, quantity);
         return true;
     }
 

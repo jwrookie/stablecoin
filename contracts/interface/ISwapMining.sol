@@ -5,10 +5,7 @@ interface ISwapMining {
     function swap(
         address account,
         address pair,
-        address input,
-        address output,
-        uint256 amountIn,
-        uint256 amountOut
+        uint256 quantity
     ) external returns (bool);
 
     function getReward() external;
