@@ -228,7 +228,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
-            pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
+            IGauge(gauges[pool.lpToken]).notifyRewardAmount(base, tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
         }
         pool.lastRewardBlock = block.number;
     }
@@ -315,7 +315,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint _claimable = claimable[_gauge];
         if (_claimable > IGauge(_gauge).left(base) && _claimable / duration > 0) {
             claimable[_gauge] = 0;
-            IGauge(_gauge).notifyRewardAmount(base, _claimable);
+            //todo remove notifyRewardAmount
             emit DistributeReward(msg.sender, _gauge, _claimable);
         }
     }

@@ -15,7 +15,7 @@ contract Gauge is ReentrancyGuard {
 
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
-    event NotifyReward(address indexed from, address indexed reward, uint amount);
+    event NotifyReward(address indexed from, address indexed reward, uint rewardRate);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
 
@@ -457,24 +457,11 @@ contract Gauge is ReentrancyGuard {
         return _remaining * rewardRate[token];
     }
 
-    function notifyRewardAmount(address token, uint amount) external nonReentrant {
-        require(token != stake);
-        require(amount > 0);
+    function notifyRewardAmount(address token, uint _rewardRate) external nonReentrant {
+        require(token != stake, "no stake");
         if (rewardRate[token] == 0) _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
         (rewardPerTokenStored[token], lastUpdateTime[token]) = _updateRewardPerToken(token);
-        //        _claimFees();
-
-        if (block.timestamp >= periodFinish[token]) {
-            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
-            rewardRate[token] = amount / DURATION;
-        } else {
-            uint _remaining = periodFinish[token] - block.timestamp;
-            uint _left = _remaining * rewardRate[token];
-            require(amount > _left);
-            TransferHelper.safeTransferFrom(token, msg.sender, address(this), amount);
-            rewardRate[token] = (amount + _left) / DURATION;
-        }
-        require(rewardRate[token] > 0);
+        rewardRate[token] = _rewardRate;
         uint balance = IERC20(token).balanceOf(address(this));
         require(rewardRate[token] <= balance / DURATION, "Provided reward too high");
         periodFinish[token] = block.timestamp + DURATION;
@@ -482,8 +469,7 @@ contract Gauge is ReentrancyGuard {
             isReward[token] = true;
             rewards.push(token);
         }
-
-        emit NotifyReward(msg.sender, token, amount);
+        emit NotifyReward(msg.sender, token, _rewardRate);
     }
 
 }
