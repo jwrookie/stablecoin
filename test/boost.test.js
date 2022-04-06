@@ -54,7 +54,7 @@ contract('Boost', () => {
         boost = await Boost.deploy(
             checkOper.address,
             lock.address,
-            gauge.address,
+            gaugeFactory.address,
             fxs.address,
             "10000",
             parseInt(lastBlock),
@@ -74,13 +74,10 @@ contract('Boost', () => {
     // });
 
     it('should createGauge correct', async () => {
-      // await usdc.approve(lock.address, toWei('1000'))
+        await usdc.approve(lock.address, toWei('1000'))
 
-       await boost.createGauge(usdc.address,"100",true);
-       // expect(await boost.poolLength()).to.be.eq(1);
-
-
-
+        await boost.createGauge(usdc.address, "100", true);
+        // expect(await boost.poolLength()).to.be.eq(1);
 
 
     });
