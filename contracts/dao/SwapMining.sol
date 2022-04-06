@@ -3,11 +3,11 @@ pragma solidity =0.8.10;
 
 
 //import './lib/OracleLibrary.sol';
-import './TokenReward.sol';
+import './AbstractBoost.sol';
 import "../interface/ISwapMining.sol";
 
 
-contract SwapMining is TokenReward, ISwapMining {
+contract SwapMining is AbstractBoost, ISwapMining {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
@@ -48,13 +48,14 @@ contract SwapMining is TokenReward, ISwapMining {
 
     constructor(
         address _operatorMsg,
+        address __ve,
         IToken _swapToken,
         address _factory,
         address _router,
         uint256 _swapPerBlock,
         uint256 _startBlock,
         uint256 _period
-    ) TokenReward(_operatorMsg, _swapToken, _swapPerBlock, _startBlock, _period) {
+    ) AbstractBoost(_operatorMsg, __ve, _swapToken, _swapPerBlock, _startBlock, _period) {
         require(_factory != address(0), "!0");
         require(_router != address(0), "!0");
         factory = _factory;
@@ -249,6 +250,7 @@ contract SwapMining is TokenReward, ISwapMining {
             UserInfo storage user = userInfo[pid][account];
             if (user.quantity > 0) {
                 uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                userReward = getBoost(pool, account, userReward);
                 userSub = userSub.add(userReward);
             }
         }
@@ -273,7 +275,32 @@ contract SwapMining is TokenReward, ISwapMining {
         if (userSub <= 0) {
             return;
         }
+        userSub = getBoost(pool, msg.sender, userSub);
         _safeTokenTransfer(msg.sender, userSub);
+    }
+
+    //todo gas
+    function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
+        uint256 _derived = amount * 30 / 100;
+        uint256 _adjusted = 0;
+        uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
+        uint256 _supply = uint256(weights[pool.pair]);
+        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = uint256(votes[_tokenId][pool.pair]);
+            _adjusted = (pool.quantity * _adjusted / _supply) * 70 / 100;
+        }
+        return Math.min((_derived + _adjusted), amount);
+
+    }
+
+    function _updatePoolInfo(address _pool) internal override {
+        updatePool(pairOfPid[_pool]);
+    }
+
+    function isGaugeForPool(address _pool) internal override view returns (bool){
+        uint256 _pid = pairOfPid[_pool];
+        PoolInfo memory pool = poolInfo[_pid];
+        return pool.pair == _pool;
     }
 
 }
