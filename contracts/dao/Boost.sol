@@ -34,13 +34,13 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 accTokenPerShare;
     }
 
-    address public immutable gaugefactory;
+    address public immutable gaugeFactory;
     uint256 public totalAllocPoint = 0;
     PoolInfo[] public poolInfo;
     // pid corresponding address
     mapping(address => uint256) public LpOfPid;
 
-    address public immutable _ve; // the ve token that governs these contracts
+    address public immutable veToken; // the ve token that governs these contracts
 
     address internal immutable base;
 
@@ -57,18 +57,14 @@ contract Boost is ReentrancyGuard, TokenReward {
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
     mapping(address => bool) public isGauge;
 
-    uint internal index;
-    mapping(address => uint) internal supplyIndex;
-    mapping(address => uint) public claimable;
-
     constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
-        _ve = __ve;
+        veToken = __ve;
         base = IVeToken(__ve).token();
-        gaugefactory = _gauges;
+        gaugeFactory = _gauges;
 
     }
 
@@ -77,9 +73,9 @@ contract Boost is ReentrancyGuard, TokenReward {
     }
 
     function reset(uint _tokenId) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, _tokenId));
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
-        IVeToken(_ve).abstain(_tokenId);
+        IVeToken(veToken).abstain(_tokenId);
     }
 
     function _reset(uint _tokenId) internal {
@@ -123,7 +119,7 @@ contract Boost is ReentrancyGuard, TokenReward {
     function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
         _reset(_tokenId);
         uint _poolCnt = _poolVote.length;
-        int256 _weight = int256(IVeToken(_ve).balanceOfNFT(_tokenId));
+        int256 _weight = int256(IVeToken(veToken).balanceOfNFT(_tokenId));
         int256 _totalVoteWeight = 0;
         int256 _totalWeight = 0;
         int256 _usedWeight = 0;
@@ -155,13 +151,13 @@ contract Boost is ReentrancyGuard, TokenReward {
                 emit Voted(msg.sender, _tokenId, _poolWeight);
             }
         }
-        if (_usedWeight > 0) IVeToken(_ve).voting(_tokenId);
+        if (_usedWeight > 0) IVeToken(veToken).voting(_tokenId);
         totalWeight += uint256(_totalWeight);
         usedWeights[_tokenId] = uint256(_usedWeight);
     }
 
     function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
-        require(IVeToken(_ve).isApprovedOrOwner(msg.sender, tokenId));
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         require(_poolVote.length == _weights.length);
         _vote(tokenId, _poolVote, _weights);
     }
@@ -173,8 +169,6 @@ contract Boost is ReentrancyGuard, TokenReward {
         if (_withUpdate) {
             massUpdatePools();
         }
-
-        //        Boost boost=
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(PoolInfo({
@@ -185,7 +179,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = IGaugeFactory(gaugefactory).createGauge(_pool, _ve);
+        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken);
         IERC20(base).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
@@ -228,7 +222,7 @@ contract Boost is ReentrancyGuard, TokenReward {
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
-            pool.accTokenPerShare = pool.accTokenPerShare.add(tokenReward.mul(1e12).div(lpSupply));
+            IGauge(gauges[pool.lpToken]).notifyRewardAmount(base, tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
         }
         pool.lastRewardBlock = block.number;
     }
@@ -236,7 +230,7 @@ contract Boost is ReentrancyGuard, TokenReward {
 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(_ve).attach(tokenId);
+        if (tokenId > 0) IVeToken(veToken).attach(tokenId);
         emit Attach(account, msg.sender, tokenId);
     }
 
@@ -247,24 +241,13 @@ contract Boost is ReentrancyGuard, TokenReward {
 
     function detachTokenFromGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(_ve).detach(tokenId);
+        if (tokenId > 0) IVeToken(veToken).detach(tokenId);
         emit Detach(account, msg.sender, tokenId);
     }
 
     function emitWithdraw(uint tokenId, address account, uint amount) external {
         require(isGauge[msg.sender]);
         emit Withdraw(account, msg.sender, tokenId, amount);
-    }
-
-    function notifyRewardAmount(uint amount) external {
-        TransferHelper.safeTransferFrom(base, msg.sender, address(this), amount);
-        // transfer the distro in
-        uint256 _ratio = amount * 1e18 / totalWeight;
-        // 1e18 adjustment is removed during claim
-        if (_ratio > 0) {
-            index += _ratio;
-        }
-        emit NotifyReward(msg.sender, base, amount);
     }
 
     function updateAll() external {
@@ -274,30 +257,8 @@ contract Boost is ReentrancyGuard, TokenReward {
         }
     }
 
-    function updateGauge(address _gauge) external {
-        _updateForGauge(_gauge);
-    }
-
     function _updateForGauge(address _gauge) internal {
         address _pool = poolForGauge[_gauge];
-        int256 _supplied = weights[_pool];
-        if (_supplied > 0) {
-            uint _supplyIndex = supplyIndex[_gauge];
-            uint _index = index;
-            // get global index0 for accumulated distro
-            supplyIndex[_gauge] = _index;
-            // update _gauge current position to global position
-            uint _delta = _index - _supplyIndex;
-            // see if there is any difference that need to be accrued
-            if (_delta > 0) {
-                uint _share = uint(_supplied) * _delta / 1e18;
-                // add accrued difference for each supplied token
-                claimable[_gauge] += _share;
-            }
-        } else {
-            supplyIndex[_gauge] = index;
-            // new users are set to the default global state
-        }
         updatePool(LpOfPid[_pool]);
     }
 
@@ -307,33 +268,8 @@ contract Boost is ReentrancyGuard, TokenReward {
         }
     }
 
-
     function distribute(address _gauge) public nonReentrant {
-        //todo minter token for gauge
-        //        IMinter(minter).update_period();
         _updateForGauge(_gauge);
-        uint _claimable = claimable[_gauge];
-        if (_claimable > IGauge(_gauge).left(base) && _claimable / duration > 0) {
-            claimable[_gauge] = 0;
-            IGauge(_gauge).notifyRewardAmount(base, _claimable);
-            emit DistributeReward(msg.sender, _gauge, _claimable);
-        }
-    }
 
-    function distribute() external {
-        distribute(0, poolLength());
-    }
-
-    function distribute(uint start, uint finish) public {
-        for (uint x = start; x < finish; x++) {
-            PoolInfo memory pool = poolInfo[x];
-            distribute(gauges[pool.lpToken]);
-        }
-    }
-
-    function distribute(address[] memory _gauges) external {
-        for (uint x = 0; x < _gauges.length; x++) {
-            distribute(_gauges[x]);
-        }
     }
 }

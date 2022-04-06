@@ -81,10 +81,15 @@ contract('Locker', () => {
 
         console.log("locked__end1:" + await lock.locked__end(1))
 
+        console.log("cvx:"+await cvx.balanceOf(owner.address))
+
+
 
         expect(await lock.voted(1)).to.be.eq(false)
         let eta1 = (await time.latest()).add(time.duration.days(4));
        console.log("eta1: " + eta1);
+
+       console.log("balanceOfNFT:"+await lock.balanceOfNFT(1))
 
         //
         //await lock.checkpoint();
