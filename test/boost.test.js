@@ -73,13 +73,14 @@ contract('Boost', () => {
         gauge = await Gauge.attach(gaugeAddr)
         expect(gauge.address).to.be.eq(gaugeAddr)
 
+
         expect(await boost.poolLength()).to.be.eq(1);
 
         expect(await boost.isGauge(gauge.address)).to.be.eq(true);
         expect(await boost.poolForGauge(gauge.address)).to.be.eq(fxs.address)
 
         await frax.addPool(gauge.address);
-        await boost.distribute(gauge.address);
+        // await boost.distribute(gauge.address);
         // await boost.poke(1);
 
         // stratBlock = await time.latestBlock();
@@ -103,11 +104,54 @@ contract('Boost', () => {
         // expect(await lock.getApproved(1)).to.be.eq(true)
         //  await boost.updateAll()
 
+        await boost.poke(1)
+        console.log("totalWeight:"+await boost.totalWeight())
 
-        expect(await boost.isGauge(owner.address)).to.be.eq(false)
+        //expect(await boost.isGauge(owner.address)).to.be.eq(false)
 
         // await boost.attachTokenToGauge(1, owner.address)
-        await gauge.deposit("100", 1);
+         console.log("supply:"+await boost.weights(fxs.address))
+
+        await gauge.deposit("1000", 1);
+        // stratBlock = await time.latestBlock();
+        // // console.log("block:" + stratBlock);
+        // await time.advanceBlockTo(parseInt(stratBlock) + 10);
+
+        await gauge.earned(fxs.address, owner.address)
+
+        // console.log("votes:"+await boost.votes(1,fxs.address))
+        //
+        // console.log("rewardPerToken:" + await gauge.rewardPerToken(fxs.address))
+        //
+        // console.log("owner:" + await fxs.balanceOf(owner.address))
+        //
+        // console.log("------------------")
+        // console.log("derivedSupply:" + await gauge.derivedSupply())
+        // console.log("derivedBalance:" + await gauge.derivedBalance(owner.address))
+        // console.log("gauge:" + await gauge.balanceOf(owner.address))
+        // console.log("adjusted:"+await boost.votes(1,fxs.address))
+        // console.log("supply:"+await boost.weights(fxs.address))
+
+
+        // console.log(await gauge.rewardRate(fxs.address))
+        // let a = await gauge.rewardPerTokenStored(fxs.address)
+        // console.log("a:" + a)
+        // expect(await gauge.isReward(fxs.address)).to.be.eq(false)
+        // console.log("rewardsListLength:" + await gauge.rewardsListLength())
+        // await gauge.getReward(owner.address, [fxs.address])
+        // console.log("owner:" + await fxs.balanceOf(owner.address))
+        //
+
+
+
+        await gauge.withdraw("1000");
+        console.log("owner:" + await fxs.balanceOf(owner.address))
+
+         await time.increase(time.duration.days(4));
+        await lock.withdraw(1);
+
+        console.log("owner:" + await fxs.balanceOf(owner.address))
+
 
 
     });
