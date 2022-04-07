@@ -61,7 +61,7 @@ contract Locker is IERC721, IERC721Metadata {
     event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
     event Supply(uint prevSupply, uint supply);
 
-    uint internal constant WEEK = 1 weeks;
+    uint internal immutable duration;
     uint internal constant MAXTIME = 4 * 365 * 86400;
     int128 internal constant iMAXTIME = 4 * 365 * 86400;
     uint internal constant MULTIPLIER = 1 ether;
@@ -133,7 +133,8 @@ contract Locker is IERC721, IERC721Metadata {
 
 
     constructor(
-        address tokenAddr
+        address tokenAddr,
+        uint256 _duration
     ) {
         token = tokenAddr;
         voter = msg.sender;
@@ -143,6 +144,8 @@ contract Locker is IERC721, IERC721Metadata {
         supportedInterfaces[ERC165_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_INTERFACE_ID] = true;
         supportedInterfaces[ERC721_METADATA_INTERFACE_ID] = true;
+
+        duration = _duration;
 
         // mint-ish
         emit Transfer(address(0), address(this), tokenId);
@@ -433,11 +436,11 @@ contract Locker is IERC721, IERC721Metadata {
 
         // Go over weeks to fill history and calculate what the current point is
         {
-            uint t_i = (last_checkpoint / WEEK) * WEEK;
+            uint t_i = (last_checkpoint / duration) * duration;
             for (uint i = 0; i < 255; ++i) {
                 // Hopefully it won't happen that this won't get used in 5 years!
                 // If it does, users will be able to withdraw but vote weight will be broken
-                t_i += WEEK;
+                t_i += duration;
                 int128 d_slope = 0;
                 if (t_i > block.timestamp) {
                     t_i = block.timestamp;
@@ -615,7 +618,7 @@ contract Locker is IERC721, IERC721Metadata {
     }
 
     function _create_lock(uint _value, uint _lock_duration, address _to) internal returns (uint) {
-        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
+        uint unlock_time = (block.timestamp + _lock_duration) / duration * duration;
         // Locktime is rounded down to weeks
 
         require(_value > 0, "v >0");
@@ -659,7 +662,7 @@ contract Locker is IERC721, IERC721Metadata {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
-        uint unlock_time = (block.timestamp + _lock_duration) / WEEK * WEEK;
+        uint unlock_time = (block.timestamp + _lock_duration) / duration * duration;
         // Locktime is rounded down to weeks
 
         require(_locked.end > block.timestamp, 'Lock expired');
@@ -808,9 +811,9 @@ contract Locker is IERC721, IERC721Metadata {
 
     function _supply_at(Point memory point, uint t) internal view returns (uint) {
         Point memory last_point = point;
-        uint t_i = (last_point.ts / WEEK) * WEEK;
+        uint t_i = (last_point.ts / duration) * duration;
         for (uint i = 0; i < 255; ++i) {
-            t_i += WEEK;
+            t_i += duration;
             int128 d_slope = 0;
             if (t_i > t) {
                 t_i = t;
