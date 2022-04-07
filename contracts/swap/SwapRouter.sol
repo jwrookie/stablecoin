@@ -4,13 +4,35 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import '../Uniswap/TransferHelper.sol';
 import "../interface/IStablePool.sol";
 import "../interface/ICryptoPool.sol";
+import "../interface/ISwapMining.sol";
 import "../tools/Operatable.sol";
 
 contract SwapRouter is Operatable {
 
+    event ChangeSwapMining(address indexed oldSwapMining, address indexed newSwapMining);
+
+    address public swapMining;
+
     modifier ensure(uint deadline) {
         require(deadline >= block.timestamp, 'Router: EXPIRED');
         _;
+    }
+
+    // address(0) means no swap mining
+    function setSwapMining(address addr) public onlyOperator {
+        address oldSwapMining = swapMining;
+        swapMining = addr;
+        emit ChangeSwapMining(oldSwapMining, swapMining);
+    }
+
+    function callSwapMining(address account, address pair, uint256 quantity) private {
+        if (swapMining != address(0)) {
+            ISwapMining(swapMining).swap(
+                account,
+                pair,
+                quantity
+            );
+        }
     }
 
     function swapStable(
