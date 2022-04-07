@@ -3,8 +3,8 @@
 pragma solidity =0.8.10;
 
 interface IStablePool {
+    function N_COINS() external view returns (int128);
     function coins(int128) external view returns (address);
-
     function get_virtual_price() external view returns (uint256);
 
     function add_liquidity(
@@ -30,5 +30,11 @@ interface IStablePool {
         uint256 _min_to_amount,
         address receiver
     ) external returns (uint256);
+
+    function calc_token_amount(uint256[2] calldata amounts, bool isDeposit) external returns (uint256);
+
+    function calc_token_amount(uint256[3] calldata amounts, bool isDeposit) external returns (uint256);
+
+    function calc_token_amount(uint256[4] calldata amounts, bool isDeposit) external returns (uint256);
 }
 

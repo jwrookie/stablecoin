@@ -25,8 +25,23 @@ contract SwapRouter is Operatable {
         emit ChangeSwapMining(oldSwapMining, swapMining);
     }
 
-    function callSwapMining(address account, address pair, uint256 quantity) private {
+    function callSwapMining(address account, address pair, uint256 i, uint256 amount) private {
         if (swapMining != address(0)) {
+            int128 n = ICryptoPool(pair).N_COINS();
+            uint256 quantity;
+            if (n == 2) {
+                uint256[2] memory amounts;
+                amounts[i] = amount;
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
+            } else if (n == 3) {
+                uint256[3] memory amounts;
+                amounts[i] = amount;
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
+            } else {
+                uint256[4] memory amounts;
+                amounts[i] = amount;
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
+            }
             ISwapMining(swapMining).swap(
                 account,
                 pair,
@@ -53,6 +68,7 @@ contract SwapRouter is Operatable {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
         IStablePool(pool).exchange(fromInt, toInt, _from_amount, _min_to_amount, receiver);
+        callSwapMining(receiver, pool, from, _from_amount);
     }
 
     function swapToken(
@@ -70,6 +86,7 @@ contract SwapRouter is Operatable {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
         ICryptoPool(pool).exchange(from, to, _from_amount, _min_to_amount, false, receiver);
+        callSwapMining(receiver, pool, from, _from_amount);
     }
 
     function swapEthForToken(
@@ -83,6 +100,7 @@ contract SwapRouter is Operatable {
     ) external payable ensure(deadline) {
         uint bal = msg.value;
         ICryptoPool(pool).exchange{value : bal}(from, to, _from_amount, _min_to_amount, true, receiver);
+        callSwapMining(receiver, pool, from, _from_amount);
     }
 
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
