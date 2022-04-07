@@ -21,17 +21,15 @@ contract Gauge is ReentrancyGuard {
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
-    address public immutable voter;
+    address public immutable boost;
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
 
-    uint internal constant DURATION = 7 days; // rewards are released over 7 days
     uint internal constant PRECISION = 10 ** 18;
 
     // default snx staking contract implementation
     mapping(address => uint) public rewardRate;
-    mapping(address => uint) public periodFinish;
     mapping(address => uint) public lastUpdateTime;
     mapping(address => uint) public rewardPerTokenStored;
 
@@ -75,10 +73,10 @@ contract Gauge is ReentrancyGuard {
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
-    constructor(address _stake, address __ve, address _voter) {
+    constructor(address _stake, address __ve, address _boost) {
         stake = _stake;
         veToken = __ve;
-        voter = _voter;
+        boost = _boost;
     }
 
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
@@ -221,19 +219,18 @@ contract Gauge is ReentrancyGuard {
 
     // returns the last time the reward was modified or periodFinish if the reward has ended
     function lastTimeRewardApplicable(address token) public view returns (uint) {
-        return Math.min(block.timestamp, periodFinish[token]);
+        return block.timestamp;
     }
-//
-//    function _safeTransferFromToken(address token,uint256 _amount) private {
-//
-//        TransferHelper.safeTransfer(address(swapToken), _to, _amount);
-//        uint256 bal = swapToken.balanceOf(address(this));
-//        if (bal < _amount) {
-//            swapToken.mint(address(this), _amount.mul(mintMulti));
-//        }
-//    }
+
+    function _safeTransferFromToken(address token, uint256 _amount) private {
+        uint256 bal = IERC20(token).balanceOf(address(this));
+        if (bal < _amount) {
+            TransferHelper.safeTransferFrom(token, boost, address(this), _amount);
+        }
+    }
 
     function _safeTokenTransfer(address token, address _to, uint256 _amount) internal {
+        _safeTransferFromToken(token, _amount);
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (_amount > bal) {
             _amount = bal;
@@ -242,8 +239,8 @@ contract Gauge is ReentrancyGuard {
     }
 
     function getReward(address account, address[] memory tokens) external nonReentrant {
-        require(msg.sender == account || msg.sender == voter);
-        IBoost(voter).distribute(address(this));
+        require(msg.sender == account || msg.sender == boost);
+        IBoost(boost).distribute(address(this));
 
         for (uint i = 0; i < tokens.length; i++) {
             (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
@@ -272,18 +269,18 @@ contract Gauge is ReentrancyGuard {
         if (derivedSupply == 0) {
             return rewardPerTokenStored[token];
         }
-        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - Math.min(lastUpdateTime[token], periodFinish[token])) * rewardRate[token] * PRECISION / derivedSupply);
+        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - lastUpdateTime[token]) * rewardRate[token] * PRECISION / derivedSupply);
     }
 
     function derivedBalance(address account) public view returns (uint) {
         uint _tokenId = tokenIds[account];
         uint _balance = balanceOf[account];
-        uint _derived = _balance * 40 / 100;
+        uint _derived = _balance * 30 / 100;
         uint _adjusted = 0;
-        uint _supply = IERC20(veToken).totalSupply();
+        uint _supply = IBoost(boost).weights(stake);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = IVeToken(veToken).balanceOfNFT(_tokenId);
-            _adjusted = (totalSupply * _adjusted / _supply) * 60 / 100;
+            _adjusted = IBoost(boost).votes(_tokenId, stake);
+            _adjusted = (totalSupply * _adjusted / _supply) * 70 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
     }
@@ -323,7 +320,7 @@ contract Gauge is ReentrancyGuard {
 
     function _calcRewardPerToken(address token, uint timestamp1, uint timestamp0, uint supply, uint startTimestamp) internal view returns (uint, uint) {
         uint endTime = Math.max(timestamp1, startTimestamp);
-        return (((Math.min(endTime, periodFinish[token]) - Math.min(Math.max(timestamp0, startTimestamp), periodFinish[token])) * rewardRate[token] * PRECISION / supply), endTime);
+        return (((endTime - Math.max(timestamp0, startTimestamp)) * rewardRate[token] * PRECISION / supply), endTime);
     }
 
     function _updateRewardPerToken(address token) internal returns (uint, uint) {
@@ -409,7 +406,7 @@ contract Gauge is ReentrancyGuard {
             require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
-                IBoost(voter).attachTokenToGauge(tokenId, msg.sender);
+                IBoost(boost).attachTokenToGauge(tokenId, msg.sender);
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
@@ -425,7 +422,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, _derivedBalance);
         _writeSupplyCheckpoint();
 
-        IBoost(voter).emitDeposit(tokenId, msg.sender, amount);
+        IBoost(boost).emitDeposit(tokenId, msg.sender, amount);
         emit Deposit(msg.sender, tokenId, amount);
     }
 
@@ -449,7 +446,7 @@ contract Gauge is ReentrancyGuard {
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
             tokenIds[msg.sender] = 0;
-            IBoost(voter).detachTokenFromGauge(tokenId, msg.sender);
+            IBoost(boost).detachTokenFromGauge(tokenId, msg.sender);
         } else {
             tokenId = tokenIds[msg.sender];
         }
@@ -463,7 +460,7 @@ contract Gauge is ReentrancyGuard {
         _writeCheckpoint(msg.sender, derivedBalances[msg.sender]);
         _writeSupplyCheckpoint();
 
-        IBoost(voter).emitWithdraw(tokenId, msg.sender, amount);
+        IBoost(boost).emitWithdraw(tokenId, msg.sender, amount);
         emit Withdraw(msg.sender, tokenId, amount);
     }
 

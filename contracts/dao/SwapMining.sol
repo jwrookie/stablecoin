@@ -3,21 +3,18 @@ pragma solidity =0.8.10;
 
 
 //import './lib/OracleLibrary.sol';
-import './TokenReward.sol';
+import './AbstractBoost.sol';
 import "../interface/ISwapMining.sol";
 
 
-contract SwapMining is TokenReward, ISwapMining {
+contract SwapMining is AbstractBoost, ISwapMining {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
     event SwapMining(
         address indexed account,
         address indexed pair,
-        address input,
-        address output,
-        uint256 amountIn,
-        uint256 amountOut
+        uint256 quantity
     );
 
     event ChangeRouter(address indexed oldRouter, address indexed newRouter);
@@ -30,7 +27,6 @@ contract SwapMining is TokenReward, ISwapMining {
     struct PoolInfo {
         address pair; // Trading pairs that can be mined
         uint256 quantity; // Current amount of LPs
-        uint256 totalQuantity; // All quantity
         uint256 allocPoint; // How many allocation points assigned to this pool
         uint256 allocSwapTokenAmount; // How many token
         uint256 lastRewardBlock; // Last transaction block
@@ -52,13 +48,14 @@ contract SwapMining is TokenReward, ISwapMining {
 
     constructor(
         address _operatorMsg,
+        address __ve,
         IToken _swapToken,
         address _factory,
         address _router,
         uint256 _swapPerBlock,
         uint256 _startBlock,
         uint256 _period
-    ) TokenReward(_operatorMsg, _swapToken, _swapPerBlock, _startBlock, _period) {
+    ) AbstractBoost(_operatorMsg, __ve, _swapToken, _swapPerBlock, _startBlock, _period) {
         require(_factory != address(0), "!0");
         require(_router != address(0), "!0");
         factory = _factory;
@@ -95,35 +92,20 @@ contract SwapMining is TokenReward, ISwapMining {
         address,
         uint256,
         uint256,
-        uint256,
         uint256
     )
     {
         require(_pid <= poolInfo.length - 1, 'SwapMining: Not find this pool');
         PoolInfo memory pool = poolInfo[_pid];
         //todo token get form pool
-        address token0 ;
-        address token1  ;
+        address token0;
+        address token1;
         uint256 tokenAmount = pool.allocSwapTokenAmount;
         uint256 mul = block.number.sub(pool.lastRewardBlock);
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         tokenAmount = tokenAmount.add(tokenReward);
         //token0,token1,Pool remaining reward,Total /Current transaction volume of the pool
-        return (token0, token1, tokenAmount, pool.totalQuantity, pool.quantity, pool.allocPoint);
-    }
-
-    function getQuantity(
-        address pair,
-        address input,
-        address /** output **/,
-        uint256 amountIn,
-        uint256 amountOut) public view returns (uint256) {
-        //todo token get form pool
-        address token0 ;
-        if (input == token0) {
-            return amountIn;
-        }
-        return amountOut;
+        return (token0, token1, tokenAmount, pool.quantity, pool.allocPoint);
     }
 
     function poolLength() public view returns (uint256) {
@@ -149,7 +131,6 @@ contract SwapMining is TokenReward, ISwapMining {
             PoolInfo({
         pair : _pool,
         quantity : 0,
-        totalQuantity : 0,
         allocPoint : _allocPoint,
         allocSwapTokenAmount : 0,
         lastRewardBlock : lastRewardBlock
@@ -184,14 +165,9 @@ contract SwapMining is TokenReward, ISwapMining {
     function swap(
         address account,
         address pair,
-        address input,
-        address output,
-        uint256 amountIn,
-        uint256 amountOut
+        uint256 quantity
     ) public override onlyRouter returns (bool) {
         require(account != address(0), 'SwapMining: taker swap account is the zero address');
-        require(input != address(0), 'SwapMining: taker swap input is the zero address');
-        require(output != address(0), 'SwapMining: taker swap output is the zero address');
         require(pair != address(0), 'SwapMining: taker swap pair is the zero address');
 
         if (poolLength() == 0) {
@@ -205,17 +181,15 @@ contract SwapMining is TokenReward, ISwapMining {
         }
 
         updatePool(_pid);
-        uint256 quantity = getQuantity(pair, input, output, amountIn, amountOut);
         if (quantity == 0) {
             return false;
         }
 
         pool.quantity = pool.quantity.add(quantity);
-        pool.totalQuantity = pool.totalQuantity.add(quantity);
         UserInfo storage user = userInfo[pairOfPid[pair]][account];
         user.quantity = user.quantity.add(quantity);
         user.blockNumber = block.number;
-        emit SwapMining(account, pair, input, output, amountIn, amountOut);
+        emit SwapMining(account, pair, quantity);
         return true;
     }
 
@@ -276,6 +250,7 @@ contract SwapMining is TokenReward, ISwapMining {
             UserInfo storage user = userInfo[pid][account];
             if (user.quantity > 0) {
                 uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                userReward = getBoost(pool, account, userReward);
                 userSub = userSub.add(userReward);
             }
         }
@@ -300,7 +275,32 @@ contract SwapMining is TokenReward, ISwapMining {
         if (userSub <= 0) {
             return;
         }
+        userSub = getBoost(pool, msg.sender, userSub);
         _safeTokenTransfer(msg.sender, userSub);
+    }
+
+    //todo gas
+    function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
+        uint256 _derived = amount * 30 / 100;
+        uint256 _adjusted = 0;
+        uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
+        uint256 _supply = uint256(weights[pool.pair]);
+        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
+            _adjusted = uint256(votes[_tokenId][pool.pair]);
+            _adjusted = (pool.quantity * _adjusted / _supply) * 70 / 100;
+        }
+        return Math.min((_derived + _adjusted), amount);
+
+    }
+
+    function _updatePoolInfo(address _pool) internal override {
+        updatePool(pairOfPid[_pool]);
+    }
+
+    function isGaugeForPool(address _pool) internal override view returns (bool){
+        uint256 _pid = pairOfPid[_pool];
+        PoolInfo memory pool = poolInfo[_pid];
+        return pool.pair == _pool;
     }
 
 }
