@@ -648,6 +648,5 @@ contract('RewardPoolIntergration', () => {
         seTokenAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address)
         expect(seAcquiescentToken).to.be.eq(minitMockTokenSeOwn)
         expect(seTokenAcquiescentToken).to.be.eq(minitSeMockTokenSeOwn)
-
     });
 });
