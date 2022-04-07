@@ -54,6 +54,7 @@ contract('Boost', () => {
 
         await frax.addPool(boost.address);
         await frax.addPool(owner.address);
+        await lock.setVoter(owner.address);
         // const Gauge = await ethers.getContractFactory('Gauge');
         // gauge = await Gauge.deploy(fxs.address, lock.address, boost.address);
 
@@ -65,8 +66,8 @@ contract('Boost', () => {
 
         await boost.createGauge(fxs.address, "100", true);
 
-       // gaugeAddr = await gaugeFactory.last()
-      let gaugeAddr = await boost.gauges(fxs.address)
+        // gaugeAddr = await gaugeFactory.last()
+        let gaugeAddr = await boost.gauges(fxs.address)
 
         const Gauge = await ethers.getContractFactory('Gauge');
         gauge = await Gauge.attach(gaugeAddr)
@@ -101,6 +102,8 @@ contract('Boost', () => {
         // await lock.approve(boost.address,1)
         // expect(await lock.getApproved(1)).to.be.eq(true)
         //  await boost.updateAll()
+
+
         expect(await boost.isGauge(owner.address)).to.be.eq(false)
 
         // await boost.attachTokenToGauge(1, owner.address)
