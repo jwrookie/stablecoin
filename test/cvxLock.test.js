@@ -17,22 +17,17 @@ contract('Locker', () => {
         await cvx.mint(owner.address, toWei('1'))
 
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(cvx.address);
-        stratBlock = await time.latestBlock();
-        // console.log("block:" + stratBlock);
-        //  await time.advanceBlockTo(parseInt(stratBlock) + 10);
-
-
-        // await  cvx.mint(lock.address,toWei('1000'))
-
+        let eta = time.duration.days(1);
+        lock = await Locker.deploy(cvx.address, parseInt(eta));
 
     });
 
     it('lock Info  ', async () => {
-        expect(await lock.name()).to.be.eq("veNFT")
-        expect(await lock.symbol()).to.be.eq("veNFT")
-        expect(await lock.decimals()).to.be.eq(18)
-        expect(await lock.version()).to.be.eq("1.0.0")
+        expect(await lock.name()).to.be.eq("veNFT");
+        expect(await lock.symbol()).to.be.eq("veNFT");
+        expect(await lock.decimals()).to.be.eq(18);
+        expect(await lock.version()).to.be.eq("1.0.0");
+         expect(await lock.token()).to.be.eq(cvx.address);
 
 
     });
@@ -46,7 +41,7 @@ contract('Locker', () => {
 
         await cvx.approve(lock.address, toWei('1000'))
         let eta = time.duration.days(1);
-        console.log("eta:" + eta);
+        console.log("eta:" + parseInt(eta));
 
         await lock.create_lock("1000", parseInt(eta));//
 
@@ -81,19 +76,22 @@ contract('Locker', () => {
 
         console.log("locked__end1:" + await lock.locked__end(1))
 
-        console.log("cvx:"+await cvx.balanceOf(owner.address))
-
+        console.log("cvx:" + await cvx.balanceOf(owner.address))
 
 
         expect(await lock.voted(1)).to.be.eq(false)
-        let eta1 = (await time.latest()).add(time.duration.days(4));
-       console.log("eta1: " + eta1);
+        // (await time.latest()).add(time.duration.days(14));
+        //console.log("eta1: " + eta1);
 
-       console.log("balanceOfNFT:"+await lock.balanceOfNFT(1))
+        console.log("balanceOfNFT:" + await lock.balanceOfNFT(1))
 
-        //
+        await time.increase(time.duration.days(4));
+
+        console.log("latest" + await time.latest())
+
+
         //await lock.checkpoint();
-        //await lock.withdraw(1);
+        await lock.withdraw(1);
         // lockInfo = await lock.locked(1)
         // console.log("amount:" + lockInfo[
         //     0])

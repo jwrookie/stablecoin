@@ -10,9 +10,6 @@ contract('Boost', () => {
     beforeEach(async () => {
 
         [owner, dev, addr1] = await ethers.getSigners();
-        // TestERC20 = await ethers.getContractFactory("TestERC20");
-        // usdc = await TestERC20.deploy();
-        // busd = await TestERC20.deploy();
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
@@ -30,25 +27,19 @@ contract('Boost', () => {
         CheckOper = await ethers.getContractFactory("CheckOper");
         checkOper = await CheckOper.deploy(operatable.address);
 
-
         let lastBlock = await time.latestBlock();
-        //console.log("lastBlock:" + lastBlock)
+        //console.log("lastBlock:" + lastBlock);
 
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
-        //await fxs.poolMint(rewardPool.address,toWei('100'))
 
+        let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(fxs.address);
-
-        const Gauge = await ethers.getContractFactory('Gauge');
-        gauge = await Gauge.deploy(fxs.address, lock.address, owner.address);
+        lock = await Locker.deploy(fxs.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
-        await gaugeFactory.createGauge(usdc.address, lock.address)
-
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
@@ -61,23 +52,55 @@ contract('Boost', () => {
             10
         );
 
-        await frax.addPool(boost.address)
-        await frax.addPool(owner.address)
+        await frax.addPool(boost.address);
+        await frax.addPool(owner.address);
+        const Gauge = await ethers.getContractFactory('Gauge');
+        gauge = await Gauge.deploy(fxs.address, lock.address, boost.address);
+        await frax.addPool(gauge.address);
 
 
     });
-    // it('boost info', async () => {
-    //
-    //
-    //
-    //
-    // });
-
     it('should createGauge correct', async () => {
-        await usdc.approve(lock.address, toWei('1000'))
+        await fxs.approve(gauge.address, toWei('1000'))
+        await fxs.approve(boost.address, toWei('1000'))
 
-        await boost.createGauge(usdc.address, "100", true);
-        // expect(await boost.poolLength()).to.be.eq(1);
+        await boost.createGauge(fxs.address, "100", true);
+
+        gaugeAddr = await gaugeFactory.last()
+
+        expect(await boost.poolLength()).to.be.eq(1);
+
+        expect(await boost.isGauge(gaugeAddr)).to.be.eq(true);
+        expect(await boost.poolForGauge(gaugeAddr)).to.be.eq(fxs.address)
+
+        await boost.distribute(fxs.address);
+        // await boost.poke(1);
+
+        stratBlock = await time.latestBlock();
+        // console.log("block:" + stratBlock);
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
+       // console.log("fxs:" + await fxs.balanceOf(boost.address))
+
+        await fxs.approve(lock.address, toWei('1000'))
+        let eta = time.duration.days(1);
+        // console.log("eta:" + parseInt(eta));
+
+        await lock.create_lock("1000", parseInt(eta));
+        //  await boost.poke(1);
+        await fxs.approve(gauge.address, toWei('1000'))
+
+
+        expect(await lock.ownerOf(1)).to.be.eq(owner.address)
+        // expect(await gauge.tokenIds(owner.address)).to.be.eq(0)
+
+       // await lock.approve(boost.address,1)
+       // expect(await lock.getApproved(1)).to.be.eq(true)
+       //  await boost.updateAll()
+       //   expect(await boost.isGauge(usdc.address)).to.be.eq(false)
+
+      // await boost.attachTokenToGauge(1, owner.address)
+
+       await gauge.deposit("100",1)
 
 
     });
