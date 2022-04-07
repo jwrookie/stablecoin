@@ -54,7 +54,7 @@ contract('Boost', () => {
 
         await frax.addPool(boost.address);
         await frax.addPool(owner.address);
-        await lock.setVoter(owner.address);
+        await lock.setVoter(boost.address);
         // const Gauge = await ethers.getContractFactory('Gauge');
         // gauge = await Gauge.deploy(fxs.address, lock.address, boost.address);
 
