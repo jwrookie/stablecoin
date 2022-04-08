@@ -10,6 +10,7 @@ const {toWei} = require('web3-utils');
 const {BigNumber} = require('ethers');
 const {expect} = require('chai');
 const { parse } = require('path');
+const { advanceBlockTo } = require('@openzeppelin/test-helpers/src/time');
 /** Introducing local modules */
 // const RewardPool = artifacts.require('./contracts/dao/RewardPool.sol');
 // const MockToken = artifacts.require('./contracts/mock/MockToken.sol');
@@ -26,6 +27,7 @@ contract('RewardPoolIntergration', () => {
     let FXSModule = "FRAXShares";
     let FRAXModule = "FRAXStablecoin";
     let lastBlock
+    let currentBlock
 
     // Declare some variables
     var startBlock
@@ -43,7 +45,7 @@ contract('RewardPoolIntergration', () => {
     var authorBoolean = true
     var authorNumber = 100000
     var lpTokenNumber = 10000
-    var allocPoint = 1
+    var allocPoint = 100
 
     // About reward pool instantiation
     var tokenPerBlock = 10000;
@@ -210,9 +212,19 @@ contract('RewardPoolIntergration', () => {
         console.log("-=-")
         console.log(targetAmount)
 
+        // Wait a moment
+        currentBlock = await time.latestBlock()
+        await time.advanceBlockTo(parseInt(currentBlock) + 10)
+
         // Call pending
         pendingValue = await rewardPool.pending(0, owner.address)
-        expect(pendingValue).to.be.not.eq(0)
+        expect(pendingValue).to.be.gt(0)
+
+        // Get the pending value
+        await rewardPool.connect(owner).deposit(0, 0)
+
+        // Check user pending value
+
 
         poolInfo = await rewardPool.poolInfo(poolLength)
         structAllocPoint = await rewardPool.poolInfo[1]
@@ -296,7 +308,6 @@ contract('RewardPoolIntergration', () => {
         var seAcquiescentToken
         var pendingValue
         var secondPendingValue
-        var currentTime
         var needBoolean
 
         // Two kind of authorization token
@@ -356,10 +367,14 @@ contract('RewardPoolIntergration', () => {
         secondLpTokenReward = secondUserInfo[1]
         expect(secondLpTokenReward).to.be.eq(0)
 
+        // Wait a moment
+        currentBlock = await time.latestBlock()
+        await time.advanceBlockTo(parseInt(currentBlock) + 10)
+
         // Call function pending
         pendingValue = await rewardPool.pending(0, owner.address)
         // If pending value not equal zero that mean call the function pending successful
-        expect(pendingValue).to.be.not.eq(0)
+        expect(pendingValue).to.be.gt(0)
         /** Wait a moment */
         // Get the current time
         currentTime = await time.latestBlock()
@@ -367,7 +382,7 @@ contract('RewardPoolIntergration', () => {
         await time.advanceBlockTo(parseInt(currentTime) + 1)
         // At that time secondPendingValue is twice as much as pendingValue
         secondPendingValue = await rewardPool.pending(1, owner.address)
-        expect(secondPendingValue/pendingValue).to.be.eq(2)
+        expect(secondPendingValue/pendingValue).to.be.lt(2)
         // Check user info
         firstUserInfo = await rewardPool.userInfo(0, owner.address)
         firstUserInfoAmount = firstUserInfo[0]
@@ -383,9 +398,11 @@ contract('RewardPoolIntergration', () => {
         /** There is only one variable we need to control */
         var acquiescentToken
         var seAcquiescentToken
+        var ownerFxsValue
         var ownerPandingValue
         var ownerUserInfo
         var ownerUserInfoAmount
+        var seObjectFxsValue
         var seObjectPendingValue
         var seObejctUserInfo
         var seObejctUserInfoAmount
@@ -416,15 +433,24 @@ contract('RewardPoolIntergration', () => {
         // When two users deposit the same number of tokens into the same pool, the remaining results are the same
         expect(acquiescentToken).to.be.eq(seAcquiescentToken)
 
-        // At the same time to call pending
-        ownerPandingValue = await rewardPool.pending(0, owner.address)
+        // Get the fxs number of owner
+        ownerFxsValue = await fxs.connect(owner).balanceOf(rewardPool.address)
+
+        // Get the fxs number of seObject
+        seObjectFxsValue = await fxs.connect(seObject).balanceOf(rewardPool.address)
+
+        expect(seObjectFxsValue).to.be.eq(ownerFxsValue)
+
         // Wait a moment
         currentBlock = await time.latestBlock()
         await time.advanceBlockTo(parseInt(currentBlock) + 1)
 
+        // At the same time to call pending
+        ownerPandingValue = await rewardPool.pending(0, owner.address)
+
         // Get second user pending
         seObjectPendingValue = await rewardPool.pending(0, seObject.address)
-        expect(ownerPandingValue/seObjectPendingValue).to.be.eq(2)
+        expect(ownerPandingValue/seObjectPendingValue).to.be.eq(3)
 
         // Get owner amount
         ownerUserInfo = await rewardPool.userInfo(0, owner.address)
@@ -460,9 +486,11 @@ contract('RewardPoolIntergration', () => {
         var acquiescentToken
         var seAcquiescentToken
         var ownerPandingValue
+        var ownerFxsValue
         var ownerUserInfo
         var ownerUserInfoAmount
         var seObjectPendingValue
+        var seObjectFxsValue
         var seObejctUserInfo
         var seObejctUserInfoAmount
         var currentBlock
@@ -494,8 +522,23 @@ contract('RewardPoolIntergration', () => {
 
         // Owner get pending
         ownerPandingValue = await rewardPool.pending(0, owner.address)
+        // Get the fxs value
+        ownerFxsValue = await fxs.connect(owner).balanceOf(owner.address)
         await rewardPool.connect(seObject).deposit(0, seObjectLpTokenValue)
+        currentBlock = await time.latestBlock()
+        await time.advanceBlockTo(parseInt(currentBlock) + 1)
 
+        // Owner get pending
+        ownerPandingValue = await rewardPool.pending(0, seObject.address)
+
+        // Get the fxs value of seObject
+        seObjectFxsValue = await fxs.connect(seObject).balanceOf(owner.address)
+
+        expect(seObjectFxsValue).to.be.eq(ownerFxsValue)
+
+        // Get the pending value
+        await rewardPool.connect(owner).deposit(0, 0)
+        await rewardPool.connect(seObject).deposit(0, 0)
         // Get owner token own
         acquiescentToken = await mockToken.balanceOf(owner.address)
         seAcquiescentToken = await mockToken.balanceOf(seObject.address)
@@ -507,10 +550,10 @@ contract('RewardPoolIntergration', () => {
         // expect(acquiescentToken - seAcquiescentToken).to.be.eq(BigNumber.from(seObjectLpTokenValue).sub(ownerLpTokenValue))
 
         // Wait a moment
-        currentBlock = await time.latestBlock()
-        await time.advanceBlockTo(parseInt(currentBlock) + 1)
-        seObjectPendingValue = await rewardPool.pending(0, seObject.address)
-        expect(seObjectPendingValue).to.be.not.eq(ownerPandingValue)
+        // currentBlock = await time.latestBlock()
+        // await time.advanceBlockTo(parseInt(currentBlock) + 1)
+        // seObjectPendingValue = await rewardPool.pending(0, seObject.address)
+        // expect(seObjectPendingValue).to.be.not.eq(ownerPandingValue)
 
         // Get owner info
         ownerUserInfo = await rewardPool.userInfo(0, owner.address)
@@ -618,8 +661,20 @@ contract('RewardPoolIntergration', () => {
         expect(seAcquiescentToken).to.be.eq(BigNumber.from(minitMockTokenSeOwn).sub(mockLpToken))
         expect(seTokenAcquiescentToken).to.be.eq(BigNumber.from(minitSeMockTokenSeOwn).sub(seMockLpToken))
 
+        // 
+        currentBlock = await time.latestBlock()
+        await advanceBlockTo(parseInt(currentBlock) + 10)
+
+        // 
+        acquiescentToken = await fxs.connect(owner).balanceOf(owner.address)
         // Call the function pending
         ownerPendingValue = await rewardPool.pending(0, owner.address)
+        await rewardPool.deposit(0, 0)
+        acquiescentToken = await fxs.connect(owner).balanceOf(owner.address)
+        console.log("Only one pool pending:" + acquiescentToken)
+        await rewardPool.deposit(1, 0)
+        acquiescentToken = await fxs.connect(owner).balanceOf(owner.address)
+        console.log("Two pools pending:" + acquiescentToken)
         // console.log(ownerPendingValue)
         // currentBlock = getCurrentBlock()
         // console.log(parseInt(currentBlock))
@@ -629,7 +684,13 @@ contract('RewardPoolIntergration', () => {
         currentBlock = await time.latestBlock()
         await time.advanceBlockTo(parseInt(currentBlock) + 1)
         sePendingValue = await rewardPool.pending(0, seObject.address)
+        await rewardPool.deposit(0, 0)
+        seAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address)
+        console.log("Seobject only one pool pending:" + seAcquiescentToken)
         seSePendingValue = await rewardPool.pending(1, seObject.address)
+        await rewardPool.deposit(1, 0)
+        seAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address)
+        console.log("Seobject two pools pending:" + seAcquiescentToken)
 
         // Call the function withdraw by owner.address
         await rewardPool.connect(owner).withdraw(0, mockLpToken)
