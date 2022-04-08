@@ -1,20 +1,22 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import '../Uniswap/TransferHelper.sol';
+import "../Uniswap/TransferHelper.sol";
 import "../interface/IStablePool.sol";
 import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";
 import "../tools/Operatable.sol";
 
 contract SwapRouter is Operatable {
-
-    event ChangeSwapMining(address indexed oldSwapMining, address indexed newSwapMining);
+    event ChangeSwapMining(
+        address indexed oldSwapMining,
+        address indexed newSwapMining
+    );
 
     address public swapMining;
 
-    modifier ensure(uint deadline) {
-        require(deadline >= block.timestamp, 'Router: EXPIRED');
+    modifier ensure(uint256 deadline) {
+        require(deadline >= block.timestamp, "Router: EXPIRED");
         _;
     }
 
@@ -25,7 +27,12 @@ contract SwapRouter is Operatable {
         emit ChangeSwapMining(oldSwapMining, swapMining);
     }
 
-    function callSwapMining(address account, address pair, uint256 i, uint256 amount) private {
+    function callSwapMining(
+        address account,
+        address pair,
+        uint256 i,
+        uint256 amount
+    ) private {
         if (swapMining != address(0)) {
             int128 n = ICryptoPool(pair).N_COINS();
             uint256 quantity;
@@ -42,11 +49,7 @@ contract SwapRouter is Operatable {
                 amounts[i] = amount;
                 quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
             }
-            ISwapMining(swapMining).swap(
-                account,
-                pair,
-                quantity
-            );
+            ISwapMining(swapMining).swap(account, pair, quantity);
         }
     }
 
@@ -57,17 +60,22 @@ contract SwapRouter is Operatable {
         uint256 _from_amount,
         uint256 _min_to_amount,
         address receiver,
-        uint deadline
+        uint256 deadline
     ) external ensure(deadline) {
         int128 fromInt = int128(uint128(from));
         int128 toInt = int128(uint128(to));
-        address fromToken = IStablePool(pool).coins(fromInt);
-        address toToken = IStablePool(pool).coins(toInt);
+        address fromToken = IStablePool(pool).coins(from);
+        address toToken = IStablePool(pool).coins(to);
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
-
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
-        IStablePool(pool).exchange(fromInt, toInt, _from_amount, _min_to_amount, receiver);
+        IStablePool(pool).exchange(
+            fromInt,
+            toInt,
+            _from_amount,
+            _min_to_amount,
+            receiver
+        );
         callSwapMining(receiver, pool, from, _from_amount);
     }
 
@@ -78,14 +86,21 @@ contract SwapRouter is Operatable {
         uint256 _from_amount,
         uint256 _min_to_amount,
         address receiver,
-        uint deadline
+        uint256 deadline
     ) external ensure(deadline) {
-        address fromToken = IStablePool(pool).coins(int128(uint128(from)));
-        address toToken = IStablePool(pool).coins(int128(uint128(to)));
+        address fromToken = IStablePool(pool).coins(from);
+        address toToken = IStablePool(pool).coins(to);
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
-        ICryptoPool(pool).exchange(from, to, _from_amount, _min_to_amount, false, receiver);
+        ICryptoPool(pool).exchange(
+            from,
+            to,
+            _from_amount,
+            _min_to_amount,
+            false,
+            receiver
+        );
         callSwapMining(receiver, pool, from, _from_amount);
     }
 
@@ -96,14 +111,24 @@ contract SwapRouter is Operatable {
         uint256 _from_amount,
         uint256 _min_to_amount,
         address receiver,
-        uint deadline
+        uint256 deadline
     ) external payable ensure(deadline) {
-        uint bal = msg.value;
-        ICryptoPool(pool).exchange{value : bal}(from, to, _from_amount, _min_to_amount, true, receiver);
+        uint256 bal = msg.value;
+        ICryptoPool(pool).exchange{value: bal}(
+            from,
+            to,
+            _from_amount,
+            _min_to_amount,
+            true,
+            receiver
+        );
         callSwapMining(receiver, pool, from, _from_amount);
     }
 
-    function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
+    function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
+        external
+        onlyOwner
+    {
         TransferHelper.safeTransfer(_tokenAddress, owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
     }
