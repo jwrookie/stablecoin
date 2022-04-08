@@ -6,6 +6,7 @@ const Registry = require("./mock/mockPool/Registry.json");
 const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
 const MetaPool = require('./mock/mockPool/MetaUSDBalances.json');
 const MetaPoolAbi = require('./mock/mockPool/meta_pool.json');
+
 const { waffle, ethers } = require("hardhat");
 const { deployContract } = waffle;
 const { expect } = require("chai");
@@ -16,7 +17,12 @@ contract('SwapRouter', () => {
   before(async () => {
     [owner, dev, addr1] = await ethers.getSigners();
 
+    const SwapRouter = await ethers.getContractFactory('SwapRouter');
+    swapRouter = await SwapRouter.deploy();
+
     const MockToken = await ethers.getContractFactory("MockToken")
+
+
     token0 = await MockToken.deploy("token0", "token0", 18, toWei('10'));
     token1 = await MockToken.deploy("token1", "token1", 18, toWei('10'));
     token2 = await MockToken.deploy("token2", "token2", 18, toWei('10'));
@@ -151,6 +157,33 @@ contract('SwapRouter', () => {
 
 
   })
+
+
+  it('swapRouter exchage', async () => {
+
+
+    await token0.connect(owner).approve(swapRouter.address, toWei('10000'))
+    await token1.connect(owner).approve(swapRouter.address, toWei('10000'))
+
+    await token0.connect(owner).approve(pool.address, toWei('10000'))
+    await token1.connect(owner).approve(pool.address, toWei('10000'))
+
+
+    expect(await pool.coins(0, gas)).to.be.eq(token0.address)
+    expect(await pool.coins(1, gas)).to.be.eq(token1.address)
+
+    const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+    let dx = 1000000
+
+    await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)
+
+
+
+
+
+  })
+
+
 
 
 
