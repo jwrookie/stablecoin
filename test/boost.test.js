@@ -58,7 +58,7 @@ contract('Boost', () => {
 
     });
     it('should createGauge correct', async () => {
-        //console.log("fxs:" + await fxs.balanceOf(owner.address))
+        await usdc.mint(dev.address, toWei('1'))
         await boost.createGauge(usdc.address, "100", true);
 
         let gaugeAddr = await boost.gauges(usdc.address)
@@ -78,36 +78,51 @@ contract('Boost', () => {
         // await time.advanceBlockTo(parseInt(stratBlock) + 10);
         // console.log("fxs:" + await fxs.balanceOf(boost.address))
 
-        await usdc.approve(lock.address, toWei('1000'));
+        await usdc.connect(dev).approve(lock.address, toWei('1000'));
         let eta = time.duration.days(1);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.create_lock("1000", parseInt(eta));
-        await usdc.approve(gauge.address, toWei('1000'))
+        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+        await usdc.connect(dev).approve(gauge.address, toWei('1000'))
+
+        // expect(await lock.ownerOf(1)).to.be.eq(dev.address);
+        // expect(await gauge.tokenIds(dev.address)).to.be.eq(0);
 
 
-        expect(await lock.ownerOf(1)).to.be.eq(owner.address);
-        expect(await gauge.tokenIds(owner.address)).to.be.eq(0);
+        await gauge.connect(dev).deposit("1000", 1);
+        // expect(await gauge.tokenIds(owner.address)).to.be.eq(1);
+        // console.log("checkpoints:" + await gauge.checkpoints(dev.address, 0))
 
-
-        await gauge.deposit("1000", 1);
-        expect(await gauge.tokenIds(owner.address)).to.be.eq(1);
-        console.log("checkpoints:" + await gauge.checkpoints(owner.address, 0))
-
-        // console.log("usdc:" + await usdc.balanceOf(owner.address));
+        // console.log("usdc:" + await usdc.balanceOf(dev.address));
         //await gauge.earned(usdc.address, owner.address)
 
+        // await time.increase(time.duration.days(4));
+
+        stratBlock = await time.latestBlock();
+        // console.log("block:" + stratBlock);
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
+
+        expect(await usdc.balanceOf(boost.address)).to.be.eq(0)
+
+
         await boost.updatePool(0)
+        expect(await boost.poolLength()).to.be.eq(1)
 
-        //console.log(await gauge.rewards(0))
 
-        let point = await gauge.checkpoints(owner.address, 0)
+        let point = await gauge.checkpoints(dev.address, 0)
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
         const isreword = await gauge.isReward(fxs.address)
-        console.log('isreword',isreword)
-        await gauge.notifyRewardAmount(fxs.address,0)
-        expect(await gauge.isReward(fxs.address)).to.be.eq(true)
+        console.log('isreword', isreword)
+
+        stratBlock = await time.latestBlock();
+        // console.log("block:" + stratBlock);
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
+
+        //await gauge.notifyRewardAmount(fxs.address,0)
+       // expect(await gauge.isReward(fxs.address)).to.be.eq(true)
+
+       // console.log(await gauge.rewards(0))
 
 
         // await boost.vote(1,[],[])
@@ -117,25 +132,29 @@ contract('Boost', () => {
         // await gauge.notifyRewardAmount(fxs.address,0)
 
         //
-        console.log("rewardPerTokenNumCheckpoints:"+await gauge.rewardPerTokenNumCheckpoints(fxs.address))
+        console.log("rewardPerTokenNumCheckpoints:" + await gauge.rewardPerTokenNumCheckpoints(fxs.address))
         console.log('rewardPerTokenCheckpoints:' + await gauge.rewardPerTokenCheckpoints(fxs.address, 0))
 
+
+        console.log("rewardRate:" + await gauge.rewardRate(fxs.address))
 
         let info = await boost.poolInfo(0)
         console.log(info)
 
-      // expect(await boost.tokenPerBlock()).to.be.eq("10000")
-
+        // expect(await boost.tokenPerBlock()).to.be.eq("10000")
         // expect(await gauge.isReward(fxs.address)).to.be.eq(false)
-        await gauge.getReward(owner.address, [fxs.address])
+        await gauge.connect(dev).getReward(dev.address, [fxs.address])
+        console.log("fxs boost:"+await fxs.balanceOf(boost.address))
+
+        console.log(await gauge.rewardPerTokenStored(fxs.address))
         //
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
-        await gauge.withdraw("1000");
-        // console.log("owner:" + await usdc.balanceOf(owner.address))
-        //
-        //  await time.increase(time.duration.days(4));
-        // await lock.withdraw(1);
-        // console.log("owner:" + await usdc.balanceOf(owner.address))
+        console.log("fxs:" + await fxs.balanceOf(dev.address))
+        await gauge.connect(dev).withdraw("1000");
+        console.log("dev:" + await usdc.balanceOf(dev.address))
+
+         await time.increase(time.duration.days(4));
+        await lock.connect(dev).withdraw(1);
+        console.log("dev:" + await usdc.balanceOf(dev.address))
 
     });
 
