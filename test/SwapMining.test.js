@@ -20,6 +20,22 @@ contract('SwapRouter', () => {
     const SwapRouter = await ethers.getContractFactory('SwapRouter');
     swapRouter = await SwapRouter.deploy();
 
+    // swapming
+
+    const TestOracle = await ethers.getContractFactory('TestOracle');
+    oracle = await TestOracle.deploy();
+
+    const FRAXShares = await ethers.getContractFactory('FRAXShares');
+    fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+
+    Operatable = await ethers.getContractFactory("Operatable");
+    operatable = await Operatable.deploy();
+
+    const FRAXShares = await ethers.getContractFactory('SwapMining');
+    fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+
+
+
     const MockToken = await ethers.getContractFactory("MockToken")
 
 
