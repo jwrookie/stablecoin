@@ -38,6 +38,10 @@ abstract contract AbstractBoost is TokenReward {
 
     }
 
+    function getPoolVote(uint256 tokenId) public view returns (address[] memory){
+        return poolVote[tokenId];
+    }
+
     function reset(uint _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
