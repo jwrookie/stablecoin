@@ -59,6 +59,8 @@ contract('Locker', () => {
         expect(lockInfo[0]).to.be.eq("1000");
         console.log("end:" + lockInfo[1])
 
+        console.log("balanceOf:"+await lock.balanceOf(owner.address))
+
         let eta1 = time.duration.days(2);
         // console.log("balanceOf:" + await lock.balanceOf(owner.address)
         // console.log("get_last_user_slope:" + await lock.get_last_user_slope(1))
