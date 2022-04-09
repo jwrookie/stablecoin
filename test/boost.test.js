@@ -1,10 +1,10 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
+const { expectRevert, time } = require('@openzeppelin/test-helpers');
+const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
 
-const {ethers, waffle} = require("hardhat");
-const {expect} = require("chai");
-const {toWei} = web3.utils;
-const {BigNumber} = require('ethers');
+const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
+const { toWei } = web3.utils;
+const { BigNumber } = require('ethers');
 
 contract('Boost', () => {
     beforeEach(async () => {
@@ -116,6 +116,8 @@ contract('Boost', () => {
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
         await boost.poke(1)
+        const cc = await boost.getdemo(0)
+        console.log('ccc', cc)
         console.log("poolVote:" + await boost.poolVote(0, 0))//error
         // await time.increase(time.duration.days(10));
         //
