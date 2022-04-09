@@ -97,9 +97,17 @@ contract('Boost', () => {
         // console.log("usdc:" + await usdc.balanceOf(owner.address));
         //await gauge.earned(usdc.address, owner.address)
 
+        await boost.updatePool(0)
+
+        //console.log(await gauge.rewards(0))
+
         let point = await gauge.checkpoints(owner.address, 0)
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
+        const isreword = await gauge.isReward(fxs.address)
+        console.log('isreword',isreword)
+        await gauge.notifyRewardAmount(fxs.address,0)
+        expect(await gauge.isReward(fxs.address)).to.be.eq(true)
 
 
         // await boost.vote(1,[],[])
@@ -111,9 +119,17 @@ contract('Boost', () => {
         //
         console.log("rewardPerTokenNumCheckpoints:"+await gauge.rewardPerTokenNumCheckpoints(fxs.address))
         console.log('rewardPerTokenCheckpoints:' + await gauge.rewardPerTokenCheckpoints(fxs.address, 0))
-        // await gauge.getReward(owner.address, [fxs.address])
+
+
+        let info = await boost.poolInfo(0)
+        console.log(info)
+
+      // expect(await boost.tokenPerBlock()).to.be.eq("10000")
+
+        // expect(await gauge.isReward(fxs.address)).to.be.eq(false)
+        await gauge.getReward(owner.address, [fxs.address])
         //
-        // console.log("fxs:" + await fxs.balanceOf(owner.address))
+        console.log("fxs:" + await fxs.balanceOf(owner.address))
         await gauge.withdraw("1000");
         // console.log("owner:" + await usdc.balanceOf(owner.address))
         //
