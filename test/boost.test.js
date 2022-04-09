@@ -8,7 +8,6 @@ const { BigNumber } = require('ethers');
 
 contract('Boost', () => {
     beforeEach(async () => {
-
         [owner, dev, addr1] = await ethers.getSigners();
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
@@ -108,12 +107,11 @@ contract('Boost', () => {
         await boost.updatePool(0)
         expect(await boost.poolLength()).to.be.eq(1)
 
-
         let point = await gauge.checkpoints(dev.address, 0)
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
-        const isreword = await gauge.isReward(fxs.address)
-        console.log('isreword', isreword)
+        expect(await gauge.isReward(fxs.address)).to.be.eq(false);
+
 
         stratBlock = await time.latestBlock();
         // console.log("block:" + stratBlock);
@@ -139,7 +137,13 @@ contract('Boost', () => {
         console.log("rewardRate:" + await gauge.rewardRate(fxs.address))
 
         let info = await boost.poolInfo(0)
-        console.log(info)
+        expect(info[0]).to.be.eq(usdc.address);
+        expect(info[1]).to.be.eq('100');
+        console.log("lastRewardBlock:" + info[2]);
+
+        expect(await boost.LpOfPid(usdc.address)).to.be.eq(0);
+        expect(await boost.totalAllocPoint()).to.be.eq("100");
+
 
         // expect(await boost.tokenPerBlock()).to.be.eq("10000")
         // expect(await gauge.isReward(fxs.address)).to.be.eq(false)
@@ -148,13 +152,13 @@ contract('Boost', () => {
 
         console.log(await gauge.rewardPerTokenStored(fxs.address))
         //
-        console.log("fxs:" + await fxs.balanceOf(dev.address))
-        await gauge.connect(dev).withdraw("1000");
-        console.log("dev:" + await usdc.balanceOf(dev.address))
-
-        await time.increase(time.duration.days(4));
-        await lock.connect(dev).withdraw(1);
-        console.log("dev:" + await usdc.balanceOf(dev.address))
+        // console.log("fxs:" + await fxs.balanceOf(dev.address))
+        // await gauge.connect(dev).withdraw("1000");
+        // console.log("dev:" + await usdc.balanceOf(dev.address))
+        //
+        //  await time.increase(time.duration.days(4));
+        // await lock.connect(dev).withdraw(1);
+        // console.log("dev:" + await usdc.balanceOf(dev.address))
 
     });
 
