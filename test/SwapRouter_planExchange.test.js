@@ -84,9 +84,11 @@ contract('SwapRouter', () => {
       [token0.address, token1.address, token2.address, zeroAddr],
       "2000",
       "4000000", 0, 0, gas);
+
     poolAddress = await crvFactory.pool_list(0, gas);
-    // console.log("poolAddress:", poolAddress)
+
     pool = await plain3Balances.attach(poolAddress);
+
     await token0.approve(pool.address, toWei("10000"))
     await token1.approve(pool.address, toWei("10000"))
     await token2.approve(pool.address, toWei("10000"))
@@ -95,7 +97,6 @@ contract('SwapRouter', () => {
 
     await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
 
-    //create pool(token1 token2 token3) , token1 ,token2
     await crvFactory.deploy_plain_pool(
       "3pool1",
       "3pool1",
@@ -103,16 +104,13 @@ contract('SwapRouter', () => {
       "2000",
       "4000000", 0, 0, gas);
     mulPoolAddress = await crvFactory.pool_list(1, gas);
-    console.log("mulPoolAddress:", mulPoolAddress)
+
     mulPool = await plain3Balances.attach(mulPoolAddress);
     await pool.approve(mulPool.address, toWei("10000"))
     await token1.approve(mulPool.address, toWei("10000"))
     await token2.approve(mulPool.address, toWei("10000"))
 
     await mulPool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
-
-    console.log("mulPool liquidity:", await mulPool.balanceOf(owner.address, gas))
-
 
     // create  pool[token0 token1 token2], mulPool[pool token1 token2], token2
     await crvFactory.deploy_plain_pool(
@@ -122,13 +120,14 @@ contract('SwapRouter', () => {
       "2000",
       "4000000", 0, 0, gas);
     mulPool2Address = await crvFactory.pool_list(2, gas);
-    //  console.log("mulPool2Address:", mulPool2Address)
     mulPool2 = await plain3Balances.attach(mulPool2Address);
     await token2.approve(mulPool2.address, toWei("10000"))
     await mulPool.approve(mulPool2.address, toWei("10000"))
     await pool.approve(mulPool2.address, toWei("10000"))
 
     await mulPool2.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
+
+
 
   })
 
@@ -159,29 +158,36 @@ contract('SwapRouter', () => {
   })
 
 
-  it('swapRouter exchage', async () => {
-
+  it('swapRouter exchage  swapStable plan  token0 => token1', async () => {
 
     await token0.connect(owner).approve(swapRouter.address, toWei('10000'))
     await token1.connect(owner).approve(swapRouter.address, toWei('10000'))
 
-    await token0.connect(owner).approve(pool.address, toWei('10000'))
-    await token1.connect(owner).approve(pool.address, toWei('10000'))
-
-
     expect(await pool.coins(0, gas)).to.be.eq(token0.address)
     expect(await pool.coins(1, gas)).to.be.eq(token1.address)
 
+    devToken0Befo = await token0.balanceOf(owner.address)
+    devToken1Befo = await token1.balanceOf(owner.address)
+    poolToken0Bef = await pool.balances(0, gas);
+    poolToken1Bef = await pool.balances(1, gas);
+
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
-    let dx = 1000000
+    let dx = "1000000"
 
     await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)
 
+    devToken0Aft = await token0.balanceOf(owner.address)
+    devToken1Aft = await token1.balanceOf(owner.address)
+    poolToken0aft = await pool.balances(0, gas);
+    poolToken1aft = await pool.balances(1, gas);
 
-
-
-
+    expect(devToken0Aft).to.be.eq(BigNumber.from(devToken0Befo).sub(dx))
+    expect(devToken1Aft).to.be.eq(BigNumber.from(devToken1Befo).add("999600"))
+    expect(poolToken0aft).to.be.eq(BigNumber.from(poolToken0Bef).add(dx))
+    expect(poolToken1aft).to.be.eq(BigNumber.from(poolToken1Bef).sub('999799'))
   })
+
+
 
 
 
