@@ -69,6 +69,7 @@ contract SwapRouter is Operatable {
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
         IStablePool(pool).exchange(
             fromInt,
             toInt,
@@ -93,6 +94,7 @@ contract SwapRouter is Operatable {
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
         ICryptoPool(pool).exchange(
             from,
             to,
@@ -114,7 +116,7 @@ contract SwapRouter is Operatable {
         uint256 deadline
     ) external payable ensure(deadline) {
         uint256 bal = msg.value;
-        ICryptoPool(pool).exchange{value: bal}(
+        ICryptoPool(pool).exchange{value : bal}(
             from,
             to,
             _from_amount,
@@ -126,8 +128,8 @@ contract SwapRouter is Operatable {
     }
 
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         TransferHelper.safeTransfer(_tokenAddress, owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
