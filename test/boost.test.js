@@ -116,8 +116,8 @@ contract('Boost', () => {
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
         await boost.poke(1)
-        result =await boost.getPoolVote(1);
-        // console.log("poolVote:" + result[0])//error
+        console.log("poolVote:" + await boost.poolVote(0, 0))//error
+        // await time.increase(time.duration.days(10));
         //
         // console.log('rewardPerTokenCheckpoints:' + await gauge.rewardPerTokenCheckpoints(lock.address, 0))
         // await gauge.getReward(owner.address, [fxs.address])
