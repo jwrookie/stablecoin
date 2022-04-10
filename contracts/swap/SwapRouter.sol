@@ -60,7 +60,7 @@ contract SwapRouter is Operatable {
         uint256 amount
     ) private {
         if (swapMining != address(0)) {
-            int128 n = ICryptoPool(pair).N_COINS();
+            int128 n = ICryptoPool(pair).n_coins();
             uint256 quantity;
             if (n == 2) {
                 uint256[2] memory amounts;

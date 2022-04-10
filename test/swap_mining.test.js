@@ -25,8 +25,6 @@ contract('SwapRouter', () => {
     const TestOracle = await ethers.getContractFactory('TestOracle');
     oracle = await TestOracle.deploy();
 
-    const FRAXShares = await ethers.getContractFactory('FRAXShares');
-    fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
 
     Operatable = await ethers.getContractFactory("Operatable");
     operatable = await Operatable.deploy();
