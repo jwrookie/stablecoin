@@ -105,7 +105,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         if (block.number <= pool.lastRewardBlock) {
             return;
         }
-        uint256 lpSupply = IERC20(pool.lpToken).balanceOf(address(this));
+        uint256 lpSupply = IERC20(pool.lpToken).balanceOf(gauges[pool.lpToken]);
         if (lpSupply == 0) {
             pool.lastRewardBlock = block.number;
             return;
@@ -117,7 +117,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
-            IGauge(gauges[pool.lpToken]).notifyRewardAmount(base, tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
+            IGauge(gauges[pool.lpToken]).notifyRewardAmount(pool.lpToken, tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
         }
         pool.lastRewardBlock = block.number;
     }
