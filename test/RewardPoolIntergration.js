@@ -20,36 +20,33 @@ const { advanceBlockTo } = require('@openzeppelin/test-helpers/src/time');
 
 contract('RewardPoolIntergration', () => {
     // Some module name
-    let RewardPoolModule = "RewardPool";
-    let OperatableModule = "Operatable";
-    let MockTokenModule = "MockToken";
-    let TestOracleModule = 'TestOracle';
-    let FXSModule = "FRAXShares";
-    let FRAXModule = "FRAXStablecoin";
-    let lastBlock
-    let currentBlock
+    const RewardPoolModule = "RewardPool";
+    const OperatableModule = "Operatable";
+    const MockTokenModule = "MockToken";
+    const TestOracleModule = 'TestOracle';
+    const FXSModule = "FRAXShares";
+    const FRAXModule = "FRAXStablecoin";
+    const tempFxsName = "TemporaryStringName";
+    const tempFxsSymbol = "TemporaryStringSymbol";
+    const tempFraxName = "TemporaryMemoryName";
+    const tempFraxSymbol = "TemporaryMemorySymbol";
+    const mockTempName = "TemporaryMockName";
+    const mockTempSymbol = "TemporaryMockSymbol";
+    const mockDecimal = 18;
+    const mockTotal = toWei("10");
+    const authorBoolean = true
+    const authorNumber = 100000
+    const lpTokenNumber = 10000
+    const allocPoint = 100
+    const tokenPerBlock = 10000;
+    const period = 100;
 
     // Declare some variables
+    let lastBlock
+    let currentBlock
     var startBlock
-    var tempFxsName = "TemporaryStringName";
-    var tempFxsSymbol = "TemporaryStringSymbol";
-    var tempFraxName = "TemporaryMemoryName";
-    var tempFraxSymbol = "TemporaryMemorySymbol";
-    var mockTempName = "TemporaryMockName";
-    var mockTempSymbol = "TemporaryMockSymbol";
-    var mockDecimal = 18;
-    var mockTotal = toWei("10");
     var poolLength
 
-    // Declare public variable
-    var authorBoolean = true
-    var authorNumber = 100000
-    var lpTokenNumber = 10000
-    var allocPoint = 100
-
-    // About reward pool instantiation
-    var tokenPerBlock = 10000;
-    var period = 100;
     
     /**
      * @description: This is a function to check two informations
