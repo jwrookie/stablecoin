@@ -1,10 +1,10 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
+const { expectRevert, time } = require('@openzeppelin/test-helpers');
+const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
 
-const {ethers, waffle} = require("hardhat");
-const {expect} = require("chai");
-const {toWei} = web3.utils;
-const {BigNumber} = require('ethers');
+const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
+const { toWei } = web3.utils;
+const { BigNumber } = require('ethers');
 
 contract('Boost', () => {
     beforeEach(async () => {

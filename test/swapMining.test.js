@@ -1,11 +1,11 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
+const { expectRevert, time } = require('@openzeppelin/test-helpers');
+const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
 
-const {ethers, waffle} = require("hardhat");
-const {expect} = require("chai");
-const {toWei} = web3.utils;
-const {BigNumber} = require('ethers');
-const gas = {gasLimit: "9550000"};
+const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
+const { toWei } = web3.utils;
+const { BigNumber } = require('ethers');
+const gas = { gasLimit: "9550000" };
 
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
@@ -148,9 +148,34 @@ contract('SwapMining', () => {
             "10"
         );
 
+        await swapRouter.setSwapMining(swapMining.address);
+
+
+        await swapMining.addPair(100, pool.address, true)
 
     });
     it('pending', async () => {
+
+
+        await token0.connect(owner).approve(swapRouter.address, toWei('10000'))
+        await token1.connect(owner).approve(swapRouter.address, toWei('10000'))
+
+        expect(await pool.coins(0, gas)).to.be.eq(token0.address)
+        expect(await pool.coins(1, gas)).to.be.eq(token1.address)
+
+        devToken0Befo = await token0.balanceOf(owner.address)
+        devToken1Befo = await token1.balanceOf(owner.address)
+        poolToken0Bef = await pool.balances(0, gas);
+        poolToken1Bef = await pool.balances(1, gas);
+
+        const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        let dx = "1000000"
+
+        await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)
+
+
+        const reword = await swapMining.rewardInfo(owner.address)
+        expect(reword).to.be.eq('157500000000000000')
 
 
     });
