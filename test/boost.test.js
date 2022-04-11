@@ -155,7 +155,7 @@ contract('Boost', () => {
         // expect(await gauge.rewards(0)).to.be.eq(fxs.address);
         console.log("rewardRate:" + await gauge.rewardRate(fxs.address))
 
-
+        console.log("boost fxs:" + await fxs.balanceOf(boost.address));
         await time.increase(time.duration.days(20));
 
         await gauge.connect(dev).getReward(dev.address, [fxs.address])

@@ -74,7 +74,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         LpOfPid[address(_pool)] = poolLength() - 1;
 
         address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken);
-        IERC20(base).approve(_gauge, type(uint).max);
+        IERC20(address(swapToken)).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
         isGauge[_gauge] = true;
@@ -115,7 +115,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
         uint256 mul = block.number.sub(pool.lastRewardBlock);
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
-        bool minRet = swapToken.mint(address(this), tokenReward);
+        bool minRet = swapToken.mint(address(this), tokenReward.mul(duration));
         if (minRet) {
             IGauge(gauges[pool.lpToken]).notifyRewardAmount(address(swapToken), tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
         }
@@ -163,7 +163,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
     }
 
-    function distribute(address _gauge) public  {
+    function distribute(address _gauge) public {
         _updateForGauge(_gauge);
 
     }
