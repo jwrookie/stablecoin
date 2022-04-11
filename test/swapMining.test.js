@@ -20,7 +20,6 @@ contract('SwapMining', () => {
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
-
         const FRAXShares = await ethers.getContractFactory('FRAXShares');
         fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
 
@@ -147,6 +146,11 @@ contract('SwapMining', () => {
             parseInt(lastBlock),
             "10"
         );
+        await frax.addPool(swapMining.address);
+        await swapRouter.setSwapMining(swapMining.address);
+        expect(await swapRouter.swapMining()).to.be.eq(swapMining.address)
+        expect(await swapMining.router()).to.be.eq(swapRouter.address)
+
 
         await swapRouter.setSwapMining(swapMining.address);
 
