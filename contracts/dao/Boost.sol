@@ -163,7 +163,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
     }
 
-    function distribute(address _gauge) public nonReentrant {
+    function distribute(address _gauge) public  {
         _updateForGauge(_gauge);
 
     }
