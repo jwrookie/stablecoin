@@ -465,7 +465,7 @@ contract Gauge is ReentrancyGuard {
     }
 
     function notifyRewardAmount(address token, uint _rewardRate) external  {
-        require(token == stake, "no stake");
+        require(token != stake, "no stake");
         if (rewardRate[token] == 0) {
             _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
         }

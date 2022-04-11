@@ -112,14 +112,14 @@ contract('Boost', () => {
 
         expect(await gauge.isReward(lock.address)).to.be.eq(false)
 
-        let result =await gauge.rewardRate(usdc.address);
+        let result =await gauge.rewardRate(fxs.address);
         console.log(result);
         let point = await gauge.checkpoints(owner.address, 0)
         console.log("timestamp:" + point[0])
         console.log("balanceOf:" + point[1])
         await boost.poke(1);
         await boost.updatePool(0);
-        result =await gauge.rewardRate(usdc.address);
+        result =await gauge.rewardRate(fxs.address);
         console.log(result);
         // console.log("poolVote:" + await boost.poolVote(0, 0))//error
         // await time.increase(time.duration.days(10));
