@@ -3,7 +3,7 @@
 pragma solidity =0.8.10;
 
 interface IStablePool {
-    function N_COINS() external view returns (int128);
+    function n_coins() external view returns (int128);
 
     function coins(uint256) external view returns (address);
 

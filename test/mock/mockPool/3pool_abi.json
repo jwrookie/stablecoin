@@ -23,6 +23,18 @@
       "type": "event"
     },
     {
+      "inputs": [],
+      "name": "n_coins",
+      "outputs": [
+        {
+          "name": "",
+          "type": "int128"
+        }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
       "anonymous": false,
       "inputs": [
         {

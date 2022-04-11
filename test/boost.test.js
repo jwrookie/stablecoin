@@ -1,10 +1,10 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
+const { expectRevert, time } = require('@openzeppelin/test-helpers');
+const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
 
-const {ethers, waffle} = require("hardhat");
-const {expect} = require("chai");
-const {toWei} = web3.utils;
-const {BigNumber} = require('ethers');
+const { ethers, waffle } = require("hardhat");
+const { expect } = require("chai");
+const { toWei } = web3.utils;
+const { BigNumber } = require('ethers');
 
 contract('Boost', () => {
     beforeEach(async () => {
@@ -36,7 +36,7 @@ contract('Boost', () => {
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(fxs.address, parseInt(eta));
+        lock = await Locker.deploy(usdc.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
@@ -47,7 +47,7 @@ contract('Boost', () => {
             lock.address,
             gaugeFactory.address,
             fxs.address,
-            "10000",
+            "100000000000000000000",
             parseInt(lastBlock),
             10
         );
@@ -61,13 +61,11 @@ contract('Boost', () => {
 
     });
     it('should createGauge correct', async () => {
-        // await fxs.approve(gauge.address, toWei('1000'))
-        //await fxs.approve(boost.address, toWei('1000'))
-
-        await boost.createGauge(fxs.address, "100", true);
+        console.log("fxs:" + await fxs.balanceOf(owner.address))
+        await boost.createGauge(usdc.address, "100", true);
 
         // gaugeAddr = await gaugeFactory.last()
-        let gaugeAddr = await boost.gauges(fxs.address)
+        let gaugeAddr = await boost.gauges(usdc.address)
 
         const Gauge = await ethers.getContractFactory('Gauge');
         gauge = await Gauge.attach(gaugeAddr)
@@ -77,174 +75,67 @@ contract('Boost', () => {
         expect(await boost.poolLength()).to.be.eq(1);
 
         expect(await boost.isGauge(gauge.address)).to.be.eq(true);
-        expect(await boost.poolForGauge(gauge.address)).to.be.eq(fxs.address)
+        expect(await boost.poolForGauge(gauge.address)).to.be.eq(usdc.address)
 
         await frax.addPool(gauge.address);
-        // await boost.distribute(gauge.address);
-        // await boost.poke(1);
 
         // stratBlock = await time.latestBlock();
         // // console.log("block:" + stratBlock);
         // await time.advanceBlockTo(parseInt(stratBlock) + 10);
         // console.log("fxs:" + await fxs.balanceOf(boost.address))
 
-        await fxs.approve(lock.address, toWei('1000'))
+        await usdc.approve(lock.address, toWei('1000'))
+        //  await fxs.connect(dev).approve(lock.address, toWei('1000'))
         let eta = time.duration.days(1);
         // console.log("eta:" + parseInt(eta));
 
         await lock.create_lock("1000", parseInt(eta));
-        //  await boost.poke(1);
-        await fxs.approve(gauge.address, toWei('1000'))
 
+        // await frax.addPool(dev.address)
+        // await fxs.poolMint(dev.address, toWei('1'))
+        //  await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+        await usdc.approve(gauge.address, toWei('1000'))
+        // await fxs.connect(dev).approve(gauge.address, toWei('1000'))
 
         expect(await lock.ownerOf(1)).to.be.eq(owner.address)
         expect(await gauge.tokenIds(owner.address)).to.be.eq(0)
 
-        // await lock.approve(boost.address,1)
-        // expect(await lock.getApproved(1)).to.be.eq(true)
-        //  await boost.updateAll()
-
-        // await boost.poke(1)
-        console.log("totalWeight:"+await boost.totalWeight())
-
-        //expect(await boost.isGauge(owner.address)).to.be.eq(false)
-
-        // await boost.attachTokenToGauge(1, owner.address)
-         console.log("supply:"+await boost.weights(fxs.address))
-
         await gauge.deposit("1000", 1);
-        // stratBlock = await time.latestBlock();
-        // // console.log("block:" + stratBlock);
-        // await time.advanceBlockTo(parseInt(stratBlock) + 10);
+        console.log("usdc:" + await usdc.balanceOf(owner.address))
 
-        await gauge.earned(fxs.address, owner.address)
+        //  await gauge.connect(dev).deposit("1000", 2);
+        stratBlock = await time.latestBlock();
+        // console.log("block:" + stratBlock);
+        await time.advanceBlockTo(parseInt(stratBlock) + 10);
 
-        // console.log("votes:"+await boost.votes(1,fxs.address))
+        //await gauge.earned(usdc.address, owner.address)
+
+        expect(await gauge.isReward(lock.address)).to.be.eq(false)
+
+        let result =await gauge.rewardRate(usdc.address);
+        console.log(result);
+        let point = await gauge.checkpoints(owner.address, 0)
+        console.log("timestamp:" + point[0])
+        console.log("balanceOf:" + point[1])
+        await boost.poke(1);
+        await boost.updatePool(0);
+        result =await gauge.rewardRate(usdc.address);
+        console.log(result);
+        // console.log("poolVote:" + await boost.poolVote(0, 0))//error
+        // await time.increase(time.duration.days(10));
         //
-        // console.log("rewardPerToken:" + await gauge.rewardPerToken(fxs.address))
-        //
-        // console.log("owner:" + await fxs.balanceOf(owner.address))
-        //
-        // console.log("------------------")
-        // console.log("derivedSupply:" + await gauge.derivedSupply())
-        // console.log("derivedBalance:" + await gauge.derivedBalance(owner.address))
-        // console.log("gauge:" + await gauge.balanceOf(owner.address))
-        // console.log("adjusted:"+await boost.votes(1,fxs.address))
-        // console.log("supply:"+await boost.weights(fxs.address))
-
-
-        // console.log(await gauge.rewardRate(fxs.address))
-        // let a = await gauge.rewardPerTokenStored(fxs.address)
-        // console.log("a:" + a)
-        // expect(await gauge.isReward(fxs.address)).to.be.eq(false)
-        // console.log("rewardsListLength:" + await gauge.rewardsListLength())
-
-        // await boost.updatePool(0)
-
-      
-
-        // expect(await gauge.isReward(fxs.address)).to.be.eq(true)
+        // console.log('rewardPerTokenCheckpoints:' + await gauge.rewardPerTokenCheckpoints(lock.address, 0))
         // await gauge.getReward(owner.address, [fxs.address])
+        //
+        // console.log("fxs:" + await fxs.balanceOf(owner.address))
+        // await gauge.withdraw("1000");
         // console.log("owner:" + await fxs.balanceOf(owner.address))
-
-
-
-
-
-        // console.log("user_point_epoch:"+await lock.user_point_epoch(1))
         //
-        // console.log("user_point_history:"+await lock.user_point_history(1,1))
-        // console.log("_weight:"+await lock.balanceOfNFT(1))
-        //
-        //
-        //  stratBlock = await time.latestBlock();
-        // // console.log("block:" + stratBlock);
-        // await time.advanceBlockTo(parseInt(stratBlock) + 10);
-        //  await boost.poke(1)
-        // console.log("ownership_change:"+await lock.ownership_change(1))
-
-
-
-        await gauge.withdraw("1000");
-        console.log("owner:" + await fxs.balanceOf(owner.address))
-
-         await time.increase(time.duration.days(4));
-        await lock.withdraw(1);
-
-
-        console.log("owner:" + await fxs.balanceOf(owner.address))
-
+        //  await time.increase(time.duration.days(4));
+        // await lock.withdraw(1);
+        // console.log("owner:" + await fxs.balanceOf(owner.address))
 
     });
-    // it('should createGauge correct', async () => {
-    //
-    //     //await fxs.approve(boost.address, toWei('1000'))
-    //
-    //     await boost.createGauge(usdc.address, "100", true);
-    //
-    //     // gaugeAddr = await gaugeFactory.last()
-    //     let gaugeAddr = await boost.gauges(usdc.address)
-    //
-    //     const Gauge = await ethers.getContractFactory('Gauge');
-    //     gauge = await Gauge.attach(gaugeAddr)
-    //     expect(gauge.address).to.be.eq(gaugeAddr)
-    //
-    //       await usdc.approve(gauge.address, toWei('1000'))
-    //
-    //
-    //     expect(await boost.poolLength()).to.be.eq(1);
-    //
-    //     expect(await boost.isGauge(gauge.address)).to.be.eq(true);
-    //     expect(await boost.poolForGauge(gauge.address)).to.be.eq(usdc.address)
-    //
-    //     await frax.addPool(gauge.address);
-    //     // await boost.distribute(gauge.address);
-    //     // await boost.poke(1);
-    //
-    //     // stratBlock = await time.latestBlock();
-    //     // // console.log("block:" + stratBlock);
-    //     // await time.advanceBlockTo(parseInt(stratBlock) + 10);
-    //     // console.log("fxs:" + await fxs.balanceOf(boost.address))
-    //
-    //     await fxs.approve(lock.address, toWei('1000'))
-    //     let eta = time.duration.days(1);
-    //     // console.log("eta:" + parseInt(eta));
-    //
-    //     await lock.create_lock("1000", parseInt(eta));
-    //     //  await boost.poke(1);
-    //     await fxs.approve(gauge.address, toWei('1000'))
-    //
-    //
-    //     expect(await lock.ownerOf(1)).to.be.eq(owner.address)
-    //     expect(await gauge.tokenIds(owner.address)).to.be.eq(0)
-    //
-    //     console.log("totalWeight:"+await boost.totalWeight())
-    //
-    //     //expect(await boost.isGauge(owner.address)).to.be.eq(false)
-    //
-    //     // await boost.attachTokenToGauge(1, owner.address)
-    //      console.log("supply:"+await boost.weights(fxs.address))
-    //
-    //     await gauge.deposit("1000", 1);
-    //     // stratBlock = await time.latestBlock();
-    //     // // console.log("block:" + stratBlock);
-    //     // await time.advanceBlockTo(parseInt(stratBlock) + 10);
-    //
-    //     await gauge.earned(fxs.address, owner.address)
-    //     expect(await gauge.isReward(usdc.address)).to.be.eq(false)
-    //     await gauge.getReward(owner.address, [fxs.address])
-    //     console.log("owner:" + await usdc.balanceOf(owner.address))
-    //
-    //     // await gauge.withdraw("1000");
-    //     // console.log("owner:" + await fxs.balanceOf(owner.address))
-    //     //
-    //     //  await time.increase(time.duration.days(4));
-    //     // await lock.withdraw(1);
-    //     //
-    //     // console.log("owner:" + await fxs.balanceOf(owner.address))
-    //
-    //
-    // });
 
 
 });
