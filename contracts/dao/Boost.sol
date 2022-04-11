@@ -117,7 +117,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         bool minRet = swapToken.mint(address(this), tokenReward);
         if (minRet) {
-            IGauge(gauges[pool.lpToken]).notifyRewardAmount(pool.lpToken, tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
+            IGauge(gauges[pool.lpToken]).notifyRewardAmount(address(swapToken), tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
         }
         pool.lastRewardBlock = block.number;
     }
