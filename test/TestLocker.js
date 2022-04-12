@@ -30,6 +30,11 @@ contract('Locker', async () => {
     let thTestERC20;
     let durationTime;
     let lock;
+    let lockMap
+    let firstTokenId
+    let secondTokenId
+    let tokenId
+    let lockBalanceMap
     
     /**
      * To mint some object
@@ -101,13 +106,11 @@ contract('Locker', async () => {
 
     it('test get_last_user_slope', async function() {
         // Evrytime will execute before each so we can access contract properties
-        var lockMap
         var lockSlop
         var lockMapTimeStamp
         var lockMapBlcok
         var currentBlock
         var currentTime
-        var tokenId
         var arName
         var nftCount
 
@@ -148,10 +151,8 @@ contract('Locker', async () => {
     });
 
     it('test user_point_history__ts', async function() {
-        var lockMap
         var lockMapTimeStamp
         var functionReturnTimeStamp
-        var tokenId
 
         lockMap = await lock.point_history(0) // You will get a struct
         lockMapTimeStamp = lockMap[2] // This is index of time stamp in the struct point
@@ -169,10 +170,8 @@ contract('Locker', async () => {
     });
 
     it('test locked__end', async function() {
-        var balanceMap
-        var balanceMapEnd
+        var lockBalanceEnd
         var functionReturnEnd
-        var tokenId
 
         // When you create a lock will change lockbalance end value
         // Approve
@@ -182,17 +181,16 @@ contract('Locker', async () => {
         tokenId = await lock.create_lock(SUPPLY, durationTime) // This function return a value type is uint
 
         // Get lockerbalance struct
-        balanceMap = await lock.locked(1)
-        balanceMapEnd = balanceMap[1]
+        lockBalanceMap = await lock.locked(1)
+        lockBalanceEnd = lockBalanceMap[1]
 
         // Call the function of locked__end
         functionReturnEnd = await lock.locked__end(1)
 
-        console.log(checkInfoEq(balanceMapEnd, functionReturnEnd))
+        console.log(checkInfoEq(lockBalanceEnd, functionReturnEnd))
     });
 
     it('test balanceOf、ownerOf', async function() {
-        var tokenId
         var arName
         var nftCount
 
@@ -216,9 +214,7 @@ contract('Locker', async () => {
          * You need to craete lock twice, because this function definition can not empower yourself
          * Focus on the one modifled map ---> idToApproves
          */
-        var firstTokenId
         var firstTokenAddress
-        var secondTokenId
         var secondTokenAddress
         var poolTokenAddress
         var needBoolean
@@ -249,8 +245,6 @@ contract('Locker', async () => {
     });
 
     it('test function about voter', async function() {
-        var firstTokenId
-        var secondTokenId
         var initFirstVoteBoolean
         var firstVoteBoolean
         var initSecondVoteBoolea
@@ -300,10 +294,8 @@ contract('Locker', async () => {
     });
 
     it('test attach、detach', async function() {
-        var firstTokenId
         var firAtt
         var firDet
-        var secondTokenId
         var seAtt
         var seDet
         var type
@@ -341,8 +333,6 @@ contract('Locker', async () => {
         /* lastPointBlk, lastPointTs, durationTime, t_i, slope_changes[t_i] */
         const Day = 86400 // This time is a const
         const NUMBER = 1e18; // To calculate the slope
-        var firstTokenId
-        var lockMap
         var lastPointBias
         var lastPointSlope
         var lastPointBlk
@@ -394,7 +384,6 @@ contract('Locker', async () => {
     }); // Unfinished--->Check_point function is very important
 
     it('test block_number', async function() {
-        var firstTokenId
         var latestBlock
         var returnBlock
 
@@ -415,7 +404,6 @@ contract('Locker', async () => {
 
     it('test deposit_for', async function() {
         /* LockedBalnace, locked */
-        var firstTokenId
         var lockBalanceMap
         var lockBalanceAmount
         var initLockBalanceAmount
@@ -447,9 +435,7 @@ contract('Locker', async () => {
     it('test balanceOfNFT and balanceOfNFTAt', async function(){
         /* point.slope, point.bias */
         const Result = 0
-        var firstTokenId
         var currentBlock
-        var lockMap
         var latestPointBias
         var latestPointSlope
         var latestPointTs
@@ -493,7 +479,6 @@ contract('Locker', async () => {
     });// Queer
 
     it('test tokenURI', async function() {
-        var firstTokenId
         var lockBalanceMap
         var lockBalanceAmount
         var lockBalanceEnd
