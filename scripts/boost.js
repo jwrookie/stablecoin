@@ -26,13 +26,13 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-     let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
+     let fxs = "0xaB029cDE7003a469f48D1D0B3d2be18CD6A8FC47"
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
    let  operatable = "0xfC1111970050c3Ce49f77C666a0aa9C0126e6991"
 let checkOper = "0x3bC28fEA7bE7a8946E9B97d8F2B1f8cE95b93eE8"
-let lock = "0xe9aB6Caa7f5B672E5Cac9c8AA1C7A5C416Fb2d83"
-let gaugeFactory = "0xc841f3A699CB9375b73E3D55A36edCAaf77c8277"
+let lock = "0x33F05350555a614AF727B444221F9720eC4C11A1"
+let gaugeFactory = "0x9c4A47bd3485A4A8443fE022Ef372Dda6a8a26d6"
 
 
     // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
@@ -79,7 +79,7 @@ let gaugeFactory = "0xc841f3A699CB9375b73E3D55A36edCAaf77c8277"
         gaugeFactory,
         fxs,
         toWei('1'),
-        parseInt("18354790"),
+        parseInt("18375499 "),
         "1000"
     );
      console.log("boost:" + boost.address)
