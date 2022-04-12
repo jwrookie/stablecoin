@@ -173,10 +173,10 @@ contract('Boost', () => {
 
     it('test vote', async () => {
         await usdc.connect(dev).approve(lock.address, toWei('10000000'));
-        let eta = time.duration.days(1);
+        let eta = time.duration.days(1000);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+        await lock.connect(dev).create_lock_for("1000000000", parseInt(eta), dev.address);
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
         await gauge_usdc.connect(dev).deposit("1000", 1);
@@ -188,7 +188,10 @@ contract('Boost', () => {
         //await boost.reset(1)
         //await boost.poke(1)
         console.log(await boost.weights(usdc.address))
-
+        weight = await lock.balanceOfNFT("1");
+        console.log("weight:" + weight);
+        epoch=await lock.user_point_epoch("1");
+        console.log("epoch:" + epoch);
         await boost.connect(dev).vote(1, [usdc.address], ["100"])
 
 
