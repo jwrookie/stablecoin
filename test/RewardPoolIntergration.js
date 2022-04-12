@@ -11,12 +11,6 @@ const {BigNumber} = require('ethers');
 const {expect} = require('chai');
 const { parse } = require('path');
 const { advanceBlockTo } = require('@openzeppelin/test-helpers/src/time');
-/** Introducing local modules */
-// const RewardPool = artifacts.require('./contracts/dao/RewardPool.sol');
-// const MockToken = artifacts.require('./contracts/mock/MockToken.sol');
-// const Operatable = artifacts.require('./contracts/tools/Operatable.sol');
-// const Oracle = artifacts.require('./contracts/mock/TestOracle.sol');
-// const FXS = artifacts.require('./contracts/token/FXS/FXS.sol');
 
 contract('RewardPoolIntergration', () => {
     // Some module name
@@ -60,23 +54,6 @@ contract('RewardPoolIntergration', () => {
         }else {
             return false
         }
-    }
-
-    /**
-     * @description: Get the lastes block
-     * @returns The last block
-     */
-    async function getCurrentBlock() {
-        return await time.latestBlock()
-    }
-
-    /**
-     * @description: Move block
-     * @param {time} blockNumber 
-     * @param {number} moveBlock 
-     */
-    async function moveBlock(blockNumber, moveBlock) {
-        await time.advanceBlockTo(parseInt(blockNumber) + moveBlock)
     }
 
     beforeEach(async function() {
@@ -540,18 +517,6 @@ contract('RewardPoolIntergration', () => {
         acquiescentToken = await mockToken.balanceOf(owner.address)
         seAcquiescentToken = await mockToken.balanceOf(seObject.address)
 
-        // console.log(acquiescentToken)
-        // console.log(seAcquiescentToken)
-
-        // Do the difference accuracy problem
-        // expect(acquiescentToken - seAcquiescentToken).to.be.eq(BigNumber.from(seObjectLpTokenValue).sub(ownerLpTokenValue))
-
-        // Wait a moment
-        // currentBlock = await time.latestBlock()
-        // await time.advanceBlockTo(parseInt(currentBlock) + 1)
-        // seObjectPendingValue = await rewardPool.pending(0, seObject.address)
-        // expect(seObjectPendingValue).to.be.not.eq(ownerPandingValue)
-
         // Get owner info
         ownerUserInfo = await rewardPool.userInfo(0, owner.address)
         ownerUserInfoAmount = ownerUserInfo[0]
@@ -672,10 +637,6 @@ contract('RewardPoolIntergration', () => {
         await rewardPool.deposit(1, 0)
         acquiescentToken = await fxs.connect(owner).balanceOf(owner.address)
         console.log("Two pools pending:" + acquiescentToken)
-        // console.log(ownerPendingValue)
-        // currentBlock = getCurrentBlock()
-        // console.log(parseInt(currentBlock))
-        // moveBlock(currentBlock, 100)
         ownerSePnedingValue = await rewardPool.pending(1, owner.address)
         // Wait a moment
         currentBlock = await time.latestBlock()
