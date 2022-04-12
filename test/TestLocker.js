@@ -19,10 +19,6 @@ contract('Locker', async () => {
     const TESTERC20 = "TestERC20";
     const LOCKER = "Locker";
     const ERC721_INTERFACE_BYTE = 0x01ffc9a7;
-    // const LOCK_INFO_NAME = "veNFT";
-    // const SYMBOL = "veNFT";
-    // const VERSION = "1.0.0";
-    // const DECIMALS = 18;
     const SUPPLY = 1000; // This parameter is a value about reward pool
     const APPROVE_NUMBER = "1000";
 
@@ -59,23 +55,6 @@ contract('Locker', async () => {
     }
 
     /**
-     * This is a function about change time to int
-     * @param {TimeBlock} block 
-     * @returns 
-     */
-    async function changeTimeBlock() {
-        var block
-        block = time.latestBlock()
-        return parseInt(block)
-    }
-
-    async function changeTime() {
-        var timeInt
-        timeInt = time.latest()
-        return parseInt(timeInt)
-    }
-
-    /**
      * This is a function about check information equal information
      * @param {Any} anyThing 
      * @param {Any} value 
@@ -89,46 +68,6 @@ contract('Locker', async () => {
             return
         }
         if(expect(value).to.be.eq(value)) {
-            return true
-        }else{
-            return false
-        }
-    }
-
-    /**
-     * This is a function about check information big than another
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
-     */
-    async function checkInfoGt(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
-            return
-        }
-        if("" == value || null == value) {
-            return
-        }
-        if(expect(value).to.be.gt(anyThing)) {
-            return true
-        }else{
-            return false
-        }
-    }
-
-    /**
-     * This is a function about check information less than another
-     * @param {Any} anyThing
-     * @param {Any} value 
-     * @returns 
-     */
-    async function checkInfoLt(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
-            return
-        }
-        if("" == value || null == value) {
-            return
-        }
-        if(expect(value).to.be.lt(anyThing)) {
             return true
         }else{
             return false
@@ -161,11 +100,6 @@ contract('Locker', async () => {
     });
 
     it('test get_last_user_slope', async function() {
-        /**
-         * This function need tokenid, when you want to get tokenid you need to call the function of create_lock
-         * When you instantiation the contract of locker you will get a point info
-         * If you want to get point info you need to access contract properties point_history
-         */
         // Evrytime will execute before each so we can access contract properties
         var lockMap
         var lockSlop
@@ -198,7 +132,6 @@ contract('Locker', async () => {
         console.log("tokenId::\t" + tokenId) // But this is a object so we need to change the paramter to 1
 
         // Call the function of test
-        // await lock.get_last_user_slope(tokenId)
         await lock.get_last_user_slope(1)
 
         // Check user point slope
@@ -298,19 +231,12 @@ contract('Locker', async () => {
         await firstTestERC20.connect(seObject).approve(lock.address, toWei(APPROVE_NUMBER))
         durationTime = getDurationTime(1)
         secondTokenId = await lock.create_lock_for(SUPPLY, durationTime, seObject.address) // The token id is 2
-        /**
-         *  Each user can authorize the pool only once
-         */
 
         // We use the second token to authorize the first token
         firstTokenAddress = await lock.ownerOf(1)
         console.log("FTokenAddress::\t" + firstTokenAddress)
         secondTokenAddress = await lock.ownerOf(2)
 
-        /**
-         * You must ensure that this address is present in the lock pool and is not self-authorized
-         * This parameter is the authorized object
-         */
         await lock.approve(secondTokenAddress, 1)
 
         // Check approves address
@@ -371,8 +297,6 @@ contract('Locker', async () => {
         // Call the function voted
         seVoteBoolean = await lock.connect(seObject).voted(2)
         console.log(seVoteBoolean)
-        // seVoteBoolean = await lock.voted(2)
-        // console.log(seVoteBoolean)
     });
 
     it('test attach、detach', async function() {
@@ -414,14 +338,10 @@ contract('Locker', async () => {
     });
 
     it('test checkPoint、_checkPoint', async function() {
-        /**
-         * Create a lock and call the function
-         * This function need to know before call the function --->lastPointBlk, lastPointTs, durationTime, t_i, slope_changes[t_i]
-         */
+        /* lastPointBlk, lastPointTs, durationTime, t_i, slope_changes[t_i] */
         const Day = 86400 // This time is a const
         const NUMBER = 1e18; // To calculate the slope
         var firstTokenId
-        var secondTokenId
         var lockMap
         var lastPointBias
         var lastPointSlope
@@ -442,9 +362,6 @@ contract('Locker', async () => {
         // Call the function create_lock
         durationTime = getDurationTime(1) // Lock one day
         firstTokenId = await lock.create_lock(SUPPLY, durationTime) // This function return a value type is uint
-        // await firstTestERC20.connect(seObject).approve(lock.address, toWei(APPROVE_NUMBER))
-        // durationTime = getDurationTime(1)
-        // secondTokenId = await lock.create_lock_for(SUPPLY, durationTime, seObject.address) // The token id is 2
 
         // Get value
         lockMap = await lock.point_history(0)
@@ -497,10 +414,7 @@ contract('Locker', async () => {
     });
 
     it('test deposit_for', async function() {
-        /**
-         * This function is a deposite token to another value
-         * The function changes the value of LockedBalnace, locked
-         */
+        /* LockedBalnace, locked */
         var firstTokenId
         var lockBalanceMap
         var lockBalanceAmount
@@ -531,9 +445,7 @@ contract('Locker', async () => {
     });
 
     it('test balanceOfNFT and balanceOfNFTAt', async function(){
-        /**
-         * The function changes the value of point.slope, point.bias
-         */
+        /* point.slope, point.bias */
         const Result = 0
         var firstTokenId
         var currentBlock
@@ -571,7 +483,6 @@ contract('Locker', async () => {
         lockMap = await lock.point_history(1)
         latestPointBias = lockMap[0]
         console.log(latestPointBias)
-        // expect(paraTime).to.be.not.eq(BigNumber.from(latestPointTs))
 
         // Call the function of nft at
         paraTime = await time.latest()
