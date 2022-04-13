@@ -21,15 +21,16 @@ pragma solidity >=0.6.11;
 // Travis Moore: https://github.com/FortisFortuna
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "../Math/Math.sol";
 import "./Uniswap/Interfaces/IUniswapV2Pair.sol";
-import "../Staking/Owned.sol";
 import "./UniswapPairOracle.sol";
 import "./ChainlinkETHUSDPriceConsumer.sol";
 import "../Curve/IMetaImplementationUSD.sol";
 import "./ChainlinkFXSUSDPriceConsumer.sol";
 
-contract ReserveTracker is Owned {
+contract ReserveTracker is Ownable {
     using SafeMath for uint256;
 
     // Various precisions
@@ -80,7 +81,7 @@ contract ReserveTracker is Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == owner || msg.sender == timelock_address, "Not owner or timelock");
+        require(msg.sender == owner() || msg.sender == timelock_address, "Not owner or timelock");
         _;
     }
 
@@ -91,7 +92,7 @@ contract ReserveTracker is Owned {
         address _fxs_contract_address,
         address _creator_address,
         address _timelock_address
-    ) Owned(_creator_address) {
+    )  {
         frax_contract_address = _frax_contract_address;
         fxs_contract_address = _fxs_contract_address;
         timelock_address = _timelock_address;

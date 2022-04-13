@@ -8,7 +8,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
 import "../Frax.sol";
-import "../../Staking/Owned.sol";
 
 contract FRAXShares is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;

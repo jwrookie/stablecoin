@@ -24,10 +24,11 @@ pragma solidity >=0.6.11;
 // Sam Kazemian: https://github.com/samkazemian
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import '@openzeppelin/contracts/access/Ownable.sol';
 import "./AggregatorV3Interface.sol";
-import "../Staking/Owned.sol";
 
-contract FXSOracleWrapper is Owned {
+
+contract FXSOracleWrapper is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface private priceFeedFXSUSD;
@@ -42,7 +43,7 @@ contract FXSOracleWrapper is Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == owner || msg.sender == timelock_address, "Not owner or timelock");
+        require(msg.sender == owner() || msg.sender == timelock_address, "Not owner or timelock");
         _;
     }
 
@@ -51,7 +52,7 @@ contract FXSOracleWrapper is Owned {
     constructor (
         address _creator_address,
         address _timelock_address
-    ) Owned(_creator_address) {
+    ) {
         timelock_address = _timelock_address;
 
         // FXS/USD
@@ -67,15 +68,15 @@ contract FXSOracleWrapper is Owned {
 
     function getFXSPrice() public view returns (uint256) {
         (uint80 roundID, int price, , uint256 updatedAt, uint80 answeredInRound) = priceFeedFXSUSD.latestRoundData();
-        require(price >= 0 && updatedAt!= 0 && answeredInRound >= roundID, "Invalid chainlink price");
+        require(price >= 0 && updatedAt != 0 && answeredInRound >= roundID, "Invalid chainlink price");
 
         return uint256(price).mul(PRICE_PRECISION).div(10 ** chainlink_fxs_usd_decimals);
     }
 
     function getETHPrice() public view returns (uint256) {
         (uint80 roundID, int price, , uint256 updatedAt, uint80 answeredInRound) = priceFeedETHUSD.latestRoundData();
-        require(price >= 0 && updatedAt!= 0 && answeredInRound >= roundID, "Invalid chainlink price");
-        
+        require(price >= 0 && updatedAt != 0 && answeredInRound >= roundID, "Invalid chainlink price");
+
         return uint256(price).mul(PRICE_PRECISION).div(10 ** chainlink_eth_usd_decimals);
     }
 

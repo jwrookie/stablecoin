@@ -10,7 +10,6 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 
 import "./AbstractPausable.sol";
 import "./FXS/IFxs.sol";
-import "../Staking/Owned.sol";
 import "./FXS/FXS.sol";
 import "./Pools/FraxPool.sol";
 import "../Oracle/UniswapPairOracle.sol";

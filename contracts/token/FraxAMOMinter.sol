@@ -1,41 +1,18 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.8.0;
 
-// ====================================================================
-// |     ______                   _______                             |
-// |    / _____________ __  __   / ____(_____  ____ _____  ________   |
-// |   / /_  / ___/ __ `| |/_/  / /_  / / __ \/ __ `/ __ \/ ___/ _ \  |
-// |  / __/ / /  / /_/ _>  <   / __/ / / / / / /_/ / / / / /__/  __/  |
-// | /_/   /_/   \__,_/_/|_|  /_/   /_/_/ /_/\__,_/_/ /_/\___/\___/   |
-// |                                                                  |
-// ====================================================================
-// =========================== FraxAMOMinter ==========================
-// ====================================================================
-// globalCollateralValue() in Frax.sol is gassy because of the loop and all of the AMOs attached to it. 
-// This minter would be single mint point for all of the AMOs, and would track the collatDollarBalance with a
-// state variable after any mint occurs, or manually with a sync() call
-// Frax Finance: https://github.com/FraxFinance
-
-// Primary Author(s)
-// Travis Moore: https://github.com/FortisFortuna
-
-// Reviewer(s) / Contributor(s)
-// Jason Huan: https://github.com/jasonhuan
-// Sam Kazemian: https://github.com/samkazemian
-// Dennis: github.com/denett
-// Hameed
-
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IFrax.sol";
 import "../token/FXS/IFxs.sol";
 import "../token/Pools/FraxPoolV3.sol";
 import "../token/Pools/IFraxPool.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "../Staking/Owned.sol";
+
 import '../tools/TransferHelper.sol';
 import '../Misc_AMOs/IAMO.sol';
 
-contract FraxAMOMinter is Owned {
+contract FraxAMOMinter is Ownable {
     // SafeMath automatically included in Solidity >= 8.0.0
 
     /* ========== STATE VARIABLES ========== */
@@ -95,14 +72,14 @@ contract FraxAMOMinter is Owned {
     // [amo_address][1] = AMO's collat_val_e18
 
     /* ========== CONSTRUCTOR ========== */
-    
+
     constructor (
         address _owner_address,
         address _custodian_address,
         address _timelock_address,
         address _collateral_address,
         address _pool_address
-    ) Owned(_owner_address) {
+    )  {
         custodian_address = _custodian_address;
         timelock_address = _timelock_address;
 
@@ -119,7 +96,7 @@ contract FraxAMOMinter is Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == timelock_address || msg.sender == owner, "Not owner or timelock");
+        require(msg.sender == timelock_address || msg.sender == owner(), "Not owner or timelock");
         _;
     }
 
@@ -153,7 +130,7 @@ contract FraxAMOMinter is Owned {
     }
 
     function fraxTrackedAMO(address amo_address) external view returns (int256) {
-        (uint256 frax_val_e18, ) = IAMO(amo_address).dollarBalances();
+        (uint256 frax_val_e18,) = IAMO(amo_address).dollarBalances();
         int256 frax_val_e18_corrected = int256(frax_val_e18) + correction_offsets_amos[amo_address][0];
         return frax_val_e18_corrected - frax_mint_balances[amo_address] - ((collat_borrowed_balances[amo_address]) * int256(10 ** missing_decimals));
     }
@@ -163,11 +140,11 @@ contract FraxAMOMinter is Owned {
     // Callable by anyone willing to pay the gas
     function syncDollarBalances() public {
         uint256 total_frax_value_d18 = 0;
-        uint256 total_collateral_value_d18 = 0; 
-        for (uint i = 0; i < amos_array.length; i++){ 
+        uint256 total_collateral_value_d18 = 0;
+        for (uint i = 0; i < amos_array.length; i++) {
             // Exclude null addresses
             address amo_address = amos_array[i];
-            if (amo_address != address(0)){
+            if (amo_address != address(0)) {
                 (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
                 total_frax_value_d18 += uint256(int256(frax_val_e18) + correction_offsets_amos[amo_address][0]);
                 total_collateral_value_d18 += uint256(int256(collat_val_e18) + correction_offsets_amos[amo_address][1]);
@@ -201,7 +178,7 @@ contract FraxAMOMinter is Owned {
     function oldPoolCollectAndGive(address destination_amo) external onlyByOwnGov validAMO(destination_amo) {
         // Get the amount to be collected
         uint256 collat_amount = old_pool.redeemCollateralBalances(address(this));
-        
+
         // Collect the redemption
         old_pool.collectRedemption();
 
@@ -342,7 +319,7 @@ contract FraxAMOMinter is Owned {
         require(frax_val_e18 >= 0 && collat_val_e18 >= 0, "Invalid AMO");
 
         require(amos[amo_address] == false, "Address already exists");
-        amos[amo_address] = true; 
+        amos[amo_address] = true;
         amos_array.push(amo_address);
 
         // Mint balances
@@ -363,14 +340,15 @@ contract FraxAMOMinter is Owned {
     function removeAMO(address amo_address, bool sync_too) public onlyByOwnGov {
         require(amo_address != address(0), "Zero address detected");
         require(amos[amo_address] == true, "Address nonexistant");
-        
+
         // Delete from the mapping
         delete amos[amo_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < amos_array.length; i++){ 
+        for (uint i = 0; i < amos_array.length; i++) {
             if (amos_array[i] == amo_address) {
-                amos_array[i] = address(0); // This will leave a null in the array and keep the indices the same
+                amos_array[i] = address(0);
+                // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
@@ -386,7 +364,7 @@ contract FraxAMOMinter is Owned {
     }
 
     function setCustodian(address _custodian_address) external onlyByOwnGov {
-        require(_custodian_address != address(0), "Custodian address cannot be 0");        
+        require(_custodian_address != address(0), "Custodian address cannot be 0");
         custodian_address = _custodian_address;
     }
 
@@ -422,8 +400,8 @@ contract FraxAMOMinter is Owned {
 
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyByOwnGov {
         // Can only be triggered by owner or governance
-        TransferHelper.safeTransfer(tokenAddress, owner, tokenAmount);
-        
+        TransferHelper.safeTransfer(tokenAddress, owner(), tokenAmount);
+
         emit Recovered(tokenAddress, tokenAmount);
     }
 
@@ -433,7 +411,7 @@ contract FraxAMOMinter is Owned {
         uint256 _value,
         bytes calldata _data
     ) external onlyByOwnGov returns (bool, bytes memory) {
-        (bool success, bytes memory result) = _to.call{value:_value}(_data);
+        (bool success, bytes memory result) = _to.call{value : _value}(_data);
         return (success, result);
     }
 

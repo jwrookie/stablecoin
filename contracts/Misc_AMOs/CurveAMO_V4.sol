@@ -23,6 +23,7 @@ pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import '@openzeppelin/contracts/access/Ownable.sol';
 
 import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
@@ -30,9 +31,8 @@ import "../Misc_AMOs/yearn/IYearnVault.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Frax.sol";
 import "../token/IFraxAMOMinter.sol";
-import "../Staking/Owned.sol";
 
-contract CurveAMO_V4 is Owned {
+contract CurveAMO_V4 is Ownable {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
@@ -86,8 +86,7 @@ contract CurveAMO_V4 is Owned {
         address sbAddress,
         address poolAddress,
         address poolTokenAddress
-    ) Owned(_owner_address) {
-        owner = _owner_address;
+    )  {
         FRAX = FRAXStablecoin(stableCoinAddress);
         collateral_token = ERC20(collateralToken);
         crv_address = sbAddress;
@@ -116,12 +115,12 @@ contract CurveAMO_V4 is Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == timelock_address || msg.sender == owner, "Not owner or timelock");
+        require(msg.sender == timelock_address || msg.sender == owner(), "Not owner or timelock");
         _;
     }
 
     modifier onlyByOwnGovCust() {
-        require(msg.sender == timelock_address || msg.sender == owner || msg.sender == custodian_address, "Not owner, tlck, or custd");
+        require(msg.sender == timelock_address || msg.sender == owner() || msg.sender == custodian_address, "Not owner, tlck, or custd");
         _;
     }
 
