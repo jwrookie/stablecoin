@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 import '../tools/TransferHelper.sol';
 import "../tools/CheckOper.sol";
-import "./interfaces/IToken.sol";
+import "../interface/IToken.sol";
 
 abstract contract TokenReward is CheckOper {
     using SafeMath for uint256;
