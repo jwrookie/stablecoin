@@ -13,22 +13,17 @@ import '../tools/TransferHelper.sol';
 import '../amo/IAMO.sol';
 
 contract FraxAMOMinter is Ownable {
-    // SafeMath automatically included in Solidity >= 8.0.0
-
-    /* ========== STATE VARIABLES ========== */
-
     // Core
     IFrax public FRAX = IFrax(0x853d955aCEf822Db058eb8505911ED77F175b99e);
     IFxs public FXS = IFxs(0x3432B6A60D23Ca0dFCa7761B7ab56459D9C964D0);
     ERC20 public collateral_token;
-    FraxPoolV3 public pool = FraxPoolV3(0x2fE065e6FFEf9ac95ab39E5042744d695F560729);
     IFraxPool public old_pool = IFraxPool(0x1864Ca3d47AaB98Ee78D11fc9DCC5E7bADdA1c0d);
     address public timelock_address;
     address public custodian_address;
 
     // Collateral related
     address public collateral_address;
-    uint256 public col_idx;
+    //    uint256 public col_idx;
 
     // AMO addresses
     address[] public amos_array;
@@ -84,11 +79,11 @@ contract FraxAMOMinter is Ownable {
         timelock_address = _timelock_address;
 
         // Pool related
-        pool = FraxPoolV3(_pool_address);
+        old_pool = IFraxPool(_pool_address);
 
         // Collateral related
         collateral_address = _collateral_address;
-        col_idx = pool.collateralAddrToIdx(_collateral_address);
+        //        col_idx = pool.collateralAddrToIdx(_collateral_address);
         collateral_token = ERC20(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
         missing_decimals = uint(18) - collateral_token.decimals();
     }
@@ -286,7 +281,7 @@ contract FraxAMOMinter is Ownable {
         collat_borrowed_sum += collat_amount_i256;
 
         // Borrow the collateral
-        pool.amoMinterBorrow(collat_amount);
+        old_pool.amoMinterBorrow(collat_amount);
 
         // Give the collateral to the AMO
         TransferHelper.safeTransfer(collateral_address, destination_amo, collat_amount);
@@ -299,7 +294,7 @@ contract FraxAMOMinter is Ownable {
         int256 collat_amt_i256 = int256(usdc_amount);
 
         // Give back first
-        TransferHelper.safeTransferFrom(collateral_address, msg.sender, address(pool), usdc_amount);
+        TransferHelper.safeTransferFrom(collateral_address, msg.sender, address(old_pool), usdc_amount);
 
         // Then update the balances
         collat_borrowed_balances[msg.sender] -= collat_amt_i256;
@@ -392,10 +387,11 @@ contract FraxAMOMinter is Ownable {
     }
 
     function setFraxPool(address _pool_address) external onlyByOwnGov {
-        pool = FraxPoolV3(_pool_address);
+        old_pool = IFraxPool(_pool_address);
 
         // Make sure the collaterals match, or balances could get corrupted
-        require(pool.collateralAddrToIdx(collateral_address) == col_idx, "col_idx mismatch");
+        //todo
+        //        require(old_pool.collateralAddrToIdx(collateral_address) == col_idx, "collateral address mismatch");
     }
 
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyByOwnGov {

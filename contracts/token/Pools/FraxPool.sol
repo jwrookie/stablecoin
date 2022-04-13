@@ -25,7 +25,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
-
+import "../../token/IFraxAMOMinter.sol";
 import '../../tools/TransferHelper.sol';
 import "../FXS/FXS.sol";
 import "../../token/Frax.sol";
@@ -79,6 +79,7 @@ contract FraxPool is AbstractPausable, Multicall {
     // Number of blocks to wait before being able to collectRedemption()
     uint256 public redemption_delay = 1;
 
+    mapping(address => bool) public amo_minter_addresses; // minter address -> is it enabled
 
     constructor (
         address _frax_contract_address,
@@ -97,6 +98,31 @@ contract FraxPool is AbstractPausable, Multicall {
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
         missing_decimals = uint(18).sub(collateral_token.decimals());
+    }
+
+    modifier onlyAMOMinters() {
+        require(amo_minter_addresses[msg.sender], "Not an AMO Minter");
+        _;
+    }
+
+    // Add an AMO Minter
+    function addAMOMinter(address amo_minter_addr) external onlyOwner {
+        require(amo_minter_addr != address(0), "Zero address detected");
+
+        // Make sure the AMO Minter has collatDollarBalance()
+        uint256 collat_val_e18 = IFraxAMOMinter(amo_minter_addr).collatDollarBalance();
+        require(collat_val_e18 >= 0, "Invalid AMO");
+
+        amo_minter_addresses[amo_minter_addr] = true;
+
+        emit AMOMinterAdded(amo_minter_addr);
+    }
+
+    // Remove an AMO Minter
+    function removeAMOMinter(address amo_minter_addr) external onlyOwner {
+        amo_minter_addresses[amo_minter_addr] = false;
+
+        emit AMOMinterRemoved(amo_minter_addr);
     }
 
     /* ========== VIEWS ========== */
@@ -333,6 +359,11 @@ contract FraxPool is AbstractPausable, Multicall {
         }
     }
 
+    // Bypasses the gassy mint->redeem cycle for AMOs to borrow collateral
+    function amoMinterBorrow(uint256 collateral_amount) external whenNotPaused onlyAMOMinters {
+        // Transfer
+        TransferHelper.safeTransfer(collateral_address, msg.sender, collateral_amount);
+    }
 
     // When the protocol is recollateralizing, we need to give a discount of FXS to hit the new CR target
     // Thus, if the target collateral ratio is higher than the actual value of collateral, minters get FXS for adding collateral
@@ -399,7 +430,8 @@ contract FraxPool is AbstractPausable, Multicall {
         emit PoolParametersSet(new_ceiling, new_bonus_rate, new_redemption_delay, new_mint_fee, new_redeem_fee, new_buyback_fee, new_recollat_fee);
     }
 
-
+    event AMOMinterAdded(address amo_minter_addr);
+    event AMOMinterRemoved(address amo_minter_addr);
     event PoolParametersSet(uint256 new_ceiling, uint256 new_bonus_rate, uint256 new_redemption_delay, uint256 new_mint_fee, uint256 new_redeem_fee, uint256 new_buyback_fee, uint256 new_recollat_fee);
 
 
