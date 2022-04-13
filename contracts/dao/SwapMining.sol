@@ -219,7 +219,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     // The user withdraws all the transaction rewards of the pool
-    function getReward() override public {
+    function getRewardAll() override public {
         uint256 userSub;
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {

@@ -10,7 +10,7 @@ import "../token/Pools/FraxPoolV3.sol";
 import "../token/Pools/IFraxPool.sol";
 
 import '../tools/TransferHelper.sol';
-import '../Misc_AMOs/IAMO.sol';
+import '../amo/IAMO.sol';
 
 contract FraxAMOMinter is Ownable {
     // SafeMath automatically included in Solidity >= 8.0.0

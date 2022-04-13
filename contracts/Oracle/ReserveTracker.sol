@@ -23,11 +23,11 @@ pragma solidity >=0.6.11;
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../Math/Math.sol";
+import "../math/Math.sol";
 import "./Uniswap/Interfaces/IUniswapV2Pair.sol";
 import "./UniswapPairOracle.sol";
 import "./ChainlinkETHUSDPriceConsumer.sol";
-import "../Curve/IMetaImplementationUSD.sol";
+import "../interface/curve/IMetaImplementationUSD.sol";
 import "./ChainlinkFXSUSDPriceConsumer.sol";
 
 contract ReserveTracker is Ownable {

@@ -1,33 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 
-// ====================================================================
-// |     ______                   _______                             |
-// |    / _____________ __  __   / ____(_____  ____ _____  ________   |
-// |   / /_  / ___/ __ `| |/_/  / /_  / / __ \/ __ `/ __ \/ ___/ _ \  |
-// |  / __/ / /  / /_/ _>  <   / __/ / / / / / /_/ / / / / /__/  __/  |
-// | /_/   /_/   \__,_/_/|_|  /_/   /_/_/ /_/\__,_/_/ /_/\___/\___/   |
-// |                                                                  |
-// ====================================================================
-// ============================ CurveAMO_V4 ===========================
-// ====================================================================
-// Frax Finance: https://github.com/FraxFinance
-
-// Primary Author(s)
-// Travis Moore: https://github.com/FortisFortuna
-// Jason Huan: https://github.com/jasonhuan
-
-// Reviewer(s) / Contributor(s)
-// Sam Kazemian: https://github.com/samkazemian
-// Dennis: github.com/denett
-
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 
-import "../Curve/IStableSwap3Pool.sol";
-import "../Curve/IMetaImplementationUSD.sol";
-import "../Misc_AMOs/yearn/IYearnVault.sol";
+import "../interface/curve/IStableSwap3Pool.sol";
+import "../interface/curve/IMetaImplementationUSD.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Frax.sol";
 import "../token/IFraxAMOMinter.sol";
@@ -95,10 +74,6 @@ contract CurveAMO_V4 is Ownable {
 
         three_pool = IStableSwap3Pool(poolAddress);
         three_pool_erc20 = ERC20(poolTokenAddress);
-
-        //        crvFRAX_vault_address = 0xB4AdA607B9d6b2c9Ee07A275e9616B84AC560139;
-        //        crvFRAX_vault = IYearnVault(crvFRAX_vault_address);
-
         // Other variable initializations
         PRICE_PRECISION = 1e6;
         liq_slippage_3crv = 800000;

@@ -8,7 +8,7 @@ interface ISwapMining {
         uint256 quantity
     ) external returns (bool);
 
-    function getReward() external;
+    function getRewardAll() external;
 
     function getReward(uint256 pid) external;
 }

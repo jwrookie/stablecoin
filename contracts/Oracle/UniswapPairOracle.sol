@@ -4,7 +4,7 @@ pragma solidity >=0.6.11;
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './Uniswap/Interfaces/IUniswapV2Factory.sol';
 import './Uniswap/Interfaces/IUniswapV2Pair.sol';
-import '../Math/FixedPoint.sol';
+import '../math/FixedPoint.sol';
 
 import './Uniswap/UniswapV2OracleLibrary.sol';
 import './Uniswap/UniswapV2Library.sol';
