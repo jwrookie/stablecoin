@@ -1,33 +1,12 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 
-// ====================================================================
-// |     ______                   _______                             |
-// |    / _____________ __  __   / ____(_____  ____ _____  ________   |
-// |   / /_  / ___/ __ `| |/_/  / /_  / / __ \/ __ `/ __ \/ ___/ _ \  |
-// |  / __/ / /  / /_/ _>  <   / __/ / / / / / /_/ / / / / /__/  __/  |
-// | /_/   /_/   \__,_/_/|_|  /_/   /_/_/ /_/\__,_/_/ /_/\___/\___/   |
-// |                                                                  |
-// ====================================================================
-// ========================= FRAXOracleWrapper =========================
-// ====================================================================
-// The Frax.sol contract needs an oracle with a specific ABI, so this is a
-// 'middleman' one that lets it read Chainlink data.
-
-// Frax Finance: https://github.com/FraxFinance
-
-// Primary Author(s)
-// Jason Huan: https://github.com/jasonhuan
-
-// Reviewer(s) / Contributor(s)
-// Travis Moore: https://github.com/FortisFortuna
-// Sam Kazemian: https://github.com/samkazemian
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import '@openzeppelin/contracts/access/Ownable.sol';
 import "./AggregatorV3Interface.sol";
-import "../Staking/Owned.sol";
 
-contract FRAXOracleWrapper is Owned {
+contract FRAXOracleWrapper is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface private priceFeedFRAXETH;
@@ -41,7 +20,7 @@ contract FRAXOracleWrapper is Owned {
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == owner || msg.sender == timelock_address, "Not owner or timelock");
+        require(msg.sender == owner() || msg.sender == timelock_address, "Not owner or timelock");
         _;
     }
 
@@ -50,7 +29,7 @@ contract FRAXOracleWrapper is Owned {
     constructor (
         address _creator_address,
         address _timelock_address
-    ) Owned(_creator_address) {
+    ) {
         timelock_address = _timelock_address;
 
         // FRAX / ETH
@@ -62,8 +41,8 @@ contract FRAXOracleWrapper is Owned {
 
     function getFRAXPrice() public view returns (uint256 raw_price, uint256 precise_price) {
         (uint80 roundID, int price, , uint256 updatedAt, uint80 answeredInRound) = priceFeedFRAXETH.latestRoundData();
-        require(price >= 0 && updatedAt!= 0 && answeredInRound >= roundID, "Invalid chainlink price");
-        
+        require(price >= 0 && updatedAt != 0 && answeredInRound >= roundID, "Invalid chainlink price");
+
         // E6
         raw_price = uint256(price).mul(PRICE_PRECISION).div(uint256(10) ** chainlink_frax_eth_decimals);
 
@@ -80,7 +59,7 @@ contract FRAXOracleWrapper is Owned {
         require(amountIn == 1e6, "must call with 1e6");
 
         // needs to return it inverted
-        (, uint256 frax_precise_price) = getFRAXPrice(); 
+        (, uint256 frax_precise_price) = getFRAXPrice();
         return PRICE_PRECISION.mul(PRICE_PRECISION).mul(EXTRA_PRECISION).div(frax_precise_price);
     }
 

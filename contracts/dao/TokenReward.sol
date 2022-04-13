@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 import "../tools/CheckOper.sol";
 import "./interfaces/IToken.sol";
 

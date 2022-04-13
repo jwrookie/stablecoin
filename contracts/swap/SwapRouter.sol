@@ -1,7 +1,7 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "../Uniswap/TransferHelper.sol";
+import "../tools/TransferHelper.sol";
 import "../interface/IStablePool.sol";
 import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";

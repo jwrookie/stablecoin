@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import './TokenReward.sol';
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 import "../interface/IVeToken.sol";
 
 abstract contract AbstractBoost is TokenReward {
