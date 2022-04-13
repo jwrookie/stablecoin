@@ -30,7 +30,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Math/Math.sol";
 
 
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 import "../Staking/Owned.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 

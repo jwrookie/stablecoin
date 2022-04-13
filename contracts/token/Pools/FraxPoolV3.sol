@@ -30,7 +30,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import '../../Uniswap/TransferHelper.sol';
+import '../../tools/TransferHelper.sol';
 import "../../token/FXS/IFxs.sol";
 import "../../interface/IFrax.sol";
 import "../../Oracle/AggregatorV3Interface.sol";

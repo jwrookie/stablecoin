@@ -32,7 +32,7 @@ import "./IFraxGaugeFXSRewardsDistributor.sol";
 import "../Misc_AMOs/harmony/IERC20EthManager.sol";
 import "../Misc_AMOs/polygon/IRootChainManager.sol";
 import "../Misc_AMOs/solana/IWormhole.sol";
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 import "../Staking/Owned.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 

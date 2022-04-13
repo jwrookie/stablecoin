@@ -31,7 +31,7 @@ import "../Math/Math.sol";
 
 import "./IFraxGaugeController.sol";
 import "./FraxMiddlemanGauge.sol";
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 import "../Staking/Owned.sol";
 
 
