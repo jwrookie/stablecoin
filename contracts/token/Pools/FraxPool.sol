@@ -25,7 +25,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
-import "../../token/IFraxAMOMinter.sol";
+import "../../interface/IAMOMinter.sol";
 import '../../tools/TransferHelper.sol';
 import "../FXS/FXS.sol";
 import "../../token/Frax.sol";
@@ -110,7 +110,7 @@ contract FraxPool is AbstractPausable, Multicall {
         require(amo_minter_addr != address(0), "Zero address detected");
 
         // Make sure the AMO Minter has collatDollarBalance()
-        uint256 collat_val_e18 = IFraxAMOMinter(amo_minter_addr).collatDollarBalance();
+        uint256 collat_val_e18 = IAMOMinter(amo_minter_addr).collatDollarBalance();
         require(collat_val_e18 >= 0, "Invalid AMO");
 
         amo_minter_addresses[amo_minter_addr] = true;

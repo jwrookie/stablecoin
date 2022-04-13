@@ -9,9 +9,9 @@ import "../interface/curve/IStableSwap3Pool.sol";
 import "../interface/curve/IMetaImplementationUSD.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Frax.sol";
-import "../token/IFraxAMOMinter.sol";
+import "../interface/IAMOMinter.sol";
 
-contract CurveAMO_V4 is Ownable {
+contract ExchangeAMO is Ownable {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
@@ -22,7 +22,7 @@ contract CurveAMO_V4 is Ownable {
     ERC20 private three_pool_erc20;
     FRAXStablecoin private FRAX;
     ERC20 private collateral_token;
-    IFraxAMOMinter private amo_minter;
+    IAMOMinter private amo_minter;
 
     address private collateral_token_address;
     address private crv_address;
@@ -70,7 +70,7 @@ contract CurveAMO_V4 is Ownable {
         collateral_token = ERC20(collateralToken);
         crv_address = sbAddress;
         missing_decimals = uint(18).sub(collateral_token.decimals());
-        amo_minter = IFraxAMOMinter(_amo_minter_address);
+        amo_minter = IAMOMinter(_amo_minter_address);
 
         three_pool = IStableSwap3Pool(poolAddress);
         three_pool_erc20 = ERC20(poolTokenAddress);
@@ -377,7 +377,7 @@ contract CurveAMO_V4 is Ownable {
     /* ========== RESTRICTED GOVERNANCE FUNCTIONS ========== */
 
     function setAMOMinter(address _amo_minter_address) external onlyByOwnGov {
-        amo_minter = IFraxAMOMinter(_amo_minter_address);
+        amo_minter = IAMOMinter(_amo_minter_address);
 
         // Get the custodian and timelock addresses from the minter
         custodian_address = amo_minter.custodian_address();

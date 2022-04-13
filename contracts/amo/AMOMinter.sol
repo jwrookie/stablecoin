@@ -10,9 +10,9 @@ import "../token/Pools/FraxPoolV3.sol";
 import "../token/Pools/IFraxPool.sol";
 
 import '../tools/TransferHelper.sol';
-import '../amo/IAMO.sol';
+import '../interface/IAMO.sol';
 
-contract FraxAMOMinter is Ownable {
+contract AMOMinter is Ownable {
     // Core
     IFrax public immutable FRAX;
     IFxs public immutable FXS;
