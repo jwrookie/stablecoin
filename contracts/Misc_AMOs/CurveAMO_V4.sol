@@ -27,7 +27,6 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 
 import "../Curve/IStableSwap3Pool.sol";
 import "../Curve/IMetaImplementationUSD.sol";
-import "../Misc_AMOs/yearn/IYearnVault.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Frax.sol";
 import "../token/IFraxAMOMinter.sol";
