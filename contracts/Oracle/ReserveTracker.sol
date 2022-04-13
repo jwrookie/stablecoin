@@ -22,7 +22,7 @@ pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../Math/Math.sol";
-import "../Uniswap/Interfaces/IUniswapV2Pair.sol";
+import "./Uniswap/Interfaces/IUniswapV2Pair.sol";
 import "../Staking/Owned.sol";
 import "./UniswapPairOracle.sol";
 import "./ChainlinkETHUSDPriceConsumer.sol";
@@ -58,7 +58,7 @@ contract ReserveTracker is Owned {
     address[] public fxs_pairs_array;
 
     // Mapping is also used for faster verification
-    mapping(address => bool) public fxs_pairs; 
+    mapping(address => bool) public fxs_pairs;
 
     uint256 public fxs_reserves;
 
@@ -119,16 +119,16 @@ contract ReserveTracker is Owned {
     }
 
     function getFXSReserves() public view returns (uint256) {
-        uint256 total_fxs_reserves = 0; 
+        uint256 total_fxs_reserves = 0;
 
-        for (uint i = 0; i < fxs_pairs_array.length; i++){ 
+        for (uint i = 0; i < fxs_pairs_array.length; i++) {
             // Exclude null addresses
-            if (fxs_pairs_array[i] != address(0)){
-                if(IUniswapV2Pair(fxs_pairs_array[i]).token0() == fxs_contract_address) {
-                    (uint reserves0, , ) = IUniswapV2Pair(fxs_pairs_array[i]).getReserves();
+            if (fxs_pairs_array[i] != address(0)) {
+                if (IUniswapV2Pair(fxs_pairs_array[i]).token0() == fxs_contract_address) {
+                    (uint reserves0, ,) = IUniswapV2Pair(fxs_pairs_array[i]).getReserves();
                     total_fxs_reserves = total_fxs_reserves.add(reserves0);
                 } else if (IUniswapV2Pair(fxs_pairs_array[i]).token1() == fxs_contract_address) {
-                    ( , uint reserves1, ) = IUniswapV2Pair(fxs_pairs_array[i]).getReserves();
+                    (, uint reserves1,) = IUniswapV2Pair(fxs_pairs_array[i]).getReserves();
                     total_fxs_reserves = total_fxs_reserves.add(reserves1);
                 }
             }
@@ -197,21 +197,22 @@ contract ReserveTracker is Owned {
     // Adds collateral addresses supported, such as tether and busd, must be ERC20 
     function addFXSPair(address pair_address) public onlyByOwnGov {
         require(fxs_pairs[pair_address] == false, "Address already exists");
-        fxs_pairs[pair_address] = true; 
+        fxs_pairs[pair_address] = true;
         fxs_pairs_array.push(pair_address);
     }
 
     // Remove a pool 
     function removeFXSPair(address pair_address) public onlyByOwnGov {
         require(fxs_pairs[pair_address] == true, "Address nonexistant");
-        
+
         // Delete from the mapping
         delete fxs_pairs[pair_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < fxs_pairs_array.length; i++){ 
+        for (uint i = 0; i < fxs_pairs_array.length; i++) {
             if (fxs_pairs_array[i] == pair_address) {
-                fxs_pairs_array[i] = address(0); // This will leave a null in the array and keep the indices the same
+                fxs_pairs_array[i] = address(0);
+                // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
