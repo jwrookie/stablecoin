@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '../token/Frax.sol';
 
 import "./ReserveTracker.sol";
-import "../Curve/IMetaImplementationUSD.sol";
+import "../interface/curve/IMetaImplementationUSD.sol";
 
 
 contract PIDController is Ownable {
