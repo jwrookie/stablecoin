@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 import "../interface/IVeToken.sol";
 import "../interface/IBoost.sol";
-import '../Uniswap/TransferHelper.sol';
+import '../tools/TransferHelper.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard {

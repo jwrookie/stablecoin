@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.11;
 
-import '../Uniswap/Interfaces/IUniswapV2Factory.sol';
-import '../Uniswap/Interfaces/IUniswapV2Pair.sol';
-import '../Math/FixedPoint.sol';
+import '@openzeppelin/contracts/access/Ownable.sol';
+import './Uniswap/Interfaces/IUniswapV2Factory.sol';
+import './Uniswap/Interfaces/IUniswapV2Pair.sol';
+import '../math/FixedPoint.sol';
 
-import '../Uniswap/UniswapV2OracleLibrary.sol';
-import '../Uniswap/UniswapV2Library.sol';
-import "../Staking/Owned.sol";
+import './Uniswap/UniswapV2OracleLibrary.sol';
+import './Uniswap/UniswapV2Library.sol';
+
 
 // Fixed window oracle that recomputes the average price for the entire period once every period
 // Note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
-contract UniswapPairOracle is Owned {
+contract UniswapPairOracle is Ownable {
     using FixedPoint for *;
-    
+
     address timelock_address;
 
     uint public PERIOD = 3600; // 1 hour TWAP (time-weighted average price)
@@ -32,27 +33,30 @@ contract UniswapPairOracle is Owned {
 
 
     modifier onlyByOwnGov() {
-        require(msg.sender == owner || msg.sender == timelock_address, "You are not an owner or the governance timelock");
+        require(msg.sender == owner() || msg.sender == timelock_address, "You are not an owner or the governance timelock");
         _;
     }
 
     constructor (
-        address factory, 
-        address tokenA, 
-        address tokenB, 
-        address _owner_address, 
+        address factory,
+        address tokenA,
+        address tokenB,
+        address _owner_address,
         address _timelock_address
-    ) public Owned(_owner_address) {
+    ) public  {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
         pair = _pair;
         token0 = _pair.token0();
         token1 = _pair.token1();
-        price0CumulativeLast = _pair.price0CumulativeLast(); // Fetch the current accumulated price value (1 / 0)
-        price1CumulativeLast = _pair.price1CumulativeLast(); // Fetch the current accumulated price value (0 / 1)
+        price0CumulativeLast = _pair.price0CumulativeLast();
+        // Fetch the current accumulated price value (1 / 0)
+        price1CumulativeLast = _pair.price1CumulativeLast();
+        // Fetch the current accumulated price value (0 / 1)
         uint112 reserve0;
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
-        require(reserve0 != 0 && reserve1 != 0, 'UniswapPairOracle: NO_RESERVES'); // Ensure that there's liquidity in the pair
+        require(reserve0 != 0 && reserve1 != 0, 'UniswapPairOracle: NO_RESERVES');
+        // Ensure that there's liquidity in the pair
 
         timelock_address = _timelock_address;
     }
@@ -76,14 +80,16 @@ contract UniswapPairOracle is Owned {
     // Check if update() can be called instead of wasting gas calling it
     function canUpdate() public view returns (bool) {
         uint32 blockTimestamp = UniswapV2OracleLibrary.currentBlockTimestamp();
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast; // Overflow is desired
+        uint32 timeElapsed = blockTimestamp - blockTimestampLast;
+        // Overflow is desired
         return (timeElapsed >= PERIOD);
     }
 
     function update() external {
         (uint price0Cumulative, uint price1Cumulative, uint32 blockTimestamp) =
-            UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast; // Overflow is desired
+        UniswapV2OracleLibrary.currentCumulativePrices(address(pair));
+        uint32 timeElapsed = blockTimestamp - blockTimestampLast;
+        // Overflow is desired
 
         // Ensure that at least one full period has passed since the last update
         require(timeElapsed >= PERIOD, 'UniswapPairOracle: PERIOD_NOT_ELAPSED');
@@ -101,7 +107,8 @@ contract UniswapPairOracle is Owned {
     // Note this will always return 0 before update has been called successfully for the first time.
     function consult(address token, uint amountIn) public view returns (uint amountOut) {
         uint32 blockTimestamp = UniswapV2OracleLibrary.currentBlockTimestamp();
-        uint32 timeElapsed = blockTimestamp - blockTimestampLast; // Overflow is desired
+        uint32 timeElapsed = blockTimestamp - blockTimestampLast;
+        // Overflow is desired
 
         // Ensure that the price is not stale
         require((timeElapsed < (PERIOD + CONSULT_LENIENCY)) || ALLOW_STALE_CONSULTS, 'UniswapPairOracle: PRICE_IS_STALE_NEED_TO_CALL_UPDATE');

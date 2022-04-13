@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
-import '../../Math/Math.sol';
+import '../../math/Math.sol';
 import "../Frax.sol";
 import "./FXB.sol";
 

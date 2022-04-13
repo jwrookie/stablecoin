@@ -26,8 +26,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../AbstractPausable.sol";
 
-import '../../Uniswap/TransferHelper.sol';
-import "../../Staking/Owned.sol";
+import '../../tools/TransferHelper.sol';
 import "../FXS/FXS.sol";
 import "../../token/Frax.sol";
 import "../../Oracle/UniswapPairOracle.sol";
