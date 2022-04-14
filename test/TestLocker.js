@@ -12,8 +12,8 @@ contract('Locker', async () => {
     let TestERC20;
     let Locker;
     let firstTestERC20;
-    let seTestERC20;
-    let thTestERC20;
+    let secondTestERC20;
+    let thirdTestERC20;
     let durationTime;
     let lock;
     let lockMap;
@@ -52,12 +52,12 @@ contract('Locker', async () => {
         TestERC20 = await ethers.getContractFactory("TestERC20");
         Locker = await ethers.getContractFactory("Locker");
         firstTestERC20 = await TestERC20.deploy();
-        seTestERC20 = await TestERC20.deploy();
-        thTestERC20 = await TestERC20.deploy();
+        secondTestERC20 = await TestERC20.deploy();
+        thirdTestERC20 = await TestERC20.deploy();
 
         mintAddress(firstTestERC20, owner.address, toWei("1"));
-        mintAddress(seTestERC20, owner.address, toWei("1"));
-        mintAddress(thTestERC20, owner.address, toWei("1"));
+        mintAddress(secondTestERC20, owner.address, toWei("1"));
+        mintAddress(thirdTestERC20, owner.address, toWei("1"));
 
         durationTime = getDurationTime(1);
         lock = await Locker.deploy(firstTestERC20.address, durationTime);
