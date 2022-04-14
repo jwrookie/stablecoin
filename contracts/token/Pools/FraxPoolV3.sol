@@ -33,8 +33,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '../../tools/TransferHelper.sol';
 import "../../token/FXS/IFxs.sol";
 import "../../interface/IFrax.sol";
+import "../../interface/IAMOMinter.sol";
 import "../../Oracle/AggregatorV3Interface.sol";
-import "../../token/IFraxAMOMinter.sol";
 
 import "../AbstractPausable.sol";
 
@@ -563,7 +563,7 @@ contract FraxPoolV3 is AbstractPausable {
     // Bypasses the gassy mint->redeem cycle for AMOs to borrow collateral
     function amoMinterBorrow(uint256 collateral_amount) external onlyAMOMinters {
         // Checks the col_idx of the minter as an additional safety check
-        uint256 minter_col_idx = IFraxAMOMinter(msg.sender).col_idx();
+        uint256 minter_col_idx = IAMOMinter(msg.sender).col_idx();
 
         // Checks to see if borrowing is paused
         require(borrowingPaused[minter_col_idx] == false, "Borrowing is paused");
@@ -594,7 +594,7 @@ contract FraxPoolV3 is AbstractPausable {
         require(amo_minter_addr != address(0), "Zero address detected");
 
         // Make sure the AMO Minter has collatDollarBalance()
-        uint256 collat_val_e18 = IFraxAMOMinter(amo_minter_addr).collatDollarBalance();
+        uint256 collat_val_e18 = IAMOMinter(amo_minter_addr).collatDollarBalance();
         require(collat_val_e18 >= 0, "Invalid AMO");
 
         amo_minter_addresses[amo_minter_addr] = true;

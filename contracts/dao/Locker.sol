@@ -571,9 +571,9 @@ contract Locker is IERC721, IERC721Metadata {
         voted[_tokenId] = false;
     }
 
-    function attach(uint _tokenId) external {
+    function used(uint _tokenId) external {
         require(msg.sender == voter);
-        attachments[_tokenId] = attachments[_tokenId] + 1;
+        attachments[_tokenId] = 1;
     }
 
     function detach(uint _tokenId) external {
