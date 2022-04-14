@@ -372,8 +372,8 @@ contract('Locker', async () => {
         t_i = (lastPointTs / durationTime) * durationTime
         console.log("t_i::\t" + parseInt(t_i))
         await lock.get_last_user_slope(1)
-        userPointEpoch = lock.user_point_epoch(1)
-        console.log(userPointEpoch)
+        userPointEpoch = await lock.user_point_epoch(1)
+        console.log("userPoint::\t" + userPointEpoch)
 
         // Call the function
         await lock.checkpoint()

@@ -46,7 +46,6 @@ contract('test Boost', async function() {
     let seMockToken
     let oracle
     let lpToken
-    let latestBlock
     let startBlock
     let currentGauge
     let currentTotalAllPoint;
@@ -382,6 +381,7 @@ contract('test Boost', async function() {
     var j;
     var doubleArray = new Array(2);
     var gaugeArray = new Array(2);
+    var targetGauge;
 
     gaugeLpToken = await boost.gauges(lpToken);
     tokenSupply = await frax.balanceOf(gaugeLpToken);
@@ -421,8 +421,14 @@ contract('test Boost', async function() {
 
     // Get gauge value
     const Gauge = await ethers.getContractFactory(GAUGE);
+    // Get object
+    targetGauge = await Gauge.attach(currentGauge);
 
-    driverBalance = await Gauge.derivedBalances(firstTokenAddress);
-    console.log(driverBalances);
+    driverBalance = await targetGauge.derivedBalances(currentGauge);
+    console.log(driverBalance);
+    });
+    
+    it('test AbstractBoost', async function(){
+
     });
 });
