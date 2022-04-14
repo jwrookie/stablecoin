@@ -22,10 +22,10 @@ contract('RewardPoolIntergration', () => {
     const mockTempSymbol = "TemporaryMockSymbol";
     const mockDecimal = 18;
     const mockTotal = toWei("10");
-    const authorBoolean = true
-    const authorNumber = 100000
-    const lpTokenNumber = 10000
-    const allocPoint = 100
+    const authorBoolean = true;
+    const authorNumber = 100000;
+    const lpTokenNumber = 10000;
+    const allocPoint = 100;
     const tokenPerBlock = 10000;
     const period = 100;
 

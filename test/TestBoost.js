@@ -1,9 +1,3 @@
-/**
- * @description: This is the unit test case for the locker contract
- * @author: Lucifer
- * @data: 2022/04/11 19:52
- */
-/** Introducing external modules */
 const { time } = require('@openzeppelin/test-helpers');
 // const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
 const { ethers } = require("hardhat");
@@ -28,7 +22,6 @@ contract('test Boost', async function() {
     const PERIOD = 10;
     const ALLOCPOINT = 100;
     const SURE = true;
-    const REFUSE = false;
     const FIRST = "firObject";
     const SECOND = "seObject"
     const DECIMAL = 18;
@@ -407,8 +400,8 @@ contract('test Boost', async function() {
 
     doubleArray[0] = new Array();
     doubleArray[1] = new Array();
-    doubleArray[0][0] = firstTokenAddress
-    doubleArray[1][0] = seTokenAddress
+    doubleArray[0][0] = firstTokenAddress;
+    doubleArray[1][0] = seTokenAddress;
 
 	await boost.createGauge(lpToken, ALLOCPOINT, SURE);
 	await boost.connect(seObject).createGauge(seLpToken, ALLOCPOINT, SURE);
@@ -425,7 +418,6 @@ contract('test Boost', async function() {
     targetGauge = await Gauge.attach(currentGauge);
 
     driverBalance = await targetGauge.derivedBalances(currentGauge);
-    console.log(driverBalance);
     });
     
     it('test AbstractBoost', async function(){
