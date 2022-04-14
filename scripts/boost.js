@@ -26,13 +26,13 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-     let fxs = "0xaB029cDE7003a469f48D1D0B3d2be18CD6A8FC47"
+     let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
-   let  operatable = "0xfC1111970050c3Ce49f77C666a0aa9C0126e6991"
-let checkOper = "0x3bC28fEA7bE7a8946E9B97d8F2B1f8cE95b93eE8"
-let lock = "0x33F05350555a614AF727B444221F9720eC4C11A1"
-let gaugeFactory = "0x9c4A47bd3485A4A8443fE022Ef372Dda6a8a26d6"
+   let  operatable = "0x06146D292DAa8a517F696e21c814660cc8983c53"
+let checkOper = "0x3bEbF7a91636B71dcBeCee4fbE47b06CB5D0ab01"
+let lock = "0xE98b55AA210d790d3b5e7e48B1c5Be848E55237e"
+let gaugeFactory = "0x96565E0508F1DFa4289B5778EbF8FBd6a386590C"
 
 
     // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
@@ -63,9 +63,9 @@ let gaugeFactory = "0x9c4A47bd3485A4A8443fE022Ef372Dda6a8a26d6"
     // CheckOper = await ethers.getContractFactory("CheckOper");
     // checkOper = await CheckOper.deploy(operatable.address);
     // console.log("checkOper:" + checkOper.address)
-    //
+    // //
     // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(usdc, "7200");
+    // lock = await Locker.deploy(fxs, "7200");
     // console.log("Locker:" + lock.address)
     //
     // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
@@ -79,10 +79,10 @@ let gaugeFactory = "0x9c4A47bd3485A4A8443fE022Ef372Dda6a8a26d6"
         gaugeFactory,
         fxs,
         toWei('1'),
-        parseInt("18375499 "),
+        parseInt("18409218"),
         "1000"
     );
-     console.log("boost:" + boost.address)
+    console.log("boost:" + boost.address)
 
     // await frax.addPool(boost.address);
     // await frax.addPool(owner.address);

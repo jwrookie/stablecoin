@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.10;
 
-
 //import './lib/OracleLibrary.sol';
-import './AbstractBoost.sol';
+import "./AbstractBoost.sol";
 import "../interface/ISwapMining.sol";
-
 
 contract SwapMining is AbstractBoost, ISwapMining {
     using SafeMath for uint256;
@@ -55,7 +53,16 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _swapPerBlock,
         uint256 _startBlock,
         uint256 _period
-    ) AbstractBoost(_operatorMsg, __ve, _swapToken, _swapPerBlock, _startBlock, _period) {
+    )
+        AbstractBoost(
+            _operatorMsg,
+            __ve,
+            _swapToken,
+            _swapPerBlock,
+            _startBlock,
+            _period
+        )
+    {
         require(_factory != address(0), "!0");
         require(_router != address(0), "!0");
         factory = _factory;
@@ -64,20 +71,31 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     modifier onlyRouter() {
-        require(msg.sender == router, 'SwapMining: caller is not the router');
+        require(msg.sender == router, "SwapMining: caller is not the router");
         _;
     }
 
     // Get rewards from users in the current pool
-    function pending(uint256 _pid, address _user) public view returns (uint256, uint256) {
-        require(_pid < poolInfo.length, 'SwapMining: Not find this pool');
+    function pending(uint256 _pid, address _user)
+        public
+        view
+        returns (uint256, uint256)
+    {
+        require(_pid < poolInfo.length, "SwapMining: Not find this pool");
         uint256 userSub;
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo memory user = userInfo[_pid][_user];
         if (user.quantity > 0) {
             uint256 mul = block.number.sub(pool.lastRewardBlock);
-            uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
-            userSub = userSub.add((pool.allocSwapTokenAmount.add(tokenReward)).mul(user.quantity).div(pool.quantity));
+            uint256 tokenReward = tokenPerBlock
+                .mul(mul)
+                .mul(pool.allocPoint)
+                .div(totalAllocPoint);
+            userSub = userSub.add(
+                (pool.allocSwapTokenAmount.add(tokenReward))
+                    .mul(user.quantity)
+                    .div(pool.quantity)
+            );
         }
         //swap available to users, User transaction amount
         return (userSub, user.quantity);
@@ -85,24 +103,26 @@ contract SwapMining is AbstractBoost, ISwapMining {
 
     // Get details of the pool
     function getPoolInfo(uint256 _pid)
-    public
-    view
-    returns (
-        address,
-        address,
-        uint256,
-        uint256,
-        uint256
-    )
+        public
+        view
+        returns (
+            address,
+            address,
+            uint256,
+            uint256,
+            uint256
+        )
     {
-        require(_pid <= poolInfo.length - 1, 'SwapMining: Not find this pool');
+        require(_pid <= poolInfo.length - 1, "SwapMining: Not find this pool");
         PoolInfo memory pool = poolInfo[_pid];
         //todo token get form pool
         address token0;
         address token1;
         uint256 tokenAmount = pool.allocSwapTokenAmount;
         uint256 mul = block.number.sub(pool.lastRewardBlock);
-        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
+        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(
+            totalAllocPoint
+        );
         tokenAmount = tokenAmount.add(tokenReward);
         //token0,token1,Pool remaining reward,Total /Current transaction volume of the pool
         return (token0, token1, tokenAmount, pool.quantity, pool.allocPoint);
@@ -117,24 +137,28 @@ contract SwapMining is AbstractBoost, ISwapMining {
         address _pool,
         bool _withUpdate
     ) public onlyOperator {
-        require(_pool != address(0), '_pair is the zero address');
+        require(_pool != address(0), "_pair is the zero address");
         if (poolLength() > 0) {
-            require((pairOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
-
+            require(
+                (pairOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool),
+                "only one pair"
+            );
         }
         if (_withUpdate) {
             massUpdatePools();
         }
-        uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
+        uint256 lastRewardBlock = block.number > startBlock
+            ? block.number
+            : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(
             PoolInfo({
-        pair : _pool,
-        quantity : 0,
-        allocPoint : _allocPoint,
-        allocSwapTokenAmount : 0,
-        lastRewardBlock : lastRewardBlock
-        })
+                pair: _pool,
+                quantity: 0,
+                allocPoint: _allocPoint,
+                allocSwapTokenAmount: 0,
+                lastRewardBlock: lastRewardBlock
+            })
         );
         pairOfPid[_pool] = poolLength() - 1;
         emit AddPool(_pool, _allocPoint);
@@ -149,13 +173,18 @@ contract SwapMining is AbstractBoost, ISwapMining {
         if (_withUpdate) {
             massUpdatePools();
         }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(
+            _allocPoint
+        );
         poolInfo[_pid].allocPoint = _allocPoint;
         emit SetPool(poolInfo[_pid].pair, _allocPoint);
     }
 
     function setRouter(address newRouter) public onlyOperator {
-        require(newRouter != address(0), 'SwapMining: new router is the zero address');
+        require(
+            newRouter != address(0),
+            "SwapMining: new router is the zero address"
+        );
         address oldRouter = router;
         router = newRouter;
         emit ChangeRouter(oldRouter, router);
@@ -167,8 +196,14 @@ contract SwapMining is AbstractBoost, ISwapMining {
         address pair,
         uint256 quantity
     ) public override onlyRouter returns (bool) {
-        require(account != address(0), 'SwapMining: taker swap account is the zero address');
-        require(pair != address(0), 'SwapMining: taker swap pair is the zero address');
+        require(
+            account != address(0),
+            "SwapMining: taker swap account is the zero address"
+        );
+        require(
+            pair != address(0),
+            "SwapMining: taker swap pair is the zero address"
+        );
 
         if (poolLength() == 0) {
             return false;
@@ -211,7 +246,9 @@ contract SwapMining is AbstractBoost, ISwapMining {
         }
         // Calculate the rewards obtained by the pool based on the allocPoint
         uint256 mul = block.number.sub(pool.lastRewardBlock);
-        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
+        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(
+            totalAllocPoint
+        );
         // Increase the number of tokens in the current pool
         pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.add(tokenReward);
         pool.lastRewardBlock = block.number;
@@ -219,7 +256,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     // The user withdraws all the transaction rewards of the pool
-    function getRewardAll() override public {
+    function getRewardAll() public override {
         uint256 userSub;
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
@@ -228,9 +265,14 @@ contract SwapMining is AbstractBoost, ISwapMining {
             if (user.quantity > 0) {
                 updatePool(pid);
                 // The reward held by the user in this pool
-                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                uint256 userReward = pool
+                    .allocSwapTokenAmount
+                    .mul(user.quantity)
+                    .div(pool.quantity);
                 pool.quantity = pool.quantity.sub(user.quantity);
-                pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(userReward);
+                pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(
+                    userReward
+                );
                 user.quantity = 0;
                 user.blockNumber = block.number;
                 userSub = userSub.add(userReward);
@@ -249,7 +291,10 @@ contract SwapMining is AbstractBoost, ISwapMining {
             PoolInfo storage pool = poolInfo[pid];
             UserInfo storage user = userInfo[pid][account];
             if (user.quantity > 0) {
-                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                uint256 userReward = pool
+                    .allocSwapTokenAmount
+                    .mul(user.quantity)
+                    .div(pool.quantity);
                 userReward = getBoost(pool, account, userReward);
                 userSub = userSub.add(userReward);
             }
@@ -265,9 +310,14 @@ contract SwapMining is AbstractBoost, ISwapMining {
         if (user.quantity > 0) {
             updatePool(pid);
             // The reward held by the user in this pool
-            uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+            uint256 userReward = pool
+                .allocSwapTokenAmount
+                .mul(user.quantity)
+                .div(pool.quantity);
             pool.quantity = pool.quantity.sub(user.quantity);
-            pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(userReward);
+            pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(
+                userReward
+            );
             user.quantity = 0;
             user.blockNumber = block.number;
             userSub = userSub.add(userReward);
@@ -280,27 +330,34 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     //todo gas
-    function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
-        uint256 _derived = amount * 30 / 100;
+    function getBoost(
+        PoolInfo memory pool,
+        address account,
+        uint256 amount
+    ) public view returns (uint256) {
+        uint256 _derived = (amount * 30) / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
         uint256 _supply = uint256(weights[pool.pair]);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
             _adjusted = uint256(votes[_tokenId][pool.pair]);
-            _adjusted = (pool.quantity * _adjusted / _supply) * 70 / 100;
+            _adjusted = (((pool.quantity * _adjusted) / _supply) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), amount);
-
     }
 
     function _updatePoolInfo(address _pool) internal override {
         updatePool(pairOfPid[_pool]);
     }
 
-    function isGaugeForPool(address _pool) internal override view returns (bool){
+    function isGaugeForPool(address _pool)
+        internal
+        view
+        override
+        returns (bool)
+    {
         uint256 _pid = pairOfPid[_pool];
         PoolInfo memory pool = poolInfo[_pid];
         return pool.pair == _pool;
     }
-
 }

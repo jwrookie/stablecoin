@@ -464,8 +464,8 @@ contract Gauge is ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
-    function notifyRewardAmount(address token, uint _rewardRate) external  {
-        require(token != stake, "no stake");
+    function notifyRewardAmount(address token, uint _rewardRate) external nonReentrant {
+        require(token == stake, "no stake");
         if (rewardRate[token] == 0) {
             _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
         }
