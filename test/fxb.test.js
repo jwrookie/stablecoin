@@ -209,15 +209,15 @@ contract('FraxBond', () => {
         await fraxBondIssuer.connect(rewardAddr).claimFee();
         expect(await frax.balanceOf(rewardAddr.address)).to.be.eq("10");
 
-        await fraxBondIssuer.connect(owner).redeemBond("65661");
+        await fraxBondIssuer.connect(owner).redeemBond("65600");
 
         console.log("exchangeRate:" + await fraxBondIssuer.exchangeRate());
 
-        expect(await frax.balanceOf(owner.address)).to.be.eq("1999998999999999999999990");
-        expect(await fxb.balanceOf(owner.address)).to.be.eq("0");
+        expect(await frax.balanceOf(owner.address)).to.be.eq("1999998999999999999999912");
+        expect(await fxb.balanceOf(owner.address)).to.be.eq("51");
         expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("9");
 
-        expect(await fraxBondIssuer.vBalStable()).to.be.eq("1");
+        expect(await fraxBondIssuer.vBalStable()).to.be.eq("79");
 
         await fraxBondIssuer.connect(rewardAddr).claimFee();
         expect(await frax.balanceOf(rewardAddr.address)).to.be.eq("19");
@@ -243,7 +243,7 @@ contract('FraxBond', () => {
 
         await fraxBondIssuer.connect(owner).mintBond("100000");
         console.log("exchangeRate:" + await fraxBondIssuer.exchangeRate());
-        expect(await fxb.balanceOf(owner.address)).to.be.eq("10000000000000095030");
+        expect(await fxb.balanceOf(owner.address)).to.be.eq("10000000000000095028");
         expect(await frax.balanceOf(owner.address)).to.be.eq( "1999998999999999999900000");
         expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq( "10");
         expect(await fraxBondIssuer.vBalStable()).to.be.eq( "100000");
@@ -252,15 +252,15 @@ contract('FraxBond', () => {
         await fraxBondIssuer.connect(rewardAddr).claimFee();
         expect(await frax.balanceOf(rewardAddr.address)).to.be.eq( "10");
 
-        await fraxBondIssuer.connect(owner).redeemBond("95031");
+        await fraxBondIssuer.connect(owner).redeemBond("95000");
 
-        expect(await fxb.balanceOf(owner.address)).to.be.eq( "9999999999999999999");
-        expect(await frax.balanceOf(owner.address)).to.be.eq( "1999998999999999999999990");
-        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq( "10");
-        expect(await fraxBondIssuer.vBalStable()).to.be.eq( 0);
+        expect(await fxb.balanceOf(owner.address)).to.be.eq( "10000000000000000028");
+        expect(await frax.balanceOf(owner.address)).to.be.eq( "1999998999999999999999961");
+        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq( "9");
+        expect(await fraxBondIssuer.vBalStable()).to.be.eq( "30");
 
         await fraxBondIssuer.connect(rewardAddr).claimFee();
-        expect(await frax.balanceOf(rewardAddr.address)).to.be.eq( "20");
+        expect(await frax.balanceOf(rewardAddr.address)).to.be.eq( "19");
 
 
     });

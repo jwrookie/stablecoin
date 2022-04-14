@@ -34,7 +34,7 @@ contract SwapRouter is Operatable {
         uint256 amount
     ) private {
         if (swapMining != address(0)) {
-            int128 n = IStablePool(pair).n_coins();
+            uint256 n = 3;
             uint256 quantity;
             if (n == 2) {
                 uint256[2] memory amounts;
@@ -60,20 +60,20 @@ contract SwapRouter is Operatable {
         uint256 amount
     ) private {
         if (swapMining != address(0)) {
-            uint256 n = ICryptoPool(pair).n_coins();
+            int128 n = ICryptoPool(pair).n_coins();
             uint256 quantity;
             if (n == 2) {
                 uint256[2] memory amounts;
                 amounts[i] = amount;
-                quantity = ICryptoPool(pair).calc_token_amount(amounts);
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
             } else if (n == 3) {
                 uint256[3] memory amounts;
                 amounts[i] = amount;
-                quantity = ICryptoPool(pair).calc_token_amount(amounts);
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
             } else {
                 uint256[4] memory amounts;
                 amounts[i] = amount;
-                quantity = ICryptoPool(pair).calc_token_amount(amounts);
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
             }
             ISwapMining(swapMining).swap(account, pair, quantity);
         }
@@ -102,38 +102,6 @@ contract SwapRouter is Operatable {
             _from_amount
         );
         IStablePool(pool).exchange(
-            fromInt,
-            toInt,
-            _from_amount,
-            _min_to_amount,
-            receiver
-        );
-        callStableSwapMining(receiver, pool, from, _from_amount);
-    }
-
-    function swapMeta(
-        address pool,
-        uint256 from,
-        uint256 to,
-        uint256 _from_amount,
-        uint256 _min_to_amount,
-        address receiver,
-        uint256 deadline
-    ) external ensure(deadline) {
-        int128 fromInt = int128(uint128(from));
-        int128 toInt = int128(uint128(to));
-        address fromToken = IStablePool(pool).coins(from);
-        address toToken = IStablePool(pool).coins(to);
-        if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
-            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
-        }
-        TransferHelper.safeTransferFrom(
-            fromToken,
-            msg.sender,
-            address(this),
-            _from_amount
-        );
-        IStablePool(pool).exchange_underlying(
             fromInt,
             toInt,
             _from_amount,

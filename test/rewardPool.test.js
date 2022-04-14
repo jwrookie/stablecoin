@@ -61,7 +61,7 @@ contract('RewardPool', ([owner, secondObject]) => {
         // swaptoken object
         mockToken = await MockToken.new(temporaryName, temporarySymbol, decimals, total)
         // token lock object
-        tokenLock = await Locker.new(mockToken.address)
+        tokenLock = await Locker.new(mockToken.address,"86400")
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock)
 
