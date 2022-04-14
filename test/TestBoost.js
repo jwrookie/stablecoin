@@ -36,6 +36,7 @@ contract('test Boost', async function() {
     const NAME = "testName";
     const SYMBOL = "testSymbol";
     const APPROVE_NUMBER = "1000";
+    const GAUGE = "Gauge";
 
     // Variable
     let testERC20
@@ -45,16 +46,8 @@ contract('test Boost', async function() {
     let seMockToken
     let oracle
     let lpToken
-    let toatlAllocPoint
-    let poolInfo
-    let lpOfPid
-    let pools
-    let gauges
-    let poolForGauge
-    let isGauge
     let latestBlock
     let startBlock
-    let judgeBoolean
     let currentGauge
     let currentTotalAllPoint;
     let poolInfoAllocPoint;
@@ -62,13 +55,13 @@ contract('test Boost', async function() {
     let gaugeMap;
     let currentLpPid;
     let poolInfoMap;
+    let tokenSupply;
 
     // Contract instantiation
     var gaugeFactory
     var operatAble
     var checkOper
     var boost
-    var lock
     var fax
     var frax
 
@@ -176,6 +169,8 @@ contract('test Boost', async function() {
         const MockToken = await ethers.getContractFactory(MOCKTOKEN);
         firMockToken = await MockToken.deploy(FIRST, FIRST, DECIMAL, TOWEI);
         seMockToken = await MockToken.deploy(SECOND, SECOND, DECIMAL, TOWEI);
+        seLpToken = firMockToken.address;
+        thLpToken = seMockToken.address;
 
         // Boost address
         startBlock = await time.latestBlock();
@@ -215,8 +210,6 @@ contract('test Boost', async function() {
         var currentBlock;
         var currentLength;
         var isGaugeMap;
-        var currentSupply;
-        var mul;
 
         // Mint function
 
@@ -225,10 +218,9 @@ contract('test Boost', async function() {
         assert.equal(parseInt(currentLpPid), 0);
 
         // Call the function create gauge
-        // currentBlock = await time.latestBlock();
-        // await time.advanceBlockTo(parseInt(currentBlock) + 10);
-        currentGauge = await boost.createGauge(lpToken, ALLOCPOINT, SURE);
-        console.log(currentGauge);
+        currentBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(currentBlock) + 10);
+        await boost.createGauge(lpToken, ALLOCPOINT, SURE);
         currentLength = await boost.poolLength();
         assert.equal(currentLength, 1);
         currentLpPid = await boost.LpOfPid(lpToken);
@@ -257,14 +249,9 @@ contract('test Boost', async function() {
         isGaugeMap = await boost.isGauge(gaugeMap);
         assert.equal(isGaugeMap, true);
 
-        // Get supply ---> quetion = 0
-        currentSupply = await frax.balanceOf(gaugeMap);
-        console.log(parseInt(currentSupply));
-
-        // Get latest block ---> question = 0
+        // Move block
         currentBlock = await time.latestBlock();
-        mul = currentBlock - lastRewardBlock;
-        console.log(mul)
+        await time.advanceBlockTo(parseInt(currentBlock) + 10);
     });
 
     it('test set', async function(){
@@ -305,7 +292,6 @@ contract('test Boost', async function() {
 
     it('test attachTokenToGauge', async function(){
         var tokenId;
-        var tokenSupply;
         var gaugeLpToken;
         var lockBalanceMap;
         var lockBalanceAmount;
@@ -335,26 +321,108 @@ contract('test Boost', async function() {
     });
 
     it('test distribute', async function(){
-        // var poolLastRewardBlock;
+        var poolLastRewardBlock;
+        var currentLpPid;
+        var poolInfoMap;
+        var poolInfoLastRewardBlock;
+        var poolInfoAllocPoint;
+        var currentTotalAllPoint;
+        var currentBlock;
+        var tokenSupply;
+        var mul;
+        var currentTokenReward;
 
-        // gaugeMap = await boost.gauges(lpToken);
-        // poolForGaugeMap = await boost.poolForGauge(gaugeMap);
-        // var temp = await boost.updatePool(0);
-        // // await boost.LpOfPid(await boost.poolForGauge(poolForGaugeMap))
-        // console.log(temp);
+        gaugeMap = await boost.gauges(lpToken);
+        poolForGaugeMap = await boost.poolForGauge(gaugeMap);
+        currentLpPid = await boost.LpOfPid(await boost.poolForGauge(lpToken));
+        // Call the funtion create gauge
+        currentGauge = await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        // Get the pool info
+        poolInfoMap = await boost.poolInfo(0);
+        poolInfoLastRewardBlock = poolInfoMap[2];
+        // Current block
+        currentBlock = await time.latestBlock();
+        assert.equal(parseInt(poolInfoLastRewardBlock), parseInt(currentBlock));
+        // Move block
+        await time.advanceBlockTo(parseInt(currentBlock) + 10);
+        poolInfoMap = await boost.poolInfo(0);
+        poolInfoAllocPoint = poolInfoMap[1];
+        poolInfoLastRewardBlock = poolInfoMap[2];
+        currentBlock = await time.latestBlock();
+        expect(parseInt(currentBlock)).to.be.gt(parseInt(poolInfoLastRewardBlock));
 
-        // // Call the function
-        // await boost.distribute(poolForGaugeMap);
+        // Get vetoken balance
+        tokenSupply = await fax.balanceOf(owner.address);
+        console.log(parseInt(tokenSupply));
+        currentBlock = await time.latestBlock();
+        mul = currentBlock - poolInfoLastRewardBlock;
+        expect(parseInt(mul)).to.be.not.eq(0);
 
-        // // Check value
-        // currentLpPid = await boost.LpOfPid(lpToken);
-        // poolInfoMap = await boost.poolInfo(currentLpPid);
-        // poolLastRewardBlock = poolInfoMap[2];
+        // Get token reward value
+        currentTotalAllPoint = await boost.totalAllocPoint();
+        currentTokenReward = TOKENPERBLOCK * mul * poolInfoAllocPoint / currentTotalAllPoint;
 
-        // assert.equal(poolLastRewardBlock, 0);
+        await boost.updatePool(currentLpPid);
+
+        // Get pool info
+        currentBlock = await time.latestBlock();
+        poolInfoMap = await boost.poolInfo(0);
+        poolInfoLastRewardBlock = poolInfoMap[2];
+        expect(parseInt(currentBlock)).to.be.eq(parseInt(poolInfoLastRewardBlock));
     });
 
-    // it('test claimRewards', async function() {
+    it('test claimRewards', async function() {
+    // Parameters array gagues and double array
+    var currentSeGauge;
+    var currentPoolLength;
+    var firstTokenAddress;
+    var seTokenAddress;
+    var driverBalance;
+    var i;
+    var j;
+    var doubleArray = new Array(2);
+    var gaugeArray = new Array(2);
 
-    // });
+    gaugeLpToken = await boost.gauges(lpToken);
+    tokenSupply = await frax.balanceOf(gaugeLpToken);
+    tokenSupply = tokenSupply + 10;
+
+    // Get duration
+    duration = getDurationTime(1);
+
+    // create token
+    await veToken.create_lock(tokenSupply, duration);
+    await veToken.create_lock_for(tokenSupply, duration, seObject.address);
+
+    // Get two tokens address
+    firstTokenAddress = await veToken.ownerOf(0);
+    seTokenAddress = await veToken.ownerOf(1);
+
+    for(i = 0; i <= currentPoolLength; i++) {
+        doubleArray[i] = new Array();
+        for(j = 0; j < currentPoolLength; j++) {
+            doubleArray[i][j] = await veToken.ownerOf(j);
+        }
+    }
+
+    doubleArray[0] = new Array();
+    doubleArray[1] = new Array();
+    doubleArray[0][0] = firstTokenAddress
+    doubleArray[1][0] = seTokenAddress
+
+	await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+	await boost.connect(seObject).createGauge(seLpToken, ALLOCPOINT, SURE);
+	currentGauge = await boost.gauges(lpToken);
+    currentSeGauge = await boost.gauges(seLpToken);
+    gaugeArray[0] = currentGauge;
+    gaugeArray[1] = currentSeGauge;
+    currentPoolLength = await boost.poolLength();
+	await boost.claimRewards(gaugeArray, doubleArray);
+
+    // Get gauge value
+    const Gauge = await ethers.getContractFactory(GAUGE);
+
+    driverBalance = await Gauge.derivedBalances(firstTokenAddress);
+    console.log(driverBalances);
+    });
 });
