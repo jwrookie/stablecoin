@@ -8,63 +8,50 @@ const { parse } = require('path');
 const { advanceBlockTo } = require('@openzeppelin/test-helpers/src/time');
 
 contract('RewardPoolIntergration', () => {
-    const RewardPoolModule = "RewardPool";
-    const OperatableModule = "Operatable";
-    const MockTokenModule = "MockToken";
-    const TestOracleModule = 'TestOracle';
-    const FXSModule = "FRAXShares";
-    const FRAXModule = "FRAXStablecoin";
-    const tempFxsName = "TemporaryStringName";
-    const tempFxsSymbol = "TemporaryStringSymbol";
-    const tempFraxName = "TemporaryMemoryName";
-    const tempFraxSymbol = "TemporaryMemorySymbol";
-    const mockTempName = "TemporaryMockName";
-    const mockTempSymbol = "TemporaryMockSymbol";
-    const mockDecimal = 18;
-    const mockTotal = toWei("10");
+    const allocPoint = 100;
     const authorBoolean = true;
     const authorNumber = 100000;
     const lpTokenNumber = 10000;
-    const allocPoint = 100;
-    const tokenPerBlock = 10000;
-    const period = 100;
 
     let lastBlock;
+    let startBlock;
+    let poolLength;
+    let pendingValue;
     let currentBlock;
-    var startBlock;
-    var poolLength;
-
-    async function checkInfo(infoNo1, infoNo2) {
-        if(expect(infoNo1).to.be.eq(infoNo2)) {
-            return true;
-        }else {
-            return false;
-        }
-    }
+    let ownerFxsValue;
+    let ownerUserInfo;
+    let secondUserInfo;
+    let secondObejctUserInfo;
+    let acquiescentToken;
+    let secondObjectFxsValue;
+    let ownerPandingValue;
+    let ownerUserInfoAmount;
+    let secondAcquiescentToken;
+    let secondObejctUserInfoAmount;
 
     beforeEach(async function() {
         [owner, seObject] = await ethers.getSigners();
         lastBlock = await time.latestBlock();
         startBlock = parseInt(lastBlock);
 
-        const RewardPool = await ethers.getContractFactory(RewardPoolModule);
-        const Operatable = await ethers.getContractFactory(OperatableModule);
-        const MockToken = await ethers.getContractFactory(MockTokenModule);
+        const RewardPool = await ethers.getContractFactory("RewardPool");
+        const Operatable = await ethers.getContractFactory("Operatable");
+        const MockToken = await ethers.getContractFactory("MockToken");
 
-        const Oracle = await ethers.getContractFactory(TestOracleModule);
+        const Oracle = await ethers.getContractFactory("TestOracle");
         oracle = await Oracle.deploy();
-        const FXS = await ethers.getContractFactory(FXSModule);
-        fxs = await FXS.deploy(tempFxsName, tempFxsSymbol, oracle.address);
+        const FXS = await ethers.getContractFactory("FRAXShares");
+        fxs = await FXS.deploy("TemporaryStringName", "TemporaryStringSymbol", oracle.address);
 
-        const FRAX = await ethers.getContractFactory(FRAXModule);
-        frax = await FRAX.deploy(tempFraxName, tempFraxSymbol);
+        const FRAX = await ethers.getContractFactory("FRAXStablecoin");
+        frax = await FRAX.deploy("TemporaryMemoryName", "TemporaryMemorySymbol");
 
         operatable = await Operatable.deploy();
-        mockToken = await MockToken.deploy(mockTempName, mockTempSymbol, mockDecimal, mockTotal);
-        secondMockToken = await MockToken.deploy(mockTempName, mockTempSymbol, mockDecimal, mockTotal);
+        mockToken = await MockToken.deploy("TemporaryMockName", "TemporaryMockSymbol", 18, toWei("10"));
+        secondMockToken = await MockToken.deploy("TemporaryMockName", "TemporaryMockSymbol", 18, toWei("10"));
         oracle = await Oracle.deploy();
         console.log("startBlock:" + startBlock);
-        rewardPool = await RewardPool.deploy(operatable.address, fxs.address, tokenPerBlock, startBlock, period);
+        rewardPool = await RewardPool.deploy(operatable.address, fxs.address, 10000, startBlock, 100);
 
         poolLength = await rewardPool.poolLength();
 
@@ -82,7 +69,6 @@ contract('RewardPoolIntergration', () => {
         var accTokenPerShare;
         var totalAmount;
         var userInfo;
-        var secondUserInfo;
 
         var firstLastBlock;
         var secondLastBlock;
@@ -93,7 +79,6 @@ contract('RewardPoolIntergration', () => {
 
         var tokenReward;
         var targetAmount;
-        var pendingValue;
         var targetAccTokenPerShare;
 
         var firstLpTokenBalance = await mockToken.balanceOf(rewardPool.address);
@@ -123,7 +108,7 @@ contract('RewardPoolIntergration', () => {
         assert.equal((secondLastBlock - firstLastBlock + 1), 11);
 
         mul = secondLastBlock - firstLastBlock;
-        tokenReward = tokenPerBlock * mul * allocPoint / totalAllocPoint;
+        tokenReward = 10000 * mul * allocPoint / totalAllocPoint;
 
         targetLpTokenBalance = await mockToken.balanceOf(rewardPool.address);
 
@@ -161,7 +146,6 @@ contract('RewardPoolIntergration', () => {
 
     it('Single user deposit and pending and withdraw', async function() {
         var userInfoAmount;
-        var acquiescentToken;
         var startToken;
         var moveToken;
         var poolToken;
@@ -194,31 +178,24 @@ contract('RewardPoolIntergration', () => {
     });
 
     it('Single user and more pools', async function() {
-        var secondAllocPoint = 2;
-        var tempPoolLength = 2;
         var firstLpToken;
         var secondLpToken;
         var firstLpTokenReward;
         var secondLpTokenReward;
         var firstUserInfo;
-        var secondUserInfo;
         var firstUserInfoAmount;
         var secondUserInfoAmount;
         var firstLpPoolToken;
         var secondLpPoolToken;
-        var acquiescentToken;
-        var seAcquiescentToken;
-        var pendingValue;
         var secondPendingValue;
-        var needBoolean;
 
         await mockToken.approve(rewardPool.address, authorNumber);
         await secondMockToken.approve(rewardPool.address, authorNumber);
 
         await rewardPool.add(allocPoint, mockToken.address, authorBoolean);
-        await rewardPool.add(secondAllocPoint, secondMockToken.address, authorBoolean);
+        await rewardPool.add(2, secondMockToken.address, authorBoolean);
         poolLength = await rewardPool.poolLength();
-        assert.equal(poolLength, tempPoolLength);
+        assert.equal(poolLength, 2);
 
         firstLpToken = await mockToken.balanceOf(rewardPool.address);
         secondLpToken = await mockToken.balanceOf(rewardPool.address);
@@ -226,9 +203,9 @@ contract('RewardPoolIntergration', () => {
         assert.equal(secondLpToken, 0);
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
-        seAcquiescentToken = await secondMockToken.balanceOf(owner.address);
+        secondAcquiescentToken = await secondMockToken.balanceOf(owner.address);
 
-        expect(acquiescentToken).to.be.eq(seAcquiescentToken);
+        expect(acquiescentToken).to.be.eq(secondAcquiescentToken);
 
         firstLpPoolToken = await mockToken.balanceOf(rewardPool.address);
         secondLpPoolToken = await mockToken.balanceOf(rewardPool.address);
@@ -273,28 +250,17 @@ contract('RewardPoolIntergration', () => {
         firstUserInfoAmount = firstUserInfo[0];
         secondUserInfo = await rewardPool.userInfo(1, owner.address);
         secondUserInfoAmount = secondUserInfo[0];
-        needBoolean = checkInfo(firstUserInfoAmount, secondUserInfoAmount);
-        console.log(needBoolean);
+        expect(firstUserInfoAmount).to.be.eq(secondUserInfoAmount);
     });
 
     it('More users and single pool', async function() {
-        var acquiescentToken;
-        var seAcquiescentToken;
-        var ownerFxsValue;
-        var ownerPandingValue;
-        var ownerUserInfo;
-        var ownerUserInfoAmount;
-        var seObjectFxsValue;
         var seObjectPendingValue;
-        var seObejctUserInfo;
-        var seObejctUserInfoAmount;
-        var currentBlock;
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
 
         await mockToken.mint(seObject.address, acquiescentToken);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
-        console.log(checkInfo(seAcquiescentToken, acquiescentToken));
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        expect(secondAcquiescentToken).to.be.eq(acquiescentToken);
         
         await mockToken.approve(rewardPool.address, authorNumber);
         await mockToken.connect(seObject).approve(rewardPool.address, authorNumber);
@@ -302,20 +268,20 @@ contract('RewardPoolIntergration', () => {
         await rewardPool.add(allocPoint, mockToken.address, authorBoolean);
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
-        console.log(checkInfo(acquiescentToken, seAcquiescentToken));
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        expect(acquiescentToken).to.be.eq(secondAcquiescentToken);
 
         await rewardPool.connect(owner).deposit(0, lpTokenNumber);
         await rewardPool.connect(seObject).deposit(0, lpTokenNumber);
         acquiescentToken = await mockToken.balanceOf(owner.address);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
-        expect(acquiescentToken).to.be.eq(seAcquiescentToken);
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        expect(acquiescentToken).to.be.eq(secondAcquiescentToken);
 
         ownerFxsValue = await fxs.connect(owner).balanceOf(rewardPool.address);
 
-        seObjectFxsValue = await fxs.connect(seObject).balanceOf(rewardPool.address);
+        secondObjectFxsValue = await fxs.connect(seObject).balanceOf(rewardPool.address);
 
-        expect(seObjectFxsValue).to.be.eq(ownerFxsValue);
+        expect(secondObjectFxsValue).to.be.eq(ownerFxsValue);
 
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
@@ -328,10 +294,10 @@ contract('RewardPoolIntergration', () => {
         ownerUserInfo = await rewardPool.userInfo(0, owner.address);
         ownerUserInfoAmount = ownerUserInfo[0];
 
-        seObejctUserInfo = await rewardPool.userInfo(0, seObject.address);
-        seObejctUserInfoAmount = seObejctUserInfo[0];
+        secondObejctUserInfo = await rewardPool.userInfo(0, seObject.address);
+        secondObejctUserInfoAmount = secondObejctUserInfo[0];
 
-        expect(ownerUserInfoAmount).to.be.eq(seObejctUserInfoAmount);
+        expect(ownerUserInfoAmount).to.be.eq(secondObejctUserInfoAmount);
 
         await rewardPool.connect(owner).withdraw(0, ownerUserInfoAmount);
         acquiescentToken = await mockToken.balanceOf(owner.address);
@@ -339,117 +305,102 @@ contract('RewardPoolIntergration', () => {
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
 
-        await rewardPool.connect(seObject).withdraw(0, seObejctUserInfoAmount);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        await rewardPool.connect(seObject).withdraw(0, secondObejctUserInfoAmount);
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
 
-        expect(acquiescentToken).to.be.eq(seAcquiescentToken);
+        expect(acquiescentToken).to.be.eq(secondAcquiescentToken);
     });
 
     it('More users and single pool different init value', async function() {
         let minitOwnerTokenOwn;
-        let minitSeTokenOwn;
-        var acquiescentToken;
-        var seAcquiescentToken;
-        var ownerPandingValue;
-        var ownerFxsValue;
-        var ownerUserInfo;
-        var ownerUserInfoAmount;
-        var seObjectFxsValue;
-        var seObejctUserInfo;
-        var seObejctUserInfoAmount;
-        var currentBlock;
-        var ownerLpTokenValue = 10000;
-        var seObjectLpTokenValue = 20000;
+        let minitSecondTokenOwn;
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
         minitOwnerTokenOwn = acquiescentToken;
 
         await mockToken.mint(seObject.address, acquiescentToken);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
-        expect(seAcquiescentToken).to.be.eq(acquiescentToken);
-        minitSeTokenOwn = seAcquiescentToken;
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        expect(secondAcquiescentToken).to.be.eq(acquiescentToken);
+        minitSecondTokenOwn = secondAcquiescentToken;
 
         await mockToken.connect(owner).approve(rewardPool.address, authorNumber);
         await mockToken.connect(seObject).approve(rewardPool.address, authorNumber);
 
         await rewardPool.add(allocPoint, mockToken.address, authorBoolean);
 
-        await rewardPool.connect(owner).deposit(0, ownerLpTokenValue);
+        await rewardPool.connect(owner).deposit(0, 10000);
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
 
         ownerPandingValue = await rewardPool.pending(0, owner.address);
         ownerFxsValue = await fxs.connect(owner).balanceOf(owner.address);
-        await rewardPool.connect(seObject).deposit(0, seObjectLpTokenValue);
+        await rewardPool.connect(seObject).deposit(0, 20000);
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
 
         ownerPandingValue = await rewardPool.pending(0, seObject.address);
 
-        seObjectFxsValue = await fxs.connect(seObject).balanceOf(owner.address);
+        secondObjectFxsValue = await fxs.connect(seObject).balanceOf(owner.address);
 
-        expect(seObjectFxsValue).to.be.eq(ownerFxsValue);
+        expect(secondObjectFxsValue).to.be.eq(ownerFxsValue);
 
         await rewardPool.connect(owner).deposit(0, 0);
         await rewardPool.connect(seObject).deposit(0, 0);
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
 
         ownerUserInfo = await rewardPool.userInfo(0, owner.address);
         ownerUserInfoAmount = ownerUserInfo[0];
 
-        seObejctUserInfo = await rewardPool.userInfo(0, seObject.address);
-        seObejctUserInfoAmount = seObejctUserInfo[0];
+        secondObejctUserInfo = await rewardPool.userInfo(0, seObject.address);
+        secondObejctUserInfoAmount = secondObejctUserInfo[0];
 
-        expect(seObejctUserInfoAmount - ownerUserInfoAmount).to.be.eq(seObjectLpTokenValue - ownerLpTokenValue);
+        expect(secondObejctUserInfoAmount - ownerUserInfoAmount).to.be.eq(20000 - 10000);
 
         await rewardPool.connect(owner).withdraw(0, ownerUserInfoAmount);
 
         acquiescentToken = await mockToken.balanceOf(owner.address);
         expect(acquiescentToken).to.be.eq(minitOwnerTokenOwn);
 
-        await rewardPool.connect(seObject).withdraw(0, seObejctUserInfoAmount);
+        await rewardPool.connect(seObject).withdraw(0, secondObejctUserInfoAmount);
 
-        seAcquiescentToken = await mockToken.balanceOf(seObject.address);
-        expect(seAcquiescentToken).to.be.eq(minitSeTokenOwn);
+        secondAcquiescentToken = await mockToken.balanceOf(seObject.address);
+        expect(secondAcquiescentToken).to.be.eq(minitSecondTokenOwn);
     });
 
     it('More users and more pools', async function() {
         var minitMockTokenOwnerOwn;
-        var minitSeMockTokenOwnerOwn;
+        var minitSecondMockTokenOwnerOwn;
         var minitMockTokenSeOwn;
-        var minitSeMockTokenSeOwn;
-        var acquiescentToken;
-        var seTokenAcquiescentToken;
-        var seAcquiescentToken;
-        var seTokenSeAcquiescentToken;
+        var minitSecondMockTokenSeOwn;
+        var secondTokenAcquiescentToken;
+        var seondTokenSeAcquiescentToken;
         var ownerTokenValueInThePool;
-        var ownerSeTokenValueInThePool;
+        var ownerSecondTokenValueInThePool;
         var ownerPendingValue;
-        var ownerSePnedingValue;
-        var seTokenValueInThePool;
-        var seSeTokenvalueInThePool;
-        var sePendingValue;
-        var seSePendingValue;
-        var currentBlock;
+        var ownerSecondPnedingValue;
+        var secondTokenValueInThePool;
+        var secondObjectSecondTokenvalueInThePool;
+        var secondPendingValue;
+        var secondSecondPendingValue;
         var mockLpToken;
-        var seMockLpToken;
+        var secondMockLpToken;
         
         acquiescentToken = await mockToken.connect(owner).balanceOf(owner.address);
         minitMockTokenOwnerOwn = acquiescentToken;
-        seTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
-        minitSeMockTokenOwnerOwn = seTokenAcquiescentToken;
+        secondTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
+        minitSecondMockTokenOwnerOwn = secondTokenAcquiescentToken;
 
         await mockToken.mint(seObject.address, minitMockTokenOwnerOwn);
-        seAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
-        minitMockTokenSeOwn = seAcquiescentToken;
-        await secondMockToken.mint(seObject.address, minitSeMockTokenOwnerOwn);
-        seTokenSeAcquiescentToken = await secondMockToken.connect(seObject).balanceOf(seObject.address);
-        minitSeMockTokenSeOwn = seTokenSeAcquiescentToken;
+        secondAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
+        minitMockTokenSeOwn = secondAcquiescentToken;
+        await secondMockToken.mint(seObject.address, minitSecondMockTokenOwnerOwn);
+        seondTokenSeAcquiescentToken = await secondMockToken.connect(seObject).balanceOf(seObject.address);
+        minitSecondMockTokenSeOwn = seondTokenSeAcquiescentToken;
 
         expect(minitMockTokenSeOwn).to.be.eq(minitMockTokenOwnerOwn);
-        expect(minitSeMockTokenSeOwn).to.be.eq(minitSeMockTokenOwnerOwn);
+        expect(minitSecondMockTokenSeOwn).to.be.eq(minitSecondMockTokenOwnerOwn);
 
         await mockToken.connect(owner).approve(rewardPool.address, authorNumber);
         await secondMockToken.connect(owner).approve(rewardPool.address, authorNumber * 2);
@@ -458,33 +409,33 @@ contract('RewardPoolIntergration', () => {
         await secondMockToken.connect(seObject).approve(rewardPool.address, authorNumber * 2);
 
         ownerTokenValueInThePool = await mockToken.allowance(owner.address, rewardPool.address);
-        seTokenValueInThePool = await mockToken.allowance(seObject.address, rewardPool. address);
-        ownerSeTokenValueInThePool = await secondMockToken.allowance(owner.address, rewardPool.address);
-        seSeTokenvalueInThePool = await secondMockToken.allowance(seObject.address, rewardPool.address);
+        secondTokenValueInThePool = await mockToken.allowance(seObject.address, rewardPool. address);
+        ownerSecondTokenValueInThePool = await secondMockToken.allowance(owner.address, rewardPool.address);
+        secondObjectSecondTokenvalueInThePool = await secondMockToken.allowance(seObject.address, rewardPool.address);
 
-        expect(seTokenValueInThePool).to.be.eq(ownerTokenValueInThePool);
-        expect(seSeTokenvalueInThePool).to.be.eq(ownerSeTokenValueInThePool);
+        expect(secondTokenValueInThePool).to.be.eq(ownerTokenValueInThePool);
+        expect(secondObjectSecondTokenvalueInThePool).to.be.eq(ownerSecondTokenValueInThePool);
         
         mockLpToken = ownerTokenValueInThePool / 2;
-        seMockLpToken = seTokenValueInThePool / 2;
+        secondMockLpToken = secondTokenValueInThePool / 2;
 
         await rewardPool.add(allocPoint, mockToken.address, authorBoolean);
         await rewardPool.add(allocPoint, secondMockToken.address, authorBoolean);
 
         await rewardPool.connect(owner).deposit(0, mockLpToken);
-        await rewardPool.connect(owner).deposit(1, seMockLpToken);
+        await rewardPool.connect(owner).deposit(1, secondMockLpToken);
         await rewardPool.connect(seObject).deposit(0, mockLpToken);
-        await rewardPool.connect(seObject).deposit(1, seMockLpToken);
+        await rewardPool.connect(seObject).deposit(1, secondMockLpToken);
 
         acquiescentToken = await mockToken.connect(owner).balanceOf(owner.address);
-        seTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
+        secondTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
         expect(acquiescentToken).to.be.eq(BigNumber.from(minitMockTokenOwnerOwn).sub(mockLpToken));
-        expect(seTokenAcquiescentToken).to.be.eq(BigNumber.from(minitSeMockTokenOwnerOwn).sub(seMockLpToken));
+        expect(secondTokenAcquiescentToken).to.be.eq(BigNumber.from(minitSecondMockTokenOwnerOwn).sub(secondMockLpToken));
 
-        seAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
-        seTokenAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
-        expect(seAcquiescentToken).to.be.eq(BigNumber.from(minitMockTokenSeOwn).sub(mockLpToken));
-        expect(seTokenAcquiescentToken).to.be.eq(BigNumber.from(minitSeMockTokenSeOwn).sub(seMockLpToken));
+        secondAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
+        secondTokenAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
+        expect(secondAcquiescentToken).to.be.eq(BigNumber.from(minitMockTokenSeOwn).sub(mockLpToken));
+        expect(secondTokenAcquiescentToken).to.be.eq(BigNumber.from(minitSecondMockTokenSeOwn).sub(secondMockLpToken));
 
         currentBlock = await time.latestBlock();
         await advanceBlockTo(parseInt(currentBlock) + 10);
@@ -497,30 +448,30 @@ contract('RewardPoolIntergration', () => {
         await rewardPool.deposit(1, 0);
         acquiescentToken = await fxs.connect(owner).balanceOf(owner.address);
         console.log("Two pools pending:" + acquiescentToken);
-        ownerSePnedingValue = await rewardPool.pending(1, owner.address);
+        ownerSecondPnedingValue = await rewardPool.pending(1, owner.address);
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
-        sePendingValue = await rewardPool.pending(0, seObject.address);
+        secondPendingValue = await rewardPool.pending(0, seObject.address);
         await rewardPool.deposit(0, 0);
-        seAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
-        console.log("Seobject only one pool pending:" + seAcquiescentToken);
-        seSePendingValue = await rewardPool.pending(1, seObject.address);
+        secondAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
+        console.log("Seobject only one pool pending:" + secondAcquiescentToken);
+        secondSecondPendingValue = await rewardPool.pending(1, seObject.address);
         await rewardPool.deposit(1, 0);
-        seAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
-        console.log("Seobject two pools pending:" + seAcquiescentToken);
+        secondAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
+        console.log("Seobject two pools pending:" + secondAcquiescentToken);
 
         await rewardPool.connect(owner).withdraw(0, mockLpToken);
-        await rewardPool.connect(owner).withdraw(1, seMockLpToken);
+        await rewardPool.connect(owner).withdraw(1, secondMockLpToken);
         acquiescentToken = await mockToken.connect(owner).balanceOf(owner.address);
-        seTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
+        secondTokenAcquiescentToken = await secondMockToken.connect(owner).balanceOf(owner.address);
         expect(acquiescentToken).to.be.eq(minitMockTokenOwnerOwn);
-        expect(seTokenAcquiescentToken).to.be.eq(minitSeMockTokenOwnerOwn);
+        expect(secondTokenAcquiescentToken).to.be.eq(minitSecondMockTokenOwnerOwn);
 
         await rewardPool.connect(seObject).withdraw(0, mockLpToken);
-        await rewardPool.connect(seObject).withdraw(1, seMockLpToken);
-        seAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
-        seTokenAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
-        expect(seAcquiescentToken).to.be.eq(minitMockTokenSeOwn);
-        expect(seTokenAcquiescentToken).to.be.eq(minitSeMockTokenSeOwn);
+        await rewardPool.connect(seObject).withdraw(1, secondMockLpToken);
+        secondAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
+        secondTokenAcquiescentToken = await mockToken.connect(seObject).balanceOf(seObject.address);
+        expect(secondAcquiescentToken).to.be.eq(minitMockTokenSeOwn);
+        expect(secondTokenAcquiescentToken).to.be.eq(minitSecondMockTokenSeOwn);
     });
 });

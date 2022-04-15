@@ -11,27 +11,23 @@ const Operatable = artifacts.require('./contracts/tools/Operatable.sol');
 const Locker = artifacts.require('./contracts/dao/Locker.sol');
 
 contract('RewardPool', ([owner, secondObject]) => {
-    let initNumber = 10000000;
-    let initSecondNumber = 20000000;
-    let temporaryName = "HelloWorld";
-    let temporarySymbol = "newObject";
-    let decimals = 18;
-    let total = toWei('10');
-
-    let fraxParamNo1 = "fraxNo1";
-    let fraxParamNo2 = "fraxNo2";
+    let needBoolean = true;
+    let rejectBoolean = false;
+    let firstInfo;
+    let authorNumber = 100000;
+    let needNumber = 10000;
 
     beforeEach(async () => {
         const Oracle = await ethers.getContractFactory('TestOracle');
         testOracle = await Oracle.deploy();
         const FXS = await ethers.getContractFactory('FRAXShares');
-        fxs = await FXS.deploy(temporaryName, temporarySymbol, testOracle.address);
+        fxs = await FXS.deploy("HelloWorld", "newObject", testOracle.address);
 
         const FRAX = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAX.deploy(fraxParamNo1, fraxParamNo2);
+        frax = await FRAX.deploy("fraxNo1", "fraxNo2");
 
         operatable = await Operatable.new();
-        mockToken = await MockToken.new(temporaryName, temporarySymbol, decimals, total);
+        mockToken = await MockToken.new("HelloWorld", "newObject", 18, toWei('10'));
         tokenLock = await Locker.new(mockToken.address, parseInt(await time.duration.days(1)));
         let lastBlock = await time.latestBlock();
 
@@ -61,7 +57,6 @@ contract('RewardPool', ([owner, secondObject]) => {
     });
 
     it('test add', async () => {
-        var needBoolean = true;
         assert.equal(await rewardPool.poolLength(), 0);
 
         await rewardPool.add(1, tokenLock.address, needBoolean);
@@ -70,11 +65,9 @@ contract('RewardPool', ([owner, secondObject]) => {
     });
 
     it('test set true', async () => {
-        let answerBoolean = false;
-        let needBoolean = true;
         assert.equal(await rewardPool.poolLength(), 0);
         await rewardPool.add(100, tokenLock.address, needBoolean);
-        let firstInfo = await rewardPool.poolInfo(0);
+        firstInfo = await rewardPool.poolInfo(0);
 
         let length = await rewardPool.poolLength();
 
@@ -87,51 +80,40 @@ contract('RewardPool', ([owner, secondObject]) => {
 
         let secondInfo = await rewardPool.poolInfo(0);
 
-        assert.equal(await checkInfo(firstInfo, secondInfo), answerBoolean);
+        assert.equal(await checkInfo(firstInfo, secondInfo), rejectBoolean);
     });
 
     it('test set false', async () => {
-        let sureBoolean = true;
-        let needBoolean = false;
-
-        await rewardPool.add(100, tokenLock.address, sureBoolean);
+        await rewardPool.add(100, tokenLock.address, needBoolean);
         
-        let firstInfo = await rewardPool.poolInfo(0);
+        firstInfo = await rewardPool.poolInfo(0);
 
-        await rewardPool.set(0, 10, needBoolean);
+        await rewardPool.set(0, 10, rejectBoolean);
         let secondInfo = await rewardPool.poolInfo(0);
 
-        assert.equal(await checkInfo(firstInfo, secondInfo), needBoolean);
+        assert.equal(await checkInfo(firstInfo, secondInfo), rejectBoolean);
     });
 
     it('test deposit', async () => {
-        let sureBoolean = true;
-        let authorNumber = 100000;
-        let needNumeerical = 10000;
-
         await mockToken.approve(rewardPool.address, authorNumber);
 
-        await rewardPool.add(100, mockToken.address, sureBoolean);
+        await rewardPool.add(100, mockToken.address, needBoolean);
 
-        await rewardPool.deposit(0, needNumeerical);
+        await rewardPool.deposit(0, needNumber);
 
-        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumeerical);
+        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumber);
 
         let userInfo = await rewardPool.userInfo(0, owner);
-        assert.equal(userInfo.amount, needNumeerical);
+        assert.equal(userInfo.amount, needNumber);
     });
 
     it('test withdraw', async () => {
-        let successfully = true;
-        let authorNumber = 100000;
-        let needNumber = 10000;
-
         await frax.approve(rewardPool.address, toWei('10'));
         await fxs.approve(rewardPool.address, toWei('10'));
 
         await mockToken.approve(rewardPool.address, authorNumber);
 
-        await rewardPool.add(100, mockToken.address, successfully);
+        await rewardPool.add(100, mockToken.address, needBoolean);
 
         await rewardPool.deposit(0, needNumber, {from: owner});
         console.log("balanceOf"+await mockToken.balanceOf(owner));
@@ -144,13 +126,9 @@ contract('RewardPool', ([owner, secondObject]) => {
     });
     
     it('test pending', async () => {
-        let fail = false;
-        let authorNumber = 100000;
-        let needNumber = 10000;
-
         await mockToken.approve(rewardPool.address, authorNumber);
 
-        await rewardPool.add(1, mockToken.address, fail);
+        await rewardPool.add(1, mockToken.address, rejectBoolean);
 
         assert.equal(await rewardPool.pending(0, owner), 0);
 
@@ -167,25 +145,21 @@ contract('RewardPool', ([owner, secondObject]) => {
         let mul = await (await time.latestBlock() - poolInfo.lastRewardBlock);
         let tokenReward = tokenPerBlock * mul * poolInfo.allocPoint / totalAllocPoint;
         let lpSupply = await mockToken.balanceOf(rewardPool.address);
-        let accTokenPerShare = poolInfo.accTokenPerShare + tokenReward * initNumber / lpSupply;
-        let currPending2 = userInfo.amount * accTokenPerShare / initNumber - userInfo.rewardDebt;
+        let accTokenPerShare = poolInfo.accTokenPerShare + tokenReward * 10000000 / lpSupply;
+        let currPending2 = userInfo.amount * accTokenPerShare / 10000000 - userInfo.rewardDebt;
         assert.equal(await rewardPool.pending(0, owner), currPending2);
     });
 
     it('test emergencyWithdraw', async () => {
-        let successfully = true;
-        let fail = false;
-        let authorNumber = 100000;
-        let needNumber = 10000;
         let secondNumber = 20000;
 
         await mockToken.approve(rewardPool.address, authorNumber);
 
-        await mockToken.mint(secondObject, initSecondNumber);
+        await mockToken.mint(secondObject, 20000000);
 
         await mockToken.approve(rewardPool.address, secondNumber, {from: secondObject});
 
-        await rewardPool.add(200, mockToken.address, successfully);
+        await rewardPool.add(200, mockToken.address, needBoolean);
 
         await rewardPool.deposit(0, needNumber, {from: owner});
         await rewardPool.deposit(0, secondNumber, {from: secondObject});
