@@ -11,14 +11,20 @@ const { waffle, ethers } = require("hardhat");
 const { deployContract } = waffle;
 const { expect } = require("chai");
 const { toWei } = web3.utils;
+const WETH9 = require('./mock/WETH9.json');
 const gas = { gasLimit: "9550000" };
 const { BigNumber } = require('ethers');
 contract('SwapRouter', () => {
   before(async () => {
     [owner, dev, addr1] = await ethers.getSigners();
 
+    weth9 = await deployContract(owner, {
+      bytecode: WETH9.bytecode,
+      abi: WETH9.abi,
+    });
+
     const SwapRouter = await ethers.getContractFactory('SwapRouter');
-    swapRouter = await SwapRouter.deploy();
+    swapRouter = await SwapRouter.deploy(weth9.address);
 
     const MockToken = await ethers.getContractFactory("MockToken")
 
