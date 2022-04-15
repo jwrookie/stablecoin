@@ -6,14 +6,9 @@ const { BigNumber } = require('ethers');
 const { type } = require('os');
 
 contract('Locker', async () => {
-    const SUPPLY = 1000;
-    const APPROVE_NUMBER = "1000";
-
     let TestERC20;
     let Locker;
     let firstTestERC20;
-    let secondTestERC20;
-    let thirdTestERC20;
     let durationTime;
     let lock;
     let lockMap;
@@ -21,6 +16,14 @@ contract('Locker', async () => {
     let secondTokenId;
     let tokenId;
     let lockBalanceMap;
+    let lockMapTimeStamp;
+    let lockBalanceEnd;
+    let arrayName;
+    let nftCount;
+    let lockBalanceAmount;
+    let latestBlock;
+    let userPointEpoch;
+    let currentBlock;
     
     async function mintAddress(object, addressName, toWei) {
         return await object.mint(addressName, toWei);
@@ -55,28 +58,22 @@ contract('Locker', async () => {
         secondTestERC20 = await TestERC20.deploy();
         thirdTestERC20 = await TestERC20.deploy();
 
-        mintAddress(firstTestERC20, owner.address, toWei("1"));
-        mintAddress(secondTestERC20, owner.address, toWei("1"));
-        mintAddress(thirdTestERC20, owner.address, toWei("1"));
+        await firstTestERC20.mint(owner.address, toWei("1"));
 
         durationTime = getDurationTime(1);
         lock = await Locker.deploy(firstTestERC20.address, durationTime);
     });
 
     it('test function supportsInterface', async function() {
-        var supportBool;
+        let supportBool;
         supportBool = await lock.supportsInterface(0x01ffc9a7);
         console.log(checkInfoEq(supportBool, true));
     });
 
     it('test get_last_user_slope', async function() {
-        var lockSlop;
-        var lockMapTimeStamp;
-        var lockMapBlcok;
-        var currentBlock;
-        var currentTime;
-        var arName;
-        var nftCount;
+        let lockSlop;
+        let lockMapBlcok;
+        let currentTime;
 
         lockMap = await lock.point_history(0);
         lockMapTimeStamp = lockMap[2];
@@ -89,9 +86,9 @@ contract('Locker', async () => {
         console.log("PointBlk::\t" + lockMapBlcok);
         console.log("CurrentBlk::\t" + currentBlock);
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        tokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
+        tokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
         console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
 
         await lock.get_last_user_slope(1);
@@ -100,23 +97,22 @@ contract('Locker', async () => {
         lockSlop = lockMap[1];
         assert.equal(lockSlop, 0);
 
-        arName = await lock.ownerOf(1);
-        console.log("address::\t" + arName);
+        arrayName = await lock.ownerOf(1);
+        console.log("address::\t" + arrayName);
 
-        nftCount = await lock.balanceOf(arName);
+        nftCount = await lock.balanceOf(arrayName);
         assert.equal(nftCount, 1);
     });
 
     it('test user_point_history__ts', async function() {
-        var lockMapTimeStamp;
-        var functionReturnTimeStamp;
+        let functionReturnTimeStamp;
 
         lockMap = await lock.point_history(0);
         lockMapTimeStamp = lockMap[2];
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        tokenId = await lock.create_lock(SUPPLY, durationTime);
+        tokenId = await lock.create_lock(1000, durationTime);
 
         functionReturnTimeStamp = await lock.user_point_history__ts(1, 2);
 
@@ -124,12 +120,11 @@ contract('Locker', async () => {
     });
 
     it('test locked__end', async function() {
-        var lockBalanceEnd;
-        var functionReturnEnd;
+        let functionReturnEnd;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        tokenId = await lock.create_lock(SUPPLY, durationTime);
+        tokenId = await lock.create_lock(1000, durationTime);
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceEnd = lockBalanceMap[1];
@@ -140,33 +135,30 @@ contract('Locker', async () => {
     });
 
     it('test balanceOf、ownerOf', async function() {
-        var arName;
-        var nftCount;
-
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        tokenId = await lock.create_lock(SUPPLY, durationTime);
+        tokenId = await lock.create_lock(1000, durationTime);
 
-        arName = await lock.ownerOf(1);
-        console.log("address::\t" + arName);
+        arrayName = await lock.ownerOf(1);
+        console.log("address::\t" + arrayName);
 
-        nftCount = await lock.balanceOf(arName);
+        nftCount = await lock.balanceOf(arrayName);
 
         assert.equal(nftCount, 1);
     });
 
     it('test approve、getApprove、isApprovedOrOwner', async function() {
-        var firstTokenAddress;
-        var secondTokenAddress;
-        var poolTokenAddress;
-        var needBoolean;
+        let firstTokenAddress;
+        let secondTokenAddress;
+        let poolTokenAddress;
+        let needBoolean;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime);
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei(APPROVE_NUMBER));
+        firstTokenId = await lock.create_lock(1000, durationTime);
+        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(SUPPLY, durationTime, seObject.address);
+        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address);
 
         firstTokenAddress = await lock.ownerOf(1);
         console.log("FTokenAddress::\t" + firstTokenAddress);
@@ -182,18 +174,18 @@ contract('Locker', async () => {
     });
 
     it('test function about voter', async function() {
-        var initFirstVoteBoolean;
-        var firstVoteBoolean;
-        var initSecondVoteBoolea;
-        var seVoteBoolean;
-        var seAddress;
+        let initFirstVoteBoolean;
+        let firstVoteBoolean;
+        let initSecondVoteBoolea;
+        let secondVoteBoolean;
+        let secondAddress;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei(APPROVE_NUMBER));
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(SUPPLY, durationTime, seObject.address); // The token id is 2
+        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
 
         initFirstVoteBoolean = await lock.voted(1);
         assert.equal(initFirstVoteBoolean, false);
@@ -211,61 +203,53 @@ contract('Locker', async () => {
         initSecondVoteBoolea = await lock.voted(2);
         assert.equal(initSecondVoteBoolea, false);
 
-        seAddress = await lock.ownerOf(2);
-        console.log(seAddress);
-        await lock.setVoter(seAddress);
-        assert.equal(await lock.voter(), seAddress);
+        secondAddress = await lock.ownerOf(2);
+        console.log(secondAddress);
+        await lock.setVoter(secondAddress);
+        assert.equal(await lock.voter(), secondAddress);
 
-        seVoteBoolean = await lock.connect(seObject).voted(2);
-        console.log(seVoteBoolean);
+        secondVoteBoolean = await lock.connect(seObject).voted(2);
+        console.log(secondVoteBoolean);
     });
 
     it('test attach、detach', async function() {
-        var firAtt;
-        var seAtt;
-        var type;
+        let firstAttach;
+        let secondAttach;
+        let type;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei(APPROVE_NUMBER));
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(SUPPLY, durationTime, seObject.address); // The token id is 2
+        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
         type = typeof firstTokenId;
         console.log(type);
         type = typeof secondTokenId;
         console.log(type);
 
-        firAtt = await lock.attachments(0);
-        seAtt = await lock.attachments(1);
-        assert.equal(firAtt, 0);
-        assert.equal(seAtt, 0);
+        firstAttach = await lock.attachments(0);
+        secondAttach = await lock.attachments(1);
+        assert.equal(firstAttach, 0);
+        assert.equal(secondAttach, 0);
 
         await lock.attach(1);
-        firAtt = await lock.attachments(0);
-        console.log(firAtt);
+        firstAttach = await lock.attachments(0);
+        console.log(firstAttach);
     });
 
     it('test checkPoint、_checkPoint', async function() {
-        const Day = 86400; // This time is a const
-        const NUMBER = 1e18; // To calculate the slope
-        var lastPointBias;
-        var lastPointSlope;
-        var lastPointBlk;
-        var lastPointTs;
-        var durationTime;
-        var t_i;
-        var blockSlope;
-        var lockBalanceMap;
-        var lockBalanceAmount;
-        var lockBalanceEnd;
-        var latestBlock;
-        var latestTs;
-        var userPointEpoch;
+        let lastPointBias;
+        let lastPointSlope;
+        let lastPointBlk;
+        let lastPointTs;
+        let t_i;
+        let blockSlope;
+        let latestTs;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime);
+        firstTokenId = await lock.create_lock(1000, durationTime);
 
         lockMap = await lock.point_history(0);
         lastPointBias = lockMap[0];
@@ -275,10 +259,10 @@ contract('Locker', async () => {
         lastPointTs = lockMap[2];
         latestBlock = await time.latestBlock();
         latestTs = await time.latest();
-        blockSlope = (NUMBER * latestBlock - lastPointBlk) / (latestTs - lastPointTs);
+        blockSlope = (1e18 * latestBlock - lastPointBlk) / (latestTs - lastPointTs);
         console.log("slope::\t" + parseInt(blockSlope));
         durationTime = getDurationTime(1);
-        console.log(checkInfoEq(durationTime, Day));
+        console.log(checkInfoEq(durationTime, 86400));
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
         lockBalanceEnd = lockBalanceMap[1];
@@ -296,12 +280,11 @@ contract('Locker', async () => {
     });
 
     it('test block_number', async function() {
-        var latestBlock;
-        var returnBlock;
+        let returnBlock;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
         latestBlock = await time.latestBlock();
 
@@ -311,15 +294,12 @@ contract('Locker', async () => {
     });
 
     it('test deposit_for', async function() {
-        var lockBalanceMap;
-        var lockBalanceAmount;
-        var initLockBalanceAmount;
-        var lockBalanceEnd;
-        var initLockBalanceEnd;
+        let initLockBalanceAmount;
+        let initLockBalanceEnd;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
@@ -337,16 +317,14 @@ contract('Locker', async () => {
 
     it('test balanceOfNFT and balanceOfNFTAt', async function(){
         const Result = 0;
-        var currentBlock;
-        var latestPointBias;
-        var latestPointSlope;
-        var latestPointTs;
-        var userPointEpoch;
-        var paraTime;
+        let latestPointBias;
+        let latestPointSlope;
+        let latestPointTimeStamp;
+        let paraTime;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
         currentBlock = await time.latestBlock();
 
@@ -355,8 +333,8 @@ contract('Locker', async () => {
         console.log(latestPointBias);
         latestPointSlope = lockMap[1];
         console.log(latestPointSlope);
-        latestPointTs = lockMap[2];
-        console.log(latestPointTs);
+        latestPointTimeStamp = lockMap[2];
+        console.log(latestPointTimeStamp);
 
         userPointEpoch = await lock.user_point_epoch(1);
         console.log(checkInfoEq(userPointEpoch, 1));
@@ -374,15 +352,12 @@ contract('Locker', async () => {
     });
 
     it('test tokenURI', async function() {
-        var lockBalanceMap;
-        var lockBalanceAmount;
-        var lockBalanceEnd;
-        var result;
-        var decode;
+        let result;
+        let decode;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei(APPROVE_NUMBER));
+        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(SUPPLY, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
