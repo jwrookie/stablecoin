@@ -3,7 +3,7 @@
 pragma solidity =0.8.10;
 
 interface ICryptoPool {
-    function n_coins() external view returns (int128);
+    function n_coins() external view returns (uint256);
 
     function coins(uint256) external view returns (address);
 
@@ -38,15 +38,15 @@ interface ICryptoPool {
         address receiver
     ) external payable returns (uint256);
 
-    function calc_token_amount(uint256[2] calldata amounts, bool isDeposit)
+    function calc_token_amount(uint256[2] calldata amounts)
         external
         returns (uint256);
 
-    function calc_token_amount(uint256[3] calldata amounts, bool isDeposit)
+    function calc_token_amount(uint256[3] calldata amounts)
         external
         returns (uint256);
 
-    function calc_token_amount(uint256[4] calldata amounts, bool isDeposit)
+    function calc_token_amount(uint256[4] calldata amounts)
         external
         returns (uint256);
 }

@@ -126,7 +126,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     function attachTokenToGauge(uint tokenId, address account) external {
         require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(veToken).attach(tokenId);
+        if (tokenId > 0) IVeToken(veToken).used(tokenId);
         emit Attach(account, msg.sender, tokenId);
     }
 
