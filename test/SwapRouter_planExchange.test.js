@@ -11,14 +11,20 @@ const { waffle, ethers } = require("hardhat");
 const { deployContract } = waffle;
 const { expect } = require("chai");
 const { toWei } = web3.utils;
+const WETH9 = require('./mock/WETH9.json');
 const gas = { gasLimit: "9550000" };
 const { BigNumber } = require('ethers');
 contract('SwapRouter', () => {
   before(async () => {
     [owner, dev, addr1] = await ethers.getSigners();
 
+    weth9 = await deployContract(owner, {
+      bytecode: WETH9.bytecode,
+      abi: WETH9.abi,
+    });
+
     const SwapRouter = await ethers.getContractFactory('SwapRouter');
-    swapRouter = await SwapRouter.deploy();
+    swapRouter = await SwapRouter.deploy(weth9.address);
 
     const MockToken = await ethers.getContractFactory("MockToken")
 
@@ -33,9 +39,9 @@ contract('SwapRouter', () => {
     await token2.mint(owner.address, toWei("10000"));
     await token3.mint(owner.address, toWei("10000"));
 
-    await token0.mint(dev.address, toWei("10"));
-    await token1.mint(dev.address, toWei("10"));
-    await token2.mint(dev.address, toWei("10"));
+    await token0.mint(dev.address, toWei("1000000"));
+    await token1.mint(dev.address, toWei("10000000"));
+    await token2.mint(dev.address, toWei("10000000"));
 
     plain3Balances = await deployContract(owner, {
       bytecode: Plain3Balances.bytecode,
@@ -131,53 +137,54 @@ contract('SwapRouter', () => {
 
   })
 
-  it("exchange pool token0 -> token1", async () => {
+  // it("exchange pool token0 -> token1", async () => {
 
-    await token0.connect(dev).approve(pool.address, toWei("10000"))
-    await token1.connect(dev).approve(pool.address, toWei("10000"))
+  //   await token0.connect(dev).approve(pool.address, toWei("10000"))
+  //   await token1.connect(dev).approve(pool.address, toWei("10000"))
+
+  //   devToken0Befo = await token0.balanceOf(dev.address)
+  //   devToken1Befo = await token1.balanceOf(dev.address)
+  //   poolToken0Bef = await pool.balances(0, gas);
+  //   poolToken1Bef = await pool.balances(1, gas);
+
+  //   dx = '1000000'
+  //   await pool.connect(dev).exchange(0, 1, dx, 0, dev.address);
+  //   const n_coins = await pool.n_coins()
+  //   expect(n_coins).to.be.eq(3);
+  //   devToken0Aft = await token0.balanceOf(dev.address)
+  //   devToken1Aft = await token1.balanceOf(dev.address)
+  //   poolToken0aft = await pool.balances(0, { gasLimit: "2450000", });
+  //   poolToken1aft = await pool.balances(1, { gasLimit: "2450000", });
+
+  //   expect(devToken0Aft).to.be.eq(BigNumber.from(devToken0Befo).sub(dx))
+  //   expect(devToken1Aft).to.be.eq(BigNumber.from(devToken1Befo).add("999600"))
+  //   expect(poolToken0aft).to.be.eq(BigNumber.from(poolToken0Bef).add(dx))
+  //   expect(poolToken1aft).to.be.eq(BigNumber.from(poolToken1Bef).sub('999799'))
+
+
+  // })
+
+
+  it('swapRouter exchage  swapStable plan  token0 => token1', async () => {
+
+    await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+    // await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+
+    expect(await pool.coins(0, gas)).to.be.eq(token0.address)
+    expect(await pool.coins(1, gas)).to.be.eq(token1.address)
 
     devToken0Befo = await token0.balanceOf(dev.address)
     devToken1Befo = await token1.balanceOf(dev.address)
     poolToken0Bef = await pool.balances(0, gas);
     poolToken1Bef = await pool.balances(1, gas);
 
-    dx = '1000000'
-    await pool.connect(dev).exchange(0, 1, dx, 0, dev.address);
-
-    devToken0Aft = await token0.balanceOf(dev.address)
-    devToken1Aft = await token1.balanceOf(dev.address)
-    poolToken0aft = await pool.balances(0, { gasLimit: "2450000", });
-    poolToken1aft = await pool.balances(1, { gasLimit: "2450000", });
-
-    expect(devToken0Aft).to.be.eq(BigNumber.from(devToken0Befo).sub(dx))
-    expect(devToken1Aft).to.be.eq(BigNumber.from(devToken1Befo).add("999600"))
-    expect(poolToken0aft).to.be.eq(BigNumber.from(poolToken0Bef).add(dx))
-    expect(poolToken1aft).to.be.eq(BigNumber.from(poolToken1Bef).sub('999799'))
-
-
-  })
-
-
-  it('swapRouter exchage  swapStable plan  token0 => token1', async () => {
-
-    await token0.connect(owner).approve(swapRouter.address, toWei('10000'))
-    await token1.connect(owner).approve(swapRouter.address, toWei('10000'))
-
-    expect(await pool.coins(0, gas)).to.be.eq(token0.address)
-    expect(await pool.coins(1, gas)).to.be.eq(token1.address)
-
-    devToken0Befo = await token0.balanceOf(owner.address)
-    devToken1Befo = await token1.balanceOf(owner.address)
-    poolToken0Bef = await pool.balances(0, gas);
-    poolToken1Bef = await pool.balances(1, gas);
-
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
     let dx = "1000000"
 
-    await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)
+    await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times)
 
-    devToken0Aft = await token0.balanceOf(owner.address)
-    devToken1Aft = await token1.balanceOf(owner.address)
+    devToken0Aft = await token0.balanceOf(dev.address)
+    devToken1Aft = await token1.balanceOf(dev.address)
     poolToken0aft = await pool.balances(0, gas);
     poolToken1aft = await pool.balances(1, gas);
 

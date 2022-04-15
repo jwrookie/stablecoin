@@ -37,6 +37,14 @@ interface IStablePool {
         address receiver
     ) external returns (uint256);
 
+    function exchange_underlying(
+        int128 from,
+        int128 to,
+        uint256 _from_amount,
+        uint256 _min_to_amount,
+        address receiver
+    ) external returns (uint256);
+
     function calc_token_amount(uint256[2] calldata amounts, bool isDeposit)
         external
         returns (uint256);
