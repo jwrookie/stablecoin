@@ -69,19 +69,20 @@ contract('CurveAMO_V4', () => {
 
 
 
-        const FraxPoolV3 = await ethers.getContractFactory('FraxPoolV3')
-       poolV3 = await FraxPoolV3.deploy(
-            owner.address,
-            owner.address,
-            [usdc.address],
-            [3],
-            [0],
-
-        );
-            console.log("poolV3:"+poolV3.address)
+       //  const FraxPoolV3 = await ethers.getContractFactory('FraxPoolV3')
+       // poolV3 = await FraxPoolV3.deploy(
+       //      owner.address,
+       //      owner.address,
+       //      [usdc.address],
+       //      [3],
+       //      [1],
+       //
+       //  );
+       //      console.log("poolV3:"+poolV3.address)
 
 
        // await frax.addPool(poolV3.address);
+         await frax.addPool(pool.address);
         // //await frax.addPool(owner.address);
 
          plain3Balances = await deployContract(owner, {
@@ -145,14 +146,14 @@ contract('CurveAMO_V4', () => {
         // await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
 
 
-        //    const FraxAMOMinter = await ethers.getContractFactory('FraxAMOMinter');
-        // minter = await FraxAMOMinter.deploy(
-        //     owner.address,
-        //     owner.address,
-        //     timelock.address,
-        //     usdc.address,
-        //     pool.address,
-        // );
+           const  AMOMinter= await ethers.getContractFactory('AMOMinter');
+        minter = await AMOMinter.deploy(
+            owner.address,
+            owner.address,
+            timelock.address,
+            usdc.address,
+            pool.address,
+        );
 
 
 
