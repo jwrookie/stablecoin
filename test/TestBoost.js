@@ -7,9 +7,6 @@ const { BigNumber } = require('ethers');
 const { parse } = require('path');
 
 contract('test Boost', async function() {
-    const ALLOCPOINT = 100;
-    const SURE = true;
-
     let testERC20;
     let veToken;
     let duration;
@@ -164,7 +161,7 @@ contract('test Boost', async function() {
         assert.equal(parseInt(length), 0);
 
         // Call the function create gauge
-        await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        await boost.createGauge(lpToken, 100, true);
         length = await boost.poolLength();
         assert.equal(parseInt(length), 1);
     });
@@ -183,7 +180,7 @@ contract('test Boost', async function() {
         // Call the function create gauge
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 10);
-        await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        await boost.createGauge(lpToken, 100, true);
         currentLength = await boost.poolLength();
         assert.equal(currentLength, 1);
         currentLpPid = await boost.LpOfPid(lpToken);
@@ -194,7 +191,7 @@ contract('test Boost', async function() {
 
         // Get total alloc point value
         currentTotalAllPoint = await boost.totalAllocPoint();
-        console.log(checkInfoEq(currentTotalAllPoint, ALLOCPOINT)); // true
+        console.log(checkInfoEq(currentTotalAllPoint, 100)); // true
 
         // Get pool info
         poolInfoMap = await boost.poolInfo(currentLpPid);
@@ -224,9 +221,9 @@ contract('test Boost', async function() {
         currentLpPid = await boost.LpOfPid(await boost.poolForGauge(lpToken));
 
         // Get total alloc point
-        currentGauge = await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        currentGauge = await boost.createGauge(lpToken, 100, true);
         currentTotalAllPoint = await boost.totalAllocPoint();
-        console.log(checkInfoEq(currentTotalAllPoint, ALLOCPOINT)); // true
+        console.log(checkInfoEq(currentTotalAllPoint, 100)); // true
 
         // Get pool info alloc point
         poolInfoMap = await boost.poolInfo(currentLpPid);
@@ -241,7 +238,7 @@ contract('test Boost', async function() {
         console.log(checkInfoEq(parseInt(length), 1)); // true
 
         // Will execute once function and call the function
-        await boost.set(currentLpPid, 300, SURE);
+        await boost.set(currentLpPid, 300, true);
 
         // Check
         poolInfoMap = await boost.poolInfo(currentLpPid);
@@ -286,7 +283,7 @@ contract('test Boost', async function() {
         poolForGaugeMap = await boost.poolForGauge(gaugeMap);
         currentLpPid = await boost.LpOfPid(await boost.poolForGauge(lpToken));
         // Call the funtion create gauge
-        currentGauge = await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        currentGauge = await boost.createGauge(lpToken, 100, true);
         // Get the pool info
         poolInfoMap = await boost.poolInfo(0);
         poolInfoLastRewardBlock = poolInfoMap[2];
@@ -358,8 +355,8 @@ contract('test Boost', async function() {
     doubleArray[0][0] = firstTokenAddress;
     doubleArray[1][0] = secondTokenAddress;
 
-	await boost.createGauge(lpToken, ALLOCPOINT, SURE);
-	await boost.connect(seObject).createGauge(seLpToken, ALLOCPOINT, SURE);
+	await boost.createGauge(lpToken, 100, true);
+	await boost.connect(seObject).createGauge(seLpToken, 100, true);
 	currentGauge = await boost.gauges(lpToken);
     currentSeGauge = await boost.gauges(seLpToken);
     gaugeArray[0] = currentGauge;
@@ -382,7 +379,7 @@ contract('test Boost', async function() {
 
         await veToken.connect(seObject).create_lock_for(toWei("1"), duration, seObject.address);
 
-        await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        await boost.createGauge(lpToken, 100, true);
 
         // Get gauge
         const Gauge = await ethers.getContractFactory("Gauge");
@@ -414,7 +411,7 @@ contract('test Boost', async function() {
         let userWeights;
         let targetUserWeights;
 
-        await boost.createGauge(lpToken, ALLOCPOINT, SURE);
+        await boost.createGauge(lpToken, 100, true);
 
         await boost.gauges(lpToken);
         tokenSupply = await frax.balanceOf(gaugeLpToken);
