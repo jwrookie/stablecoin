@@ -85,7 +85,7 @@ contract('Locker', async () => {
         await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         tokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
-        console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
+        // console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
 
         await lock.get_last_user_slope(1);
 
@@ -94,7 +94,7 @@ contract('Locker', async () => {
         assert.equal(lockSlop, 0);
 
         arrayName = await lock.ownerOf(1);
-        console.log("address::\t" + arrayName);
+        expect(arrayName).to.be.not.eq(null);
 
         nftCount = await lock.balanceOf(arrayName);
         assert.equal(nftCount, 1);
@@ -136,7 +136,7 @@ contract('Locker', async () => {
         tokenId = await lock.create_lock(1000, durationTime);
 
         arrayName = await lock.ownerOf(1);
-        console.log("address::\t" + arrayName);
+        expect(arrayName).to.be.not.eq(null);
 
         nftCount = await lock.balanceOf(arrayName);
 
@@ -157,13 +157,12 @@ contract('Locker', async () => {
         secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address);
 
         firstTokenAddress = await lock.ownerOf(1);
-        console.log("FTokenAddress::\t" + firstTokenAddress);
         secondTokenAddress = await lock.ownerOf(2);
 
         await lock.approve(secondTokenAddress, 1);
 
         poolTokenAddress = await lock.getApproved(1);
-        console.log("STokenAddress::\t" + poolTokenAddress);
+        expect(firstTokenAddress).to.be.not.eq(secondTokenAddress);
 
         needBoolean = await lock.isApprovedOrOwner(secondTokenAddress, 1);
         console.log(checkInfoEq(needBoolean, true));
@@ -200,18 +199,18 @@ contract('Locker', async () => {
         assert.equal(initSecondVoteBoolea, false);
 
         secondAddress = await lock.ownerOf(2);
-        console.log(secondAddress);
+        expect(secondAddress).to.be.not.eq(null);
         await lock.setVoter(secondAddress);
         assert.equal(await lock.voter(), secondAddress);
 
         secondVoteBoolean = await lock.connect(seObject).voted(2);
-        console.log(secondVoteBoolean);
     });
 
     it('test attach、detach', async function() {
         let firstAttach;
         let secondAttach;
         let type;
+        let secondType;
 
         await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
@@ -220,9 +219,8 @@ contract('Locker', async () => {
         durationTime = getDurationTime(1);
         secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
         type = typeof firstTokenId;
-        console.log(type);
-        type = typeof secondTokenId;
-        console.log(type);
+        secondType = typeof secondTokenId;
+        expect(secondType).to.be.eq(type);
 
         firstAttach = await lock.attachments(0);
         secondAttach = await lock.attachments(1);
@@ -231,7 +229,6 @@ contract('Locker', async () => {
 
         await lock.attach(1);
         firstAttach = await lock.attachments(0);
-        console.log(firstAttach);
     });
 
     it('test checkPoint、_checkPoint', async function() {
@@ -242,6 +239,7 @@ contract('Locker', async () => {
         let t_i;
         let blockSlope;
         let latestTs;
+        let currentLockMap;
 
         await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
@@ -256,23 +254,20 @@ contract('Locker', async () => {
         latestBlock = await time.latestBlock();
         latestTs = await time.latest();
         blockSlope = (1e18 * latestBlock - lastPointBlk) / (latestTs - lastPointTs);
-        console.log("slope::\t" + parseInt(blockSlope));
+        expect(parseInt(blockSlope)).to.be.not.eq(0);
         durationTime = getDurationTime(1);
         console.log(checkInfoEq(durationTime, 86400));
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
         lockBalanceEnd = lockBalanceMap[1];
         t_i = (lastPointTs / durationTime) * durationTime;
-        console.log("t_i::\t" + parseInt(t_i));
         await lock.get_last_user_slope(1);
         userPointEpoch = await lock.user_point_epoch(1);
-        console.log("userPoint::\t" + userPointEpoch);
 
         await lock.checkpoint();
         lockMap = await lock.point_history(1);
-        console.log(lockMap);
-        lockMap = await lock.point_history(0);
-        console.log(lockMap);
+        currentLockMap = await lock.point_history(0);
+        expect(currentLockMap).to.be.not.eq(lockMap);
     });
 
     it('test block_number', async function() {
@@ -312,11 +307,11 @@ contract('Locker', async () => {
     });
 
     it('test balanceOfNFT and balanceOfNFTAt', async function(){
-        const Result = 0;
         let latestPointBias;
         let latestPointSlope;
         let latestPointTimeStamp;
         let paraTime;
+        let timeStamp;
 
         await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
@@ -325,12 +320,13 @@ contract('Locker', async () => {
         currentBlock = await time.latestBlock();
 
         lockMap = await lock.point_history(0);
-        latestPointBias = lockMap[0];;
-        console.log(latestPointBias);
+        latestPointBias = lockMap[0];
+        expect(parseInt(latestPointBias)).to.be.eq(0);
         latestPointSlope = lockMap[1];
-        console.log(latestPointSlope);
+        expect(parseInt(latestPointSlope)).to.be.eq(0);
+        timeStamp = await time.latest();
         latestPointTimeStamp = lockMap[2];
-        console.log(latestPointTimeStamp);
+        expect(parseInt(latestPointTimeStamp)).to.be.not.eq(parseInt(timeStamp));
 
         userPointEpoch = await lock.user_point_epoch(1);
         console.log(checkInfoEq(userPointEpoch, 1));
@@ -338,13 +334,13 @@ contract('Locker', async () => {
         await lock.balanceOfNFT(1);
         lockMap = await lock.point_history(1);
         latestPointBias = lockMap[0];
-        console.log(latestPointBias);
+        expect(parseInt(latestPointBias)).to.be.eq(0);
 
         paraTime = await time.latest();
         await lock.balanceOfNFTAt(1, parseInt(paraTime));
         lockMap = await lock.point_history(1);
         latestPointBias = lockMap[0];
-        expect(latestPointBias).to.be.eq(Result);
+        expect(latestPointBias).to.be.eq(0);
     });
 
     it('test tokenURI', async function() {
@@ -361,6 +357,5 @@ contract('Locker', async () => {
 
         result = await lock.tokenURI(1);
         decode = await lock.toString(result);
-        console.log(decode);
     });
 });

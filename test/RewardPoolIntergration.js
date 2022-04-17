@@ -90,16 +90,15 @@ contract('RewardPoolIntergration', () => {
         assert.equal(userInfo[0], 0);
         assert.equal(userInfo[1], 0);
 
-        console.log("-=-" + await fxs.balanceOf(owner.address));
+        await fxs.balanceOf(owner.address);
 
         await rewardPool.deposit(poolLength, 10000);
 
         firstLastBlock = await time.latestBlock();
-        console.log("firstTemp:" + firstLastBlock);
 
         await time.advanceBlockTo(parseInt(firstLastBlock) + 10);
         secondLastBlock = await time.latestBlock();
-        console.log("second:" + secondLastBlock);
+        expect(parseInt(firstLastBlock)).to.be.not.eq(parseInt(secondLastBlock));
         assert.equal((secondLastBlock - firstLastBlock + 1), 11);
 
         mul = secondLastBlock - firstLastBlock;
@@ -136,7 +135,7 @@ contract('RewardPoolIntergration', () => {
 
         await rewardPool.deposit(0, 0);
 
-        console.log(await fxs.balanceOf(owner.address));
+        await fxs.balanceOf(owner.address);
     });
 
     it('Single user deposit and pending and withdraw', async function() {
@@ -439,21 +438,19 @@ contract('RewardPoolIntergration', () => {
         ownerPendingValue = await rewardPool.pending(0, owner.address);
         await rewardPool.deposit(0, 0);
         acquiescentToken = await fxs.connect(owner).balanceOf(owner.address);
-        console.log("Only one pool pending:" + acquiescentToken);
         await rewardPool.deposit(1, 0);
         acquiescentToken = await fxs.connect(owner).balanceOf(owner.address);
-        console.log("Two pools pending:" + acquiescentToken);
         ownerSecondPnedingValue = await rewardPool.pending(1, owner.address);
         currentBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(currentBlock) + 1);
         secondPendingValue = await rewardPool.pending(0, seObject.address);
         await rewardPool.deposit(0, 0);
         secondAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
-        console.log("Seobject only one pool pending:" + secondAcquiescentToken);
+        expect(parseInt(secondAcquiescentToken)).to.be.eq(0);
         secondSecondPendingValue = await rewardPool.pending(1, seObject.address);
         await rewardPool.deposit(1, 0);
         secondAcquiescentToken = await fxs.connect(seObject).balanceOf(seObject.address);
-        console.log("Seobject two pools pending:" + secondAcquiescentToken);
+        expect(parseInt(secondAcquiescentToken)).to.be.eq(0);
 
         await rewardPool.connect(owner).withdraw(0, mockLpToken);
         await rewardPool.connect(owner).withdraw(1, secondMockLpToken);

@@ -403,8 +403,6 @@ contract('test Boost', async function() {
         await boost.connect(seObject).vote(1, [fax.address], [toWei("1000")]);
 
         targetValue = await boost.getPoolVote(0);
-
-        console.log(targetValue);
     });
 
     it('test AbstractBoost poke', async function() {
