@@ -11,11 +11,7 @@ const Operatable = artifacts.require('./contracts/tools/Operatable.sol');
 const Locker = artifacts.require('./contracts/dao/Locker.sol');
 
 contract('RewardPool', ([owner, secondObject]) => {
-    let needBoolean = true;
-    let rejectBoolean = false;
     let firstInfo;
-    let authorNumber = 100000;
-    let needNumber = 10000;
 
     beforeEach(async () => {
         const Oracle = await ethers.getContractFactory('TestOracle');
@@ -59,80 +55,80 @@ contract('RewardPool', ([owner, secondObject]) => {
     it('test add', async () => {
         assert.equal(await rewardPool.poolLength(), 0);
 
-        await rewardPool.add(1, tokenLock.address, needBoolean);
+        await rewardPool.add(1, tokenLock.address, true);
 
         assert.equal(await rewardPool.poolLength(), 1);
     });
 
     it('test set true', async () => {
         assert.equal(await rewardPool.poolLength(), 0);
-        await rewardPool.add(100, tokenLock.address, needBoolean);
+        await rewardPool.add(100, tokenLock.address, true);
         firstInfo = await rewardPool.poolInfo(0);
 
         let length = await rewardPool.poolLength();
 
         assert.equal(length, 1);
 
-        await rewardPool.set(0, 10, needBoolean);
+        await rewardPool.set(0, 10, true);
 
         let secondLength = await rewardPool.poolLength();
         assert.equal(secondLength, 1);
 
         let secondInfo = await rewardPool.poolInfo(0);
 
-        assert.equal(await checkInfo(firstInfo, secondInfo), rejectBoolean);
+        assert.equal(await checkInfo(firstInfo, secondInfo), false);
     });
 
     it('test set false', async () => {
-        await rewardPool.add(100, tokenLock.address, needBoolean);
+        await rewardPool.add(100, tokenLock.address, true);
         
         firstInfo = await rewardPool.poolInfo(0);
 
-        await rewardPool.set(0, 10, rejectBoolean);
+        await rewardPool.set(0, 10, false);
         let secondInfo = await rewardPool.poolInfo(0);
 
-        assert.equal(await checkInfo(firstInfo, secondInfo), rejectBoolean);
+        assert.equal(await checkInfo(firstInfo, secondInfo), false);
     });
 
     it('test deposit', async () => {
-        await mockToken.approve(rewardPool.address, authorNumber);
+        await mockToken.approve(rewardPool.address, 100000);
 
-        await rewardPool.add(100, mockToken.address, needBoolean);
+        await rewardPool.add(100, mockToken.address, true);
 
-        await rewardPool.deposit(0, needNumber);
+        await rewardPool.deposit(0, 10000);
 
-        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumber);
+        assert.equal(await mockToken.balanceOf(rewardPool.address), 10000);
 
         let userInfo = await rewardPool.userInfo(0, owner);
-        assert.equal(userInfo.amount, needNumber);
+        assert.equal(userInfo.amount, 10000);
     });
 
     it('test withdraw', async () => {
         await frax.approve(rewardPool.address, toWei('10'));
         await fxs.approve(rewardPool.address, toWei('10'));
 
-        await mockToken.approve(rewardPool.address, authorNumber);
+        await mockToken.approve(rewardPool.address, 100000);
 
-        await rewardPool.add(100, mockToken.address, needBoolean);
+        await rewardPool.add(100, mockToken.address, true);
 
-        await rewardPool.deposit(0, needNumber, {from: owner});
+        await rewardPool.deposit(0, 10000, {from: owner});
         console.log("balanceOf"+await mockToken.balanceOf(owner));
 
         let nowTime = await time.latestBlock();
         await time.advanceBlockTo(parseInt(nowTime) + 10);
         
-        await rewardPool.withdraw(0, needNumber);
+        await rewardPool.withdraw(0, 10000);
         console.log("balanceOf"+await mockToken.balanceOf(owner));
     });
     
     it('test pending', async () => {
-        await mockToken.approve(rewardPool.address, authorNumber);
+        await mockToken.approve(rewardPool.address, 100000);
 
-        await rewardPool.add(1, mockToken.address, rejectBoolean);
+        await rewardPool.add(1, mockToken.address, false);
 
         assert.equal(await rewardPool.pending(0, owner), 0);
 
-        await rewardPool.deposit(0, needNumber, {from: owner});
+        await rewardPool.deposit(0, 10000, {from: owner});
 
         assert.equal(await rewardPool.pending(0, owner), 0);
 
@@ -153,19 +149,19 @@ contract('RewardPool', ([owner, secondObject]) => {
     it('test emergencyWithdraw', async () => {
         let secondNumber = 20000;
 
-        await mockToken.approve(rewardPool.address, authorNumber);
+        await mockToken.approve(rewardPool.address, 100000);
 
         await mockToken.mint(secondObject, 20000000);
 
         await mockToken.approve(rewardPool.address, secondNumber, {from: secondObject});
 
-        await rewardPool.add(200, mockToken.address, needBoolean);
+        await rewardPool.add(200, mockToken.address, true);
 
-        await rewardPool.deposit(0, needNumber, {from: owner});
+        await rewardPool.deposit(0, 10000, {from: owner});
         await rewardPool.deposit(0, secondNumber, {from: secondObject});
 
         await rewardPool.emergencyWithdraw(0, {from: secondObject});
 
-        assert.equal(await mockToken.balanceOf(rewardPool.address), needNumber);
+        assert.equal(await mockToken.balanceOf(rewardPool.address), 10000);
     });
 });

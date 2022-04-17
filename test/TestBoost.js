@@ -7,8 +7,6 @@ const { BigNumber } = require('ethers');
 const { parse } = require('path');
 
 contract('test Boost', async function() {
-    const TOKENPERBLOCK = 100000;
-    const PERIOD = 10;
     const ALLOCPOINT = 100;
     const SURE = true;
 
@@ -39,7 +37,6 @@ contract('test Boost', async function() {
     let gaugeLpToken;
     let targetGauge;
     let weightArray = new Array(1);
-    let tokenAddress;
 
     /**
      * Get duration time
@@ -146,9 +143,9 @@ contract('test Boost', async function() {
             veToken.address,
             gaugeFactory.address,
             fax.address,
-            TOKENPERBLOCK,
+            100000,
             parseInt(startBlock),
-            PERIOD
+            10
         );
 
         // Lp token add pool boost
@@ -313,7 +310,7 @@ contract('test Boost', async function() {
 
         // Get token reward value
         currentTotalAllPoint = await boost.totalAllocPoint();
-        currentTokenReward = TOKENPERBLOCK * mul * poolInfoAllocPoint / currentTotalAllPoint;
+        currentTokenReward = 100000 * mul * poolInfoAllocPoint / currentTotalAllPoint;
 
         await boost.updatePool(currentLpPid);
 
@@ -379,44 +376,7 @@ contract('test Boost', async function() {
     });
     
     it('test AbstractBoost getPoolVote', async function(){
-        // await firstMockToken.connect(seObject).approve(veToken.address, toWei("100000000"));
-
-        // // Get gauge value
-        // const Gauge = await ethers.getContractFactory("Gauge");
-        // // Get object
-        // currentGauge = await boost.gauges(firstMockToken.address);
-        // targetGauge = await Gauge.attach(currentGauge);
-        // // currentGauge = await boost.createGauge(lpToken, ALLOCPOINT, SURE);
-
-        // await targetGauge.connect(owner).deposit("1000", 1);
-
-        // // gaugeLpToken = await boost.gauges(lpToken);
-        // tokenSupply = await frax.balanceOf(gaugeLpToken);
-        // tokenSupply = tokenSupply + 10;
-
-        // // duration = getDurationTime(1);
-
-        // await veToken.connect(seObject).create_lock_for(toWei("1"), parseInt(tokenSupply), seObject.address);
-
-        // // await targetGauge.connect(owner).earned(fax.address, owner.address);
-
-        // // await targetGauge.connect(owner).getReward(owner.address, [fax.address]);
-
-        // // tokenAddress = await boost.getPoolVote(0);
-
-        // // console.log(tokenAddress);
-
-        // // weightArray[0] = parseInt(await boost.weights(await boost.veToken()));
-
-        // // console.log(weightArray);
-
-        // // // await boost.vote(1, [firstMockToken.address], [toWei("10000")]);
-
-        // // console.log(await boost.weights(lpToken));
-
-        // // expect(0).to.be.eq(tokenAddress.length);
-
-        // await fax.connect(seObject).approve(veToken, toWei("1000000"));
+        let targetValue;
 
         duration = getDurationTime(1);
 
@@ -444,6 +404,10 @@ contract('test Boost', async function() {
         await temp.connect(seObject).getReward(seObject.address, [fax.address]);
 
         await boost.connect(seObject).vote(1, [fax.address], [toWei("1000")]);
+
+        targetValue = await boost.getPoolVote(0);
+
+        console.log(targetValue);
     });
 
     it('test AbstractBoost poke', async function() {
@@ -467,19 +431,5 @@ contract('test Boost', async function() {
         weightArray[0] = parseInt(await boost.weights(await boost.veToken()));
 
         await boost.poke(0);
-    });
-
-    it('test AbstractBoost vote', async function() {
-        let targetPoolVote;
-        let paramterArray = new Array(1);
-
-        for(var i = 0; i < paramterArray.length; i++) {
-            paramterArray[i] = i + 1;
-        }
-
-        tokenAddress = await boost.getPoolVote(0);
-
-        boost.vote(0, tokenAddress, paramterArray);
-
     });
 });

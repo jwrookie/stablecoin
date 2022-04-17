@@ -24,10 +24,6 @@ contract('Locker', async () => {
     let latestBlock;
     let userPointEpoch;
     let currentBlock;
-    
-    async function mintAddress(object, addressName, toWei) {
-        return await object.mint(addressName, toWei);
-    } 
 
     async function getDurationTime(dayNumber) {
         if(0 >= durationTime || durationTime > 100) {
