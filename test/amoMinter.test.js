@@ -5,7 +5,7 @@ const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
-const gas = { gasLimit: "9550000" };
+const gas = {gasLimit: "9550000"};
 
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
@@ -14,7 +14,7 @@ const PoolAbi = require('./mock/mockPool/3pool_abi.json');
 const Registry = require("./mock/mockPool/Registry.json");
 const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
 
-contract('CurveAMO_V4', () => {
+contract('AMOMinter', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         const TestOracle = await ethers.getContractFactory('TestOracle');
@@ -26,10 +26,10 @@ contract('CurveAMO_V4', () => {
         const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
         frax = await FRAXStablecoin.deploy("frax", "frax");
 
-       const  MockToken = await ethers.getContractFactory("MockToken");
+        const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
         busd = await MockToken.deploy("busd", "busd", 18, toWei('10'));
-         crv = await MockToken.deploy("crv", "crv", 18, toWei('10'));
+        crv = await MockToken.deploy("crv", "crv", 18, toWei('10'));
 
         token0 = await MockToken.deploy("token0", "token0", 18, toWei('10'));
         token1 = await MockToken.deploy("token1", "token1", 18, toWei('10'));
@@ -45,7 +45,7 @@ contract('CurveAMO_V4', () => {
         await token1.mint(dev.address, toWei("10"));
         await token2.mint(dev.address, toWei("10"));
 
-          const Timelock = await ethers.getContractFactory('Timelock');
+        const Timelock = await ethers.getContractFactory('Timelock');
         timelock = await Timelock.deploy(owner.address, "259200");
 
 
@@ -55,7 +55,6 @@ contract('CurveAMO_V4', () => {
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
-
         const FraxPoolLibrary = await ethers.getContractFactory('FraxPoolLibrary')
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
 
@@ -64,28 +63,15 @@ contract('CurveAMO_V4', () => {
                 FraxPoolLibrary: fraxPoolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
-        expect(await pool.USDC_address()).to.be.eq(usdc.address);
+        // pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        // expect(await pool.USDC_address()).to.be.eq(usdc.address);
 
 
-
-       //  const FraxPoolV3 = await ethers.getContractFactory('FraxPoolV3')
-       // poolV3 = await FraxPoolV3.deploy(
-       //      owner.address,
-       //      owner.address,
-       //      [usdc.address],
-       //      [3],
-       //      [1],
-       //
-       //  );
-       //      console.log("poolV3:"+poolV3.address)
-
-
-       // await frax.addPool(poolV3.address);
-         await frax.addPool(pool.address);
+        // await frax.addPool(poolV3.address);
+        // await frax.addPool(pool.address);
         // //await frax.addPool(owner.address);
 
-         plain3Balances = await deployContract(owner, {
+        plain3Balances = await deployContract(owner, {
             bytecode: Plain3Balances.bytecode,
             abi: PoolAbi.abi
         })
@@ -135,7 +121,7 @@ contract('CurveAMO_V4', () => {
 
         poolAddress = await crvFactory.pool_list(0, gas);
 
-        // pool = await plain3Balances.attach(poolAddress);
+        pool = await plain3Balances.attach(poolAddress);
         //
         // await token0.approve(pool.address, toWei("10000"))
         // await token1.approve(pool.address, toWei("10000"))
@@ -146,32 +132,19 @@ contract('CurveAMO_V4', () => {
         // await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
 
 
-           const  AMOMinter= await ethers.getContractFactory('AMOMinter');
+        const AMOMinter = await ethers.getContractFactory('AMOMinter');
         minter = await AMOMinter.deploy(
             owner.address,
-            owner.address,
             timelock.address,
+            frax.address,
+            fxs.address,
             usdc.address,
-            pool.address,
+            pool.address
         );
-
-
-
-        // const CurveAMO_V4 = await ethers.getContractFactory('CurveAMO_V4');
-        // curveAmo = await CurveAMO_V4.deploy(
-        //     owner.address,
-        //     minter.address,
-        //     frax.address,
-        //     usdc.address,
-        //     crv.address,
-        //     pool.address,
-        //     busd.address
-        // );
 
 
     });
     it('should two users getReward correct', async () => {
-        //console.log("curveAmo:" + minter.address)
 
 
     });

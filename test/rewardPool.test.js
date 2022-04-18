@@ -81,7 +81,7 @@ contract('RewardPool', ([owner, secondObject]) => {
 
     it('test set false', async () => {
         await rewardPool.add(100, tokenLock.address, true);
-        
+
         firstInfo = await rewardPool.poolInfo(0);
 
         await rewardPool.set(0, 10, false);
@@ -106,7 +106,7 @@ contract('RewardPool', ([owner, secondObject]) => {
     it('test withdraw', async () => {
         let firstBalance;
         let secondBalance;
-        
+
         await frax.approve(rewardPool.address, toWei('10'));
         await fxs.approve(rewardPool.address, toWei('10'));
 
@@ -119,12 +119,12 @@ contract('RewardPool', ([owner, secondObject]) => {
 
         let nowTime = await time.latestBlock();
         await time.advanceBlockTo(parseInt(nowTime) + 10);
-        
+
         await rewardPool.withdraw(0, 10000);
         secondBalance = await mockToken.balanceOf(owner);
         expect(parseInt(secondBalance)).to.be.gt(parseInt(firstBalance));
     });
-    
+
     it('test pending', async () => {
         await mockToken.approve(rewardPool.address, 100000);
 
