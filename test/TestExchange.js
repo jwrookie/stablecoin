@@ -266,9 +266,9 @@ contract('ExchangeAMO', async function() {
         // tempArray[2] = 0;
         var usdcD = await usdc.decimals();
         console.log(parseInt(usdcD));
-        console.log(parseInt(await exchangeAMO.missing_decimals()));
-        var tempMinLpOut = 1000000 * (10 ** await exchangeAMO.missing_decimals()) * 800000 / 1e6;
-        console.log(parseInt(tempMinLpOut));
+        // console.log(parseInt(await exchangeAMO.missing_decimals()));
+        // var tempMinLpOut = 1000000 * (10 ** await exchangeAMO.missing_decimals()) * 800000 / 1e6;
+        // console.log(parseInt(tempMinLpOut));
 
         // var temp = await initFirstPool.add_liquidity(tempArray, 0);
         // console.log(temp);
