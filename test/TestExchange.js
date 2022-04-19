@@ -21,27 +21,27 @@ contract('ExchangeAMO', async function() {
     const mockTokenDevMintCount = "10";
     const mockTokenApproveCount = "10000";
 
-    let token0;
-    let token1;
-    let token2;
-    let token3;
-    let registry;
-    let poolRegistry;
-    let plain3Balances;
-    let crvFactory;
-    let exchangeAMO;
-    let frax;
-    let tempCRVPool;
-    let poolAddress;
-    let poolTwoAddress;
-    let pool;
-    let poolTwo;
-    let byteArray;
-    let usdc;
-    let oracle;
-    let fax;
-    let fraxPoolLibrary;
-    let amoMinter;
+    // let token0;
+    // let token1;
+    // let token2;
+    // let token3;
+    // let registry;
+    // let poolRegistry;
+    // let plain3Balances;
+    // let crvFactory;
+    // let exchangeAMO;
+    // let frax;
+    // let tempCRVPool;
+    // let poolAddress;
+    // let poolTwoAddress;
+    // let pool;
+    // let poolTwo;
+    // let byteArray;
+    // let usdc;
+    // let oracle;
+    // let fax;
+    // let fraxPoolLibrary;
+    // let amoMinter;
     let initFirstPool;
 
     async function getUint8Array(len) {
@@ -199,7 +199,7 @@ contract('ExchangeAMO', async function() {
                 FraxPoolLibrary: fraxPoolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(frax.address, fax.address, usdc.address, toWei("10000000000"));
+        usdcPool = await Pool_USDC.deploy(frax.address, fax.address, usdc.address, toWei("10000000000"));
 
         const AMOMinter = await ethers.getContractFactory("AMOMinter");
         amoMinter = await AMOMinter.deploy(
@@ -208,7 +208,7 @@ contract('ExchangeAMO', async function() {
             frax.address,
             fax.address,
             usdc.address,
-            pool.address
+            usdcPool.address
         );
 
         exchangeAMO = await ExchangeAMO.new(
@@ -218,8 +218,16 @@ contract('ExchangeAMO', async function() {
             usdc.address,
             token0.address,
             pool.address,
-            token1.address
+            pool.address
         );
+
+        await token0.approve(exchangeAMO.address, toWei("1"));
+        await token1.approve(exchangeAMO.address, toWei("1"));
+        await fax.approve(exchangeAMO.address, toWei("1"));
+        await frax.approve(exchangeAMO.address, toWei("1"));
+        await usdc.approve(exchangeAMO.address, toWei("1"));
+        await pool.approve(exchangeAMO.address, toWei("1"));
+      
     });
 
     it('test showAllocations', async function() {
@@ -261,9 +269,9 @@ contract('ExchangeAMO', async function() {
         collateralAmount = await usdc.balanceOf(owner.address);
 
         var tempArray = new Array(3);
-        // tempArray[0] = 0;
+        tempArray[0] = 0;
         tempArray[1] = 1;
-        // tempArray[2] = 0;
+        tempArray[2] = 0;
         var usdcD = await usdc.decimals();
         console.log(parseInt(usdcD));
         // console.log(parseInt(await exchangeAMO.missing_decimals()));
@@ -271,6 +279,7 @@ contract('ExchangeAMO', async function() {
         // console.log(parseInt(tempMinLpOut));
 
         // var temp = await initFirstPool.add_liquidity(tempArray, 0);
+        // await amoMinter.addAMO(exchangeAMO.address,true)
         // console.log(temp);
 
         metaPoolLpReceived = await exchangeAMO.metapoolDeposit(toWei("1"), toWei("1"));
