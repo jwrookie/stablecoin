@@ -223,7 +223,7 @@ contract('ExchangeAMO', async function() {
     });
 
     it('test showAllocations', async function() {
-        let allocationsArray;
+        let allocationsArray = new Array(11);
 
         // await exchangeAMO.showAllocations();
 
@@ -306,7 +306,8 @@ contract('ExchangeAMO', async function() {
 
     //     // virtualPrice = await initFirstPool.get_dy(0, 1, 1e18, [fraxBalance, crv3Balance]); // over flow -> 180
 
-    //     // await exchangeAMO.iterate();
+    //     var temp = await exchangeAMO.iterate();
+    //     console.log(temp[0]);
 
     //     // virtualPrice = await initFirstPool.get_virtual_price();
     //     // console.log(parseInt(virtualPrice));
