@@ -21,29 +21,6 @@ contract('ExchangeAMO', async function() {
     const mockTokenDevMintCount = "10";
     const mockTokenApproveCount = "10000";
 
-    let token0;
-    let token1;
-    let token2;
-    let token3;
-    let registry;
-    let poolRegistry;
-    let plain3Balances;
-    let crvFactory;
-    let exchangeAMO;
-    let frax;
-    let tempCRVPool;
-    let poolAddress;
-    let poolTwoAddress;
-    let pool;
-    let poolTwo;
-    let byteArray;
-    let usdc;
-    let oracle;
-    let fax;
-    let fraxPoolLibrary;
-    let amoMinter;
-    let initFirstPool;
-
     async function getUint8Array(len) {
         var buffer = new ArrayBuffer(len); 
         var bufferArray = new Uint8Array(buffer);
