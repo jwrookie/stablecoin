@@ -197,7 +197,7 @@ contract('ExchangeAMO', async function() {
             usdc.address,
             token0.address,
             pool.address,
-            token1.address
+            pool.address
         );
 
         await token0.approve(exchangeAMO.address, toWei("1"));
