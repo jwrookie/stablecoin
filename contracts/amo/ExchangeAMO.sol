@@ -29,7 +29,6 @@ contract ExchangeAMO is Ownable {
     address private frax3crv_metapool_address;
     //    address private crvFRAX_vault_address;
 
-    address public timelock_address;
     address public custodian_address;
 
     // Number of decimals under 18, for collateral token
@@ -84,18 +83,17 @@ contract ExchangeAMO is Ownable {
 
         // Get the custodian and timelock addresses from the minter
         custodian_address = amo_minter.custodian_address();
-        timelock_address = amo_minter.timelock_address();
     }
 
     /* ========== MODIFIERS ========== */
 
     modifier onlyByOwnGov() {
-        require(msg.sender == timelock_address || msg.sender == owner(), "Not owner or timelock");
+        require(msg.sender == owner(), "Not owner or timelock");
         _;
     }
 
     modifier onlyByOwnGovCust() {
-        require(msg.sender == timelock_address || msg.sender == owner() || msg.sender == custodian_address, "Not owner, tlck, or custd");
+        require(msg.sender == owner() || msg.sender == custodian_address, "Not owner, tlck, or custd");
         _;
     }
 
@@ -381,10 +379,9 @@ contract ExchangeAMO is Ownable {
 
         // Get the custodian and timelock addresses from the minter
         custodian_address = amo_minter.custodian_address();
-        timelock_address = amo_minter.timelock_address();
 
         // Make sure the new addresses are not address(0)
-        require(custodian_address != address(0) && timelock_address != address(0), "Invalid custodian or timelock");
+        require(custodian_address != address(0), "Invalid custodian");
     }
 
     function setConvergenceWindow(uint256 _window) external onlyByOwnGov {
