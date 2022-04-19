@@ -58,5 +58,4 @@ interface IAMOMinter {
   function setMinimumCollateralRatio(uint256 _min_cr) external;
   function setTimelock(address new_timelock) external;
   function syncDollarBalances() external;
-  function timelock_address() external view returns(address);
 }
