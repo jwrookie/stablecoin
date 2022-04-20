@@ -9,6 +9,8 @@ interface IStablePool {
 
     function get_virtual_price() external view returns (uint256);
 
+    function base_coins(uint256) external view returns (address);
+
     function add_liquidity(
         // sBTC pool
         uint256[3] calldata amounts,

@@ -261,15 +261,43 @@ contract('3metaPool', () => {
 
 
     await token3.approve(swapRouter.address, toWei("10000"))
+
     // await token2.approve(swapRouter.address, toWei("10000"))
     // await token1.approve(swapRouter.address, toWei("10000"))
-    // await token0.approve(swapRouter.address, toWei("10000"))
+    await token0.approve(swapRouter.address, toWei("10000"))
     // await pool.approve(swapRouter.address, toWei('100000'))
 
     //token3-> token0
     // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
+
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
-    await swapRouter.swapMeta(pool1.address, 0, 3, "10000000", 0, owner.address, times)
+    await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times)
+    const reword = await swapMining.rewardInfo(owner.address)
+    // expect(reword).to.be.eq('210000000000000000')
+
+  });
+
+
+  it('metaPool router exchange_underlying pool[token0,token1,token2]=> token3', async () => {
+    let token3Bef = await token3.balanceOf(owner.address);
+    let token0Bef = await token0.balanceOf(owner.address);
+    let token3Pool1Bef = await token3.balanceOf(pool1.address);
+    let token0Pool1Bef = await token0.balanceOf(pool.address);
+
+
+    await token3.approve(swapRouter.address, toWei("10000"))
+
+    await token2.approve(swapRouter.address, toWei("10000"))
+    await token1.approve(swapRouter.address, toWei("10000"))
+    await token0.approve(swapRouter.address, toWei("10000"))
+    // await pool.approve(swapRouter.address, toWei('100000'))
+
+    //token3-> token0
+    // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
+    const ccc = await pool1.n_coins()
+    console.log('ccc', ccc)
+    const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+    await swapRouter.swapMeta(pool1.address, 1, 0, "10000000", 0, owner.address, times)
     const reword = await swapMining.rewardInfo(owner.address)
     // expect(reword).to.be.eq('210000000000000000')
 

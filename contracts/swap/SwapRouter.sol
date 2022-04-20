@@ -128,7 +128,13 @@ contract SwapRouter is Operatable {
     ) external ensure(deadline) {
         int128 fromInt = int128(uint128(from));
         int128 toInt = int128(uint128(to));
-        address fromToken = IStablePool(pool).coins(from);
+        address fromToken;
+
+        if (from == 0) {
+            fromToken = IStablePool(pool).coins(from);
+        } else {
+            fromToken = IStablePool(pool).base_coins(from - 1);
+        }
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
