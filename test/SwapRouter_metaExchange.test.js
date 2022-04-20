@@ -294,10 +294,9 @@ contract('3metaPool', () => {
 
     //token3-> token0
     // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
-    const ccc = await pool1.n_coins()
-    console.log('ccc', ccc)
+
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
-    await swapRouter.swapMeta(pool1.address, 1, 0, "10000000", 0, owner.address, times)
+    await swapRouter.swapMeta(pool1.address, 3, 0, "10000000", 0, owner.address, times)
     const reword = await swapMining.rewardInfo(owner.address)
     // expect(reword).to.be.eq('210000000000000000')
 
