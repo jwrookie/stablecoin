@@ -20,6 +20,7 @@ contract('ExchangeAMO', async function() {
     const mockTokenOwnerMintCount = "10000";
     const mockTokenDevMintCount = "10";
     const mockTokenApproveCount = "10000";
+    const fraxInPool = "1000";
 
     let initFirstPool;
 
@@ -200,6 +201,8 @@ contract('ExchangeAMO', async function() {
             poolTwo.address // Quetion
         );
 
+        await fax.mint(exchangeAMO.address, toWei(fraxInPool));
+
         // Deploy frax pool
         const FraxPool = await ethers.getContractFactory("FraxPool", {
             libraries: {
@@ -361,7 +364,48 @@ contract('ExchangeAMO', async function() {
         // console.log(amoFraxBalance);
     });
 
-    it('test three_pool_to_collateral', async function() {
-        await exchangeAMO.three_pool_to_collateral(300);
+    // it('test three_pool_to_collateral', async function() {
+    //     await exchangeAMO.three_pool_to_collateral(300);
+    // });
+
+    it('test withdrawCRVRewards', async function() {
+        let ownerFaxBalance;
+        let startFaxBalance;
+        let poolFaxBalance;
+        let initPoolFaxBalance;
+
+        ownerFaxBalance = await fax.balanceOf(owner.address);
+        startFaxBalance = ownerFaxBalance;
+
+        poolFaxBalance = await fax.balanceOf(exchangeAMO.address);
+        initPoolFaxBalance = poolFaxBalance;
+
+        await exchangeAMO.withdrawCRVRewards();
+
+        poolFaxBalance = await fax.balanceOf(exchangeAMO.address);
+        expect(parseInt(poolFaxBalance)).to.be.eq(0);
+    });
+
+    it('test giveCollatBack', async function() {
+        let collatBorrowedBalanceInAmoMinter;
+        let collatBorrowedSum;
+
+        collatBorrowedBalanceInAmoMinter = await amoMinter.collat_borrowed_balances(amoMinter.address);
+        expect(parseInt(collatBorrowedBalanceInAmoMinter)).to.be.eq(0);
+        collatBorrowedSum = await amoMinter.collat_borrowed_sum();
+        expect(parseInt(collatBorrowedSum)).to.be.eq(0);
+
+        await amoMinter.addAMO(amoMinter.address, true);
+        expect(await amoMinter.amos(amoMinter.address)).to.be.eq(true);
+        // Call the function will modify collatBoorowedBalance and collatBorrowedSum
+        // await exchangeAMO.giveCollatBack(toWei("1")); // This function can not through modifier validAMO
+        collatBorrowedBalanceInAmoMinter = await amoMinter.collat_borrowed_balances(amoMinter.address);
+        expect(parseInt(collatBorrowedBalanceInAmoMinter)).to.be.eq(0);
+        collatBorrowedSum = await amoMinter.collat_borrowed_sum();
+        expect(parseInt(collatBorrowedSum)).to.be.eq(0);
+    });
+
+    it('test burnFRAX', async function() {
+        await exchangeAMO.burnFRAX(toWei("1"));
     });
 });
