@@ -54,6 +54,24 @@ contract('ExchangeAMO', async function() {
         await token2.mint(dev.address, toWei(mockTokenDevMintCount));
         await token3.mint(dev.address, toWei(mockTokenDevMintCount));
 
+        // Oracle
+        const Oracle = await ethers.getContractFactory("TestOracle");
+        oracle = await Oracle.deploy();
+
+        // Fxs and Frax
+        const Frax = await ethers.getContractFactory("FRAXStablecoin");
+        frax = await Frax.deploy("testName", "testSymbol");
+        const Fax = await ethers.getContractFactory("FRAXShares");
+        fax = await Fax.deploy("testName", "testSymbol", oracle.address);
+        await fax.setFraxAddress(frax.address);
+        await frax.setFXSAddress(fax.address);
+
+        await frax.addPool(owner.address);
+        await frax.addPool(dev.address);
+
+        await fax.mint(owner.address, toWei("100000"));
+        await fax.mint(dev.address, toWei("100000"));
+
         // About IStableSwap3Pool and IMetaImplementationUSD
         registry = await deployContract(owner, {
             bytecode: Registry.bytecode,
@@ -98,7 +116,7 @@ contract('ExchangeAMO', async function() {
         tempCRVPool = await crvFactory.deploy_plain_pool(
             "3pools",
             "3pools",
-            [token0.address, token1.address, token2.address, zeroAddr],
+            [token0.address, frax.address, token2.address, zeroAddr],
             "2000",
             "4000000", 0, 0
         );
@@ -112,32 +130,32 @@ contract('ExchangeAMO', async function() {
 
         // Approve
         await token0.approve(pool.address, toWei(mockTokenApproveCount));
-        await token1.approve(pool.address, toWei(mockTokenApproveCount));
+        await frax.approve(pool.address, toWei(mockTokenApproveCount));
         await token2.approve(pool.address, toWei(mockTokenApproveCount));
 
         // Add liquidity
         await pool.add_liquidity([toWei("10"), toWei("10"), toWei("10")], 0);
         
         // Aonter pool
-        await crvFactory.deploy_plain_pool(
-            "3pool2",
-            "3pool2",
-            [token0.address, token1.address, token2.address, zeroAddr],
-            "2000",
-            "4000000", 0, 0
-        );
-        poolTwoAddress = await crvFactory.pool_list(1, {gasLimit: "1250000"});
-        expect(poolTwoAddress).to.be.not.eq(null);
-        poolTwo = await plain3Balances.attach(poolTwoAddress);
-        expect(parseInt(poolTwo.length)).to.be.not.eq(0);
+        // await crvFactory.deploy_plain_pool(
+        //     "3pool2",
+        //     "3pool2",
+        //     [token0.address, frax.address, token2.address, zeroAddr],
+        //     "2000",
+        //     "4000000", 0, 0
+        // );
+        // poolTwoAddress = await crvFactory.pool_list(1, {gasLimit: "1250000"});
+        // expect(poolTwoAddress).to.be.not.eq(null);
+        // poolTwo = await plain3Balances.attach(poolTwoAddress);
+        // expect(parseInt(poolTwo.length)).to.be.not.eq(0);
 
-        // Approve
-        await token0.approve(poolTwo.address, toWei(mockTokenApproveCount));
-        await token1.approve(poolTwo.address, toWei(mockTokenApproveCount));
-        await token2.approve(poolTwo.address, toWei(mockTokenApproveCount));
+        // // Approve
+        // await token0.approve(poolTwo.address, toWei(mockTokenApproveCount));
+        // await token1.approve(poolTwo.address, toWei(mockTokenApproveCount));
+        // await token2.approve(poolTwo.address, toWei(mockTokenApproveCount));
 
-        // Add liquidity
-        await poolTwo.add_liquidity([toWei("1"), toWei("9"), toWei("9")], 0);
+        // // Add liquidity
+        // await poolTwo.add_liquidity([toWei("1"), toWei("9"), toWei("9")], 0);
 
         byteArray = await getUint8Array(32);
         expect(parseInt(byteArray.length)).to.be.eq(32);
@@ -150,24 +168,6 @@ contract('ExchangeAMO', async function() {
         // Mint
         await usdc.mint(owner.address, toWei(mockTokenOwnerMintCount));
         await usdc.mint(dev.address, toWei(mockTokenDevMintCount));
-
-        // Oracle
-        const Oracle = await ethers.getContractFactory("TestOracle");
-        oracle = await Oracle.deploy();
-
-        // Fxs and Frax
-        const Frax = await ethers.getContractFactory("FRAXStablecoin");
-        frax = await Frax.deploy("testName", "testSymbol");
-        const Fax = await ethers.getContractFactory("FRAXShares");
-        fax = await Fax.deploy("testName", "testSymbol", oracle.address);
-        await fax.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fax.address);
-
-        await frax.addPool(owner.address);
-        await frax.addPool(dev.address);
-
-        await fax.mint(owner.address, toWei("100000"));
-        await fax.mint(dev.address, toWei("100000"));
 
         // Frax pool
         const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
@@ -195,16 +195,19 @@ contract('ExchangeAMO', async function() {
             amoMinter.address,
             frax.address,
             usdc.address,
-            token0.address,
+            fax.address, // Quetion
             pool.address,
-            pool.address
+            pool.address // Quetion
         );
+
+        // await amoMinter.addAMO(exchangeAMO.address, true);
 
         await token0.approve(exchangeAMO.address, toWei("1"));
         await token1.approve(exchangeAMO.address, toWei("1"));
         await token2.approve(exchangeAMO.address, toWei("1"));
         await frax.approve(exchangeAMO.address, toWei("1"));
         await fax.approve(exchangeAMO.address, toWei("1"));
+        await frax.addPool(amoMinter.address);
     });
 
     it('test showAllocations', async function() {
@@ -217,25 +220,25 @@ contract('ExchangeAMO', async function() {
         // }
     });
 
-    it('test usdValueInVault', async function() {
-        const targetValue = 1e18;
-        let usdValue;
+    // it('test usdValueInVault', async function() {
+    //     const targetValue = 1e18;
+    //     let usdValue;
 
-        usdValue = await exchangeAMO.usdValueInVault();
-        expect(parseInt(usdValue)).to.be.eq(targetValue);
-    });
+    //     usdValue = await exchangeAMO.usdValueInVault();
+    //     expect(parseInt(usdValue)).to.be.eq(targetValue);
+    // });
 
-    it('test fraxFloor', async function() {
-        let fraxCollateralRatio;
-        let functionReturnRatio;
+    // it('test fraxFloor', async function() {
+    //     let fraxCollateralRatio;
+    //     let functionReturnRatio;
 
-        fraxCollateralRatio = await frax.globalCollateralRatio();
-        functionReturnRatio = await exchangeAMO.fraxFloor();
+    //     fraxCollateralRatio = await frax.globalCollateralRatio();
+    //     functionReturnRatio = await exchangeAMO.fraxFloor();
 
-        console.log(parseInt(functionReturnRatio));
+    //     console.log(parseInt(functionReturnRatio));
 
-        expect(parseInt(functionReturnRatio)).to.be.eq(parseInt(fraxCollateralRatio));
-    });
+    //     expect(parseInt(functionReturnRatio)).to.be.eq(parseInt(fraxCollateralRatio));
+    // });
 
     it('test metapoolDeposit', async function() {
         let fraxAmount;
@@ -246,16 +249,16 @@ contract('ExchangeAMO', async function() {
         collateralAmount = await usdc.balanceOf(owner.address);
 
         var tempArray = new Array(3);
-        // tempArray[0] = 0;
-        tempArray[1] = 1;
-        // tempArray[2] = 0;
+        tempArray[0] = 0;
+        tempArray[1] = toWei("10");
+        tempArray[2] = 0;
         var usdcD = await usdc.decimals();
         console.log(parseInt(usdcD));
         // console.log(parseInt(await exchangeAMO.missing_decimals()));
         // var tempMinLpOut = 1000000 * (10 ** await exchangeAMO.missing_decimals()) * 800000 / 1e6;
         // console.log(parseInt(tempMinLpOut));
 
-        // var temp = await initFirstPool.add_liquidity(tempArray, 0);
+        var temp = await initFirstPool.add_liquidity(tempArray, 0);
         // console.log(temp);
 
         metaPoolLpReceived = await exchangeAMO.metapoolDeposit(toWei("1"), toWei("1"));
