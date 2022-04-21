@@ -68,13 +68,12 @@ contract('AMOMinter', async function() {
         const Oracle = await ethers.getContractFactory("TestOracle");
         oracle = await Oracle.deploy();
 
-        // Fxs and Frax
+        // fax and Frax
         const Frax = await ethers.getContractFactory("FRAXStablecoin");
         frax = await Frax.deploy("testName", "testSymbol");
         const Fax = await ethers.getContractFactory("FRAXShares");
         fax = await Fax.deploy("testName", "testSymbol", oracle.address);
         await fax.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fax.address);
 
         // ==========
         await fax.addPool(owner.address);
@@ -126,6 +125,31 @@ contract('AMOMinter', async function() {
 
         await router.addLiquidity(
             usdc.address,
+            weth.address,
+            toWei('1'),
+            toWei('1'),
+            0,
+            0,
+            owner.address,
+            Math.round(new Date() / 1000 + 1000)
+        );
+
+        await frax.approve(router.address, toWei('1000'));
+
+        await router.addLiquidity(
+            frax.address,
+            weth.address,
+            toWei('1'),
+            toWei('1'),
+            0,
+            0,
+            owner.address,
+            Math.round(new Date() / 1000 + 1000)
+        );
+
+        await fax.approve(router.address, toWei('1000'));
+        await router.addLiquidity(
+            fax.address,
             weth.address,
             toWei('1'),
             toWei('1'),
@@ -376,18 +400,18 @@ contract('AMOMinter', async function() {
         await amoMinter.setFraxMintCap(toWei("100"));
         currentFraxMintCap = await amoMinter.frax_mint_cap();
         expect(currentFraxMintCap).to.be.not.eq(initFraxMintCap);
-        expect(currentFraxMintCap).to.be.not.eq(toWei("100"));
+        expect(currentFraxMintCap).to.be.eq(toWei("100"));
     });
 
-    it('test setFxsMintCap', async function() {
-        let initFxsMintCap;
-        let currentFxsMintCap;
+    it('test setfaxMintCap', async function() {
+        let initfaxMintCap;
+        let currentfaxMintCap;
 
-        initFxsMintCap = await amoMinter.fxs_mint_cap();
+        initfaxMintCap = await amoMinter.fxs_mint_cap();
         await amoMinter.setFxsMintCap(toWei("1"));
-        currentFxsMintCap = await amoMinter.fxs_mint_cap();
-        expect(currentFxsMintCap).to.be.not.eq(initFxsMintCap);
-        expect(currentFxsMintCap).to.be.eq(toWei("1"));
+        currentfaxMintCap = await amoMinter.fxs_mint_cap();
+        expect(currentfaxMintCap).to.be.not.eq(initfaxMintCap);
+        expect(currentfaxMintCap).to.be.eq(toWei("1"));
     });
 
     it('test setCollatBorrowCap', async function() {
@@ -439,6 +463,7 @@ contract('AMOMinter', async function() {
     });
 
     it('test recoverERC20', async function() {
+        await token0.mint(amoMinter.address, toWei("1"));
         await amoMinter.recoverERC20(token0.address, toWei("1"));
     });
 });
