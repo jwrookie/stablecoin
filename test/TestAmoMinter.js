@@ -94,6 +94,8 @@ contract('AMOMinter', async function() {
         });
         usdcPool = await Pool_USDC.deploy(frax.address, fax.address, usdc.address, toWei("10000000000"));
 
+        await fax.mint(usdcPool.address, toWei("10000"));
+
         // uniswap
         weth = await deployContract(owner, {
             bytecode: WETH.bytecode,
@@ -244,6 +246,9 @@ contract('AMOMinter', async function() {
             pool.address,
             poolTwo.address // Quetion
         );
+
+        await fax.mint(exchangeAMO.address, toWei("100000"));
+
     });
 
     it('test collatDollarBalance', async function() {
@@ -311,5 +316,27 @@ contract('AMOMinter', async function() {
         globalCollateralRatio = await frax.globalCollateralRatio();
         console.log("Global:\t" + globalCollateralRatio);
         expect(parseInt(globalCollateralRatio)).to.be.eq(1000000);
+    });
+
+    it('test oldPoolCollectAndGive', async function() {
+        let collatBorrowedBalance;
+        let initBorrowedBalance;
+        let collatAmount;
+
+        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+        initBorrowedBalance = collatBorrowedBalance;
+        expect(parseInt(initBorrowedBalance)).to.not.be.eq(0);
+
+        // Call the function
+        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
+        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
+        collatAmount = await usdcPool.redeemCollateralBalances(exchangeAMO.address);
+        expect(parseInt(collatAmount)).to.be.eq(0);
+        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+        // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
+    });
+
+    it('test mintFraxForAMO', async function() {
+        
     });
 });
