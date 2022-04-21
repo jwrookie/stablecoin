@@ -352,21 +352,21 @@ contract('ExchangeAMO', async function() {
         expect(parseInt(amoFraxBalance)).to.be.eq(0);
         expect(parseInt(await exchangeAMO.mintedBalance())).to.be.eq(parseInt(amoFraxBalance));
 
-        // ethUsdPrice = await frax.ethUsdPrice();
-        // console.log(ethUsdPrice);
+        ethUsdPrice = await frax.ethUsdPrice();
+        console.log(ethUsdPrice);
 
         // Quetion function
-        // collatDollarBalance = await fraxPool.collatDollarBalance();
-        // console.log(parseInt(collatDollarBalance));
-        // expect(tempArray.length).to.be.not.eq(0);
-        // await amoMinter.mintFraxForAMO(amoMinter.address, toWei("1"));
-        // amoFraxBalance = await amoMinter.frax_mint_balances(amoMinter.address);
-        // console.log(amoFraxBalance);
+        collatDollarBalance = await fraxPool.collatDollarBalance();
+        console.log(parseInt(collatDollarBalance));
+        expect(tempArray.length).to.be.not.eq(0);
+        await amoMinter.mintFraxForAMO(amoMinter.address, toWei("1"));
+        amoFraxBalance = await amoMinter.frax_mint_balances(amoMinter.address);
+        console.log(amoFraxBalance);
     });
 
-    // it('test three_pool_to_collateral', async function() {
-    //     await exchangeAMO.three_pool_to_collateral(300);
-    // });
+    it('test three_pool_to_collateral', async function() {
+        await exchangeAMO.three_pool_to_collateral(300);
+    });
 
     it('test withdrawCRVRewards', async function() {
         let ownerFaxBalance;
