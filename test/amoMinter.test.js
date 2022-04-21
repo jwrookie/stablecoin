@@ -142,10 +142,23 @@ contract('AMOMinter', () => {
             pool.address
         );
 
+         const ExchangeAMO = await ethers.getContractFactory('ExchangeAMO');
+        exchangeAMO = await ExchangeAMO.deploy(
+            owner.address,
+            minter.address,
+            frax.address,
+            usdc.address,
+            crv.address,
+            pool.address,
+            busd.address
+        );
+
+
 
     });
     it('should two users getReward correct', async () => {
-
+        console.log(await pool.fee({gasLimit: "9400000",}))
+       //console.log("exchangeAMO:"+exchangeAMO.address)
 
     });
 

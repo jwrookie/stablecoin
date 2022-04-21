@@ -30,7 +30,7 @@ async function main() {
   let frax = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
 
    // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
-   // let fxb = "0x594AF48EB0f4515d49dE3Bdc7909C886Ce998df4"
+  let fxb = "0x4858585fbD412c1Eb942e1E39Ebb1e2298A4BE27"
    //  let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
@@ -163,12 +163,12 @@ async function main() {
     //
     // await uniswapOracle.setPeriod(1);
     //
-    const FraxBond = await ethers.getContractFactory("FraxBond");
-    fxb = await FraxBond.deploy("fxb", "fxb");
-    console.log("fxb:" + fxb.address)
+    // const FraxBond = await ethers.getContractFactory("FraxBond");
+    // fxb = await FraxBond.deploy("fxb", "fxb");
+    // console.log("fxb:" + fxb.address)
 
     const FraxBondIssuer = await ethers.getContractFactory('FraxBondIssuer');
-    fraxBondIssuer = await FraxBondIssuer.deploy(frax, fxb.address);
+    fraxBondIssuer = await FraxBondIssuer.deploy(frax, fxb);
     console.log("fraxBondIssuer:" + fraxBondIssuer.address)
 
     //  const Locker = await ethers.getContractFactory('Locker');

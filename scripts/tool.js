@@ -27,9 +27,9 @@ async function main() {
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
-    let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
-   let pool = "0xD0B216059544a0412bd9db3A9243fA83761964D7"
+    let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
+    let frax = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
+   let pool = "0xEa9aF56c345674B3485b870d03153878711c3a05"
     // //let fxb = ""
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
@@ -184,15 +184,15 @@ async function main() {
     // tool = await Tool.deploy(pool,frax, fxs,usdc);
     // console.log("tool:" + tool.address)
 
-     const FraxTool = await ethers.getContractFactory('FraxTool', {
+     const MintTool = await ethers.getContractFactory('MintTool', {
         libraries: {
-            FraxPoolLibrary: "0x825F3Ba51E763f9b76D627A9E2C3625d31dd8fB6",
+            FraxPoolLibrary: "0x2901860Fe591079D064FE7299F33be537fe1F947",
         },
     });
 
-     fraxTool = await FraxTool.deploy(pool,frax, fxs,usdc);
+     mintTool = await MintTool.deploy(pool,frax, fxs,usdc);
 
-    console.log("fraxTool:" + fraxTool.address)
+    console.log("mintTool:" + mintTool.address)
 
 
 }
