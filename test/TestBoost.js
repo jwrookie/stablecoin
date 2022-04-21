@@ -146,9 +146,9 @@ contract('test Boost', async function() {
         );
 
         // Lp token add pool boost
-        await frax.addPool(boost.address);
-        await frax.addPool(owner.address);
-        await frax.addPool(seObject.address);
+        await fax.addPool(boost.address);
+        await fax.addPool(owner.address);
+        await fax.addPool(seObject.address);
 
         await fax.mint(seObject.address, toWei("100000"));
         await testERC20.mint(seObject.address, toWei("100000"));

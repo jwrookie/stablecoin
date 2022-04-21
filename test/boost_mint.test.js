@@ -72,7 +72,7 @@ contract('Boost', () => {
         expect(await boost.poolForGauge(gauge_usdc.address)).to.be.eq(usdc.address);
         await busd.mint(dev.address, toWei('100'));
 
-        // await frax.addPool(boost.address);
+        await fxs.addPool(boost.address);
 
 
     });
