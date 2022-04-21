@@ -78,9 +78,10 @@ contract('AMOMinter', async function() {
 
         // ==========
         await fax.addPool(owner.address);
+        await frax.addPool(owner.address);
 
         await fax.mint(dev.address, toWei("100000"));
-
+        await fax.mint(owner.address, toWei("100000"));
         // ==========
 
         // Frax pool
@@ -248,6 +249,8 @@ contract('AMOMinter', async function() {
         );
 
         await fax.mint(exchangeAMO.address, toWei("100000"));
+        await token0.approve(exchangeAMO.address, toWei("100000000"));
+        await token0.mint(exchangeAMO.address, toWei("100000"));
 
     });
 
@@ -279,6 +282,7 @@ contract('AMOMinter', async function() {
 
         // Add
         await amoMinter.addAMO(exchangeAMO.address, false); // Error
+        await amoMinter.addAMO(exchangeAMO.address, true);
         resultArrayLength = await amoMinter.allAMOsLength();
         expect(resultArrayLength).to.be.eq(1);
     });
@@ -318,25 +322,123 @@ contract('AMOMinter', async function() {
         expect(parseInt(globalCollateralRatio)).to.be.eq(1000000);
     });
 
-    it('test oldPoolCollectAndGive', async function() {
-        let collatBorrowedBalance;
-        let initBorrowedBalance;
-        let collatAmount;
+    // it('test oldPoolCollectAndGive', async function() {
+    //     let collatBorrowedBalance;
+    //     let initBorrowedBalance;
+    //     let collatAmount;
 
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        initBorrowedBalance = collatBorrowedBalance;
-        expect(parseInt(initBorrowedBalance)).to.not.be.eq(0);
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     initBorrowedBalance = collatBorrowedBalance;
+    //     expect(parseInt(initBorrowedBalance)).to.be.eq(0);
 
-        // Call the function
-        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
-        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
-        collatAmount = await usdcPool.redeemCollateralBalances(exchangeAMO.address);
-        expect(parseInt(collatAmount)).to.be.eq(0);
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
+    //     // Call the function
+    //     // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
+    //     // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
+    //     collatAmount = await usdcPool.redeemCollateralBalances(exchangeAMO.address);
+    //     expect(parseInt(collatAmount)).to.be.eq(0);
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
+    // });
+
+    // it('test mintFraxForAMO', async function() {
+    //     let fraxMintBalance;
+    //     let fraxOfExchange;
+    //     let fraxMintSum;
+
+    //     fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+    //     expect(parseInt(fraxMintBalance)).to.be.eq(0);
+    //     fraxOfExchange = await frax.balanceOf(owner.address);
+    //     console.log(parseInt(fraxOfExchange));
+
+    //     await amoMinter.mintFraxForAMO(exchangeAMO.address, toWei("100"));
+    //     fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+    //     console.log(fraxMintBalance);
+    //     fraxMintSum = await amoMinter.frax_mint_sum();
+    //     expect(parseInt(fraxMintSum)).to.be.eq(parseInt(toWei("100")));
+    // });
+
+    it('test setCustodian', async function() {
+        let initCustodian;
+        let currentCustodian;
+
+        initCustodian = await amoMinter.custodian_address();
+        // expect(initCustodian).to.be.eq(usdc.address);
+        await amoMinter.setCustodian(owner.address);
+        currentCustodian = await amoMinter.custodian_address();
+        expect(currentCustodian).to.be.not.eq(initCustodian);
     });
 
-    it('test mintFraxForAMO', async function() {
-        
+    it('test setFraxMintCap', async function() {
+        let initFraxMintCap;
+        let currentFraxMintCap;
+
+        initFraxMintCap = await amoMinter.frax_mint_cap();
+        await amoMinter.setFraxMintCap(toWei("100"));
+        currentFraxMintCap = await amoMinter.frax_mint_cap();
+        expect(currentFraxMintCap).to.be.not.eq(initFraxMintCap);
+        expect(currentFraxMintCap).to.be.not.eq(toWei("100"));
+    });
+
+    it('test setFxsMintCap', async function() {
+        let initFxsMintCap;
+        let currentFxsMintCap;
+
+        initFxsMintCap = await amoMinter.fxs_mint_cap();
+        await amoMinter.setFxsMintCap(toWei("1"));
+        currentFxsMintCap = await amoMinter.fxs_mint_cap();
+        expect(currentFxsMintCap).to.be.not.eq(initFxsMintCap);
+        expect(currentFxsMintCap).to.be.eq(toWei("1"));
+    });
+
+    it('test setCollatBorrowCap', async function() {
+        let initCollatBorrowCap;
+        let currentCollatBorrowCap;
+
+        initCollatBorrowCap = await amoMinter.collat_borrow_cap();
+        await amoMinter.setCollatBorrowCap(toWei("100"));
+        currentCollatBorrowCap = await amoMinter.collat_borrow_cap();
+        expect(currentCollatBorrowCap).to.be.not.eq(initCollatBorrowCap);
+        expect(currentCollatBorrowCap).to.be.eq(toWei("100"));
+    });
+
+    it('test setMinimumCollateralRatio', async function() {
+        let initMinCr;
+        let currentMinCr;
+
+        initMinCr = await amoMinter.min_cr();
+        expect(parseInt(initMinCr)).to.be.eq(810000);
+        await amoMinter.setMinimumCollateralRatio(1);
+        currentMinCr = await amoMinter.min_cr();
+        expect(currentMinCr).to.be.eq(1);
+    });
+
+    it('test setAMOCorrectionOffsets', async function() {
+        let correctionOffsetsAmosIndexOne;
+        let correctionOffsetsAmosIndexTwo;
+
+        correctionOffsetsAmosIndexOne = await amoMinter.correction_offsets_amos(exchangeAMO.address, 0);
+        expect(parseInt(correctionOffsetsAmosIndexOne)).to.be.eq(0);
+        correctionOffsetsAmosIndexTwo = await amoMinter.correction_offsets_amos(exchangeAMO.address, 1);
+        expect(parseInt(correctionOffsetsAmosIndexTwo)).to.be.eq(0);
+
+        await amoMinter.setAMOCorrectionOffsets(exchangeAMO.address, 1, 1);
+        correctionOffsetsAmosIndexOne = await amoMinter.correction_offsets_amos(exchangeAMO.address, 0);
+        expect(parseInt(correctionOffsetsAmosIndexOne)).to.be.eq(1);
+        correctionOffsetsAmosIndexTwo = await amoMinter.correction_offsets_amos(exchangeAMO.address, 1);
+        expect(parseInt(correctionOffsetsAmosIndexTwo)).to.be.eq(1);
+    });
+
+    it('test setFraxPool', async function() {
+        let initPool;
+        let currentPool;
+
+        initPool = await amoMinter.pool();
+        await amoMinter.setFraxPool(pool.address);
+        currentPool = await amoMinter.pool();
+        expect(initPool).to.be.not.eq(currentPool);
+    });
+
+    it('test recoverERC20', async function() {
+        await amoMinter.recoverERC20(token0.address, toWei("1"));
     });
 });
