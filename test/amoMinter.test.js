@@ -231,31 +231,99 @@ contract('AMOMinter', () => {
             pool.address,
             frax.address
         );
+          await fxs.addPool(exchangeAMO.address)
+         await fxs.addPool(minter.address)
 
 
     });
-    it('should two users getReward correct', async () => {
-        await minter.addAMO(exchangeAMO.address, true)
-        expect(await minter.allAMOsLength()).to.be.eq(1)
+    // it('should two users getReward correct', async () => {
+    //     await minter.addAMO(exchangeAMO.address, true)
+    //     expect(await minter.allAMOsLength()).to.be.eq(1)
+    //
+    //     assert.equal(await minter.allAMOAddresses(), exchangeAMO.address)
+    //
+    //     // await minter.removeAMO(exchangeAMO.address,true)
+    //     //   expect(await minter.allAMOsLength()).to.be.eq(0)
+    //     //   assert.equal(await minter.allAMOAddresses(),0)
+    //
+    //     console.log("collatDollarBalance:" + await minter.collatDollarBalance())
+    //     let info = await minter.dollarBalances()
+    //     console.log("fraxDollarBalanceStored:" + info[0])
+    //
+    //     console.log("collatDollarBalanceStored:" + info[1])
+    //
+    //
+    //     // console.log("dollarBalances:" + await minter.dollarBalances())
+    //
+    //     console.log("fraxTrackedGlobal:" + await minter.fraxTrackedGlobal())
+    //
+    //     console.log("fraxTrackedAMO:" + await minter.fraxTrackedAMO(exchangeAMO.address))
+    // });
+    // it("test", async () => {
+    //     await minter.addAMO(exchangeAMO.address, true)
+    //     let info = await exchangeAMO.showAllocations()
+    //     console.log("frax_in_contract:" + info[0])
+    //     console.log("frax_withdrawable:" + info[1])
+    //     console.log("frax_withdrawable1:" + info[2])
+    //     console.log("usdc_in_contract:" + info[3])
+    //     console.log("usdc_withdrawable:" + info[4])
+    //     console.log("usdc_subtotal:" + info[5])
+    //     console.log("usdc_subtotal1:" + info[6])
+    //     console.log("lp_owned:" + info[7])
+    //     console.log("frax3crv_supply:" + info[8])
+    //     console.log("_3pool_withdrawable:" + info[9])
+    //     console.log("lp_value_in_vault:" + info[10])
+    //
+    //     console.log("frax_mint_balances bef:" + await minter.frax_mint_balances(exchangeAMO.address))
+    //
+    //     await exchangeAMO.mintedBalance()
+    //
+    //
+    //     console.log("frax_mint_balances aft:" + await minter.frax_mint_balances(exchangeAMO.address))
+    //
+    //     console.log("fraxDiscountRate:" + await exchangeAMO.fraxDiscountRate())
+    //
+    //     console.log("fraxFloor:" + await exchangeAMO.fraxFloor())
+    //
+    //     let temp = await exchangeAMO.dollarBalances()
+    //
+    //     console.log("frax_val_e18:" + temp[0])
+    //     console.log("collat_val_e18:" + temp[1])
+    //
+    // });
+    it('test mintFraxForAMO', async function () {
+        //await frax.setRefreshCooldown(1)
 
-        assert.equal(await minter.allAMOAddresses(), exchangeAMO.address)
 
-        // await minter.removeAMO(exchangeAMO.address,true)
-        //   expect(await minter.allAMOsLength()).to.be.eq(0)
-        //   assert.equal(await minter.allAMOAddresses(),0)
+        await usdc_uniswapOracle.setPeriod(1);
+        await usdc_uniswapOracle.update();
 
-        console.log("collatDollarBalance:" + await minter.collatDollarBalance())
-        let info = await minter.dollarBalances()
-         console.log("fraxDollarBalanceStored:" + info[0])
+        await frax_uniswapOracle.setPeriod(1);
+        await frax_uniswapOracle.update();
 
-         console.log("collatDollarBalanceStored:" +info[1])
+        await fxs_uniswapOracle.setPeriod(1);
+        await fxs_uniswapOracle.update();
+
+          await frax.setFraxStep("250000");
+        await frax.refreshCollateralRatio();
+
+          console.log("globalCollateralRatio:"+await frax.globalCollateralRatio());
 
 
-       // console.log("dollarBalances:" + await minter.dollarBalances())
 
-        console.log("fraxTrackedGlobal:" + await minter.fraxTrackedGlobal())
 
-        console.log("fraxTrackedAMO:" + await minter.fraxTrackedAMO(exchangeAMO.address))
+       //   await pool_usdc.mintFractionalFRAX(toWei('10000000'), toWei('10000000'), 0);
+        //      await pool_usdc.recollateralizeFRAX(toWei('1000'), "100");
+        //
+        //        console.log("frax:" + await frax.globalCollateralValue());
+        // console.log("fraxSupply:" + await frax.totalSupply());
+
+
+        //await minter.mintFraxForAMO(exchangeAMO.address, toWei("100"));
+        // fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+        // console.log(fraxMintBalance);
+        // fraxMintSum = await amoMinter.frax_mint_sum();
+        // expect(parseInt(fraxMintSum)).to.be.eq(parseInt(toWei("100")));
     });
 
 

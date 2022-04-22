@@ -60,7 +60,7 @@ async function main() {
         gaugeFactory.address,
         fxs,
         toWei('1'),
-        parseInt("18409218"),
+        parseInt("10570982"),
         "1000"
     );
     console.log("boost:" + boost.address)
