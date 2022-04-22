@@ -169,7 +169,11 @@ contract ExchangeAMO is Ownable {
             crv3_received = three_pool.get_dy(0, 1, 1e18);
             dollar_value = crv3_received.mul(1e18).div(three_pool.get_virtual_price());
             if (dollar_value <= floor_price_frax.add(convergence_window) && dollar_value >= floor_price_frax.sub(convergence_window)) {
-                uint256 factor = uint256(1e6).mul(total_balance).div(frax_balance.add(crv3_balance));
+
+                uint256 factor = uint256(1e6);
+                if (frax_balance.add(crv3_balance) > 0) {
+                    factor = factor.mul(total_balance).div(frax_balance.add(crv3_balance));
+                }
                 //1e6 precision
 
                 // Normalize back to initial balances, since this estimation method adds in extra tokens

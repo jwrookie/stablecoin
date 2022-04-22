@@ -9,27 +9,27 @@ const Factory = require('../test/mock/PancakeFactory.json');
 const Router = require('../test/mock/PancakeRouter.json');
 const WETH = require('../test/mock/WETH9.json');
 /** EXTERNAL MODULE */
-const { deployContract } = require('ethereum-waffle');
-const { ethers, artifacts } = require('hardhat');
-const { expect } = require('chai');
-const { BigNumber } = require('ethers');
-const { toWei } = web3.utils;
+const {deployContract} = require('ethereum-waffle');
+const {ethers, artifacts} = require('hardhat');
+const {expect} = require('chai');
+const {BigNumber} = require('ethers');
+const {toWei} = web3.utils;
 /** INTERNAL MODULE */
 const GAS = {gasLimit: "9550000"};
 
-contract('AMOMinter', async function() {
+contract('AMOMinter', async function () {
     async function getUint8Array(len) {
-        var buffer = new ArrayBuffer(len); 
+        var buffer = new ArrayBuffer(len);
         var bufferArray = new Uint8Array(buffer);
         var length = bufferArray.length;
         for (var i = 0; i < length; i++) {
             bufferArray[i] = 0;
         }
 
-        return bufferArray; 
+        return bufferArray;
     }
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         [owner, dev, addr1] = await ethers.getSigners();
         zeroAddr = "0x0000000000000000000000000000000000000000";
         const TestOracle = await ethers.getContractFactory('TestOracle');
@@ -253,14 +253,14 @@ contract('AMOMinter', async function() {
 
     });
 
-    it('test collatDollarBalance', async function() {
+    it('test collatDollarBalance', async function () {
         let collatValue;
 
         collatValue = await amoMinter.collatDollarBalance();
         expect(parseInt(collatValue)).to.be.eq(0);
     });
 
-    it('test dollarBalances', async function() {
+    it('test dollarBalances', async function () {
         let farxValueE18;
         let collatValueE18;
 
@@ -271,7 +271,9 @@ contract('AMOMinter', async function() {
         expect(parseInt(collatValueE18)).to.be.eq(0);
     });
 
-    it('test allAMOAddress、allAMOsLength、', async function() {
+    it('test allAMOAddress、allAMOsLength、', async function () {
+        price = await pool.get_virtual_price();
+        console.log("price:" + price);
         let resultArray = new Array();
         let resultArrayLength;
 
@@ -286,7 +288,7 @@ contract('AMOMinter', async function() {
         expect(resultArrayLength).to.be.eq(1);
     });
 
-    it('test fraxTrackedGlobal', async function() {
+    it('test fraxTrackedGlobal', async function () {
         let fraxDollarBalance;
         let fraxTrackedGlobalValue;
 
@@ -297,7 +299,7 @@ contract('AMOMinter', async function() {
         expect(parseInt(fraxTrackedGlobalValue)).to.be.eq(0);
     });
 
-    it('test fraxTrackedAMO', async function() {
+    it('test fraxTrackedAMO', async function () {
         let fraxValE18;
 
         fraxValE18 = await amoMinter.dollarBalances(); // Error
@@ -356,7 +358,7 @@ contract('AMOMinter', async function() {
     //     expect(parseInt(fraxMintSum)).to.be.eq(parseInt(toWei("100")));
     // });
 
-    it('test setCustodian', async function() {
+    it('test setCustodian', async function () {
         let initCustodian;
         let currentCustodian;
 
@@ -367,7 +369,7 @@ contract('AMOMinter', async function() {
         expect(currentCustodian).to.be.not.eq(initCustodian);
     });
 
-    it('test setFraxMintCap', async function() {
+    it('test setFraxMintCap', async function () {
         let initFraxMintCap;
         let currentFraxMintCap;
 
@@ -378,7 +380,7 @@ contract('AMOMinter', async function() {
         expect(currentFraxMintCap).to.be.eq(toWei("100"));
     });
 
-    it('test setfxsMintCap', async function() {
+    it('test setfxsMintCap', async function () {
         let initfxsMintCap;
         let currentfxsMintCap;
 
@@ -389,7 +391,7 @@ contract('AMOMinter', async function() {
         expect(currentfxsMintCap).to.be.eq(toWei("1"));
     });
 
-    it('test setCollatBorrowCap', async function() {
+    it('test setCollatBorrowCap', async function () {
         let initCollatBorrowCap;
         let currentCollatBorrowCap;
 
@@ -400,7 +402,7 @@ contract('AMOMinter', async function() {
         expect(currentCollatBorrowCap).to.be.eq(toWei("100"));
     });
 
-    it('test setMinimumCollateralRatio', async function() {
+    it('test setMinimumCollateralRatio', async function () {
         let initMinCr;
         let currentMinCr;
 
@@ -411,7 +413,7 @@ contract('AMOMinter', async function() {
         expect(currentMinCr).to.be.eq(1);
     });
 
-    it('test setAMOCorrectionOffsets', async function() {
+    it('test setAMOCorrectionOffsets', async function () {
         let correctionOffsetsAmosIndexOne;
         let correctionOffsetsAmosIndexTwo;
 
@@ -427,7 +429,7 @@ contract('AMOMinter', async function() {
         expect(parseInt(correctionOffsetsAmosIndexTwo)).to.be.eq(1);
     });
 
-    it('test setFraxPool', async function() {
+    it('test setFraxPool', async function () {
         let initPool;
         let currentPool;
 
@@ -437,7 +439,7 @@ contract('AMOMinter', async function() {
         expect(initPool).to.be.not.eq(currentPool);
     });
 
-    it('test recoverERC20', async function() {
+    it('test recoverERC20', async function () {
         await token0.mint(amoMinter.address, toWei("1"));
         await amoMinter.recoverERC20(token0.address, toWei("1"));
     });
