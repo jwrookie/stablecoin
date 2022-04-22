@@ -24,25 +24,14 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-     let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
+    let fxs = "0xAd510519008772007d3458502EF26D831BEDb155"
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
-   let  operatable = "0x06146D292DAa8a517F696e21c814660cc8983c53"
-let checkOper = "0x3bEbF7a91636B71dcBeCee4fbE47b06CB5D0ab01"
-let lock = "0xE98b55AA210d790d3b5e7e48B1c5Be848E55237e"
-let gaugeFactory = "0x96565E0508F1DFa4289B5778EbF8FBd6a386590C"
+    let operatable = "0x3724b782b8fec00cCa312a736C60dee9Be12b0aC"
 
 
-    // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
-    // let fxb = "0x594AF48EB0f4515d49dE3Bdc7909C886Ce998df4"
-    //let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
-    // // const TestERC20 = await ethers.getContractFactory("TestERC20");
-    // // let usdc = await TestERC20.attach(usdcAddr);
-    // // let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
-    // // let tokenA = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
-    // // let weth = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
     //
 
 
@@ -56,27 +45,19 @@ let gaugeFactory = "0x96565E0508F1DFa4289B5778EbF8FBd6a386590C"
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-   // Operatable = await ethers.getContractFactory("Operatable");
-    // operatable = await Operatable.deploy();
-    //  console.log("operatable:" + operatable.address)
-    //
-    // CheckOper = await ethers.getContractFactory("CheckOper");
-    // checkOper = await CheckOper.deploy(operatable.address);
-    // console.log("checkOper:" + checkOper.address)
-    // //
-    // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(fxs, "7200");
-    // console.log("Locker:" + lock.address)
-    //
-    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    // gaugeFactory = await GaugeFactory.deploy();
-    //  console.log("gaugeFactory:" + gaugeFactory.address)
+    const Locker = await ethers.getContractFactory('Locker');
+    lock = await Locker.deploy(fxs, "300");
+    console.log("Locker:" + lock.address)
+
+    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    gaugeFactory = await GaugeFactory.deploy();
+    console.log("gaugeFactory:" + gaugeFactory.address)
 
     Boost = await ethers.getContractFactory("Boost");
     boost = await Boost.deploy(
-        checkOper,
-        lock,
-        gaugeFactory,
+        operatable,
+        lock.address,
+        gaugeFactory.address,
         fxs,
         toWei('1'),
         parseInt("18409218"),
@@ -84,10 +65,9 @@ let gaugeFactory = "0x96565E0508F1DFa4289B5778EbF8FBd6a386590C"
     );
     console.log("boost:" + boost.address)
 
-    // await frax.addPool(boost.address);
-    // await frax.addPool(owner.address);
-    // await lock.setVoter(boost.address);
+    await lock.setVoter(boost.address)
 
+    // await frax.addPool(boost.address);
 
 
 

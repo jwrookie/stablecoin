@@ -235,9 +235,27 @@ contract('AMOMinter', () => {
 
     });
     it('should two users getReward correct', async () => {
-        console.log(await pool.fee({gasLimit: "9400000",}))
-        //console.log("exchangeAMO:"+exchangeAMO.address)
+        await minter.addAMO(exchangeAMO.address, true)
+        expect(await minter.allAMOsLength()).to.be.eq(1)
 
+        assert.equal(await minter.allAMOAddresses(), exchangeAMO.address)
+
+        // await minter.removeAMO(exchangeAMO.address,true)
+        //   expect(await minter.allAMOsLength()).to.be.eq(0)
+        //   assert.equal(await minter.allAMOAddresses(),0)
+
+        console.log("collatDollarBalance:" + await minter.collatDollarBalance())
+        let info = await minter.dollarBalances()
+         console.log("fraxDollarBalanceStored:" + info[0])
+
+         console.log("collatDollarBalanceStored:" +info[1])
+
+
+       // console.log("dollarBalances:" + await minter.dollarBalances())
+
+        console.log("fraxTrackedGlobal:" + await minter.fraxTrackedGlobal())
+
+        console.log("fraxTrackedAMO:" + await minter.fraxTrackedAMO(exchangeAMO.address))
     });
 
 
