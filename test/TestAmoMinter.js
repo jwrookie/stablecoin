@@ -279,19 +279,17 @@ contract('AMOMinter', async function () {
 
     it('test allAMOAddress、allAMOsLength、', async function () {
         price = await pool.get_virtual_price();
-        let resultArray = new Array(1);
-        let resultArrayLength;
 
-        // Add
         resultArrayLength = await amoMinter.allAMOsLength();
         expect(resultArrayLength).to.be.eq(1);
         resultArray = await amoMinter.allAMOAddresses();
         resultArrayValue = resultArray[0];
 
-        // Remove
         await amoMinter.removeAMO(exchangeAMO.address, true);
         resultArrayLength = await amoMinter.allAMOsLength();
-        expect(resultArrayLength).to.be.eq(0);
+        expect(resultArrayLength).to.be.eq(1);
+        amoAddress = await amoMinter.amos_array(0);
+        expect(amoAddress).to.be.eq(zeroAddr);
     });
 
     // it('test fraxTrackedGlobal', async function () {
