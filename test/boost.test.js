@@ -207,7 +207,7 @@ contract('Boost', () => {
 
         console.log("weights usdc:" + await boost.weights(usdc.address))
         console.log("epoch:" + epoch);
-        await boost.connect(dev).vote(1, [btc.address], [toWei('10000')])
+        await boost.connect(dev).vote(1, [usdc.address], [toWei('10000')])
         console.log("weights btc:" + await boost.weights(btc.address))
         console.log("weights usdc:" + await boost.weights(usdc.address))
 
