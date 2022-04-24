@@ -282,9 +282,6 @@ contract('AMOMinter', async function () {
         let resultArray = new Array(1);
         let resultArrayLength;
 
-        resultArrayLength = await amoMinter.allAMOsLength();
-        expect(resultArrayLength).to.be.eq(0);
-
         // Add
         resultArrayLength = await amoMinter.allAMOsLength();
         expect(resultArrayLength).to.be.eq(1);
