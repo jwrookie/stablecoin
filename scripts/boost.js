@@ -30,7 +30,8 @@ async function main() {
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
     let operatable = "0x06146D292DAa8a517F696e21c814660cc8983c53"
-    //let lock = "0x9A05c9D1019E477f987Ad11a5Ab7e3651B5382Bb"
+    let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
+    let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
 
     //
 
@@ -45,27 +46,27 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-    const Locker = await ethers.getContractFactory('Locker');
-    lock = await Locker.deploy(fxs, "7200");
-    console.log("Locker:" + lock.address)
-
-    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    gaugeFactory = await GaugeFactory.deploy();
-    console.log("gaugeFactory:" + gaugeFactory.address)
+    // const Locker = await ethers.getContractFactory('Locker');
+    // lock = await Locker.deploy(fxs, "7200");
+    // console.log("Locker:" + lock.address)
+    //
+    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    // gaugeFactory = await GaugeFactory.deploy();
+    // console.log("gaugeFactory:" + gaugeFactory.address)
 
     Boost = await ethers.getContractFactory("Boost");
     boost = await Boost.deploy(
         operatable,
-        lock.address,
-        gaugeFactory.address,
+        lock,
+        gaugeFactory,
         fxs,
         toWei('1'),
-        parseInt("18723300"),
+        parseInt("18723674"),
         "1000"
     );
     console.log("boost:" + boost.address)
-    //
-    await lock.setVoter(boost.address)
+    // //
+    // await lock.setVoter(boost.address)
 
     // await frax.addPool(boost.address);
 
