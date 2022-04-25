@@ -97,16 +97,16 @@ contract('Locker', () => {
 
         console.log("gasFee:" + gasFee)
 
-
+        await lock.checkpoint();
         await time.increase(time.duration.minutes("15"));
 
         let gasFee1 = await lock.estimateGas.increase_amount(1, toWei('200'))
 
         console.log("gasFee1:" + gasFee1)
-
+        await lock.checkpoint();
 
         await time.increase(time.duration.days("1"));
-
+        await lock.checkpoint();
         let gasFee2 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
         console.log("gasFee2:" + gasFee2)
 
