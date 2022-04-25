@@ -50,6 +50,13 @@ module.exports = {
             // gasPrice: 20000000000,
             // accounts: {mnemonic: mnemonic}
         },
+         kccTest: {
+            url: 'https://rpc-testnet.kcc.network',
+            chainId: 322,
+            accounts: ['a169188d442a35eff327a448d864d82523f95e07a20e76247230ba38c596d0dd']
+            // gasPrice: 20000000000,
+            // accounts: {mnemonic: mnemonic}
+        },
     },
     solidity: {
         compilers: [

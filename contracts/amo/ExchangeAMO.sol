@@ -15,10 +15,7 @@ contract ExchangeAMO is Ownable {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
-
-    IMetaImplementationUSD private frax3crv_metapool;
     IStableSwap3Pool private three_pool;
-    //    IYearnVault private crvFRAX_vault;
     ERC20 private three_pool_erc20;
     FRAXStablecoin private FRAX;
     ERC20 private collateral_token;
@@ -27,20 +24,15 @@ contract ExchangeAMO is Ownable {
     address private collateral_token_address;
     address private crv_address;
     address private frax3crv_metapool_address;
-    //    address private crvFRAX_vault_address;
 
     address public custodian_address;
 
-    // Number of decimals under 18, for collateral token
     uint256 private missing_decimals;
 
-    // Precision related
-    uint256 private PRICE_PRECISION;
 
-    // Min ratio of collat <-> 3crv conversions via add_liquidity / remove_liquidity; 1e6
+    uint256 private PRICE_PRECISION = 1e6;
+
     uint256 public liq_slippage_3crv;
-
-    // Min ratio of (FRAX + 3CRV) <-> FRAX3CRV-f-2 metapool conversions via add_liquidity / remove_liquidity; 1e6
     uint256 public slippage_metapool;
 
     // Convergence window
@@ -70,18 +62,15 @@ contract ExchangeAMO is Ownable {
         crv_address = sbAddress;
         missing_decimals = uint(18).sub(collateral_token.decimals());
         amo_minter = IAMOMinter(_amo_minter_address);
-
         three_pool = IStableSwap3Pool(poolAddress);
         three_pool_erc20 = ERC20(poolTokenAddress);
         // Other variable initializations
-        PRICE_PRECISION = 1e6;
         liq_slippage_3crv = 800000;
         slippage_metapool = 950000;
         convergence_window = 1e15;
         custom_floor = false;
         set_discount = false;
 
-        // Get the custodian and timelock addresses from the minter
         custodian_address = amo_minter.custodian_address();
     }
 
@@ -108,7 +97,7 @@ contract ExchangeAMO is Ownable {
         // ------------LP Balance------------
 
         // Free LP
-        uint256 lp_owned = (frax3crv_metapool.balanceOf(address(this)));
+        uint256 lp_owned = (three_pool_erc20.balanceOf(address(this)));
 
         // Staked in the vault
         uint256 lp_value_in_vault = usdValueInVault();
@@ -116,7 +105,7 @@ contract ExchangeAMO is Ownable {
 
         // ------------3pool Withdrawable------------
         // Uses iterate() to get metapool withdrawable amounts at FRAX floor price (globalCollateralRatio)
-        uint256 frax3crv_supply = frax3crv_metapool.totalSupply();
+        uint256 frax3crv_supply = three_pool_erc20.totalSupply();
 
         uint256 frax_withdrawable;
         uint256 _3pool_withdrawable;
@@ -177,10 +166,14 @@ contract ExchangeAMO is Ownable {
         uint256 dollar_value;
         // 3crv is usually slightly above $1 due to collecting 3pool swap fees
         for (uint i = 0; i < 256; i++) {
-            crv3_received = frax3crv_metapool.get_dy(0, 1, 1e18, [frax_balance, crv3_balance]);
+            crv3_received = three_pool.get_dy(0, 1, 1e18);
             dollar_value = crv3_received.mul(1e18).div(three_pool.get_virtual_price());
             if (dollar_value <= floor_price_frax.add(convergence_window) && dollar_value >= floor_price_frax.sub(convergence_window)) {
-                uint256 factor = uint256(1e6).mul(total_balance).div(frax_balance.add(crv3_balance));
+
+                uint256 factor = uint256(1e6);
+                if (frax_balance.add(crv3_balance) > 0) {
+                    factor = factor.mul(total_balance).div(frax_balance.add(crv3_balance));
+                }
                 //1e6 precision
 
                 // Normalize back to initial balances, since this estimation method adds in extra tokens
@@ -189,11 +182,11 @@ contract ExchangeAMO is Ownable {
                 return (frax_balance, crv3_balance, i, factor);
             } else if (dollar_value <= floor_price_frax.add(convergence_window)) {
                 uint256 crv3_to_swap = total_balance.div(2 ** i);
-                frax_balance = frax_balance.sub(frax3crv_metapool.get_dy(1, 0, crv3_to_swap, [frax_balance, crv3_balance]));
+                frax_balance = frax_balance.sub(three_pool.get_dy(1, 0, crv3_to_swap));
                 crv3_balance = crv3_balance.add(crv3_to_swap);
             } else if (dollar_value >= floor_price_frax.sub(convergence_window)) {
                 uint256 frax_to_swap = total_balance.div(2 ** i);
-                crv3_balance = crv3_balance.sub(frax3crv_metapool.get_dy(0, 1, frax_to_swap, [frax_balance, crv3_balance]));
+                crv3_balance = crv3_balance.sub(three_pool.get_dy(0, 1, frax_to_swap));
                 frax_balance = frax_balance.add(frax_to_swap);
             }
         }
@@ -263,7 +256,7 @@ contract ExchangeAMO is Ownable {
         {
             // Add the FRAX and the collateral to the metapool
             uint256 min_lp_out = (_frax_amount.add(threeCRV_received)).mul(slippage_metapool).div(PRICE_PRECISION);
-            metapool_LP_received = frax3crv_metapool.add_liquidity([_frax_amount, threeCRV_received], min_lp_out);
+            metapool_LP_received = three_pool.add_liquidity([_frax_amount, uint256(0), uint256(0)], min_lp_out);
         }
 
         return metapool_LP_received;
@@ -271,12 +264,12 @@ contract ExchangeAMO is Ownable {
 
     function metapoolWithdrawAtCurRatio(uint256 _metapool_lp_in, bool burn_the_frax, uint256 min_frax, uint256 min_3pool) external onlyByOwnGov returns (uint256 frax_received) {
         // Approve the metapool LP tokens for the metapool contract
-        frax3crv_metapool.approve(address(this), _metapool_lp_in);
+        three_pool_erc20.approve(address(this), _metapool_lp_in);
 
         // Withdraw FRAX and 3pool from the metapool at the current balance
         uint256 three_pool_received;
         {
-            uint256[2] memory result_arr = frax3crv_metapool.remove_liquidity(_metapool_lp_in, [min_frax, min_3pool]);
+            uint256[3] memory result_arr = three_pool.remove_liquidity(_metapool_lp_in, [min_frax, 0, 0]);
             frax_received = result_arr[0];
             three_pool_received = result_arr[1];
         }
@@ -300,7 +293,7 @@ contract ExchangeAMO is Ownable {
     function metapoolWithdrawFrax(uint256 _metapool_lp_in, bool burn_the_frax) external onlyByOwnGov returns (uint256 frax_received) {
         // Withdraw FRAX from the metapool
         uint256 min_frax_out = _metapool_lp_in.mul(slippage_metapool).div(PRICE_PRECISION);
-        frax_received = frax3crv_metapool.remove_liquidity_one_coin(_metapool_lp_in, 0, min_frax_out);
+        frax_received = three_pool.remove_liquidity_one_coin(_metapool_lp_in, 0, min_frax_out);
 
         // Optionally burn the FRAX
         if (burn_the_frax) {
@@ -311,7 +304,7 @@ contract ExchangeAMO is Ownable {
     function metapoolWithdraw3pool(uint256 _metapool_lp_in) public onlyByOwnGov {
         // Withdraw 3pool from the metapool
         uint256 min_3pool_out = _metapool_lp_in.mul(slippage_metapool).div(PRICE_PRECISION);
-        frax3crv_metapool.remove_liquidity_one_coin(_metapool_lp_in, 1, min_3pool_out);
+        three_pool.remove_liquidity_one_coin(_metapool_lp_in, 1, min_3pool_out);
     }
 
     function three_pool_to_collateral(uint256 _3pool_in) public onlyByOwnGov {

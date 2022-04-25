@@ -28,13 +28,13 @@ async function main() {
     // let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
     //
     // let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
-    let timeLock = "0x9205322Df5d5E763C3B98919c18c763A4caB7E14"
-    let factory = "0xc8476C842DFdfA3c24fb75FE8A945D1595D9Ed98"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"//usdc
-    // let tokenA = "0x17b16eAF39C055405a6Ccc41258698F048b4bA38"//usdt
-    let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
-    let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
-    let wbnb = "0xABbc0dB80d50e4175CEC6A0efd43994a00c19b5F"
+    // let timeLock = "0x9205322Df5d5E763C3B98919c18c763A4caB7E14"
+    // let factory = "0xc8476C842DFdfA3c24fb75FE8A945D1595D9Ed98"
+    // let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"//usdc
+    // // let tokenA = "0x17b16eAF39C055405a6Ccc41258698F048b4bA38"//usdt
+    // let frax = ""
+    // let fxs = ""
+    // let wbnb = ""
 
 
     for (const account of accounts) {
@@ -47,15 +47,15 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-    const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
+    // const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
     // usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, deployer.address, timeLock);
     // console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
-
-    frax_uniswapOracle = await UniswapPairOracle.deploy(factory, frax, wbnb, deployer.address, timeLock);
-    console.log("frax_uniswapOracle:" + frax_uniswapOracle.address)
-
-    fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock);
-    console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
+    //
+    // frax_uniswapOracle = await UniswapPairOracle.deploy(factory, frax, wbnb, deployer.address, timeLock);
+    // console.log("frax_uniswapOracle:" + frax_uniswapOracle.address)
+    //
+    // fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock);
+    // console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
 
 
     // timeLock = await deployContract(deployer, {
@@ -83,6 +83,20 @@ async function main() {
     // await frax.approve(fraxBondIssuer.address, toWei('1000'))
     // await fxb.approve(fraxBondIssuer.address, toWei('1000'))
     // await frax.addPool(fraxBondIssuer.address)
+
+    let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
+    let pool = "0xB9e324530540225173C6290958372620b3139638"
+    let frax = '0x7b206BA4873E9CB7568f778F8fad20DFA52BC2B2'
+    let fxs = '0x7226F2c1bBbBE4eFB335528fE015d7A05eC4C5BF'
+    let weth = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
+    let timelock = '0xF43D50BcA24825541e45698C86c14A37Cf1D324D';
+    const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
+    uniswapOracle1 = await UniswapPairOracle.deploy(factory, pool, weth, deployer.address, timelock);
+    uniswapOracle2 = await UniswapPairOracle.deploy(factory, frax, weth, deployer.address, timelock);
+    uniswapOracle3 = await UniswapPairOracle.deploy(factory, fxs, weth, deployer.address, timelock);
+    console.log("uniswapOracle1:" + uniswapOracle1.address)
+    console.log("uniswapOracle2:" + uniswapOracle2.address)
+    console.log("uniswapOracle3:" + uniswapOracle3.address)
 
 
 }

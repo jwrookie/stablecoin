@@ -24,14 +24,14 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    //let usdc = ""
+    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
-    //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
+    let frax = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
 
-    let operatable = "0x06146D292DAa8a517F696e21c814660cc8983c53"
-    let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
-    let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
+    // let operatable = ""
+    // let lock = ""
+    let pool_usdc = "0xEa9aF56c345674B3485b870d03153878711c3a05"
 
     //
 
@@ -45,28 +45,39 @@ async function main() {
     // We get the contract to deploy
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
-
-    // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(fxs, "7200");
-    // console.log("Locker:" + lock.address)
     //
+    // const Locker = await ethers.getContractFactory('Locker');
+    // lock = await Locker.deploy(fxs, "300");
+    // console.log("Locker:" + lock.address)
+
     // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
     // gaugeFactory = await GaugeFactory.deploy();
     // console.log("gaugeFactory:" + gaugeFactory.address)
+    //
+    // Boost = await ethers.getContractFactory("Boost");
+    // boost = await Boost.deploy(
+    //     operatable,
+    //     lock,
+    //     gaugeFactory.address,
+    //     fxs,
+    //     toWei('1'),
+    //     parseInt("10575868"),
+    //     "1000"
+    // );
+    // console.log("boost:" + boost.address)
 
-    Boost = await ethers.getContractFactory("Boost");
-    boost = await Boost.deploy(
-        operatable,
-        lock,
-        gaugeFactory,
-        fxs,
-        toWei('1'),
-        parseInt("18723674"),
-        "1000"
-    );
-    console.log("boost:" + boost.address)
-    // //
-    // await lock.setVoter(boost.address)
+
+     const AMOMinter = await ethers.getContractFactory('AMOMinter');
+        minterAmo = await AMOMinter.deploy(
+            deployer.address,
+            deployer.address,
+            frax,
+            fxs,
+            usdc,
+            pool_usdc
+        );
+        console.log("minterAmo:"+minterAmo.address)
+
 
     // await frax.addPool(boost.address);
 
