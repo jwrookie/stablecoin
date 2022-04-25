@@ -155,6 +155,8 @@ contract('Pool_USDC', () => {
         await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
+        await fxs.addPool(pool.address);
+
 
     });
 
@@ -321,7 +323,6 @@ contract('Pool_USDC', () => {
 
 
     });
-
 
 
 });
