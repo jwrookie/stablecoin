@@ -1,4 +1,3 @@
-/** JSON ABI */
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
@@ -8,13 +7,11 @@ const PoolRegistry = require('./mock/mockPool/PoolRegistry.json');
 const Factory = require('../test/mock/PancakeFactory.json');
 const Router = require('../test/mock/PancakeRouter.json');
 const WETH = require('../test/mock/WETH9.json');
-/** EXTERNAL MODULE */
 const {deployContract} = require('ethereum-waffle');
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
-/** INTERNAL MODULE */
 const GAS = {gasLimit: "9550000"};
 
 contract('AMOMinter', async function () {
@@ -417,10 +414,8 @@ contract('AMOMinter', async function () {
         let count = await frax.fraxPoolAddressCount();
         console.log("1\t" + await frax.ethUsdPrice());
 
-        // index one and three is a problem
         console.log("usd_price:\t" + await frax.ethUsdPrice());
         expect(parseInt(await frax.fraxPoolAddressCount())).to.be.eq(1);
-        // console.log("0:\t" + await frax.getFraxPoolValue());
         console.log("owner_collat:\t" + await usdc.balanceOf(owner.address));
         // console.log("2\t" + await usdcPool.collatDollarBalance());
 
@@ -448,23 +443,23 @@ contract('AMOMinter', async function () {
         // expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(100000);
     });
 
-    it('test oldPoolCollectAndGive', async function () {
-        let collatBorrowedBalance;
-        let initBorrowedBalance;
-        let collatAmount;
-
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        initBorrowedBalance = collatBorrowedBalance;
-        expect(parseInt(initBorrowedBalance)).to.be.eq(0);
-
-        // Call the function
-        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
-        await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
-        collatAmount = await usdcPool.redeemCollateralBalances(amoMinter.address);
-        expect(parseInt(collatAmount)).to.be.eq(0);
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
-    });
+    // it('test oldPoolCollectAndGive', async function () {
+    //     let collatBorrowedBalance;
+    //     let initBorrowedBalance;
+    //     let collatAmount;
+    //
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     initBorrowedBalance = collatBorrowedBalance;
+    //     expect(parseInt(initBorrowedBalance)).to.be.eq(0);
+    //
+    //     // Call the function
+    //     // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
+    //     await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
+    //     collatAmount = await usdcPool.redeemCollateralBalances(amoMinter.address);
+    //     expect(parseInt(collatAmount)).to.be.eq(0);
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
+    // });
 
     // it('test mintFraxForAMO and burnFraxForAMO', async function () {
     //     let fraxMintBalance;
