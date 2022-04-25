@@ -89,7 +89,7 @@ contract Locker is IERC721, IERC721Metadata {
     uint8 constant public decimals = 18;
 
 
-    uint internal tokenId;
+    uint public tokenId;
 
 
     mapping(uint => address) internal idToOwner;
@@ -689,6 +689,27 @@ contract Locker is IERC721, IERC721Metadata {
         // _locked has only 0 end
         // Both can have >= 0 amount
         _checkpoint(_tokenId, _locked, LockedBalance(0, 0));
+
+        assert(IERC20(token).transfer(msg.sender, value));
+
+        // Burn the NFT
+        _burn(_tokenId);
+
+        emit Withdraw(msg.sender, _tokenId, value, block.timestamp);
+        emit Supply(supply_before, supply_before - value);
+    }
+
+    function emergencyWithdraw(uint256 _tokenId) public nonreentrant {
+        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        attachments[_tokenId] = 0;
+
+        LockedBalance memory _locked = locked[_tokenId];
+        require(block.timestamp >= _locked.end, "The lock didn't expire");
+        uint value = uint(int256(_locked.amount));
+
+        locked[_tokenId] = LockedBalance(0, 0);
+        uint supply_before = supply;
+        supply = supply_before - value;
 
         assert(IERC20(token).transfer(msg.sender, value));
 

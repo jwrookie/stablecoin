@@ -95,7 +95,7 @@ contract('Boost', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
-
+        await lock.checkpoint();
 
         await time.increase(time.duration.minutes("15"));
         console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
@@ -109,6 +109,17 @@ contract('Boost', () => {
 
         await time.increase(time.duration.hours("1"));
 
+        console.log("----------------------------")
+        console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+        console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+
+
+        console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+        console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+
+        await time.increase(time.duration.days("1"));
+        await gauge_usdc.deposit(toWei('100'), 1);
+        // await boost.reset( 1);
         console.log("----------------------------")
         console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
         console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
