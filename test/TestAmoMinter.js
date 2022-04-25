@@ -413,14 +413,9 @@ contract('AMOMinter', async function () {
         fxsPrice = await frax.fxsPrice();
         console.log(fxsPrice);
 
-        // Find
+        // Find -> addPool
         let count = await frax.fraxPoolAddressCount();
         console.log("1\t" + await frax.ethUsdPrice());
-        // for (var i = 0; i < count; i++) {
-        //     addressTokenMap = await frax.fraxPoolAddress(i);
-        //     console.log(i);
-        //     console.log("Token_Address:\t" + await usdcPool.collatDollarBalance(addressTokenMap));
-        // }
 
         // index one and three is a problem
         console.log("usd_price:\t" + await frax.ethUsdPrice());
@@ -435,16 +430,17 @@ contract('AMOMinter', async function () {
         // await amoMinter.mintFraxForAMO(exchangeAMO.address, 100000000);
         // await amoMinter.mintFxsForAMO(exchangeAMO.address, 100000000);
         // giveToAMO
-        await usdc.mint(amoMinter.address, toWei('1'));
+        // await usdc.mint(amoMinter.address, toWei('1'));
         await usdc.approve(amoMinter.address, toWei('1'));
         // await frax.mint(amoMinter.address, toWei('1'));
         await fxs.mint(amoMinter.address, toWei('1'));
         await fxs.approve(amoMinter.address, toWei('1'));
-        expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         // expect(parseInt(await frax.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         expect(parseInt(await fxs.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         console.log("2");
         // await amoMinter.addAMO(owner.address, true);
+        await usdc.mint(amoMinter.address, toWei('1'));
+        expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
         // await amoMinter.receiveCollatFromAMO(100);
         // await amoMinter.oldPoolRedeem(1);
