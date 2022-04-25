@@ -444,9 +444,9 @@ contract('AMOMinter', async function () {
         // expect(parseInt(await frax.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         expect(parseInt(await fxs.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         console.log("2");
-        await amoMinter.addAMO(owner.address, true);
+        // await amoMinter.addAMO(owner.address, true);
         await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
-        await amoMinter.receiveCollatFromAMO(100);
+        // await amoMinter.receiveCollatFromAMO(100);
         // await amoMinter.oldPoolRedeem(1);
         // amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);
         // expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(100000);
