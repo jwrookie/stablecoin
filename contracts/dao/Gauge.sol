@@ -4,6 +4,7 @@ pragma solidity 0.8.10;
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../interface/IVeToken.sol";
 import "../interface/IBoost.sol";
@@ -11,7 +12,7 @@ import '../tools/TransferHelper.sol';
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard {
-
+    using SafeMath for uint256;
 
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
@@ -279,7 +280,9 @@ contract Gauge is ReentrancyGuard {
         uint _adjusted = 0;
         uint _supply = IBoost(boost).weights(stake);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = IBoost(boost).votes(_tokenId, stake);
+            uint usedWeight = IBoost(boost).usedWeights(_tokenId);
+            uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
+            _adjusted = IBoost(boost).votes(_tokenId, stake).mul(1e12).mul(useVe).div(usedWeight);
             _adjusted = (totalSupply * _adjusted / _supply) * 70 / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
@@ -464,7 +467,7 @@ contract Gauge is ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
-    function notifyRewardAmount(address token, uint _rewardRate) external  {
+    function notifyRewardAmount(address token, uint _rewardRate) external {
         require(token != stake, "no stake");
         if (rewardRate[token] == 0) {
             _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
