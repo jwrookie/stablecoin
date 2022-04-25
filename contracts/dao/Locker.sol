@@ -89,7 +89,7 @@ contract Locker is IERC721, IERC721Metadata {
     uint8 constant public decimals = 18;
 
 
-    uint internal tokenId;
+    uint public tokenId;
 
 
     mapping(uint => address) internal idToOwner;
