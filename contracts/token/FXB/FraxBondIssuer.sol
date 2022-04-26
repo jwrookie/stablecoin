@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../tools/AbstractPausable.sol";
 import '../../math/Math.sol';
-import "../Frax.sol";
+import "../Rusd.sol";
 import "./FXB.sol";
 
 contract FraxBondIssuer is AbstractPausable {
@@ -17,7 +17,7 @@ contract FraxBondIssuer is AbstractPausable {
     uint256 public constant ONE_YEAR = 1 * 365 * 86400;
     uint256 public constant PRICE_PRECISION = 1e6;
 
-    FRAXStablecoin public stableCoin;
+    RStablecoin public stableCoin;
     FraxBond public bond;
 
     uint256 public lastInterestTime;
@@ -45,7 +45,7 @@ contract FraxBondIssuer is AbstractPausable {
         address _frax_contract_address,
         address _fxb_contract_address
     ) AbstractPausable(_operatorMsg){
-        stableCoin = FRAXStablecoin(_frax_contract_address);
+        stableCoin = RStablecoin(_frax_contract_address);
         bond = FraxBond(_fxb_contract_address);
         minInterestRate = 1e16;
         maxInterestRate = 3e16;

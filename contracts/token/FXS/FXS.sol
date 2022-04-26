@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../tools/AbstractPausable.sol";
-import "../Frax.sol";
+import "../Rusd.sol";
 
 
 contract FRAXShares is ERC20Burnable, AbstractPausable {
@@ -19,7 +19,7 @@ contract FRAXShares is ERC20Burnable, AbstractPausable {
     address public FRAXStablecoinAdd;
     uint256 public constant GENESIS_SUPPLY = 100000000e18; // 100M is printed upon genesis
     address public oracle;
-    FRAXStablecoin private frax;
+    RStablecoin private frax;
 
     modifier onlyPools() {
         require(isPools[msg.sender] == true, "Only pools can call this function");
@@ -47,7 +47,7 @@ contract FRAXShares is ERC20Burnable, AbstractPausable {
     function setFraxAddress(address _address) external onlyOwner {
         require(_address != address(0), "Zero address detected");
 
-        frax = FRAXStablecoin(_address);
+        frax = RStablecoin(_address);
 
         emit FRAXAddressSet(_address);
     }

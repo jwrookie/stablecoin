@@ -15,7 +15,7 @@ import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
 import "../tools/AbstractPausable.sol";
 
-contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
+contract RStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     /* ========== EVENTS ========== */

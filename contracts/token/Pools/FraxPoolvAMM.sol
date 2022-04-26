@@ -31,7 +31,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../math/Math.sol";
 import "../../token/FXS/FXS.sol";
-import "../../token/Frax.sol";
+import "../../token/Rusd.sol";
 import "../../Oracle/Uniswap/UniswapV2Library.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "../../tools/AbstractPausable.sol";
@@ -40,7 +40,7 @@ contract FraxPoolvAMM is AbstractPausable {
     using SafeMath for uint256;
 
     ERC20 private collateral_token;
-    FRAXStablecoin private FRAX;
+    RStablecoin private FRAX;
     FRAXShares private FXS;
     UniswapPairOracle private fxsUSDCOracle;
 
@@ -126,7 +126,7 @@ contract FraxPoolvAMM is AbstractPausable {
         address _fxs_usdc_oracle_addr,
         uint256 _pool_ceiling
     )AbstractPausable(_operatorMsg) {
-        FRAX = FRAXStablecoin(_frax_contract_address);
+        FRAX = RStablecoin(_frax_contract_address);
         FXS = FRAXShares(_fxs_contract_address);
         frax_contract_address = _frax_contract_address;
         fxs_contract_address = _fxs_contract_address;

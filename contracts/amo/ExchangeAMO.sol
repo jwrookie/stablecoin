@@ -8,7 +8,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import "../interface/curve/IStableSwap3Pool.sol";
 import "../interface/curve/IMetaImplementationUSD.sol";
 import '../tools/TransferHelper.sol';
-import "../token/Frax.sol";
+import "../token/Rusd.sol";
 import "../interface/IAMOMinter.sol";
 
 contract ExchangeAMO is Ownable {
@@ -17,7 +17,7 @@ contract ExchangeAMO is Ownable {
     /* ========== STATE VARIABLES ========== */
     IStableSwap3Pool private three_pool;
     ERC20 private three_pool_erc20;
-    FRAXStablecoin private FRAX;
+    RStablecoin private FRAX;
     ERC20 private collateral_token;
     IAMOMinter private amo_minter;
 
@@ -57,7 +57,7 @@ contract ExchangeAMO is Ownable {
         address poolAddress,
         address poolTokenAddress
     )  {
-        FRAX = FRAXStablecoin(stableCoinAddress);
+        FRAX = RStablecoin(stableCoinAddress);
         collateral_token = ERC20(collateralToken);
         crv_address = sbAddress;
         missing_decimals = uint(18).sub(collateral_token.decimals());
