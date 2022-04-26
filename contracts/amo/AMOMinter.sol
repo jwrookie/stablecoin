@@ -4,7 +4,7 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interface/IFrax.sol";
+import "../interface/IStablecoin.sol";
 import "../token/Pools/IStablecoinPool.sol";
 
 import '../tools/TransferHelper.sol';
@@ -13,7 +13,7 @@ import "../token/stock/IStock.sol";
 
 contract AMOMinter is Ownable {
     // Core
-    IFrax public immutable FRAX;
+    IStablecoin public immutable FRAX;
     IStock public immutable FXS;
     ERC20 public immutable collateral_token;
     IStablecoinPool public  pool;
@@ -40,11 +40,9 @@ contract AMOMinter is Ownable {
     // Minimum collateral ratio needed for new FRAX minting
     uint256 public min_cr = 810000;
 
-    // Frax mint balances
     mapping(address => int256) public frax_mint_balances; // Amount of FRAX the contract minted, by AMO
     int256 public frax_mint_sum = 0; // Across all AMOs
 
-    // Fxs mint balances
     mapping(address => int256) public fxs_mint_balances; // Amount of FXS the contract minted, by AMO
     int256 public fxs_mint_sum = 0; // Across all AMOs
 
@@ -61,10 +59,7 @@ contract AMOMinter is Ownable {
 
     // AMO balance corrections
     mapping(address => int256[2]) public correction_offsets_amos;
-    // [amo_address][0] = AMO's frax_val_e18
-    // [amo_address][1] = AMO's collat_val_e18
-
-    /* ========== CONSTRUCTOR ========== */
+    
 
     constructor (
         address _owner_address,
@@ -76,7 +71,7 @@ contract AMOMinter is Ownable {
     )  {
         custodian_address = _custodian_address;
 
-        FRAX = IFrax(_stableAddress);
+        FRAX = IStablecoin(_stableAddress);
         FXS = IStock(_shareAddress);
         // Pool related
         pool = IStablecoinPool(_pool_address);
