@@ -72,7 +72,7 @@ contract ExchangeAMO is CheckPermission {
         _;
     }
 
-    function showAllocations() public view returns (uint256[11] memory return_arr) {
+    function showAllocations() public view returns (uint256[10] memory return_arr) {
         // ------------LP Balance------------
 
         // Free LP
@@ -88,12 +88,12 @@ contract ExchangeAMO is CheckPermission {
 
         uint256 frax_withdrawable;
         uint256 _3pool_withdrawable;
-        (frax_withdrawable, _3pool_withdrawable,,) = iterate();
-        if (frax3crv_supply > 0) {
-            _3pool_withdrawable = _3pool_withdrawable.mul(lp_owned).div(frax3crv_supply);
-            frax_withdrawable = frax_withdrawable.mul(lp_owned).div(frax3crv_supply);
-        }
-        else _3pool_withdrawable = 0;
+        (frax_withdrawable,,) = iterate();
+        //        if (frax3crv_supply > 0) {
+        //            _3pool_withdrawable = _3pool_withdrawable.mul(lp_owned).div(frax3crv_supply);
+        //            frax_withdrawable = frax_withdrawable.mul(lp_owned).div(frax3crv_supply);
+        //        }
+        //        else _3pool_withdrawable = 0;
 
         // ------------Frax Balance------------
         // Frax sums
@@ -119,14 +119,13 @@ contract ExchangeAMO is CheckPermission {
         usdc_subtotal.add((frax_in_contract.add(frax_withdrawable)).mul(fraxDiscountRate()).div(1e6 * (10 ** missing_decimals))), // [6] USDC Total
         lp_owned, // [7] FRAX3CRV free or in the vault
         frax3crv_supply, // [8] Total supply of FRAX3CRV tokens
-        _3pool_withdrawable, // [9] 3pool withdrawable from the FRAX3CRV tokens
         lp_value_in_vault // [10] FRAX3CRV in the vault
         ];
     }
 
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
         // Get the allocations
-        uint256[11] memory allocations = showAllocations();
+        uint256[10] memory allocations = showAllocations();
 
         frax_val_e18 = (allocations[2]).add((allocations[5]).mul((10 ** missing_decimals)));
         collat_val_e18 = (allocations[6]).mul(10 ** missing_decimals);
@@ -134,42 +133,33 @@ contract ExchangeAMO is CheckPermission {
 
     // Returns hypothetical reserves of metapool if the FRAX price went to the CR,
     // assuming no removal of liquidity from the metapool.
-    function iterate() public view returns (uint256, uint256, uint256, uint256) {
-        uint256 frax_balance = Stablecoin.balanceOf(address(three_pool));
-        uint256 crv3_balance = three_pool_erc20.balanceOf(address(three_pool));
-        uint256 total_balance = frax_balance.add(crv3_balance);
+    function iterate() public view returns (uint256, uint256, uint256) {
+        uint256 stablecoinBalance = Stablecoin.balanceOf(address(three_pool));
 
-        uint256 floor_price_frax = uint(1e18).mul(fraxFloor()).div(1e6);
-
-        uint256 crv3_received;
-        uint256 dollar_value;
+        uint256 floorPrice = uint(1e18).mul(fraxFloor()).div(1e6);
+        uint256 crv3Received;
+        uint256 dollarValue;
         // 3crv is usually slightly above $1 due to collecting 3pool swap fees
         for (uint i = 0; i < 256; i++) {
-            crv3_received = three_pool.get_dy(0, 1, 1e18);
-            dollar_value = crv3_received.mul(1e18).div(three_pool.get_virtual_price());
-            if (dollar_value <= floor_price_frax.add(convergence_window) && dollar_value >= floor_price_frax.sub(convergence_window)) {
+            crv3Received = three_pool.get_dy(0, 1, 1e18);
+            dollarValue = crv3Received.mul(1e18).div(three_pool.get_virtual_price());
+            if (dollarValue <= floorPrice.add(convergence_window) && dollarValue >= floorPrice.sub(convergence_window)) {
 
                 uint256 factor = uint256(1e6);
-                if (frax_balance.add(crv3_balance) > 0) {
-                    factor = factor.mul(total_balance).div(frax_balance.add(crv3_balance));
-                }
-                //1e6 precision
 
                 // Normalize back to initial balances, since this estimation method adds in extra tokens
-                frax_balance = frax_balance.mul(factor).div(1e6);
-                crv3_balance = crv3_balance.mul(factor).div(1e6);
-                return (frax_balance, crv3_balance, i, factor);
-            } else if (dollar_value <= floor_price_frax.add(convergence_window)) {
-                uint256 crv3_to_swap = total_balance.div(2 ** i);
-                frax_balance = frax_balance.sub(three_pool.get_dy(1, 0, crv3_to_swap));
-                crv3_balance = crv3_balance.add(crv3_to_swap);
-            } else if (dollar_value >= floor_price_frax.sub(convergence_window)) {
-                uint256 frax_to_swap = total_balance.div(2 ** i);
-                crv3_balance = crv3_balance.sub(three_pool.get_dy(0, 1, frax_to_swap));
-                frax_balance = frax_balance.add(frax_to_swap);
+                stablecoinBalance = stablecoinBalance.mul(factor).div(1e6);
+
+                return (stablecoinBalance, i, factor);
+            } else if (dollarValue <= floorPrice.add(convergence_window)) {
+                uint256 crv3_to_swap = stablecoinBalance.div(2 ** i);
+                stablecoinBalance = stablecoinBalance.sub(three_pool.get_dy(1, 0, crv3_to_swap));
+            } else if (dollarValue >= floorPrice.sub(convergence_window)) {
+                uint256 frax_to_swap = stablecoinBalance.div(2 ** i);
+                stablecoinBalance = stablecoinBalance.add(frax_to_swap);
             }
         }
-        revert("No hypothetical point");
+        return (0, 0, 0);
         // in 256 rounds
     }
 
