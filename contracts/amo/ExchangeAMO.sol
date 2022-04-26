@@ -296,30 +296,7 @@ contract ExchangeAMO is CheckPermission {
         three_pool_to_collateral(three_pool_erc20.balanceOf(address(this)));
     }
 
-    /* ========== Main Functions ========== */
-
-    // Deposit Metapool LP tokens into the yearn vault
-    //    function depositToVault(uint256 _metapool_lp_in) external onlyOperator {
-    //        // Approve the metapool LP tokens for the vault contract
-    //        frax3crv_metapool.approve(address(crvFRAX_vault), _metapool_lp_in);
-    //
-    //        // Deposit the metapool LP into the vault contract
-    //        crvFRAX_vault.deposit(_metapool_lp_in, address(this));
-    //    }
-
-    // Withdraw Metapool LP from the yearn vault back to this contract
-    //    function withdrawFromVault(uint256 _metapool_lp_out) external onlyOperator {
-    //        crvFRAX_vault.withdraw(_metapool_lp_out, address(this), 1);
-    //    }
-
-    // Same as withdrawFromVault, but with manual loss override
-    // 1 = 0.01% [BPS]
-    //    function withdrawFromVaultMaxLoss(uint256 _metapool_lp_out, uint256 maxloss) external onlyOperator {
-    //        crvFRAX_vault.withdraw(_metapool_lp_out, address(this), maxloss);
-    //    }
-
-
-    /* ========== Burns and givebacks ========== */
+    
 
     // Give USDC profits back. Goes through the minter
     function giveCollatBack(uint256 collat_amount) external onlyOperator {
