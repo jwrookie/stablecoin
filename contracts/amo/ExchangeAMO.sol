@@ -15,7 +15,6 @@ import "../tools/CheckPermission.sol";
 contract ExchangeAMO is CheckPermission {
     using SafeMath for uint256;
 
-    /* ========== STATE VARIABLES ========== */
     IStableSwap3Pool private three_pool;
     ERC20 private three_pool_erc20;
     RStablecoin private Stablecoin;
@@ -72,7 +71,7 @@ contract ExchangeAMO is CheckPermission {
         require(msg.sender == address(amo_minter), "Not minter");
         _;
     }
-    
+
     function showAllocations() public view returns (uint256[11] memory return_arr) {
         // ------------LP Balance------------
 
@@ -189,11 +188,6 @@ contract ExchangeAMO is CheckPermission {
             return Stablecoin.globalCollateralRatio();
         }
     }
-
-    //    // Amount of FRAX3CRV deposited in the vault contract
-    //    function yvCurveFRAXBalance() public view returns (uint256) {
-    //        return crvFRAX_vault.balanceOf(address(this));
-    //    }
 
     function usdValueInVault() public view returns (uint256) {
         //            uint256 yvCurveFrax_balance = yvCurveFRAXBalance();
