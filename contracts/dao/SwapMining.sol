@@ -116,7 +116,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _allocPoint,
         address _pool,
         bool _withUpdate
-    ) public onlyOperator {
+    ) public onlyOwner {
         require(_pool != address(0), '_pair is the zero address');
         if (poolLength() > 0) {
             require((pairOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
@@ -145,7 +145,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _pid,
         uint256 _allocPoint,
         bool _withUpdate
-    ) public onlyOperator {
+    ) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -154,7 +154,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         emit SetPool(poolInfo[_pid].pair, _allocPoint);
     }
 
-    function setRouter(address newRouter) public onlyOperator {
+    function setRouter(address newRouter) public onlyOwner {
         require(newRouter != address(0), 'SwapMining: new router is the zero address');
         address oldRouter = router;
         router = newRouter;

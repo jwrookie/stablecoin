@@ -6,19 +6,19 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
+import "../../tools/AbstractPausable.sol";
 import '../../math/Math.sol';
-import "../Frax.sol";
-import "./FXB.sol";
+import "../Rusd.sol";
+import "./Bond.sol";
 
-contract FraxBondIssuer is AbstractPausable {
+contract BondIssuer is AbstractPausable {
     using SafeMath for uint256;
 
     uint256 public constant ONE_YEAR = 1 * 365 * 86400;
     uint256 public constant PRICE_PRECISION = 1e6;
 
-    FRAXStablecoin public stableCoin;
-    FraxBond public bond;
+    RStablecoin public stableCoin;
+    Bond public bond;
 
     uint256 public lastInterestTime;
     uint256 public exchangeRate;
@@ -41,11 +41,12 @@ contract FraxBondIssuer is AbstractPausable {
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
+        address _operatorMsg,
         address _frax_contract_address,
         address _fxb_contract_address
-    ) {
-        stableCoin = FRAXStablecoin(_frax_contract_address);
-        bond = FraxBond(_fxb_contract_address);
+    ) AbstractPausable(_operatorMsg){
+        stableCoin = RStablecoin(_frax_contract_address);
+        bond = Bond(_fxb_contract_address);
         minInterestRate = 1e16;
         maxInterestRate = 3e16;
         interestRate = 1e16;

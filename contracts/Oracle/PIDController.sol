@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import '../token/Frax.sol';
+import '../token/Rusd.sol';
 
 import "./ReserveTracker.sol";
 import "../interface/curve/IMetaImplementationUSD.sol";
@@ -13,8 +13,8 @@ contract PIDController is Ownable {
     using SafeMath for uint256;
 
     // Instances
-    FRAXStablecoin private FRAX;
-    FRAXShares private FXS;
+    RStablecoin private FRAX;
+    Stock private FXS;
     ReserveTracker private reserve_tracker;
     IMetaImplementationUSD private frax_metapool;
 
@@ -69,8 +69,8 @@ contract PIDController is Ownable {
         reserve_tracker_address = _reserve_tracker_address;
         reserve_tracker = ReserveTracker(reserve_tracker_address);
         frax_step = 2500;
-        FRAX = FRAXStablecoin(frax_contract_address);
-        FXS = FRAXShares(fxs_contract_address);
+        FRAX = RStablecoin(frax_contract_address);
+        FXS = Stock(fxs_contract_address);
 
         // Upon genesis, if GR changes by more than 1% percent, enable change of collateral ratio
         GR_top_band = 1000;

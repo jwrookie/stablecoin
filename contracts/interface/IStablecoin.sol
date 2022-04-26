@@ -3,7 +3,7 @@ pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-interface IFrax is IERC20 {
+interface IStablecoin is IERC20 {
     function globalCollateralValue() external view returns (uint256);
 
     function globalCollateralRatio() external view returns (uint256);

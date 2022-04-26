@@ -1,13 +1,14 @@
 pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "../tools/TransferHelper.sol";
 import "../interface/IStablePool.sol";
 import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";
-import "../tools/Operatable.sol";
 
-contract SwapRouter is Operatable {
+contract SwapRouter is Ownable {
     event ChangeSwapMining(
         address indexed oldSwapMining,
         address indexed newSwapMining
@@ -27,7 +28,7 @@ contract SwapRouter is Operatable {
     }
 
     // address(0) means no swap mining
-    function setSwapMining(address addr) public onlyOperator {
+    function setSwapMining(address addr) public onlyOwner {
         address oldSwapMining = swapMining;
         swapMining = addr;
         emit ChangeSwapMining(oldSwapMining, swapMining);
@@ -205,7 +206,7 @@ contract SwapRouter is Operatable {
             );
         }
 
-        ICryptoPool(pool).exchange{value: bal}(
+        ICryptoPool(pool).exchange{value : bal}(
             from,
             to,
             _from_amount,
@@ -217,8 +218,8 @@ contract SwapRouter is Operatable {
     }
 
     function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
-        external
-        onlyOwner
+    external
+    onlyOwner
     {
         TransferHelper.safeTransfer(_tokenAddress, owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
