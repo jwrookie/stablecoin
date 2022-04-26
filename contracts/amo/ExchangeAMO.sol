@@ -10,8 +10,9 @@ import "../interface/curve/IMetaImplementationUSD.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Rusd.sol";
 import "../interface/IAMOMinter.sol";
+import "../tools/CheckPermission.sol";
 
-contract ExchangeAMO is Ownable {
+contract ExchangeAMO is CheckPermission {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
@@ -24,8 +25,6 @@ contract ExchangeAMO is Ownable {
     address private collateral_token_address;
     address private crv_address;
     address private frax3crv_metapool_address;
-
-    address public custodian_address;
 
     uint256 private missing_decimals;
 
@@ -70,8 +69,6 @@ contract ExchangeAMO is Ownable {
         convergence_window = 1e15;
         custom_floor = false;
         set_discount = false;
-
-        custodian_address = amo_minter.custodian_address();
     }
 
     /* ========== MODIFIERS ========== */
@@ -80,11 +77,7 @@ contract ExchangeAMO is Ownable {
         require(msg.sender == owner(), "Not owner or timelock");
         _;
     }
-
-    modifier onlyByOwnGovCust() {
-        require(msg.sender == owner() || msg.sender == custodian_address, "Not owner, tlck, or custd");
-        _;
-    }
+    
 
     modifier onlyByMinter() {
         require(msg.sender == address(amo_minter), "Not minter");
@@ -325,7 +318,7 @@ contract ExchangeAMO is Ownable {
     /* ========== Main Functions ========== */
 
     // Deposit Metapool LP tokens into the yearn vault
-    //    function depositToVault(uint256 _metapool_lp_in) external onlyByOwnGovCust {
+    //    function depositToVault(uint256 _metapool_lp_in) external onlyOperator {
     //        // Approve the metapool LP tokens for the vault contract
     //        frax3crv_metapool.approve(address(crvFRAX_vault), _metapool_lp_in);
     //
@@ -334,33 +327,33 @@ contract ExchangeAMO is Ownable {
     //    }
 
     // Withdraw Metapool LP from the yearn vault back to this contract
-    //    function withdrawFromVault(uint256 _metapool_lp_out) external onlyByOwnGovCust {
+    //    function withdrawFromVault(uint256 _metapool_lp_out) external onlyOperator {
     //        crvFRAX_vault.withdraw(_metapool_lp_out, address(this), 1);
     //    }
 
     // Same as withdrawFromVault, but with manual loss override
     // 1 = 0.01% [BPS]
-    //    function withdrawFromVaultMaxLoss(uint256 _metapool_lp_out, uint256 maxloss) external onlyByOwnGovCust {
+    //    function withdrawFromVaultMaxLoss(uint256 _metapool_lp_out, uint256 maxloss) external onlyOperator {
     //        crvFRAX_vault.withdraw(_metapool_lp_out, address(this), maxloss);
     //    }
 
 
     /* ========== Rewards ========== */
 
-    function withdrawCRVRewards() external onlyByOwnGovCust {
+    function withdrawCRVRewards() external onlyOperator {
         TransferHelper.safeTransfer(crv_address, msg.sender, ERC20(crv_address).balanceOf(address(this)));
     }
 
     /* ========== Burns and givebacks ========== */
 
     // Give USDC profits back. Goes through the minter
-    function giveCollatBack(uint256 collat_amount) external onlyByOwnGovCust {
+    function giveCollatBack(uint256 collat_amount) external onlyOperator {
         collateral_token.approve(address(amo_minter), collat_amount);
         amo_minter.receiveCollatFromAMO(collat_amount);
     }
 
     // Burn unneeded or excess FRAX. Goes through the minter
-    function burnFRAX(uint256 frax_amount) public onlyByOwnGovCust {
+    function burnFRAX(uint256 frax_amount) public onlyOperator {
         FRAX.approve(address(amo_minter), frax_amount);
         amo_minter.burnFraxFromAMO(frax_amount);
     }

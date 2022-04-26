@@ -10,8 +10,9 @@ import "../token/Pools/IStablecoinPool.sol";
 import '../tools/TransferHelper.sol';
 import '../interface/IAMO.sol';
 import "../token/stock/IStock.sol";
+import "../tools/CheckPermission.sol";
 
-contract AMOMinter is Ownable {
+contract AMOMinter is CheckPermission {
     // Core
     IStablecoin public immutable FRAX;
     IStock public immutable FXS;
@@ -59,16 +60,16 @@ contract AMOMinter is Ownable {
 
     // AMO balance corrections
     mapping(address => int256[2]) public correction_offsets_amos;
-    
+
 
     constructor (
-        address _owner_address,
+        address _operatorMsg,
         address _custodian_address,
         address _stableAddress,
         address _shareAddress,
         address _collateral_address,
         address _pool_address
-    )  {
+    ) CheckPermission(_operatorMsg) {
         custodian_address = _custodian_address;
 
         FRAX = IStablecoin(_stableAddress);
