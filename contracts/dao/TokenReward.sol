@@ -5,12 +5,13 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import '../tools/TransferHelper.sol';
-import "../tools/CheckOper.sol";
 import "../interface/IToken.sol";
+import "../tools/CheckPermission.sol";
 
-abstract contract TokenReward is CheckOper {
+abstract contract TokenReward is CheckPermission {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -35,7 +36,7 @@ abstract contract TokenReward is CheckOper {
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period
-    ) CheckOper(_operatorMsg) {
+    ) CheckPermission(_operatorMsg) {
         require(address(_swapToken) != address(0), "swapToken is 0");
         swapToken = _swapToken;
         tokenPerBlock = _tokenPerBlock;

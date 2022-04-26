@@ -11,7 +11,7 @@ pragma solidity >=0.6.11;
 // ====================================================================
 // ========================= FXSOracleWrapper =========================
 // ====================================================================
-// The Frax.sol contract needs an oracle with a specific ABI, so this is a
+// The Rusd.sol contract needs an oracle with a specific ABI, so this is a
 // 'middleman' one that lets it read Chainlink data.
 
 // Frax Finance: https://github.com/FraxFinance
@@ -28,7 +28,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import "./AggregatorV3Interface.sol";
 
 
-contract FXSOracleWrapper is Ownable {
+contract StockOracleWrapper is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface private priceFeedFXSUSD;

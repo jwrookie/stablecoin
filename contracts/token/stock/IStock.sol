@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 
-interface IFxs {
+interface IStock {
   function DEFAULT_ADMIN_ROLE() external view returns(bytes32);
   function FRAXStablecoinAdd() external view returns(address);
   function FXS_DAO_min() external view returns(uint256);
