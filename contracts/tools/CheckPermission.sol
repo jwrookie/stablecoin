@@ -3,12 +3,12 @@ pragma solidity =0.8.10;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interface/IOperContract.sol";
+import "../interface/ICheckPermission.sol";
 import "./Operatable.sol";
 
 
 // seperate owner and operator, operator is for daily devops, only owner can update operator
-contract CheckPermission is IOperContract {
+contract CheckPermission is ICheckPermission {
     Operatable public operatable;
 
     event SetOperatorContract(address indexed oldOperator, address indexed newOperator);
@@ -23,6 +23,10 @@ contract CheckPermission is IOperContract {
         _;
     }
 
+    function operator() public view override returns (address) {
+        return operatable.operator();
+    }
+
     function owner() public view override returns (address) {
         return operatable.owner();
     }
@@ -32,5 +36,9 @@ contract CheckPermission is IOperContract {
         address oldOperator = _oper;
         operatable = Operatable(_oper);
         emit SetOperatorContract(oldOperator, _oper);
+    }
+
+    function check(address _target) public override view returns (bool) {
+        return operatable.check(_target);
     }
 }
