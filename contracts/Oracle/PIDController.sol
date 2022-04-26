@@ -14,7 +14,7 @@ contract PIDController is Ownable {
 
     // Instances
     RStablecoin private FRAX;
-    FRAXShares private FXS;
+    Stock private FXS;
     ReserveTracker private reserve_tracker;
     IMetaImplementationUSD private frax_metapool;
 
@@ -70,7 +70,7 @@ contract PIDController is Ownable {
         reserve_tracker = ReserveTracker(reserve_tracker_address);
         frax_step = 2500;
         FRAX = RStablecoin(frax_contract_address);
-        FXS = FRAXShares(fxs_contract_address);
+        FXS = Stock(fxs_contract_address);
 
         // Upon genesis, if GR changes by more than 1% percent, enable change of collateral ratio
         GR_top_band = 1000;

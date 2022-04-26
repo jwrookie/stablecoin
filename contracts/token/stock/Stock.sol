@@ -10,7 +10,7 @@ import "../../tools/AbstractPausable.sol";
 import "../Rusd.sol";
 
 
-contract FRAXShares is ERC20Burnable, AbstractPausable {
+contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     address[] public poolAddress;

@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../tools/AbstractPausable.sol";
 
-contract FraxBond is ERC20Burnable, AbstractPausable {
+contract Bond is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */

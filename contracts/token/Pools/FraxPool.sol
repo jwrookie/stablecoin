@@ -6,12 +6,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../interface/IAMOMinter.sol";
 import '../../tools/TransferHelper.sol';
-import "../FXS/FXS.sol";
 import "../../token/Rusd.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "./FraxPoolLibrary.sol";
 import "../../tools/Multicall.sol";
 import "../../tools/AbstractPausable.sol";
+import "../stock/Stock.sol";
 
 contract FraxPool is AbstractPausable, Multicall {
     using SafeMath for uint256;
@@ -21,7 +21,7 @@ contract FraxPool is AbstractPausable, Multicall {
     ERC20 private collateral_token;
     address private collateral_address;
 
-    FRAXShares private FXS;
+    Stock private FXS;
     RStablecoin private FRAX;
 
     UniswapPairOracle private collatEthOracle;
@@ -74,7 +74,7 @@ contract FraxPool is AbstractPausable, Multicall {
             && (_collateral_address != address(0))
         , "Zero address detected");
         FRAX = RStablecoin(_frax_contract_address);
-        FXS = FRAXShares(_fxs_contract_address);
+        FXS = Stock(_fxs_contract_address);
         collateral_address = _collateral_address;
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;

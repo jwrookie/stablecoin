@@ -5,16 +5,16 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IFrax.sol";
-import "../token/FXS/IFxs.sol";
 import "../token/Pools/IFraxPool.sol";
 
 import '../tools/TransferHelper.sol';
 import '../interface/IAMO.sol';
+import "../token/stock/IStock.sol";
 
 contract AMOMinter is Ownable {
     // Core
     IFrax public immutable FRAX;
-    IFxs public immutable FXS;
+    IStock public immutable FXS;
     ERC20 public immutable collateral_token;
     IFraxPool public  pool;
     address public custodian_address;
@@ -77,7 +77,7 @@ contract AMOMinter is Ownable {
         custodian_address = _custodian_address;
 
         FRAX = IFrax(_stableAddress);
-        FXS = IFxs(_shareAddress);
+        FXS = IStock(_shareAddress);
         // Pool related
         pool = IFraxPool(_pool_address);
 
