@@ -5,12 +5,12 @@ import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import '../tools/TransferHelper.sol';
-import "../tools/CheckOper.sol";
 import "../interface/IToken.sol";
 
-abstract contract TokenReward is CheckOper {
+abstract contract TokenReward is Ownable {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
 
@@ -30,12 +30,12 @@ abstract contract TokenReward is CheckOper {
     uint256 public minTokenReward = 1.75e17;
 
     constructor(
-        address _operatorMsg,
+    
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
         uint256 _period
-    ) CheckOper(_operatorMsg) {
+    ){
         require(address(_swapToken) != address(0), "swapToken is 0");
         swapToken = _swapToken;
         tokenPerBlock = _tokenPerBlock;
@@ -58,20 +58,20 @@ abstract contract TokenReward is CheckOper {
         _;
     }
 
-    function setHalvingPeriod(uint256 _block) public onlyOperator {
+    function setHalvingPeriod(uint256 _block) public onlyOwner {
         period = _block;
     }
 
-    function setMintMulti(uint256 _multi) public onlyOperator {
+    function setMintMulti(uint256 _multi) public onlyOwner {
         mintMulti = _multi;
     }
 
-    function setMinTokenReward(uint256 _reward) public onlyOperator {
+    function setMinTokenReward(uint256 _reward) public onlyOwner {
         minTokenReward = _reward;
     }
 
     // Set the number of swap produced by each block
-    function setTokenPerBlock(uint256 _newPerBlock, bool _withUpdate) public onlyOperator {
+    function setTokenPerBlock(uint256 _newPerBlock, bool _withUpdate) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
