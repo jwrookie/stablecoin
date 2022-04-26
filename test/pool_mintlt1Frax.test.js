@@ -33,26 +33,29 @@ contract('Pool_USDC', () => {
         const Timelock = await ethers.getContractFactory('Timelock');
         timelock = await Timelock.deploy(owner.address, "259200");
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+         Operatable = await ethers.getContractFactory("Operatable");
+        operatable = await Operatable.deploy();
 
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
         expect(await frax.fxsAddress()).to.be.eq(fxs.address);
 
-        const FraxPoolLibrary = await ethers.getContractFactory('FraxPoolLibrary')
-        fraxPoolLibrary = await FraxPoolLibrary.deploy();
+        const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
+        poolLibrary = await PoolLibrary.deploy();
 
         const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
             libraries: {
-                FraxPoolLibrary: fraxPoolLibrary.address,
+                PoolLibrary: poolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        pool = await Pool_USDC.deploy(operatable.address,frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await pool.USDC_address()).to.be.eq(usdc.address);
 
 

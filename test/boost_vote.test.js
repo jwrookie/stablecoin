@@ -21,11 +21,17 @@ contract('Boost', () => {
         operatable = await Operatable.deploy();
 
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+        // const FRAXShares = await ethers.getContractFactory('FRAXShares');
+        // fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+        //
+        // const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
+        // frax = await FRAXStablecoin.deploy("frax", "frax");
 
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
@@ -71,62 +77,116 @@ contract('Boost', () => {
         expect(await boost.poolForGauge(gauge_usdc.address)).to.be.eq(usdc.address);
         // await busd.mint(dev.address, toWei('100'));
 
-        await frax.addPool(boost.address);
+        await fxs.addPool(boost.address);
 
         await fxs.transfer(dev.address, toWei('10000000'))
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000000'))
         await fxs.connect(dev).approve(lock.address, toWei('10000000000'))
 
+        await boost.setMintMulti(toWei('1'))
+
 
     });
+    // it("test boost vote", async () => {
+    //     let eta = time.duration.days(7);
+    //     await lock.create_lock(toWei('1000'), parseInt(eta));
+    //
+    //     await boost.vote(1, [usdc.address], [toWei('1')]);
+    //
+    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+    //
+    //
+    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+    //     console.log("user weights::" + await lock.balanceOfNFT(1) / 10 ** 18);
+    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
+    //
+    //     console.log("----------------------------")
+    //
+    //     await usdc.approve(gauge_usdc.address, toWei('10000000'));
+    //     await gauge_usdc.deposit(toWei('10'), 1);
+    //     await lock.checkpoint();
+    //
+    //     await time.increase(time.duration.minutes("15"));
+    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+    //     console.log("pool total weights :" + await boost.weights(usdc.address) / 10 ** 18)
+    //
+    //
+    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
+    //     await gauge_usdc.deposit(toWei('100'), 1);
+    //
+    //
+    //     await time.increase(time.duration.hours("1"));
+    //
+    //     console.log("----------------------------")
+    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+    //
+    //
+    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+    //
+    //     await time.increase(time.duration.days("1"));
+    //     await gauge_usdc.deposit(toWei('100'), 1);
+    //     // await boost.reset( 1);
+    //     console.log("----------------------------")
+    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+    //
+    //
+    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
+    //
+    //
+    //     console.log("----------------------------")
+    //     await time.increase(time.duration.hours("1"));
+    //
+    //     await lock.increase_amount(1, toWei('200'))
+    //     await boost.vote(1, [usdc.address], [toWei('1')]);
+    //
+    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
+    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+    //
+    //
+    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
+    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
+    //
+    // });
     it("test boost vote", async () => {
         let eta = time.duration.days(7);
         await lock.create_lock(toWei('1000'), parseInt(eta));
 
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-
-        console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-        console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
-
-
-        console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-        console.log("user weights::" + await lock.balanceOfNFT(1) / 10 ** 18);
-        console.log("----------------------------")
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
-        await lock.checkpoint();
-
-        await time.increase(time.duration.minutes("15"));
-        console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-        console.log("pool total weights :" + await boost.weights(usdc.address) / 10 ** 18)
 
 
-        console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-        console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-        await gauge_usdc.deposit(toWei('100'), 1);
+        await boost.updatePool(0)
+        // await time.increase(time.duration.hours("1"));
+
+        let lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
 
-        await time.increase(time.duration.hours("1"));
+        let rewardBef= await gauge_usdc.earned(fxs.address, owner.address)
+       // console.log("reward:" + reward)
 
-        console.log("----------------------------")
-        console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-        console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+        lastBlock = await time.latestBlock();
+        console.log("lastBlock:"+lastBlock)
+        await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
-
-        console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-        console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-
-        await time.increase(time.duration.days("1"));
-        await gauge_usdc.deposit(toWei('100'), 1);
-        // await boost.reset( 1);
-        console.log("----------------------------")
-        console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-        console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
+        await boost.vote(1, [usdc.address], [toWei('1')]);
 
 
-        console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-        console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
+       let  rewardAft = await gauge_usdc.earned(fxs.address, owner.address)
+        console.log("reward:" +  BigNumber.from(rewardAft).sub(rewardBef).div("1000000000000000000"))
+
+
+
 
     });
 

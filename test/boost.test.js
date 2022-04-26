@@ -12,20 +12,21 @@ contract('Boost', () => {
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
 
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
         Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
+
+         const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+
         MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
         busd = await MockToken.deploy("busd", "busd", 18, toWei('10'));
         btc = await MockToken.deploy("btc", "btc", 18, toWei('10'));
 
-        CheckOper = await ethers.getContractFactory("CheckOper");
-        checkOper = await CheckOper.deploy(operatable.address);
 
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
@@ -42,7 +43,7 @@ contract('Boost', () => {
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            checkOper.address,
+            operatable.address,
             lock.address,
             gaugeFactory.address,
             fxs.address,
