@@ -422,10 +422,9 @@ contract('AMOMinter', async function () {
         // Mint usdc amount
         console.log("global_collateral_value:\t" + await frax.globalCollateralValue());
         console.log("1:\t" + await frax.totalSupply());
-        // await amoMinter.mintFraxForAMO(exchangeAMO.address, 100000000);
-        // await amoMinter.mintFxsForAMO(exchangeAMO.address, 100000000);
-        // giveToAMO
-        // await usdc.mint(amoMinter.address, toWei('1'));
+
+
+        console.log("usdc in pool:",(await usdc.balanceOf(usdcPool.address)));
         await usdc.approve(amoMinter.address, toWei('1'));
         // await frax.mint(amoMinter.address, toWei('1'));
         await fxs.mint(amoMinter.address, toWei('1'));
