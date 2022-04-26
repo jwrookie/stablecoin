@@ -18,13 +18,12 @@ contract ExchangeAMO is CheckPermission {
     /* ========== STATE VARIABLES ========== */
     IStableSwap3Pool private three_pool;
     ERC20 private three_pool_erc20;
-    RStablecoin private FRAX;
+    RStablecoin private Stablecoin;
     ERC20 private collateral_token;
     IAMOMinter private amo_minter;
 
     address private collateral_token_address;
     address private crv_address;
-    address private frax3crv_metapool_address;
 
     uint256 private missing_decimals;
 
@@ -52,13 +51,11 @@ contract ExchangeAMO is CheckPermission {
         address _amo_minter_address,
         address stableCoinAddress,
         address collateralToken,
-        address sbAddress,
         address poolAddress,
         address poolTokenAddress
     )  CheckPermission(_operatorMsg){
-        FRAX = RStablecoin(stableCoinAddress);
+        Stablecoin = RStablecoin(stableCoinAddress);
         collateral_token = ERC20(collateralToken);
-        crv_address = sbAddress;
         missing_decimals = uint(18).sub(collateral_token.decimals());
         amo_minter = IAMOMinter(_amo_minter_address);
         three_pool = IStableSwap3Pool(poolAddress);
@@ -75,8 +72,7 @@ contract ExchangeAMO is CheckPermission {
         require(msg.sender == address(amo_minter), "Not minter");
         _;
     }
-
-
+    
     function showAllocations() public view returns (uint256[11] memory return_arr) {
         // ------------LP Balance------------
 
@@ -102,7 +98,7 @@ contract ExchangeAMO is CheckPermission {
 
         // ------------Frax Balance------------
         // Frax sums
-        uint256 frax_in_contract = FRAX.balanceOf(address(this));
+        uint256 frax_in_contract = Stablecoin.balanceOf(address(this));
 
         // ------------Collateral Balance------------
         // Free Collateral
@@ -140,8 +136,8 @@ contract ExchangeAMO is CheckPermission {
     // Returns hypothetical reserves of metapool if the FRAX price went to the CR,
     // assuming no removal of liquidity from the metapool.
     function iterate() public view returns (uint256, uint256, uint256, uint256) {
-        uint256 frax_balance = FRAX.balanceOf(frax3crv_metapool_address);
-        uint256 crv3_balance = three_pool_erc20.balanceOf(frax3crv_metapool_address);
+        uint256 frax_balance = Stablecoin.balanceOf(address(three_pool));
+        uint256 crv3_balance = three_pool_erc20.balanceOf(address(three_pool));
         uint256 total_balance = frax_balance.add(crv3_balance);
 
         uint256 floor_price_frax = uint(1e18).mul(fraxFloor()).div(1e6);
@@ -182,7 +178,7 @@ contract ExchangeAMO is CheckPermission {
         if (custom_floor) {
             return frax_floor;
         } else {
-            return FRAX.globalCollateralRatio();
+            return Stablecoin.globalCollateralRatio();
         }
     }
 
@@ -190,7 +186,7 @@ contract ExchangeAMO is CheckPermission {
         if (set_discount) {
             return discount_rate;
         } else {
-            return FRAX.globalCollateralRatio();
+            return Stablecoin.globalCollateralRatio();
         }
     }
 
@@ -230,12 +226,12 @@ contract ExchangeAMO is CheckPermission {
 
             // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
             // May be related to https://github.com/vyperlang/vyper/blob/3e1ff1eb327e9017c5758e24db4bdf66bbfae371/examples/tokens/ERC20.vy#L85
-            three_pool_erc20.approve(frax3crv_metapool_address, 0);
-            three_pool_erc20.approve(frax3crv_metapool_address, threeCRV_received);
+            three_pool_erc20.approve(address(three_pool), 0);
+            three_pool_erc20.approve(address(three_pool), threeCRV_received);
         }
 
         // Approve the FRAX for the metapool
-        FRAX.approve(frax3crv_metapool_address, _frax_amount);
+        Stablecoin.approve(address(three_pool), _frax_amount);
 
         {
             // Add the FRAX and the collateral to the metapool
@@ -329,12 +325,6 @@ contract ExchangeAMO is CheckPermission {
     //    }
 
 
-    /* ========== Rewards ========== */
-
-    function withdrawCRVRewards() external onlyOperator {
-        TransferHelper.safeTransfer(crv_address, msg.sender, ERC20(crv_address).balanceOf(address(this)));
-    }
-
     /* ========== Burns and givebacks ========== */
 
     // Give USDC profits back. Goes through the minter
@@ -345,7 +335,7 @@ contract ExchangeAMO is CheckPermission {
 
     // Burn unneeded or excess FRAX. Goes through the minter
     function burnFRAX(uint256 frax_amount) public onlyOperator {
-        FRAX.approve(address(amo_minter), frax_amount);
+        Stablecoin.approve(address(amo_minter), frax_amount);
         amo_minter.burnFraxFromAMO(frax_amount);
     }
 

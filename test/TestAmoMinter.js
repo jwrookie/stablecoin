@@ -240,7 +240,6 @@ contract('AMOMinter', async function () {
             amoMinter.address,
             frax.address,
             usdc.address,
-            fxs.address,
             pool.address,
             frax.address
         );
