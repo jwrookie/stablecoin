@@ -35,9 +35,10 @@ contract Bond is ERC20Burnable, AbstractPausable {
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
+        address _operatorMsg,
         string memory _name,
-        string memory _symbol,
-        address _operatorMsg
+        string memory _symbol
+
     ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
 
     }

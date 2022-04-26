@@ -88,9 +88,10 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     constructor (
+        address _operatorMsg,
         string memory _name,
-        string memory _symbol,
-        address _operatorMsg
+        string memory _symbol
+
     ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         _mint(msg.sender, GENESIS_SUPPLY);
         fraxStep = 2500;

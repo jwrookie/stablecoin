@@ -1,4 +1,3 @@
-/** JSON ABI */
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
@@ -8,13 +7,11 @@ const PoolRegistry = require('./mock/mockPool/PoolRegistry.json');
 const Factory = require('../test/mock/PancakeFactory.json');
 const Router = require('../test/mock/PancakeRouter.json');
 const WETH = require('../test/mock/WETH9.json');
-/** EXTERNAL MODULE */
 const {deployContract} = require('ethereum-waffle');
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
-/** INTERNAL MODULE */
 const GAS = {gasLimit: "9550000"};
 
 contract('AMOMinter', async function () {
@@ -51,13 +48,14 @@ contract('AMOMinter', async function () {
             bytecode: Router.bytecode,
             abi: Router.abi
         }, [factory.address, weth.address]);
+        const testOperatable = await ethers.getContractFactory('Operatable');
+        operatable = await testOperatable.deploy();
 
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
-
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
@@ -84,15 +82,15 @@ contract('AMOMinter', async function () {
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
-        const FraxPoolLibrary = await ethers.getContractFactory('FraxPoolLibrary')
+        const FraxPoolLibrary = await ethers.getContractFactory('PoolLibrary')
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
 
         const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
             libraries: {
-                FraxPoolLibrary: fraxPoolLibrary.address,
+                PoolLibrary: fraxPoolLibrary.address,
             },
         });
-        usdcPool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        usdcPool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
 
         // =========
@@ -259,11 +257,11 @@ contract('AMOMinter', async function () {
 
         await usdcPool.addAMOMinter(amoMinter.address);
 
-        const FraxBond = await ethers.getContractFactory("FraxBond");
-        fxb = await FraxBond.deploy("tempName", "tempSymbol");
+        const FraxBond = await ethers.getContractFactory("Bond");
+        fxb = await FraxBond.deploy(operatable.address, "tempName", "tempSymbol");
 
-        const FraxBondIssuer = await ethers.getContractFactory("FraxBondIssuer");
-        fraxBondIssuer = await FraxBondIssuer.deploy(frax.address, fxb.address);
+        const FraxBondIssuer = await ethers.getContractFactory("BondIssuer");
+        fraxBondIssuer = await FraxBondIssuer.deploy(operatable.address, frax.address, fxb.address);
 
         //   await frax.addPool(fraxBondIssuer.address);
 
@@ -417,10 +415,8 @@ contract('AMOMinter', async function () {
         let count = await frax.fraxPoolAddressCount();
         console.log("1\t" + await frax.ethUsdPrice());
 
-        // index one and three is a problem
         console.log("usd_price:\t" + await frax.ethUsdPrice());
         expect(parseInt(await frax.fraxPoolAddressCount())).to.be.eq(1);
-        // console.log("0:\t" + await frax.getFraxPoolValue());
         console.log("owner_collat:\t" + await usdc.balanceOf(owner.address));
         // console.log("2\t" + await usdcPool.collatDollarBalance());
 
@@ -448,25 +444,23 @@ contract('AMOMinter', async function () {
         // expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(100000);
     });
 
-    it('test oldPoolCollectAndGive', async function () {
-
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        initBorrowedBalance = collatBorrowedBalance;
-        expect(parseInt(initBorrowedBalance)).to.be.eq(0);
-
-        // Call the function
-        // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
-
-        await usdc.mint(usdcPool.address, toWei("0.1"));
-        expect(await usdc.balanceOf(usdcPool.address)).to.be.eq(toWei("0.1"));
-        collatAmount = await usdcPool.redeemCollateralBalances(amoMinter.address);
-        console.log("collatAmount:" + collatAmount);
-        await amoMinter.giveCollatToAMO(exchangeAMO.address, "0");
-        await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
-        expect(parseInt(collatAmount)).to.be.eq(0);
-        collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
-        // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
-    });
+    // it('test oldPoolCollectAndGive', async function () {
+    //     let collatBorrowedBalance;
+    //     let initBorrowedBalance;
+    //     let collatAmount;
+    //
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     initBorrowedBalance = collatBorrowedBalance;
+    //     expect(parseInt(initBorrowedBalance)).to.be.eq(0);
+    //
+    //     // Call the function
+    //     // await amoMinter.oldPoolCollectAndGive(exchangeAMO.address); // Error
+    //     await amoMinter.oldPoolCollectAndGive(exchangeAMO.address);
+    //     collatAmount = await usdcPool.redeemCollateralBalances(amoMinter.address);
+    //     expect(parseInt(collatAmount)).to.be.eq(0);
+    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
+    // });
 
     // it('test mintFraxForAMO and burnFraxForAMO', async function () {
     //     let fraxMintBalance;

@@ -27,10 +27,11 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     constructor (
+        address _operatorMsg,
         string memory _name,
         string memory _symbol,
-        address _oracle,
-        address _operatorMsg
+        address _oracle
+
     ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         require((_oracle != address(0)), "Zero address detected");
         oracle = _oracle;
