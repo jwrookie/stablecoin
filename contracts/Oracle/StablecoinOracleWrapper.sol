@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 import "./AggregatorV3Interface.sol";
 
-contract FRAXOracleWrapper is Ownable {
+contract StablecoinOracleWrapper is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface private priceFeedFRAXETH;

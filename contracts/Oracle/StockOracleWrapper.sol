@@ -28,7 +28,7 @@ import '@openzeppelin/contracts/access/Ownable.sol';
 import "./AggregatorV3Interface.sol";
 
 
-contract FXSOracleWrapper is Ownable {
+contract StockOracleWrapper is Ownable {
     using SafeMath for uint256;
 
     AggregatorV3Interface private priceFeedFXSUSD;
