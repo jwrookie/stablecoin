@@ -226,7 +226,7 @@ contract('AMOMinter', async function () {
 
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
-            owner.address,
+            operatable.address,
             dev.address,
             frax.address,
             fxs.address,
@@ -236,7 +236,7 @@ contract('AMOMinter', async function () {
 
         const ExchangeAMO = await ethers.getContractFactory('ExchangeAMO');
         exchangeAMO = await ExchangeAMO.deploy(
-            owner.address,
+            operatable.address,
             amoMinter.address,
             frax.address,
             usdc.address,

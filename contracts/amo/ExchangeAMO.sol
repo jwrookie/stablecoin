@@ -48,14 +48,14 @@ contract ExchangeAMO is CheckPermission {
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
-        address _owner_address,
+        address _operatorMsg,
         address _amo_minter_address,
         address stableCoinAddress,
         address collateralToken,
         address sbAddress,
         address poolAddress,
         address poolTokenAddress
-    )  {
+    )  CheckPermission(_operatorMsg){
         FRAX = RStablecoin(stableCoinAddress);
         collateral_token = ERC20(collateralToken);
         crv_address = sbAddress;
@@ -71,20 +71,11 @@ contract ExchangeAMO is CheckPermission {
         set_discount = false;
     }
 
-    /* ========== MODIFIERS ========== */
-
-    modifier onlyByOwnGov() {
-        require(msg.sender == owner(), "Not owner or timelock");
-        _;
-    }
-    
-
     modifier onlyByMinter() {
         require(msg.sender == address(amo_minter), "Not minter");
         _;
     }
 
-    /* ========== VIEWS ========== */
 
     function showAllocations() public view returns (uint256[11] memory return_arr) {
         // ------------LP Balance------------
@@ -220,7 +211,7 @@ contract ExchangeAMO is CheckPermission {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function metapoolDeposit(uint256 _frax_amount, uint256 _collateral_amount) external onlyByOwnGov returns (uint256 metapool_LP_received) {
+    function metapoolDeposit(uint256 _frax_amount, uint256 _collateral_amount) external onlyOperator returns (uint256 metapool_LP_received) {
         uint256 threeCRV_received = 0;
         if (_collateral_amount > 0) {
             // Approve the collateral to be added to 3pool
@@ -255,7 +246,7 @@ contract ExchangeAMO is CheckPermission {
         return metapool_LP_received;
     }
 
-    function metapoolWithdrawAtCurRatio(uint256 _metapool_lp_in, bool burn_the_frax, uint256 min_frax, uint256 min_3pool) external onlyByOwnGov returns (uint256 frax_received) {
+    function metapoolWithdrawAtCurRatio(uint256 _metapool_lp_in, bool burn_the_frax, uint256 min_frax, uint256 min_3pool) external onlyOperator returns (uint256 frax_received) {
         // Approve the metapool LP tokens for the metapool contract
         three_pool_erc20.approve(address(this), _metapool_lp_in);
 
@@ -283,7 +274,7 @@ contract ExchangeAMO is CheckPermission {
 
     }
 
-    function metapoolWithdrawFrax(uint256 _metapool_lp_in, bool burn_the_frax) external onlyByOwnGov returns (uint256 frax_received) {
+    function metapoolWithdrawFrax(uint256 _metapool_lp_in, bool burn_the_frax) external onlyOperator returns (uint256 frax_received) {
         // Withdraw FRAX from the metapool
         uint256 min_frax_out = _metapool_lp_in.mul(slippage_metapool).div(PRICE_PRECISION);
         frax_received = three_pool.remove_liquidity_one_coin(_metapool_lp_in, 0, min_frax_out);
@@ -294,13 +285,13 @@ contract ExchangeAMO is CheckPermission {
         }
     }
 
-    function metapoolWithdraw3pool(uint256 _metapool_lp_in) public onlyByOwnGov {
+    function metapoolWithdraw3pool(uint256 _metapool_lp_in) public onlyOperator {
         // Withdraw 3pool from the metapool
         uint256 min_3pool_out = _metapool_lp_in.mul(slippage_metapool).div(PRICE_PRECISION);
         three_pool.remove_liquidity_one_coin(_metapool_lp_in, 1, min_3pool_out);
     }
 
-    function three_pool_to_collateral(uint256 _3pool_in) public onlyByOwnGov {
+    function three_pool_to_collateral(uint256 _3pool_in) public onlyOperator {
         // Convert the 3pool into the collateral
         // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
         // May be related to https://github.com/vyperlang/vyper/blob/3e1ff1eb327e9017c5758e24db4bdf66bbfae371/examples/tokens/ERC20.vy#L85
@@ -310,7 +301,7 @@ contract ExchangeAMO is CheckPermission {
         three_pool.remove_liquidity_one_coin(_3pool_in, 1, min_collat_out);
     }
 
-    function metapoolWithdrawAndConvert3pool(uint256 _metapool_lp_in) external onlyByOwnGov {
+    function metapoolWithdrawAndConvert3pool(uint256 _metapool_lp_in) external onlyOperator {
         metapoolWithdraw3pool(_metapool_lp_in);
         three_pool_to_collateral(three_pool_erc20.balanceOf(address(this)));
     }
@@ -360,38 +351,32 @@ contract ExchangeAMO is CheckPermission {
 
     /* ========== RESTRICTED GOVERNANCE FUNCTIONS ========== */
 
-    function setAMOMinter(address _amo_minter_address) external onlyByOwnGov {
+    function setAMOMinter(address _amo_minter_address) external onlyOperator {
         amo_minter = IAMOMinter(_amo_minter_address);
-
-        // Get the custodian and timelock addresses from the minter
-        custodian_address = amo_minter.custodian_address();
-
-        // Make sure the new addresses are not address(0)
-        require(custodian_address != address(0), "Invalid custodian");
     }
 
-    function setConvergenceWindow(uint256 _window) external onlyByOwnGov {
+    function setConvergenceWindow(uint256 _window) external onlyOperator {
         convergence_window = _window;
     }
 
     // in terms of 1e6 (overriding globalCollateralRatio)
-    function setCustomFloor(bool _state, uint256 _floor_price) external onlyByOwnGov {
+    function setCustomFloor(bool _state, uint256 _floor_price) external onlyOperator {
         custom_floor = _state;
         frax_floor = _floor_price;
     }
 
     // in terms of 1e6 (overriding globalCollateralRatio)
-    function setDiscountRate(bool _state, uint256 _discount_rate) external onlyByOwnGov {
+    function setDiscountRate(bool _state, uint256 _discount_rate) external onlyOperator {
         set_discount = _state;
         discount_rate = _discount_rate;
     }
 
-    function setSlippages(uint256 _liq_slippage_3crv, uint256 _slippage_metapool) external onlyByOwnGov {
+    function setSlippages(uint256 _liq_slippage_3crv, uint256 _slippage_metapool) external onlyOperator {
         liq_slippage_3crv = _liq_slippage_3crv;
         slippage_metapool = _slippage_metapool;
     }
 
-    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyByOwnGov {
+    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOperator {
         // Can only be triggered by owner or governance, not custodian
         // Tokens are sent to the custodian, as a sort of safeguard
         TransferHelper.safeTransfer(address(tokenAddress), msg.sender, tokenAmount);
@@ -402,7 +387,7 @@ contract ExchangeAMO is CheckPermission {
         address _to,
         uint256 _value,
         bytes calldata _data
-    ) external onlyByOwnGov returns (bool, bytes memory) {
+    ) external onlyOperator returns (bool, bytes memory) {
         (bool success, bytes memory result) = _to.call{value : _value}(_data);
         return (success, result);
     }
