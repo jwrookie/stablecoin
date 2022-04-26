@@ -36,7 +36,7 @@ import "../../Oracle/UniswapPairOracle.sol";
 import "../../tools/AbstractPausable.sol";
 import "../stock/Stock.sol";
 
-contract FraxPoolvAMM is AbstractPausable {
+contract PoolvAMM is AbstractPausable {
     using SafeMath for uint256;
 
     ERC20 private collateral_token;
