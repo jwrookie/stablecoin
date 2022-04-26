@@ -296,7 +296,7 @@ contract ExchangeAMO is CheckPermission {
         three_pool_to_collateral(three_pool_erc20.balanceOf(address(this)));
     }
 
-    
+
 
     // Give USDC profits back. Goes through the minter
     function giveCollatBack(uint256 collat_amount) external onlyOperator {
