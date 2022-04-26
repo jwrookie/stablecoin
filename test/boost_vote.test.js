@@ -1,8 +1,8 @@
-const { expectRevert, time } = require('@openzeppelin/test-helpers');
-const { ethers, waffle } = require("hardhat");
-const { expect } = require("chai");
-const { toWei } = web3.utils;
-const { BigNumber } = require('ethers');
+const {expectRevert, time} = require('@openzeppelin/test-helpers');
+const {ethers, waffle} = require("hardhat");
+const {expect} = require("chai");
+const {toWei} = web3.utils;
+const {BigNumber} = require('ethers');
 
 contract('Boost', () => {
     beforeEach(async () => {
@@ -186,10 +186,7 @@ contract('Boost', () => {
     //     console.log("reward:" +  BigNumber.from(rewardAft).sub(rewardBef).div("1000000000000000000"))
 
 
-
-
     // });
-
     it("test boost vote without boost", async () => {
         let eta = time.duration.days(7);
         await lock.create_lock(toWei('1000'), parseInt(eta));
@@ -211,23 +208,13 @@ contract('Boost', () => {
 
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
 
-        lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-        const reward3 = await gauge_usdc.earned(fxs.address, owner.address)
-
-        lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-        const reward4 = await gauge_usdc.earned(fxs.address, owner.address)
-
         console.log('[reward0]:', reward0)
         console.log('[reward1]:', reward1)
         console.log('[reward2]:', reward2)
-        console.log('[reward3]:', reward3)
-        console.log('[reward4]:', reward4)
+
 
     });
+
     it("test boost vote with boost", async () => {
         let eta = time.duration.days(7);
         await lock.create_lock(toWei('1000'), parseInt(eta));
@@ -240,32 +227,33 @@ contract('Boost', () => {
         const reward0 = await gauge_usdc.earned(fxs.address, owner.address)
 
         await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
 
         let lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
         const reward1 = await gauge_usdc.earned(fxs.address, owner.address)
 
+
         lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
 
-        lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-        const reward3 = await gauge_usdc.earned(fxs.address, owner.address)
-
-        lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-        const reward4 = await gauge_usdc.earned(fxs.address, owner.address)
 
         console.log('[reward0]:', reward0)
         console.log('[reward1]:', reward1)
         console.log('[reward2]:', reward2)
-        console.log('[reward3]:', reward3)
-        console.log('[reward4]:', reward4)
+
 
     });
 
