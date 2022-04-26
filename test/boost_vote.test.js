@@ -208,9 +208,9 @@ contract('Boost', () => {
 
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
 
-        console.log('[reward0]:', reward0)
-        console.log('[reward1]:', reward1)
-        console.log('[reward2]:', reward2)
+        console.log('reward0:' + reward0)
+        console.log('reward1:' + reward1 / 10 ** 18)
+        console.log('rewardAft:' + reward2 / 10 ** 18)
 
 
     });
@@ -250,9 +250,9 @@ contract('Boost', () => {
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
 
 
-        console.log('[reward0]:', reward0)
-        console.log('[reward1]:', reward1)
-        console.log('[reward2]:', reward2)
+        console.log('reward0:' + reward0)
+        console.log('reward1:' + reward1 / 10 ** 18)
+        console.log('rewardAft:' + reward2 / 10 ** 18)
 
 
     });
