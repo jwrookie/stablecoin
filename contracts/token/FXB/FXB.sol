@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
+import "../../tools/AbstractPausable.sol";
 
 contract FraxBond is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
@@ -36,8 +36,9 @@ contract FraxBond is ERC20Burnable, AbstractPausable {
 
     constructor (
         string memory _name,
-        string memory _symbol
-    ) ERC20(_name, _symbol){
+        string memory _symbol,
+        address _operatorMsg
+    ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
 
     }
 

@@ -3,8 +3,12 @@ pragma solidity >=0.6.11;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
+import "../tools/CheckPermission.sol";
 
-abstract contract AbstractPausable is Ownable, Pausable {
+abstract contract AbstractPausable is CheckPermission, Pausable {
+
+    constructor(address _operatorMsg)CheckPermission(_operatorMsg){
+    }
 
     function togglePause() public onlyOwner {
         if (paused()) {

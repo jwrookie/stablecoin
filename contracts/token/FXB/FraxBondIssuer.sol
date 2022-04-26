@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
+import "../../tools/AbstractPausable.sol";
 import '../../math/Math.sol';
 import "../Frax.sol";
 import "./FXB.sol";
@@ -41,9 +41,10 @@ contract FraxBondIssuer is AbstractPausable {
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
+        address _operatorMsg,
         address _frax_contract_address,
         address _fxb_contract_address
-    ) {
+    ) AbstractPausable(_operatorMsg){
         stableCoin = FRAXStablecoin(_frax_contract_address);
         bond = FraxBond(_fxb_contract_address);
         minInterestRate = 1e16;

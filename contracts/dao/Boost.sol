@@ -43,11 +43,11 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     mapping(address => address) public poolForGauge; // gauge => pool
     mapping(address => bool) public isGauge;
 
-    constructor(address __ve, address _gauges,
+    constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
-        uint256 _period)AbstractBoost( __ve, _swapToken, _tokenPerBlock, _startBlock, _period) {
+        uint256 _period)AbstractBoost(_operatorMsg, __ve, _swapToken, _tokenPerBlock, _startBlock, _period) {
 
         gaugeFactory = _gauges;
 

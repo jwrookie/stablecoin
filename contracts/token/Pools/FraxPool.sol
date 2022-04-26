@@ -1,30 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 
-// ====================================================================
-// |     ______                   _______                             |
-// |    / _____________ __  __   / ____(_____  ____ _____  ________   |
-// |   / /_  / ___/ __ `| |/_/  / /_  / / __ \/ __ `/ __ \/ ___/ _ \  |
-// |  / __/ / /  / /_/ _>  <   / __/ / / / / / /_/ / / / / /__/  __/  |
-// | /_/   /_/   \__,_/_/|_|  /_/   /_/_/ /_/\__,_/_/ /_/\___/\___/   |
-// |                                                                  |
-// ====================================================================
-// ============================= FraxPool =============================
-// ====================================================================
-// Frax Finance: https://github.com/FraxFinance
-
-// Primary Author(s)
-// Travis Moore: https://github.com/FortisFortuna
-// Jason Huan: https://github.com/jasonhuan
-// Sam Kazemian: https://github.com/samkazemian
-
-// Reviewer(s) / Contributor(s)
-// Sam Sun: https://github.com/samczsun
-
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
 import "../../interface/IAMOMinter.sol";
 import '../../tools/TransferHelper.sol';
 import "../FXS/FXS.sol";
@@ -32,6 +11,7 @@ import "../../token/Frax.sol";
 import "../../Oracle/UniswapPairOracle.sol";
 import "./FraxPoolLibrary.sol";
 import "../../tools/Multicall.sol";
+import "../../tools/AbstractPausable.sol";
 
 contract FraxPool is AbstractPausable, Multicall {
     using SafeMath for uint256;
@@ -82,11 +62,12 @@ contract FraxPool is AbstractPausable, Multicall {
     mapping(address => bool) public amo_minter_addresses; // minter address -> is it enabled
 
     constructor (
+        address _operatorMsg,
         address _frax_contract_address,
         address _fxs_contract_address,
         address _collateral_address,
         uint256 _pool_ceiling
-    ) public {
+    ) public AbstractPausable(_operatorMsg) {
         require(
             (_frax_contract_address != address(0))
             && (_fxs_contract_address != address(0))
@@ -329,7 +310,7 @@ contract FraxPool is AbstractPausable, Multicall {
     // to take out FRAX/collateral from the system, use an AMM to trade the new price, and then mint back into the system.
     function collectRedemption() external {
         //todo
-//        require((lastRedeemed[msg.sender].add(redemption_delay)) <= block.number, "Must wait for redemption_delay blocks before collecting redemption");
+        //        require((lastRedeemed[msg.sender].add(redemption_delay)) <= block.number, "Must wait for redemption_delay blocks before collecting redemption");
         bool sendFXS = false;
         bool sendCollateral = false;
         uint FXSAmount = 0;

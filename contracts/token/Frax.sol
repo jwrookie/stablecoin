@@ -8,12 +8,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-import "./AbstractPausable.sol";
 import "./FXS/IFxs.sol";
 import "./FXS/FXS.sol";
 import "./Pools/FraxPool.sol";
 import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
+import "../tools/AbstractPausable.sol";
 
 contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
@@ -89,12 +89,11 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         _;
     }
 
-    /* ========== CONSTRUCTOR ========== */
-
     constructor (
         string memory _name,
-        string memory _symbol
-    ) public ERC20(_name, _symbol){
+        string memory _symbol,
+        address _operatorMsg
+    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         _mint(msg.sender, GENESIS_SUPPLY);
         fraxStep = 2500;
         // 6 decimals of precision, equal to 0.25%

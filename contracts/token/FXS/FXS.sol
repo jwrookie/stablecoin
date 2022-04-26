@@ -6,8 +6,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
+import "../../tools/AbstractPausable.sol";
 import "../Frax.sol";
+
 
 contract FRAXShares is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
@@ -28,8 +29,9 @@ contract FRAXShares is ERC20Burnable, AbstractPausable {
     constructor (
         string memory _name,
         string memory _symbol,
-        address _oracle
-    ) public ERC20(_name, _symbol){
+        address _oracle,
+        address _operatorMsg
+    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         require((_oracle != address(0)), "Zero address detected");
         oracle = _oracle;
         _mint(msg.sender, GENESIS_SUPPLY);

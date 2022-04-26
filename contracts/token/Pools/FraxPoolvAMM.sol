@@ -27,15 +27,14 @@ pragma solidity >=0.6.11;
 
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../math/Math.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../token/FXS/FXS.sol";
 import "../../token/Frax.sol";
-
 import "../../Oracle/Uniswap/UniswapV2Library.sol";
 import "../../Oracle/UniswapPairOracle.sol";
-import "../AbstractPausable.sol";
+import "../../tools/AbstractPausable.sol";
 
 contract FraxPoolvAMM is AbstractPausable {
     using SafeMath for uint256;
@@ -119,13 +118,14 @@ contract FraxPoolvAMM is AbstractPausable {
     /* ========== CONSTRUCTOR ========== */
 
     constructor (
+        address _operatorMsg,
         address _frax_contract_address,
         address _fxs_contract_address,
         address _collateral_address,
         address _uniswap_factory_address,
         address _fxs_usdc_oracle_addr,
         uint256 _pool_ceiling
-    ) {
+    )AbstractPausable(_operatorMsg) {
         FRAX = FRAXStablecoin(_frax_contract_address);
         FXS = FRAXShares(_fxs_contract_address);
         frax_contract_address = _frax_contract_address;

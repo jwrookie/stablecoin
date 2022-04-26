@@ -28,11 +28,11 @@ abstract contract AbstractBoost is TokenReward {
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
 
 
-    constructor(address __ve,
+    constructor(address _operatorMsg, address __ve,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
-        uint256 _period)TokenReward(_swapToken, _tokenPerBlock, _startBlock, _period) {
+        uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         veToken = __ve;
         base = IVeToken(__ve).token();
 

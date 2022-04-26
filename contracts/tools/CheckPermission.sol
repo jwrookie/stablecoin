@@ -23,6 +23,11 @@ contract CheckPermission is ICheckPermission {
         _;
     }
 
+    modifier onlyOperator() {
+        require(operatable.operator() == msg.sender, 'not operator');
+        _;
+    }
+
     function operator() public view override returns (address) {
         return operatable.operator();
     }
