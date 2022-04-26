@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-import "./Pools/FraxPool.sol";
+import "./Pools/StablecoinPool.sol";
 import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
 import "../tools/AbstractPausable.sol";
@@ -165,7 +165,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         for (uint i = 0; i < fraxPoolAddress.length; i++) {
             // Exclude null addresses
             if (fraxPoolAddress[i] != address(0)) {
-                total_collateral_value_d18 = total_collateral_value_d18.add(FraxPool(fraxPoolAddress[i]).collatDollarBalance());
+                total_collateral_value_d18 = total_collateral_value_d18.add(StablecoinPool(fraxPoolAddress[i]).collatDollarBalance());
             }
 
         }

@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IFrax.sol";
-import "../token/Pools/IFraxPool.sol";
+import "../token/Pools/IStablecoinPool.sol";
 
 import '../tools/TransferHelper.sol';
 import '../interface/IAMO.sol';
@@ -16,7 +16,7 @@ contract AMOMinter is Ownable {
     IFrax public immutable FRAX;
     IStock public immutable FXS;
     ERC20 public immutable collateral_token;
-    IFraxPool public  pool;
+    IStablecoinPool public  pool;
     address public custodian_address;
 
     // Collateral related
@@ -79,7 +79,7 @@ contract AMOMinter is Ownable {
         FRAX = IFrax(_stableAddress);
         FXS = IStock(_shareAddress);
         // Pool related
-        pool = IFraxPool(_pool_address);
+        pool = IStablecoinPool(_pool_address);
 
         // Collateral related
         collateral_address = _collateral_address;
@@ -382,7 +382,7 @@ contract AMOMinter is Ownable {
     }
 
     function setFraxPool(address _pool_address) external onlyByOwnGov {
-        pool = IFraxPool(_pool_address);
+        pool = IStablecoinPool(_pool_address);
 
         // Make sure the collaterals match, or balances could get corrupted
         //todo
