@@ -160,7 +160,6 @@ contract('Pool_USDC', () => {
 
         await fxs.addPool(pool.address);
 
-
     });
 
     it('test mint1t1FRAX and redeem1t1FRAX  ', async () => {

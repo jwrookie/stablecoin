@@ -194,28 +194,27 @@ contract('Boost', () => {
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
 
-        await boost.updatePool(0)
+        await boost.updatePool(0);
 
-        const reward0 = await gauge_usdc.earned(fxs.address, owner.address)
+        const reward0 = await gauge_usdc.earned(fxs.address, owner.address);
 
         let lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
-        const reward1 = await gauge_usdc.earned(fxs.address, owner.address)
+        const reward1 = await gauge_usdc.earned(fxs.address, owner.address);
 
         lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 100);
 
-        const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
+        const reward2 = await gauge_usdc.earned(fxs.address, owner.address);
 
-        console.log('reward0:' + reward0)
-        console.log('reward1:' + reward1 / 10 ** 18)
-        console.log('rewardAft:' + reward2 / 10 ** 18)
+        console.log('reward0:' + reward0);
+        console.log('reward1:' + reward1 / 10 ** 18);
+        console.log('rewardAft:' + reward2 / 10 ** 18);
 
 
     });
-
-    it("test boost vote with boost", async () => {
+     it("test boost vote with boost", async () => {
         let eta = time.duration.days(7);
         await lock.create_lock(toWei('1000'), parseInt(eta));
 
@@ -253,6 +252,58 @@ contract('Boost', () => {
         console.log('reward0:' + reward0)
         console.log('reward1:' + reward1 / 10 ** 18)
         console.log('rewardAft:' + reward2 / 10 ** 18)
+
+
+    });
+
+    it("test two users boost vote with boost", async () => {
+        let eta = time.duration.days(7);
+        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('1000'), parseInt(eta));
+
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.deposit(toWei('10'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('10'), 2);
+
+        await boost.updatePool(0);
+
+        let reward0OfOwenr = await gauge_usdc.earned(fxs.address, owner.address)
+        let reward0OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+
+        let lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+
+        let reward1OfOwner = await gauge_usdc.earned(fxs.address, owner.address)
+        let reward1OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+
+
+        lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+
+        let reward2OfOwner = await gauge_usdc.earned(fxs.address, owner.address)
+        let reward2OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+
+
+        console.log('reward0OfOwenr:' + reward0OfOwenr)
+        console.log('reward0OfDev:' + reward0OfDev)
+
+        console.log('reward1OfOwner:' + reward1OfOwner / 10 ** 18)
+        console.log('reward1OfDev:' + reward1OfDev / 10 ** 18)
+        console.log('reward2OfOwner:' + reward2OfOwner / 10 ** 18)
+        console.log('reward2OfDev:' + reward2OfDev / 10 ** 18)
 
 
     });
