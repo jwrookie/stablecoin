@@ -31,10 +31,11 @@ contract('Locker', () => {
         await frax.setFXSAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
+        let eta = time.duration.days(1460);
 
         const Locker = await ethers.getContractFactory('Locker');
         // let eta = time.duration.days(1);
-        lock = await Locker.deploy(fxs.address, parseInt('300'));
+        lock = await Locker.deploy(fxs.address, parseInt("7200"));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
@@ -51,7 +52,9 @@ contract('Locker', () => {
         );
 
         await lock.setVoter(boost.address);
-        await usdc.mint(owner.address, toWei('100'));
+        await usdc.mint(owner.address, toWei('1000000'));
+          await usdc.mint(dev.address, toWei('1000000'));
+
         // await fxs.connect(dev).approve(lock.address, toWei('10000'));
         await fxs.approve(lock.address, toWei('10000'));
         await usdc.mint(dev.address, toWei('100000000000000'));
@@ -71,7 +74,7 @@ contract('Locker', () => {
         expect(await boost.poolForGauge(gauge_usdc.address)).to.be.eq(usdc.address);
         // await busd.mint(dev.address, toWei('100'));
 
-        await frax.addPool(boost.address);
+        await fxs.addPool(boost.address);
 
         await fxs.transfer(dev.address, toWei('10000000'))
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000000'))
@@ -80,35 +83,55 @@ contract('Locker', () => {
 
     });
     it("test increase_amount and increase_unlock_time error", async () => {
-        let eta = time.duration.days(7);
+        let eta = time.duration.days(1460);
         await lock.create_lock(toWei('1002'), parseInt(eta));
+         await lock.connect(dev).create_lock(toWei('1002'), parseInt(eta));
 
         await boost.vote(1, [usdc.address], [toWei('100')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('100')]);
 
-        console.log("weights gauge_usdc:" + await boost.weights(usdc.address))
+        console.log("weights gauge_usdc:" + await boost.weights(usdc.address) / 10 ** 18)
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
+           await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('96'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('96'), 2);
 
 
-        await time.increase(time.duration.minutes("15"));
+        // await time.increase(time.duration.minutes("6"));
 
         let gasFee = await lock.estimateGas.increase_amount(1, toWei('200'))
+        console.log("gasFee:" + gasFee);
 
-        console.log("gasFee:" + gasFee)
+        let gasFee1 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        console.log("gasFee1:" + gasFee1);
 
-        await lock.checkpoint();
-        await time.increase(time.duration.minutes("15"));
-
-        let gasFee1 = await lock.estimateGas.increase_amount(1, toWei('200'))
-
-        console.log("gasFee1:" + gasFee1)
-        await lock.checkpoint();
 
         await time.increase(time.duration.days("1"));
+
         await lock.checkpoint();
-        let gasFee2 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
-        console.log("gasFee2:" + gasFee2)
+        let gasFee3 = await lock.estimateGas.increase_amount(1, toWei('200'))
+        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+
+        console.log("gasFee3:" + gasFee3)
+        //  console.log("gasFee4:" + gasFee4)
+
+
+        await lock.connect(dev).checkpoint();
+        let gasFee4 = await lock.estimateGas.increase_amount(2, toWei('200'))
+        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+
+        console.log("gasFee4:" + gasFee4)
+
+
+        // await time.increase(time.duration.days("1"));
+        //  await lock.checkpoint();
+        //
+        // let gasFee5 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
+        // let gasFee6 = await lock.connect(dev).estimateGas.increase_unlock_time(2, parseInt(eta1));
+        //
+        // console.log("gasFee5:" + gasFee5)
+        // console.log("gasFee6:" + gasFee6)
 
 
     });
