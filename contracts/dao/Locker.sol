@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../tools/CheckPermission.sol";
 
 
 
@@ -32,7 +33,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 //#       maxtime (4 years?)
 
 
-contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
+contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     struct Point {
         int128 bias;
         int128 slope; // # -dweight / dt
@@ -120,11 +121,11 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
 
 
     constructor(
+        address _operatorMsg,
         address tokenAddr,
         uint256 _duration
-    ) {
+    )  CheckPermission(_operatorMsg){
         token = tokenAddr;
-        voter = msg.sender;
         point_history[0].blk = block.number;
         point_history[0].ts = block.timestamp;
 
@@ -139,6 +140,12 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
         // burn-ish
         emit Transfer(address(this), address(0), tokenId);
     }
+
+    modifier onlyBoost() {
+        require(msg.sender == voter, 'only voter');
+        _;
+    }
+
 
     function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
         return supportedInterfaces[_interfaceID];
@@ -543,18 +550,15 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
         emit Supply(supply_before, supply_before + _value);
     }
 
-    function setVoter(address _voter) external {
-        require(msg.sender == voter);
+    function setVoter(address _voter) external onlyOperator {
         voter = _voter;
     }
 
-    function voting(uint _tokenId) external {
-        require(msg.sender == voter);
+    function voting(uint _tokenId) external onlyBoost {
         voted[_tokenId] = true;
     }
 
-    function abstain(uint _tokenId) external {
-        require(msg.sender == voter);
+    function abstain(uint _tokenId) external onlyBoost {
         voted[_tokenId] = false;
     }
 
