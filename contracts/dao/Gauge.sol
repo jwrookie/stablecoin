@@ -409,7 +409,6 @@ contract Gauge is ReentrancyGuard {
             require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
                 tokenIds[msg.sender] = tokenId;
-                IBoost(boost).attachTokenToGauge(tokenId, msg.sender);
             }
             require(tokenIds[msg.sender] == tokenId);
         } else {
@@ -449,7 +448,6 @@ contract Gauge is ReentrancyGuard {
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
             tokenIds[msg.sender] = 0;
-            IBoost(boost).detachTokenFromGauge(tokenId, msg.sender);
         } else {
             tokenId = tokenIds[msg.sender];
         }

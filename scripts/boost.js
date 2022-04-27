@@ -26,12 +26,12 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
+    let fxs = "0xAd510519008772007d3458502EF26D831BEDb155"
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
-    let operatable = "0x06146D292DAa8a517F696e21c814660cc8983c53"
-    let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
-    let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
+    let operatable = "0x3724b782b8fec00cCa312a736C60dee9Be12b0aC"
+    // let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
+    // let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
 
     //
 
@@ -46,27 +46,27 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-    // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(fxs, "7200");
-    // console.log("Locker:" + lock.address)
-    //
-    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    // gaugeFactory = await GaugeFactory.deploy();
-    // console.log("gaugeFactory:" + gaugeFactory.address)
+    const Locker = await ethers.getContractFactory('Locker');
+    lock = await Locker.deploy(fxs, "300");
+    console.log("Locker:" + lock.address)
+
+    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    gaugeFactory = await GaugeFactory.deploy();
+    console.log("gaugeFactory:" + gaugeFactory.address)
 
     Boost = await ethers.getContractFactory("Boost");
     boost = await Boost.deploy(
         operatable,
-        lock,
-        gaugeFactory,
+        lock.address,
+        gaugeFactory.address,
         fxs,
         toWei('1'),
-        parseInt("18723674"),
+        parseInt("10684360"),
         "1000"
     );
     console.log("boost:" + boost.address)
-    // //
-    // await lock.setVoter(boost.address)
+
+    await lock.setVoter(boost.address)
 
     // await frax.addPool(boost.address);
 

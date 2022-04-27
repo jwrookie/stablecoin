@@ -4,13 +4,13 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interface/IStablecoin.sol";
-import "../token/Pools/IStablecoinPool.sol";
 
 import '../tools/TransferHelper.sol';
 import '../interface/IAMO.sol';
-import "../token/stock/IStock.sol";
 import "../tools/CheckPermission.sol";
+import "../interface/IStablecoinPool.sol";
+import "../interface/IStablecoin.sol";
+import "../interface/IStock.sol";
 
 contract AMOMinter is CheckPermission {
     // Core
@@ -330,7 +330,7 @@ contract AMOMinter is CheckPermission {
     // Removes an AMO
     function removeAMO(address amo_address, bool sync_too) public onlyByOwnGov {
         require(amo_address != address(0), "Zero address detected");
-        require(amos[amo_address] == true, "Address nonexistant");
+        require(amos[amo_address] == true, "Address no exist");
 
         // Delete from the mapping
         delete amos[amo_address];

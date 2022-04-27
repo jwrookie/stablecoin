@@ -123,22 +123,9 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         pool.lastRewardBlock = block.number;
     }
 
-
-    function attachTokenToGauge(uint tokenId, address account) external {
-        require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(veToken).used(tokenId);
-        emit Attach(account, msg.sender, tokenId);
-    }
-
     function emitDeposit(uint tokenId, address account, uint amount) external {
         require(isGauge[msg.sender]);
         emit Deposit(account, msg.sender, tokenId, amount);
-    }
-
-    function detachTokenFromGauge(uint tokenId, address account) external {
-        require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(veToken).detach(tokenId);
-        emit Detach(account, msg.sender, tokenId);
     }
 
     function emitWithdraw(uint tokenId, address account, uint amount) external {
