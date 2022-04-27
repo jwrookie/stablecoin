@@ -10,8 +10,6 @@ contract('test Boost', async function() {
     let testERC20;
     let veToken;
     let duration;
-    let firstMockToken;
-    let secondMockToken;
     let oracle;
     let lpToken;
     let startBlock;
@@ -24,7 +22,6 @@ contract('test Boost', async function() {
     let poolInfoMap;
     let tokenSupply;
     let gaugeFactory;
-    let operatAble;
     let checkOper;
     let boost;
     let fax;
@@ -89,10 +86,10 @@ contract('test Boost', async function() {
 
     beforeEach(async function(){
         [owner, seObject] = await ethers.getSigners();
-        const Operatable = await ethers.getContractFactory("Operatable");
-        operatAble = await Operatable.deploy();
-        const CheckOper = await ethers.getContractFactory("CheckOper");
-        checkOper = await CheckOper.deploy(operatAble.address);
+        const testOperatable = await ethers.getContractFactory("Operatable");
+        operatable = await testOperatable.deploy();
+        // const CheckOper = await ethers.getContractFactory("CheckOper");
+        // checkOper = await CheckOper.deploy(operatable.address);
 
         // VeToken address
         const VeToken = await ethers.getContractFactory("Locker");
@@ -117,26 +114,26 @@ contract('test Boost', async function() {
         oracle = await Oracle.deploy();
 
         // Lp token
-        const Frax = await ethers.getContractFactory("FRAXStablecoin");
-        frax = await Frax.deploy("testName", "testSymbol");
-        const Fax = await ethers.getContractFactory("FRAXShares");
-        fax = await Fax.deploy("testName", "testSymbol", oracle.address);
+        const Frax = await ethers.getContractFactory("RStablecoin");
+        frax = await Frax.deploy(operatable.address, "frax", "frax");
+        const Fax = await ethers.getContractFactory("Stock");
+        fax = await Fax.deploy(operatable.address, "fxs", "fxs", oracle.address);
         await fax.setFraxAddress(frax.address);
         await frax.setFXSAddress(fax.address);
         lpToken = testERC20.address;
 
         // Swap token address
         const MockToken = await ethers.getContractFactory("MockToken");
-        firstMockToken = await MockToken.deploy("firstObject", "firstObject", 18, toWei("1"));
-        secondMockToken = await MockToken.deploy("secondObject", "secondObject", 18, toWei("1"));
-        seLpToken = firstMockToken.address;
-        thLpToken = secondMockToken.address;
+        token0 = await MockToken.deploy("firstObject", "firstObject", 18, toWei("1"));
+        token1 = await MockToken.deploy("secondObject", "secondObject", 18, toWei("1"));
+        seLpToken = token0.address;
+        thLpToken = token1.address;
 
         // Boost address
         startBlock = await time.latestBlock();
         const Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            checkOper.address,
+            operatable.address,
             veToken.address,
             gaugeFactory.address,
             fax.address,
