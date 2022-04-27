@@ -16,10 +16,10 @@ const GAS = {gasLimit: "9550000"};
 
 contract('AMOMinter', async function () {
     async function getUint8Array(len) {
-        var buffer = new ArrayBuffer(len);
-        var bufferArray = new Uint8Array(buffer);
-        var length = bufferArray.length;
-        for (var i = 0; i < length; i++) {
+        let buffer = new ArrayBuffer(len);
+        let bufferArray = new Uint8Array(buffer);
+        let length = bufferArray.length;
+        for (let i = 0; i < length; i++) {
             bufferArray[i] = 0;
         }
 

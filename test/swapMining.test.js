@@ -1,32 +1,36 @@
-const { expectRevert, time } = require('@openzeppelin/test-helpers');
-const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
+const {expectRevert, time} = require('@openzeppelin/test-helpers');
+const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
 
-const { ethers, waffle } = require("hardhat");
-const { expect } = require("chai");
-const { toWei } = web3.utils;
-const { BigNumber } = require('ethers');
-const gas = { gasLimit: "9550000" };
+const {ethers, waffle} = require("hardhat");
+const {expect} = require("chai");
+const {toWei} = web3.utils;
+const {BigNumber} = require('ethers');
+const gas = {gasLimit: "9550000"};
 
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
 const PoolAbi = require('./mock/mockPool/3pool_abi.json');
 const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
+const PoolRegistry = require("./mock/mockPool/PoolRegistry.json");
+const WETH9 = require("./mock/WETH9.json");
+
 
 contract('SwapMining', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
+        zeroAddr = "0x0000000000000000000000000000000000000000";
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
-
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
-        Operatable = await ethers.getContractFactory("Operatable");
+        const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+
         const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
         busd = await MockToken.deploy("busd", "busd", 18, toWei('10'));
@@ -46,10 +50,6 @@ contract('SwapMining', () => {
         await token1.mint(dev.address, toWei("10"));
         await token2.mint(dev.address, toWei("10"));
 
-
-        CheckOper = await ethers.getContractFactory("CheckOper");
-        checkOper = await CheckOper.deploy(operatable.address);
-
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
 
@@ -58,14 +58,25 @@ contract('SwapMining', () => {
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(usdc.address, parseInt(eta));
+        lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
+
+        const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+        gaugeFactory = await GaugeFactory.deploy();
+
+        Boost = await ethers.getContractFactory("Boost");
+        boost = await Boost.deploy(
+            operatable.address,
+            lock.address,
+            gaugeFactory.address,
+            fxs.address,
+            toWei('1'),
+            parseInt(lastBlock),
+            "1000"
+        );
 
 
         await frax.addPool(owner.address);
-        // await lock.setVoter(boost.address);
-
-        const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy();
+        await lock.addBoosts(boost.address);
 
 
         plain3Balances = await deployContract(owner, {
@@ -81,7 +92,12 @@ contract('SwapMining', () => {
         poolRegistry = await deployContract(owner, {
             bytecode: PoolRegistry.bytecode,
             abi: PoolRegistry.abi
-        }, [registry.address]);
+        }, [registry.address, zeroAddr]);
+
+        weth9 = await deployContract(owner, {
+            bytecode: WETH9.bytecode,
+            abi: WETH9.abi,
+        });
 
 
         await registry.set_address(0, poolRegistry.address);
@@ -91,8 +107,6 @@ contract('SwapMining', () => {
             abi: FactoryAbi.abi,
         }, [owner.address, registry.address])
 
-
-        zeroAddr = "0x0000000000000000000000000000000000000000"
 
         await crvFactory.set_plain_implementations(3,
             [
@@ -108,7 +122,7 @@ contract('SwapMining', () => {
                 zeroAddr])
 
 
-        // create  token0 token1 token2
+        // // create  token0 token1 token2
         await crvFactory.deploy_plain_pool(
             "3pool",
             "3pool",
@@ -125,19 +139,23 @@ contract('SwapMining', () => {
         await token2.approve(pool.address, toWei("10000"))
 
         await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
-
-        await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
         //
-        // await crvFactory.deploy_plain_pool(
-        //     "3pool1",
-        //     "3pool1",
-        //     [poolAddress, token1.address, token2.address, zeroAddr],
-        //     "2000",
-        //     "4000000", 0, 0, gas);
+        // await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
+        //
+        await crvFactory.deploy_plain_pool(
+            "3pool1",
+            "3pool1",
+            [poolAddress, token1.address, token2.address, zeroAddr],
+            "2000",
+            "4000000", 0, 0, gas);
+
+        const SwapRouter = await ethers.getContractFactory('SwapRouter');
+        swapRouter = await SwapRouter.deploy(weth9.address);
+
 
         const SwapMining = await ethers.getContractFactory('SwapMining');
         swapMining = await SwapMining.deploy(
-            checkOper.address,
+            operatable.address,
             lock.address,
             fxs.address,
             crvFactory.address,
@@ -159,8 +177,6 @@ contract('SwapMining', () => {
 
     });
     it('pending', async () => {
-
-
         await token0.connect(owner).approve(swapRouter.address, toWei('10000'))
         await token1.connect(owner).approve(swapRouter.address, toWei('10000'))
 

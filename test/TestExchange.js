@@ -52,12 +52,14 @@ contract('ExchangeAMO', async function () {
             abi: Router.abi
         }, [factory.address, weth.address]);
 
+         const Operatable = await ethers.getContractFactory("Operatable");
+        operatable = await Operatable.deploy();
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
 
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
@@ -84,15 +86,15 @@ contract('ExchangeAMO', async function () {
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
-        const FraxPoolLibrary = await ethers.getContractFactory('FraxPoolLibrary')
-        fraxPoolLibrary = await FraxPoolLibrary.deploy();
+        const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
+        poolLibrary = await PoolLibrary.deploy();
 
         const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
             libraries: {
-                FraxPoolLibrary: fraxPoolLibrary.address,
+                PoolLibrary: poolLibrary.address,
             },
         });
-        usdcPool = await Pool_USDC.deploy(frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        usdcPool = await Pool_USDC.deploy(operatable.address,frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
 
         // =========
@@ -227,7 +229,7 @@ contract('ExchangeAMO', async function () {
 
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
-            owner.address,
+            operatable.address,
             dev.address,
             frax.address,
             fxs.address,
@@ -237,11 +239,10 @@ contract('ExchangeAMO', async function () {
 
         const ExchangeAMO = await ethers.getContractFactory('ExchangeAMO');
         exchangeAMO = await ExchangeAMO.deploy(
-            owner.address,
+            operatable.address,
             amoMinter.address,
             frax.address,
             usdc.address,
-            fxs.address,
             pool.address,
             frax.address
         );

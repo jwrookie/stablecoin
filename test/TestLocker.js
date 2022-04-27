@@ -1,9 +1,9 @@
-const { time, balance } = require('@openzeppelin/test-helpers');
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
-const { toWei } = require('web3-utils');
-const { BigNumber } = require('ethers');
-const { type } = require('os');
+const {time, balance} = require('@openzeppelin/test-helpers');
+const {ethers} = require('hardhat');
+const {expect} = require('chai');
+const {toWei} = require('web3-utils');
+const {BigNumber} = require('ethers');
+const {type} = require('os');
 
 contract('Locker', async () => {
     let TestERC20;
@@ -26,47 +26,50 @@ contract('Locker', async () => {
     let currentBlock;
 
     async function getDurationTime(dayNumber) {
-        if(0 >= durationTime || durationTime > 100) {
+        if (0 >= durationTime || durationTime > 100) {
             return;
         }
         return parseInt(time.duration.days(dayNumber));
     }
 
     async function checkInfoEq(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if ("" == anyThing || null == anyThing) {
             return;
         }
-        if("" == value || null == value) {
+        if ("" == value || null == value) {
             return;
         }
-        if(expect(value).to.be.eq(value)) {
+        if (expect(value).to.be.eq(value)) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         [owner, seObject] = await ethers.getSigners();
-        TestERC20 = await ethers.getContractFactory("TestERC20");
-        Locker = await ethers.getContractFactory("Locker");
+        const TestERC20 = await ethers.getContractFactory("TestERC20");
+        const Locker = await ethers.getContractFactory("Locker");
         token0 = await TestERC20.deploy();
         secondTestERC20 = await TestERC20.deploy();
         thirdTestERC20 = await TestERC20.deploy();
 
+        const Operatable = await ethers.getContractFactory("Operatable");
+        operatable = await Operatable.deploy();
+
         await token0.mint(owner.address, toWei("1"));
 
         durationTime = getDurationTime(1);
-        lock = await Locker.deploy(token0.address, durationTime);
+        lock = await Locker.deploy(operatable.address, token0.address, durationTime);
     });
 
-    it('test function supportsInterface', async function() {
+    it('test function supportsInterface', async function () {
         let supportBool;
         supportBool = await lock.supportsInterface(0x01ffc9a7);
         console.log(checkInfoEq(supportBool, true));
     });
 
-    it('test get_last_user_slope', async function() {
+    it('test get_last_user_slope', async function () {
         let lockSlop;
         let lockMapBlcok;
         let currentTime;
@@ -100,7 +103,7 @@ contract('Locker', async () => {
         assert.equal(nftCount, 1);
     });
 
-    it('test user_point_history__ts', async function() {
+    it('test user_point_history__ts', async function () {
         let functionReturnTimeStamp;
 
         lockMap = await lock.point_history(0);
@@ -115,7 +118,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(functionReturnTimeStamp, lockMapTimeStamp));
     });
 
-    it('test locked__end', async function() {
+    it('test locked__end', async function () {
         let functionReturnEnd;
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
@@ -130,7 +133,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(lockBalanceEnd, functionReturnEnd));
     });
 
-    it('test balanceOf、ownerOf', async function() {
+    it('test balanceOf、ownerOf', async function () {
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         tokenId = await lock.create_lock(1000, durationTime);
@@ -143,7 +146,7 @@ contract('Locker', async () => {
         assert.equal(nftCount, 1);
     });
 
-    it('test approve、getApprove、isApprovedOrOwner', async function() {
+    it('test approve、getApprove、isApprovedOrOwner', async function () {
         let firstTokenAddress;
         let secondTokenAddress;
         let poolTokenAddress;
@@ -168,7 +171,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(needBoolean, true));
     });
 
-    it('test function about voter', async function() {
+    it('test function about voter', async function () {
         let initFirstVoteBoolean;
         let firstVoteBoolean;
         let initSecondVoteBoolea;
@@ -205,33 +208,7 @@ contract('Locker', async () => {
 
         secondVoteBoolean = await lock.connect(seObject).voted(2);
     });
-
-    it('test attach、detach', async function() {
-        let firstAttach;
-        let secondAttach;
-        let type;
-        let secondType;
-
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
-        durationTime = getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
-        await token0.connect(seObject).approve(lock.address, toWei("1000"));
-        durationTime = getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
-        type = typeof firstTokenId;
-        secondType = typeof secondTokenId;
-        expect(secondType).to.be.eq(type);
-
-        firstAttach = await lock.attachments(0);
-        secondAttach = await lock.attachments(1);
-        assert.equal(firstAttach, 0);
-        assert.equal(secondAttach, 0);
-
-        await lock.attach(1);
-        firstAttach = await lock.attachments(0);
-    });
-
-    it('test checkPoint、_checkPoint', async function() {
+    it('test checkPoint、_checkPoint', async function () {
         let lastPointBias;
         let lastPointSlope;
         let lastPointBlk;
@@ -270,7 +247,7 @@ contract('Locker', async () => {
         expect(currentLockMap).to.be.not.eq(lockMap);
     });
 
-    it('test block_number', async function() {
+    it('test block_number', async function () {
         let returnBlock;
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
@@ -284,7 +261,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(latestBlock, returnBlock));
     });
 
-    it('test deposit_for', async function() {
+    it('test deposit_for', async function () {
         let initLockBalanceAmount;
         let initLockBalanceEnd;
 
@@ -306,7 +283,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(initLockBalanceEnd, lockBalanceEnd));
     });
 
-    it('test balanceOfNFT and balanceOfNFTAt', async function(){
+    it('test balanceOfNFT and balanceOfNFTAt', async function () {
         let latestPointBias;
         let latestPointSlope;
         let latestPointTimeStamp;
@@ -343,7 +320,7 @@ contract('Locker', async () => {
         expect(latestPointBias).to.be.eq(0);
     });
 
-    it('test tokenURI', async function() {
+    it('test tokenURI', async function () {
         let result;
         let decode;
 

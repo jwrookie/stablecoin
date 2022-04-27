@@ -47,7 +47,7 @@ contract('Boost', () => {
         await usdc.mint(owner.address, toWei('1'));
         await busd.mint(owner.address, toWei('1'))
 
-        Operatable = await ethers.getContractFactory("Operatable");
+        const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
 
