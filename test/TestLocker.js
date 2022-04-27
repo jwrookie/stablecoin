@@ -8,7 +8,7 @@ const { type } = require('os');
 contract('Locker', async () => {
     let TestERC20;
     let Locker;
-    let firstTestERC20;
+    let token0;
     let durationTime;
     let lock;
     let lockMap;
@@ -50,14 +50,14 @@ contract('Locker', async () => {
         [owner, seObject] = await ethers.getSigners();
         TestERC20 = await ethers.getContractFactory("TestERC20");
         Locker = await ethers.getContractFactory("Locker");
-        firstTestERC20 = await TestERC20.deploy();
+        token0 = await TestERC20.deploy();
         secondTestERC20 = await TestERC20.deploy();
         thirdTestERC20 = await TestERC20.deploy();
 
-        await firstTestERC20.mint(owner.address, toWei("1"));
+        await token0.mint(owner.address, toWei("1"));
 
         durationTime = getDurationTime(1);
-        lock = await Locker.deploy(firstTestERC20.address, durationTime);
+        lock = await Locker.deploy(token0.address, durationTime);
     });
 
     it('test function supportsInterface', async function() {
@@ -82,7 +82,7 @@ contract('Locker', async () => {
         console.log("PointBlk::\t" + lockMapBlcok);
         console.log("CurrentBlk::\t" + currentBlock);
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         tokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
         // console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
@@ -106,7 +106,7 @@ contract('Locker', async () => {
         lockMap = await lock.point_history(0);
         lockMapTimeStamp = lockMap[2];
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         tokenId = await lock.create_lock(1000, durationTime);
 
@@ -118,7 +118,7 @@ contract('Locker', async () => {
     it('test locked__end', async function() {
         let functionReturnEnd;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         tokenId = await lock.create_lock(1000, durationTime);
 
@@ -131,7 +131,7 @@ contract('Locker', async () => {
     });
 
     it('test balanceOf、ownerOf', async function() {
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         tokenId = await lock.create_lock(1000, durationTime);
 
@@ -149,10 +149,10 @@ contract('Locker', async () => {
         let poolTokenAddress;
         let needBoolean;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         firstTokenId = await lock.create_lock(1000, durationTime);
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
+        await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address);
 
@@ -175,10 +175,10 @@ contract('Locker', async () => {
         let secondVoteBoolean;
         let secondAddress;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
+        await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
 
@@ -212,10 +212,10 @@ contract('Locker', async () => {
         let type;
         let secondType;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
-        await firstTestERC20.connect(seObject).approve(lock.address, toWei("1000"));
+        await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
         type = typeof firstTokenId;
@@ -241,7 +241,7 @@ contract('Locker', async () => {
         let latestTs;
         let currentLockMap;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         firstTokenId = await lock.create_lock(1000, durationTime);
 
@@ -273,7 +273,7 @@ contract('Locker', async () => {
     it('test block_number', async function() {
         let returnBlock;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
@@ -288,7 +288,7 @@ contract('Locker', async () => {
         let initLockBalanceAmount;
         let initLockBalanceEnd;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
@@ -313,7 +313,7 @@ contract('Locker', async () => {
         let paraTime;
         let timeStamp;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 
@@ -347,7 +347,7 @@ contract('Locker', async () => {
         let result;
         let decode;
 
-        await firstTestERC20.connect(owner).approve(lock.address, toWei("1000"));
+        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
         firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
 

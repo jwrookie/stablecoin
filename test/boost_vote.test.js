@@ -5,6 +5,36 @@ const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
 contract('Boost', () => {
+    async function getBefore(rewardContract, account, rewardAddress, rewardToken) {
+        let rewardTokenArray = new Array();
+        rewardTokenArray.push(rewardToken);
+        await rewardContract.connect(account).getReward(rewardAddress, rewardTokenArray);
+        return parseInt(await fxs.balanceOf(account.address));
+    }
+
+    async function getAfter(boostContract, tokenId, poolVote, poolWeight, rewardContract, account, rewardAddress, rewardToken) {
+        let poolVoteArray = new Array();
+        let poolWeightArray = new Array();
+
+        poolVoteArray.push(poolVote);
+        poolWeightArray.push(poolWeight);
+
+        await boostContract.connect(account).vote(tokenId, poolVoteArray, poolWeightArray);
+        await getBefore(rewardContract, account, rewardAddress, rewardToken);
+
+        return parseInt(await fxs.balanceOf(account.address));
+    }
+
+    async function getCurrentBlock() {
+        return parseInt(await time.latestBlock());
+    }
+
+    async function getDifference() {
+        let before = await getBefore(gauge_usdc, dev, dev.address, fxs.address);
+        let after = await getAfter(boost, 1, usdc.address, toWei('1'), gauge_usdc, dev, dev.address, fxs.address);
+        return after - before;
+    }
+
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         const TestERC20 = await ethers.getContractFactory('TestERC20');
@@ -225,19 +255,35 @@ contract('Boost', () => {
         console.log("lastBlock:" + lastBlock);
         //await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        let devBef = await fxs.balanceOf(dev.address)
+        // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
+        console.log(await getCurrentBlock());
+        beforeVote = await getBefore(gauge_usdc, dev, dev.address, fxs.address);
+        console.log(await  getCurrentBlock());
+        // console.log("fxs_balance_of_dev:\t" + await getBefore(gauge_usdc, dev, dev.address, fxs.address));
+        console.log("Different:\t" + await getDifference());
+        console.log(await getCurrentBlock());
+        afterVote = await getBefore(gauge_usdc, dev, dev.address, fxs.address);
+        console.log("fxs_balance:\t" + (afterVote - beforeVote));
+        console.log(await getCurrentBlock());
 
-        await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
+        // let devBef = await fxs.balanceOf(dev.address)
 
-        lastBlock = await time.latestBlock();
-        console.log("lastBlock:" + lastBlock);
-        //await time.advanceBlockTo(parseInt(lastBlock) + 1);
+        // await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
+        //
+        // lastBlock = await time.latestBlock();
+        // console.log("lastBlock:" + lastBlock);
+        // //await time.advanceBlockTo(parseInt(lastBlock) + 1);
+        //
+        // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
 
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
+        // await getAfter(boost, 1, usdc.address, toWei('1'), gauge_usdc, dev, dev.address, fxs.address);
+        // console.log("fxs_balance_of_dev:\t" + await getAfter(boost, 1, usdc.address, toWei('1'), gauge_usdc, dev, dev.address, fxs.address));
+
+
+
 
         let devAft = await fxs.balanceOf(dev.address)
-        let devDiff = devAft - devBef;
+        // let devDiff = devAft - devBef;
 
         expect(devDiff).to.be.eq(19456);
         // console.log("dev aft:"+await fxs.balanceOf(dev.address))
