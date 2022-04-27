@@ -34,6 +34,12 @@ import "../tools/CheckPermission.sol";
 
 
 contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
+    event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
+    event Supply(uint prevSupply, uint supply);
+    event BoostAdded(address _address);
+    event BoostRemoved(address _address);
+
+
     struct Point {
         int128 bias;
         int128 slope; // # -dweight / dt
@@ -60,8 +66,6 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         DepositType deposit_type,
         uint ts
     );
-    event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
-    event Supply(uint prevSupply, uint supply);
 
     uint internal immutable duration;
     uint internal constant MAXTIME = 4 * 365 * 86400;
@@ -82,7 +86,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     mapping(uint => int128) public slope_changes; // time -> signed slope change
 
     mapping(uint => bool) public voted;
-    address public voter;
+    mapping(address => bool) public boosts;
 
     string constant public name = "veNFT";
     string constant public symbol = "veNFT";
@@ -142,7 +146,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     modifier onlyBoost() {
-        require(msg.sender == voter, 'only voter');
+        require(boosts[msg.sender], 'only voter');
         _;
     }
 
@@ -550,8 +554,17 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         emit Supply(supply_before, supply_before + _value);
     }
 
-    function setVoter(address _voter) external onlyOperator {
-        voter = _voter;
+    function addBoosts(address _address) external onlyOperator {
+        require(_address != address(0), "0 address");
+        require(boosts[_address] == false, "Address already exists");
+        boosts[_address] = true;
+        emit BoostAdded(_address);
+    }
+
+    function removeBoosts(address _address) external onlyOperator {
+        require(boosts[_address] == true, "Address no exist");
+        delete boosts[_address];
+        emit BoostRemoved(_address);
     }
 
     function voting(uint _tokenId) external onlyBoost {

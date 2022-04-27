@@ -330,7 +330,7 @@ contract AMOMinter is CheckPermission {
     // Removes an AMO
     function removeAMO(address amo_address, bool sync_too) public onlyByOwnGov {
         require(amo_address != address(0), "Zero address detected");
-        require(amos[amo_address] == true, "Address nonexistant");
+        require(amos[amo_address] == true, "Address no exist");
 
         // Delete from the mapping
         delete amos[amo_address];
