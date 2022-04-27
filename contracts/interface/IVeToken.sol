@@ -8,8 +8,6 @@ interface IVeToken {
     function isApprovedOrOwner(address, uint) external view returns (bool);
     function ownerOf(uint) external view returns (address);
     function transferFrom(address, address, uint) external;
-    function used(uint tokenId) external;
-    function detach(uint tokenId) external;
     function voting(uint tokenId) external;
     function abstain(uint tokenId) external;
 }

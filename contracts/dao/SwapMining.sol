@@ -279,15 +279,13 @@ contract SwapMining is AbstractBoost, ISwapMining {
         _safeTokenTransfer(msg.sender, userSub);
     }
 
-    //todo gas
     function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
         uint256 _derived = amount * 30 / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
-        uint256 _supply = uint256(weights[pool.pair]);
-        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = uint256(votes[_tokenId][pool.pair]);
-            _adjusted = (pool.quantity * _adjusted / _supply) * 70 / 100;
+        if (account == IVeToken(veToken).ownerOf(_tokenId)) {
+            uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
+            _adjusted = (pool.quantity * useVe / totalWeight) * 70 / 100;
         }
         return Math.min((_derived + _adjusted), amount);
 
