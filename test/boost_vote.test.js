@@ -266,7 +266,6 @@ contract('Boost', () => {
 
         let devDiff2 = devAft2 - devAft1;
 
-        expect(devDiff2).to.be.gt(10000);
         expect(devDiff2).to.be.gt(10240);
 
 
