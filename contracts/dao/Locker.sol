@@ -80,7 +80,6 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
     mapping(uint => uint) public user_point_epoch;
     mapping(uint => int128) public slope_changes; // time -> signed slope change
 
-    mapping(uint => uint) public attachments;
     mapping(uint => bool) public voted;
     address public voter;
 
@@ -265,7 +264,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
         uint _tokenId,
         address _sender
     ) internal {
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        require(!voted[_tokenId], "attached");
         // Check requirements
         require(_isApprovedOrOwner(_sender, _tokenId));
         // Clear approval. Throws if `_from` is not the current owner
@@ -559,18 +558,8 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
         voted[_tokenId] = false;
     }
 
-    function used(uint _tokenId) external {
-        require(msg.sender == voter);
-        attachments[_tokenId] = 1;
-    }
-
-    function detach(uint _tokenId) external {
-        require(msg.sender == voter);
-        attachments[_tokenId] = attachments[_tokenId] - 1;
-    }
-
     function merge(uint _from, uint _to) external {
-        require(attachments[_from] == 0 && !voted[_from], "attached");
+        require(!voted[_from], "attached");
         require(_from != _to);
         require(_isApprovedOrOwner(msg.sender, _from));
         require(_isApprovedOrOwner(msg.sender, _to));
@@ -663,7 +652,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
 
     function withdraw(uint _tokenId) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        require(!voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
         require(block.timestamp >= _locked.end, "The lock didn't expire");
@@ -689,8 +678,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
 
     function emergencyWithdraw(uint256 _tokenId) public nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
-        attachments[_tokenId] = 0;
-
+        voted[_tokenId] = false;
         LockedBalance memory _locked = locked[_tokenId];
         require(block.timestamp >= _locked.end, "The lock didn't expire");
         uint value = uint(int256(_locked.amount));
