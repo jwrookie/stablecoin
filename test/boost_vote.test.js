@@ -199,22 +199,22 @@ contract('Boost', () => {
         const reward0 = await gauge_usdc.earned(fxs.address, owner.address);
 
         let lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
         const reward1 = await gauge_usdc.earned(fxs.address, owner.address);
 
         lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address);
 
-        console.log('reward0:' + reward0);
-        console.log('reward1:' + reward1 / 10 ** 18);
-        console.log('rewardAft:' + reward2 / 10 ** 18);
+        expect(reward0).to.be.eq(0);
+        expect(reward1 / 10 ** 18).to.be.eq(1);
+        expect(reward2 / 10 ** 18).to.be.eq(2);
 
 
     });
-     it("test boost vote with boost", async () => {
+    it("test boost vote with boost", async () => {
         let eta = time.duration.days(7);
         await lock.create_lock(toWei('1000'), parseInt(eta));
 
@@ -225,33 +225,32 @@ contract('Boost', () => {
 
         const reward0 = await gauge_usdc.earned(fxs.address, owner.address)
 
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
 
         let lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
         const reward1 = await gauge_usdc.earned(fxs.address, owner.address)
 
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
 
         lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
         const reward2 = await gauge_usdc.earned(fxs.address, owner.address)
 
-
-        console.log('reward0:' + reward0)
-        console.log('reward1:' + reward1 / 10 ** 18)
-        console.log('rewardAft:' + reward2 / 10 ** 18)
+        expect(reward0).to.be.eq(0);
+        expect(reward1 / 10 ** 18).to.be.eq(1);
+        expect(reward2 / 10 ** 18).to.be.eq(12);
 
 
     });
@@ -268,42 +267,44 @@ contract('Boost', () => {
 
         await boost.updatePool(0);
 
-        let reward0OfOwenr = await gauge_usdc.earned(fxs.address, owner.address)
-        let reward0OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let reward0OfOwenr = await gauge_usdc.earned(fxs.address, owner.address);
+        let reward0OfDev = await gauge_usdc.earned(fxs.address, dev.address);
 
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-        await boost.vote(1, [usdc.address], [toWei('1')]);
-
-        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
 
         let lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
-        let reward1OfOwner = await gauge_usdc.earned(fxs.address, owner.address)
-        let reward1OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let reward1OfOwner = await gauge_usdc.earned(fxs.address, owner.address);
+        let reward1OfDev = await gauge_usdc.earned(fxs.address, dev.address);
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
+        await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
 
 
         lastBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lastBlock) + 100);
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
 
-        let reward2OfOwner = await gauge_usdc.earned(fxs.address, owner.address)
-        let reward2OfDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let reward2OfOwner = await gauge_usdc.earned(fxs.address, owner.address);
+        let reward2OfDev = await gauge_usdc.earned(fxs.address, dev.address);
 
 
-        console.log('reward0OfOwenr:' + reward0OfOwenr)
-        console.log('reward0OfDev:' + reward0OfDev)
+        expect(reward0OfOwenr).to.be.eq(0);
+        expect(reward0OfDev).to.be.eq(0);
 
-        console.log('reward1OfOwner:' + reward1OfOwner / 10 ** 18)
-        console.log('reward1OfDev:' + reward1OfDev / 10 ** 18)
-        console.log('reward2OfOwner:' + reward2OfOwner / 10 ** 18)
-        console.log('reward2OfDev:' + reward2OfDev / 10 ** 18)
+        expect(reward1OfOwner / 10 ** 18).to.be.eq(0.5);
+        expect(reward1OfDev / 10 ** 18).to.be.eq(0.5);
+
+        expect(reward2OfOwner / 10 ** 18).to.be.eq(6);
+        expect(reward2OfDev / 10 ** 18).to.be.eq(6);
 
 
     });
