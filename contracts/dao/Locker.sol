@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
 
 
@@ -31,7 +32,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 //#       maxtime (4 years?)
 
 
-contract Locker is IERC721, IERC721Metadata {
+contract Locker is IERC721, IERC721Metadata, ReentrancyGuard {
     struct Point {
         int128 bias;
         int128 slope; // # -dweight / dt
@@ -112,24 +113,11 @@ contract Locker is IERC721, IERC721Metadata {
 
     mapping(bytes4 => bool) internal supportedInterfaces;
 
-
     bytes4 internal constant ERC165_INTERFACE_ID = 0x01ffc9a7;
-
 
     bytes4 internal constant ERC721_INTERFACE_ID = 0x80ac58cd;
 
-
     bytes4 internal constant ERC721_METADATA_INTERFACE_ID = 0x5b5e139f;
-
-    uint8 internal constant _not_entered = 1;
-    uint8 internal constant _entered = 2;
-    uint8 internal _entered_state = 1;
-    modifier nonreentrant() {
-        require(_entered_state == _not_entered);
-        _entered_state = _entered;
-        _;
-        _entered_state = _not_entered;
-    }
 
 
     constructor(
@@ -607,7 +595,7 @@ contract Locker is IERC721, IERC721Metadata {
         _checkpoint(0, LockedBalance(0, 0), LockedBalance(0, 0));
     }
 
-    function deposit_for(uint _tokenId, uint _value) external nonreentrant {
+    function deposit_for(uint _tokenId, uint _value) external nonReentrant {
         LockedBalance memory _locked = locked[_tokenId];
 
         require(_value > 0);
@@ -636,15 +624,15 @@ contract Locker is IERC721, IERC721Metadata {
     }
 
 
-    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonreentrant returns (uint) {
+    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, _to);
     }
 
-    function create_lock(uint _value, uint _lock_duration) external nonreentrant returns (uint) {
+    function create_lock(uint _value, uint _lock_duration) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, msg.sender);
     }
 
-    function increase_amount(uint _tokenId, uint _value) external nonreentrant {
+    function increase_amount(uint _tokenId, uint _value) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -658,7 +646,7 @@ contract Locker is IERC721, IERC721Metadata {
     }
 
 
-    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonreentrant {
+    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -673,7 +661,7 @@ contract Locker is IERC721, IERC721Metadata {
         _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
 
-    function withdraw(uint _tokenId) external nonreentrant {
+    function withdraw(uint _tokenId) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
         require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
 
@@ -699,7 +687,7 @@ contract Locker is IERC721, IERC721Metadata {
         emit Supply(supply_before, supply_before - value);
     }
 
-    function emergencyWithdraw(uint256 _tokenId) public nonreentrant {
+    function emergencyWithdraw(uint256 _tokenId) public nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
         attachments[_tokenId] = 0;
 
