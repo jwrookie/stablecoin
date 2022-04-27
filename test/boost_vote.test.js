@@ -70,7 +70,7 @@ contract('Boost', () => {
 
         const Locker = await ethers.getContractFactory('Locker');
         // let eta = time.duration.days(1);
-        lock = await Locker.deploy(fxs.address, parseInt('300'));
+        lock = await Locker.deploy(operatable.address, fxs.address, parseInt('300'));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
@@ -86,7 +86,7 @@ contract('Boost', () => {
             "1000"
         );
 
-        await lock.setVoter(boost.address);
+        await lock.addBoosts(boost.address);
         await usdc.mint(owner.address, toWei('1000'));
         // await fxs.connect(dev).approve(lock.address, toWei('10000'));
         await fxs.approve(lock.address, toWei('10000'));
@@ -115,106 +115,6 @@ contract('Boost', () => {
 
 
     });
-    // it("test boost vote", async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.create_lock(toWei('1000'), parseInt(eta));
-    //
-    //     await boost.vote(1, [usdc.address], [toWei('1')]);
-    //
-    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
-    //
-    //
-    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-    //     console.log("user weights::" + await lock.balanceOfNFT(1) / 10 ** 18);
-    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
-    //
-    //     console.log("----------------------------")
-    //
-    //     await usdc.approve(gauge_usdc.address, toWei('10000000'));
-    //     await gauge_usdc.deposit(toWei('10'), 1);
-    //     await lock.checkpoint();
-    //
-    //     await time.increase(time.duration.minutes("15"));
-    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-    //     console.log("pool total weights :" + await boost.weights(usdc.address) / 10 ** 18)
-    //
-    //
-    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
-    //     await gauge_usdc.deposit(toWei('100'), 1);
-    //
-    //
-    //     await time.increase(time.duration.hours("1"));
-    //
-    //     console.log("----------------------------")
-    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
-    //
-    //
-    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-    //
-    //     await time.increase(time.duration.days("1"));
-    //     await gauge_usdc.deposit(toWei('100'), 1);
-    //     // await boost.reset( 1);
-    //     console.log("----------------------------")
-    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
-    //
-    //
-    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
-    //
-    //
-    //     console.log("----------------------------")
-    //     await time.increase(time.duration.hours("1"));
-    //
-    //     await lock.increase_amount(1, toWei('200'))
-    //     await boost.vote(1, [usdc.address], [toWei('1')]);
-    //
-    //     console.log("totalWeight:" + await boost.totalWeight() / 10 ** 18)
-    //     console.log("pool total weights:" + await boost.weights(usdc.address) / 10 ** 18)
-    //
-    //
-    //     console.log("user voted pool weights:" + await boost.votes(1, usdc.address) / 10 ** 18)
-    //     console.log("user weights:" + await lock.balanceOfNFT(1) / 10 ** 18);
-    //     console.log(" usedWeights::" + await boost.usedWeights(1) / 10 ** 18);
-    //
-    // });
-    // it("test boost vote", async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.create_lock(toWei('1000'), parseInt(eta));
-
-
-    //     await usdc.approve(gauge_usdc.address, toWei('10000000'));
-    //     await gauge_usdc.deposit(toWei('10'), 1);
-
-
-    //     await boost.updatePool(0)
-    //     // await time.increase(time.duration.hours("1"));
-
-    //     let lastBlock = await time.latestBlock();
-    //     await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-
-    //     let rewardBef= await gauge_usdc.earned(fxs.address, owner.address)
-    //    // console.log("reward:" + reward)
-
-    //     lastBlock = await time.latestBlock();
-    //     console.log("lastBlock:"+lastBlock)
-    //     await time.advanceBlockTo(parseInt(lastBlock) + 100);
-
-    //     await boost.vote(1, [usdc.address], [toWei('1')]);
-
-
-    //    let  rewardAft = await gauge_usdc.earned(fxs.address, owner.address)
-    //     console.log("reward:" +  BigNumber.from(rewardAft).sub(rewardBef).div("1000000000000000000"))
-
-
-    // });
     // it("test boost vote without boost", async () => {
     //     let eta = time.duration.days(7);
     //     await lock.create_lock(toWei('1000'), parseInt(eta));
@@ -250,69 +150,31 @@ contract('Boost', () => {
         await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
 
         await boost.updatePool(0);
+        let FxsAmount = await fxs.balanceOf(dev.address);
 
-        let lastBlock = await time.latestBlock();
-        console.log("lastBlock:" + lastBlock);
-        //await time.advanceBlockTo(parseInt(lastBlock) + 1);
+        console.log("lastBlock:" + await getCurrentBlock());
+        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
+        let beforeFxs = await fxs.balanceOf(dev.address);
+        let diffBef = parseInt(beforeFxs) - parseInt(FxsAmount);
+        console.log("diffBef:" + diffBef);
 
-        // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        console.log(await getCurrentBlock());
-        beforeVote = await getBefore(gauge_usdc, dev, dev.address, fxs.address);
-        console.log(await  getCurrentBlock());
-        // console.log("fxs_balance_of_dev:\t" + await getBefore(gauge_usdc, dev, dev.address, fxs.address));
-        console.log("Different:\t" + await getDifference());
-        console.log(await getCurrentBlock());
-        afterVote = await getBefore(gauge_usdc, dev, dev.address, fxs.address);
-        console.log("fxs_balance:\t" + (afterVote - beforeVote));
-        console.log(await getCurrentBlock());
+        console.log("-----------------------")
 
-        // let devBef = await fxs.balanceOf(dev.address)
-
-        // await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
-        //
-        // lastBlock = await time.latestBlock();
-        // console.log("lastBlock:" + lastBlock);
-        // //await time.advanceBlockTo(parseInt(lastBlock) + 1);
-        //
-        // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-
-        // await getAfter(boost, 1, usdc.address, toWei('1'), gauge_usdc, dev, dev.address, fxs.address);
-        // console.log("fxs_balance_of_dev:\t" + await getAfter(boost, 1, usdc.address, toWei('1'), gauge_usdc, dev, dev.address, fxs.address));
+        await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
+        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
+        console.log("lastBlock:" + await getCurrentBlock());
+        let AftFxs = await fxs.balanceOf(dev.address);
 
 
+        let diffAft = parseInt(AftFxs) - parseInt(beforeFxs);
+        console.log("diffAft:" + diffAft);
+        console.log("-----------------------")
 
-
-        let devAft = await fxs.balanceOf(dev.address)
-        // let devDiff = devAft - devBef;
-
-        expect(devDiff).to.be.eq(19456);
-        // console.log("dev aft:"+await fxs.balanceOf(dev.address))
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-
-        lastBlock = await time.latestBlock();
-        //await time.advanceBlockTo(parseInt(lastBlock) + 1);
-        console.log("lastBlock:" + lastBlock);
-
-        //console.log("dev aft:"+await fxs.balanceOf(dev.address))
-        let devAft1 = await fxs.balanceOf(dev.address)
-
-        let devDiff1 = devAft1 - devAft;
-
-        expect(devDiff1).to.be.gt(10000);
-        expect(devDiff1).to.be.eq(10240);
-
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-
-        lastBlock = await time.latestBlock();
-        //await time.advanceBlockTo(parseInt(lastBlock) + 1);
-        console.log("lastBlock:" + lastBlock);
-
-        //console.log("dev aft:"+await fxs.balanceOf(dev.address))
-        let devAft2 = await fxs.balanceOf(dev.address)
-
-        let devDiff2 = devAft2 - devAft1;
-
-        expect(devDiff2).to.be.gt(10240);
+        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
+        let AftFxs1 = await fxs.balanceOf(dev.address);
+        console.log("lastBlock:" + await getCurrentBlock());
+        diffAft = parseInt(AftFxs1) - parseInt(AftFxs);
+        console.log("diffAft:" + diffAft);
 
 
     });
