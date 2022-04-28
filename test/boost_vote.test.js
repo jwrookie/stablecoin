@@ -143,12 +143,17 @@ contract('Boost', () => {
     //
     // });
     async function getRewardAndPrint() {
-        console.log("derivedBalance:" + gauge_usdc.derivedBalance(dev.address));
+        console.log("_balance:" + await gauge_usdc.balanceOf(dev.address));
+        console.log("derivedBalance:" + await gauge_usdc.derivedBalance(dev.address));
+        console.log("totalSupply:" + await gauge_usdc.totalSupply());
+        console.log("_supply:" + await boost.weights(usdc.address));
+        console.log("_adjusted:" + await boost.votes(1, usdc.address));
+        console.log("useVe:" + await lock.balanceOfNFT(1));
         console.log("get reward befor blocknum:" + await getCurrentBlock());
         let beforeBalance = await fxs.balanceOf(dev.address);
         await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
         let afterBalance = await fxs.balanceOf(dev.address);
-        let diffBef = parseInt(afterBalance) - parseInt(beforeBalance);
+        let diffBef = afterBalance.sub(beforeBalance);
         console.log("increase:" + diffBef);
         console.log("get reward after blocknum:" + await getCurrentBlock());
     }
