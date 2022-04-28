@@ -169,7 +169,6 @@ contract Gauge is ReentrancyGuard {
     }
 
     function updatePool() public {
-
         if (block.number <= lastRewardBlock) {
             return;
         }
