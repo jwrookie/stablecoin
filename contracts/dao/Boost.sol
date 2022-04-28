@@ -17,8 +17,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
 
-    event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
-    event Withdraw(address indexed lp, address indexed gauge, uint tokenId, uint amount);
     event NotifyReward(address indexed sender, address indexed reward, uint amount);
     event DistributeReward(address indexed sender, address indexed gauge, uint amount);
 
@@ -123,15 +121,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         pool.lastRewardBlock = block.number;
     }
 
-    function emitDeposit(uint tokenId, address account, uint amount) external {
-        require(isGauge[msg.sender]);
-        emit Deposit(account, msg.sender, tokenId, amount);
-    }
-
-    function emitWithdraw(uint tokenId, address account, uint amount) external {
-        require(isGauge[msg.sender]);
-        emit Withdraw(account, msg.sender, tokenId, amount);
-    }
 
     function updateAll() external {
         for (uint i = 0; i < poolLength(); i++) {
