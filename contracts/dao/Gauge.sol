@@ -40,14 +40,7 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint) public derivedBalances;
 
     uint internal constant PRECISION = 10 ** 18;
-
-    // default snx staking contract implementation
-    mapping(address => uint) public rewardRate;
-    mapping(address => uint) public lastUpdateTime;
-    mapping(address => uint) public rewardPerTokenStored;
-
-    mapping(address => mapping(address => uint)) public lastEarn;
-    mapping(address => mapping(address => uint)) public userRewardPerTokenStored;
+    
 
     mapping(address => uint) public tokenIds;
 
