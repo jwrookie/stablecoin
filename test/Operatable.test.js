@@ -1,7 +1,3 @@
-/**
- * @description:
- * @author: Lucifer
- */
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
  contract('Operatable', ([owner, secondOwner, thirdOwner]) => {

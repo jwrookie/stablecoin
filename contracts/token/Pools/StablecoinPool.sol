@@ -1,39 +1,19 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
 pragma solidity >=0.6.11;
 
-// ====================================================================
-// |     ______                   _______                             |
-// |    / _____________ __  __   / ____(_____  ____ _____  ________   |
-// |   / /_  / ___/ __ `| |/_/  / /_  / / __ \/ __ `/ __ \/ ___/ _ \  |
-// |  / __/ / /  / /_/ _>  <   / __/ / / / / / /_/ / / / / /__/  __/  |
-// | /_/   /_/   \__,_/_/|_|  /_/   /_/_/ /_/\__,_/_/ /_/\___/\___/   |
-// |                                                                  |
-// ====================================================================
-// ============================= FraxPool =============================
-// ====================================================================
-// Frax Finance: https://github.com/FraxFinance
-
-// Primary Author(s)
-// Travis Moore: https://github.com/FortisFortuna
-// Jason Huan: https://github.com/jasonhuan
-// Sam Kazemian: https://github.com/samkazemian
-
-// Reviewer(s) / Contributor(s)
-// Sam Sun: https://github.com/samczsun
-
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "../AbstractPausable.sol";
 import "../../interface/IAMOMinter.sol";
 import '../../tools/TransferHelper.sol';
-import "../FXS/FXS.sol";
-import "../../token/Frax.sol";
+import "../../token/Rusd.sol";
 import "../../Oracle/UniswapPairOracle.sol";
-import "./FraxPoolLibrary.sol";
+import "./PoolLibrary.sol";
 import "../../tools/Multicall.sol";
+import "../../tools/AbstractPausable.sol";
+import "../stock/Stock.sol";
 
-contract FraxPool is AbstractPausable, Multicall {
+contract StablecoinPool is AbstractPausable, Multicall {
     using SafeMath for uint256;
 
     /* ========== STATE VARIABLES ========== */
@@ -41,8 +21,8 @@ contract FraxPool is AbstractPausable, Multicall {
     ERC20 private collateral_token;
     address private collateral_address;
 
-    FRAXShares private FXS;
-    FRAXStablecoin private FRAX;
+    Stock private FXS;
+    RStablecoin private FRAX;
 
     UniswapPairOracle private collatEthOracle;
     address public collat_eth_oracle_address;
@@ -57,7 +37,6 @@ contract FraxPool is AbstractPausable, Multicall {
     mapping(address => uint256) public redeemCollateralBalances;
     uint256 public unclaimedPoolCollateral;
     uint256 public unclaimedPoolFXS;
-    mapping(address => uint256) public lastRedeemed;
 
     // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
@@ -82,18 +61,19 @@ contract FraxPool is AbstractPausable, Multicall {
     mapping(address => bool) public amo_minter_addresses; // minter address -> is it enabled
 
     constructor (
+        address _operatorMsg,
         address _frax_contract_address,
         address _fxs_contract_address,
         address _collateral_address,
         uint256 _pool_ceiling
-    ) public {
+    ) public AbstractPausable(_operatorMsg) {
         require(
             (_frax_contract_address != address(0))
             && (_fxs_contract_address != address(0))
             && (_collateral_address != address(0))
         , "Zero address detected");
-        FRAX = FRAXStablecoin(_frax_contract_address);
-        FXS = FRAXShares(_fxs_contract_address);
+        FRAX = RStablecoin(_frax_contract_address);
+        FXS = Stock(_fxs_contract_address);
         collateral_address = _collateral_address;
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
@@ -180,7 +160,7 @@ contract FraxPool is AbstractPausable, Multicall {
         require(FRAX.globalCollateralRatio() >= COLLATERAL_RATIO_MAX, "Collateral ratio must be >= 1");
         require((collateral_token.balanceOf(address(this))).sub(unclaimedPoolCollateral).add(collateral_amount) <= pool_ceiling, "[Pool's Closed]: Ceiling reached");
 
-        (uint256 frax_amount_d18) = FraxPoolLibrary.calcMint1t1FRAX(
+        (uint256 frax_amount_d18) = PoolLibrary.calcMint1t1FRAX(
             getCollateralPrice(),
             collateral_amount_d18
         );
@@ -199,7 +179,7 @@ contract FraxPool is AbstractPausable, Multicall {
         uint256 fxs_price = FRAX.fxsPrice();
         require(FRAX.globalCollateralRatio() == 0, "Collateral ratio must be 0");
 
-        (uint256 frax_amount_d18) = FraxPoolLibrary.calcMintAlgorithmicFRAX(
+        (uint256 frax_amount_d18) = PoolLibrary.calcMintAlgorithmicFRAX(
             fxs_price, // X FXS / 1 USD
             fxs_amount_d18
         );
@@ -221,7 +201,7 @@ contract FraxPool is AbstractPausable, Multicall {
         require(collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral).add(collateral_amount) <= pool_ceiling, "Pool ceiling reached, no more FRAX can be minted with this collateral");
 
         uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
-        FraxPoolLibrary.MintFF_Params memory input_params = FraxPoolLibrary.MintFF_Params(
+        PoolLibrary.MintFF_Params memory input_params = PoolLibrary.MintFF_Params(
             fxs_price,
             getCollateralPrice(),
             fxs_amount,
@@ -229,7 +209,7 @@ contract FraxPool is AbstractPausable, Multicall {
             globalCollateralRatio
         );
 
-        (uint256 mint_amount, uint256 fxs_needed) = FraxPoolLibrary.calcMintFractionalFRAX(input_params);
+        (uint256 mint_amount, uint256 fxs_needed) = PoolLibrary.calcMintFractionalFRAX(input_params);
 
         mint_amount = (mint_amount.mul(uint(1e6).sub(minting_fee))).div(1e6);
         require(FRAX_out_min <= mint_amount, "Slippage limit reached");
@@ -246,7 +226,7 @@ contract FraxPool is AbstractPausable, Multicall {
 
         // Need to adjust for decimals of collateral
         uint256 FRAX_amount_precision = FRAX_amount.div(10 ** missing_decimals);
-        (uint256 collateral_needed) = FraxPoolLibrary.calcRedeem1t1FRAX(
+        (uint256 collateral_needed) = PoolLibrary.calcRedeem1t1FRAX(
             getCollateralPrice(),
             FRAX_amount_precision
         );
@@ -257,7 +237,6 @@ contract FraxPool is AbstractPausable, Multicall {
 
         redeemCollateralBalances[msg.sender] = redeemCollateralBalances[msg.sender].add(collateral_needed);
         unclaimedPoolCollateral = unclaimedPoolCollateral.add(collateral_needed);
-        lastRedeemed[msg.sender] = block.number;
 
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
@@ -293,8 +272,6 @@ contract FraxPool is AbstractPausable, Multicall {
         redeemFXSBalances[msg.sender] = redeemFXSBalances[msg.sender].add(fxs_amount);
         unclaimedPoolFXS = unclaimedPoolFXS.add(fxs_amount);
 
-        lastRedeemed[msg.sender] = block.number;
-
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
         FXS.poolMint(address(this), fxs_amount);
@@ -316,8 +293,6 @@ contract FraxPool is AbstractPausable, Multicall {
         redeemFXSBalances[msg.sender] = redeemFXSBalances[msg.sender].add(fxs_amount);
         unclaimedPoolFXS = unclaimedPoolFXS.add(fxs_amount);
 
-        lastRedeemed[msg.sender] = block.number;
-
         require(FXS_out_min <= fxs_amount, "Slippage limit reached");
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
@@ -327,8 +302,9 @@ contract FraxPool is AbstractPausable, Multicall {
     // After a redemption happens, transfer the newly minted FXS and owed collateral from this pool
     // contract to the user. Redemption is split into two functions to prevent flash loans from being able
     // to take out FRAX/collateral from the system, use an AMM to trade the new price, and then mint back into the system.
-    function collectRedemption() external {
-        require((lastRedeemed[msg.sender].add(redemption_delay)) <= block.number, "Must wait for redemption_delay blocks before collecting redemption");
+    // Must wait for (AEO or Whitelist) blocks before collecting redemption
+    function collectRedemption() external onlyAEOWhiteList {
+
         bool sendFXS = false;
         bool sendCollateral = false;
         uint FXSAmount = 0;
@@ -377,7 +353,7 @@ contract FraxPool is AbstractPausable, Multicall {
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
 
-        (uint256 collateral_units, uint256 amount_to_recollat) = FraxPoolLibrary.calcRecollateralizeFRAXInner(
+        (uint256 collateral_units, uint256 amount_to_recollat) = PoolLibrary.calcRecollateralizeFRAXInner(
             collateral_amount_d18,
             getCollateralPrice(),
             global_collat_value,
@@ -401,14 +377,14 @@ contract FraxPool is AbstractPausable, Multicall {
         require(paused() == false, "Buyback is paused");
         uint256 fxs_price = FRAX.fxsPrice();
 
-        FraxPoolLibrary.BuybackFXS_Params memory input_params = FraxPoolLibrary.BuybackFXS_Params(
+        PoolLibrary.BuybackFXS_Params memory input_params = PoolLibrary.BuybackFXS_Params(
             availableExcessCollatDV(),
             fxs_price,
             getCollateralPrice(),
             FXS_amount
         );
 
-        (uint256 collateral_equivalent_d18) = (FraxPoolLibrary.calcBuyBackFXS(input_params)).mul(uint(1e6).sub(buyback_fee)).div(1e6);
+        (uint256 collateral_equivalent_d18) = (PoolLibrary.calcBuyBackFXS(input_params)).mul(uint(1e6).sub(buyback_fee)).div(1e6);
         uint256 collateral_precision = collateral_equivalent_d18.div(10 ** missing_decimals);
 
         require(COLLATERAL_out_min <= collateral_precision, "Slippage limit reached");

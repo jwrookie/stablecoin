@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 
 
-library FraxPoolLibrary {
+library PoolLibrary {
     using SafeMath for uint256;
 
     // Constants for various precisions

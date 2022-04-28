@@ -17,8 +17,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
 
-    event Deposit(address indexed lp, address indexed gauge, uint tokenId, uint amount);
-    event Withdraw(address indexed lp, address indexed gauge, uint tokenId, uint amount);
     event NotifyReward(address indexed sender, address indexed reward, uint amount);
     event DistributeReward(address indexed sender, address indexed gauge, uint amount);
 
@@ -73,7 +71,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken);
+        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken, address(swapToken));
         IERC20(address(swapToken)).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
@@ -123,28 +121,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         pool.lastRewardBlock = block.number;
     }
 
-
-    function attachTokenToGauge(uint tokenId, address account) external {
-        require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(veToken).used(tokenId);
-        emit Attach(account, msg.sender, tokenId);
-    }
-
-    function emitDeposit(uint tokenId, address account, uint amount) external {
-        require(isGauge[msg.sender]);
-        emit Deposit(account, msg.sender, tokenId, amount);
-    }
-
-    function detachTokenFromGauge(uint tokenId, address account) external {
-        require(isGauge[msg.sender]);
-        if (tokenId > 0) IVeToken(veToken).detach(tokenId);
-        emit Detach(account, msg.sender, tokenId);
-    }
-
-    function emitWithdraw(uint tokenId, address account, uint amount) external {
-        require(isGauge[msg.sender]);
-        emit Withdraw(account, msg.sender, tokenId, amount);
-    }
 
     function updateAll() external {
         for (uint i = 0; i < poolLength(); i++) {

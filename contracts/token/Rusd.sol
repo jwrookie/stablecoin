@@ -8,14 +8,12 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/Pausable.sol";
 
-import "./AbstractPausable.sol";
-import "./FXS/IFxs.sol";
-import "./FXS/FXS.sol";
-import "./Pools/FraxPool.sol";
+import "./Pools/StablecoinPool.sol";
 import "../Oracle/UniswapPairOracle.sol";
 import "../Oracle/ChainlinkETHUSDPriceConsumer.sol";
+import "../tools/AbstractPausable.sol";
 
-contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
+contract RStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     /* ========== EVENTS ========== */
@@ -89,12 +87,12 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         _;
     }
 
-    /* ========== CONSTRUCTOR ========== */
-
     constructor (
+        address _operatorMsg,
         string memory _name,
         string memory _symbol
-    ) public ERC20(_name, _symbol){
+
+    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         _mint(msg.sender, GENESIS_SUPPLY);
         fraxStep = 2500;
         // 6 decimals of precision, equal to 0.25%
@@ -168,7 +166,7 @@ contract FRAXStablecoin is ERC20Burnable, AbstractPausable {
         for (uint i = 0; i < fraxPoolAddress.length; i++) {
             // Exclude null addresses
             if (fraxPoolAddress[i] != address(0)) {
-                total_collateral_value_d18 = total_collateral_value_d18.add(FraxPool(fraxPoolAddress[i]).collatDollarBalance());
+                total_collateral_value_d18 = total_collateral_value_d18.add(StablecoinPool(fraxPoolAddress[i]).collatDollarBalance());
             }
 
         }

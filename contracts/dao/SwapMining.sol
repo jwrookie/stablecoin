@@ -116,7 +116,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _allocPoint,
         address _pool,
         bool _withUpdate
-    ) public onlyOperator {
+    ) public onlyOwner {
         require(_pool != address(0), '_pair is the zero address');
         if (poolLength() > 0) {
             require((pairOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
@@ -145,7 +145,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _pid,
         uint256 _allocPoint,
         bool _withUpdate
-    ) public onlyOperator {
+    ) public onlyOwner {
         if (_withUpdate) {
             massUpdatePools();
         }
@@ -154,7 +154,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         emit SetPool(poolInfo[_pid].pair, _allocPoint);
     }
 
-    function setRouter(address newRouter) public onlyOperator {
+    function setRouter(address newRouter) public onlyOwner {
         require(newRouter != address(0), 'SwapMining: new router is the zero address');
         address oldRouter = router;
         router = newRouter;
@@ -279,15 +279,13 @@ contract SwapMining is AbstractBoost, ISwapMining {
         _safeTokenTransfer(msg.sender, userSub);
     }
 
-    //todo gas
     function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
         uint256 _derived = amount * 30 / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
-        uint256 _supply = uint256(weights[pool.pair]);
-        if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0) {
-            _adjusted = uint256(votes[_tokenId][pool.pair]);
-            _adjusted = (pool.quantity * _adjusted / _supply) * 70 / 100;
+        if (account == IVeToken(veToken).ownerOf(_tokenId)) {
+            uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
+            _adjusted = (pool.quantity * useVe / totalWeight) * 70 / 100;
         }
         return Math.min((_derived + _adjusted), amount);
 

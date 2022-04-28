@@ -4,20 +4,20 @@ pragma solidity >=0.8.0;
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../interface/IFrax.sol";
-import "../token/FXS/IFxs.sol";
-import "../token/Pools/FraxPoolV3.sol";
-import "../token/Pools/IFraxPool.sol";
 
 import '../tools/TransferHelper.sol';
 import '../interface/IAMO.sol';
+import "../tools/CheckPermission.sol";
+import "../interface/IStablecoinPool.sol";
+import "../interface/IStablecoin.sol";
+import "../interface/IStock.sol";
 
-contract AMOMinter is Ownable {
+contract AMOMinter is CheckPermission {
     // Core
-    IFrax public immutable FRAX;
-    IFxs public immutable FXS;
+    IStablecoin public immutable FRAX;
+    IStock public immutable FXS;
     ERC20 public immutable collateral_token;
-    IFraxPool public  pool;
+    IStablecoinPool public  pool;
     address public custodian_address;
 
     // Collateral related
@@ -41,11 +41,9 @@ contract AMOMinter is Ownable {
     // Minimum collateral ratio needed for new FRAX minting
     uint256 public min_cr = 810000;
 
-    // Frax mint balances
     mapping(address => int256) public frax_mint_balances; // Amount of FRAX the contract minted, by AMO
     int256 public frax_mint_sum = 0; // Across all AMOs
 
-    // Fxs mint balances
     mapping(address => int256) public fxs_mint_balances; // Amount of FXS the contract minted, by AMO
     int256 public fxs_mint_sum = 0; // Across all AMOs
 
@@ -62,25 +60,22 @@ contract AMOMinter is Ownable {
 
     // AMO balance corrections
     mapping(address => int256[2]) public correction_offsets_amos;
-    // [amo_address][0] = AMO's frax_val_e18
-    // [amo_address][1] = AMO's collat_val_e18
 
-    /* ========== CONSTRUCTOR ========== */
 
     constructor (
-        address _owner_address,
+        address _operatorMsg,
         address _custodian_address,
         address _stableAddress,
         address _shareAddress,
         address _collateral_address,
         address _pool_address
-    )  {
+    ) CheckPermission(_operatorMsg) {
         custodian_address = _custodian_address;
 
-        FRAX = IFrax(_stableAddress);
-        FXS = IFxs(_shareAddress);
+        FRAX = IStablecoin(_stableAddress);
+        FXS = IStock(_shareAddress);
         // Pool related
-        pool = IFraxPool(_pool_address);
+        pool = IStablecoinPool(_pool_address);
 
         // Collateral related
         collateral_address = _collateral_address;
@@ -335,7 +330,7 @@ contract AMOMinter is Ownable {
     // Removes an AMO
     function removeAMO(address amo_address, bool sync_too) public onlyByOwnGov {
         require(amo_address != address(0), "Zero address detected");
-        require(amos[amo_address] == true, "Address nonexistant");
+        require(amos[amo_address] == true, "Address no exist");
 
         // Delete from the mapping
         delete amos[amo_address];
@@ -383,7 +378,7 @@ contract AMOMinter is Ownable {
     }
 
     function setFraxPool(address _pool_address) external onlyByOwnGov {
-        pool = IFraxPool(_pool_address);
+        pool = IStablecoinPool(_pool_address);
 
         // Make sure the collaterals match, or balances could get corrupted
         //todo

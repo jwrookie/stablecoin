@@ -6,6 +6,8 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "../tools/CheckPermission.sol";
 
 
 
@@ -31,7 +33,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 //#       maxtime (4 years?)
 
 
-contract Locker is IERC721, IERC721Metadata {
+contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
+    event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
+    event Supply(uint prevSupply, uint supply);
+    event BoostAdded(address _address);
+    event BoostRemoved(address _address);
+
+
     struct Point {
         int128 bias;
         int128 slope; // # -dweight / dt
@@ -58,8 +66,6 @@ contract Locker is IERC721, IERC721Metadata {
         DepositType deposit_type,
         uint ts
     );
-    event Withdraw(address indexed provider, uint tokenId, uint value, uint ts);
-    event Supply(uint prevSupply, uint supply);
 
     uint internal immutable duration;
     uint internal constant MAXTIME = 4 * 365 * 86400;
@@ -79,9 +85,8 @@ contract Locker is IERC721, IERC721Metadata {
     mapping(uint => uint) public user_point_epoch;
     mapping(uint => int128) public slope_changes; // time -> signed slope change
 
-    mapping(uint => uint) public attachments;
     mapping(uint => bool) public voted;
-    address public voter;
+    mapping(address => bool) public boosts;
 
     string constant public name = "veNFT";
     string constant public symbol = "veNFT";
@@ -89,7 +94,7 @@ contract Locker is IERC721, IERC721Metadata {
     uint8 constant public decimals = 18;
 
 
-    uint internal tokenId;
+    uint public tokenId;
 
 
     mapping(uint => address) internal idToOwner;
@@ -112,32 +117,19 @@ contract Locker is IERC721, IERC721Metadata {
 
     mapping(bytes4 => bool) internal supportedInterfaces;
 
-
     bytes4 internal constant ERC165_INTERFACE_ID = 0x01ffc9a7;
-
 
     bytes4 internal constant ERC721_INTERFACE_ID = 0x80ac58cd;
 
-
     bytes4 internal constant ERC721_METADATA_INTERFACE_ID = 0x5b5e139f;
-
-    uint8 internal constant _not_entered = 1;
-    uint8 internal constant _entered = 2;
-    uint8 internal _entered_state = 1;
-    modifier nonreentrant() {
-        require(_entered_state == _not_entered);
-        _entered_state = _entered;
-        _;
-        _entered_state = _not_entered;
-    }
 
 
     constructor(
+        address _operatorMsg,
         address tokenAddr,
         uint256 _duration
-    ) {
+    )  CheckPermission(_operatorMsg){
         token = tokenAddr;
-        voter = msg.sender;
         point_history[0].blk = block.number;
         point_history[0].ts = block.timestamp;
 
@@ -152,6 +144,12 @@ contract Locker is IERC721, IERC721Metadata {
         // burn-ish
         emit Transfer(address(this), address(0), tokenId);
     }
+
+    modifier onlyBoost() {
+        require(boosts[msg.sender], 'only voter');
+        _;
+    }
+
 
     function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
         return supportedInterfaces[_interfaceID];
@@ -277,7 +275,7 @@ contract Locker is IERC721, IERC721Metadata {
         uint _tokenId,
         address _sender
     ) internal {
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        require(!voted[_tokenId], "attached");
         // Check requirements
         require(_isApprovedOrOwner(_sender, _tokenId));
         // Clear approval. Throws if `_from` is not the current owner
@@ -556,33 +554,29 @@ contract Locker is IERC721, IERC721Metadata {
         emit Supply(supply_before, supply_before + _value);
     }
 
-    function setVoter(address _voter) external {
-        require(msg.sender == voter);
-        voter = _voter;
+    function addBoosts(address _address) external onlyOperator {
+        require(_address != address(0), "0 address");
+        require(boosts[_address] == false, "Address already exists");
+        boosts[_address] = true;
+        emit BoostAdded(_address);
     }
 
-    function voting(uint _tokenId) external {
-        require(msg.sender == voter);
+    function removeBoosts(address _address) external onlyOperator {
+        require(boosts[_address] == true, "Address no exist");
+        delete boosts[_address];
+        emit BoostRemoved(_address);
+    }
+
+    function voting(uint _tokenId) external onlyBoost {
         voted[_tokenId] = true;
     }
 
-    function abstain(uint _tokenId) external {
-        require(msg.sender == voter);
+    function abstain(uint _tokenId) external onlyBoost {
         voted[_tokenId] = false;
     }
 
-    function used(uint _tokenId) external {
-        require(msg.sender == voter);
-        attachments[_tokenId] = 1;
-    }
-
-    function detach(uint _tokenId) external {
-        require(msg.sender == voter);
-        attachments[_tokenId] = attachments[_tokenId] - 1;
-    }
-
     function merge(uint _from, uint _to) external {
-        require(attachments[_from] == 0 && !voted[_from], "attached");
+        require(!voted[_from], "attached");
         require(_from != _to);
         require(_isApprovedOrOwner(msg.sender, _from));
         require(_isApprovedOrOwner(msg.sender, _to));
@@ -607,7 +601,7 @@ contract Locker is IERC721, IERC721Metadata {
         _checkpoint(0, LockedBalance(0, 0), LockedBalance(0, 0));
     }
 
-    function deposit_for(uint _tokenId, uint _value) external nonreentrant {
+    function deposit_for(uint _tokenId, uint _value) external nonReentrant {
         LockedBalance memory _locked = locked[_tokenId];
 
         require(_value > 0);
@@ -636,15 +630,15 @@ contract Locker is IERC721, IERC721Metadata {
     }
 
 
-    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonreentrant returns (uint) {
+    function create_lock_for(uint _value, uint _lock_duration, address _to) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, _to);
     }
 
-    function create_lock(uint _value, uint _lock_duration) external nonreentrant returns (uint) {
+    function create_lock(uint _value, uint _lock_duration) external nonReentrant returns (uint) {
         return _create_lock(_value, _lock_duration, msg.sender);
     }
 
-    function increase_amount(uint _tokenId, uint _value) external nonreentrant {
+    function increase_amount(uint _tokenId, uint _value) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -658,7 +652,7 @@ contract Locker is IERC721, IERC721Metadata {
     }
 
 
-    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonreentrant {
+    function increase_unlock_time(uint _tokenId, uint _lock_duration) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -673,9 +667,9 @@ contract Locker is IERC721, IERC721Metadata {
         _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
 
-    function withdraw(uint _tokenId) external nonreentrant {
+    function withdraw(uint _tokenId) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
-        require(attachments[_tokenId] == 0 && !voted[_tokenId], "attached");
+        require(!voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
         require(block.timestamp >= _locked.end, "The lock didn't expire");
@@ -689,6 +683,26 @@ contract Locker is IERC721, IERC721Metadata {
         // _locked has only 0 end
         // Both can have >= 0 amount
         _checkpoint(_tokenId, _locked, LockedBalance(0, 0));
+
+        assert(IERC20(token).transfer(msg.sender, value));
+
+        // Burn the NFT
+        _burn(_tokenId);
+
+        emit Withdraw(msg.sender, _tokenId, value, block.timestamp);
+        emit Supply(supply_before, supply_before - value);
+    }
+
+    function emergencyWithdraw(uint256 _tokenId) public nonReentrant {
+        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        voted[_tokenId] = false;
+        LockedBalance memory _locked = locked[_tokenId];
+        require(block.timestamp >= _locked.end, "The lock didn't expire");
+        uint value = uint(int256(_locked.amount));
+
+        locked[_tokenId] = LockedBalance(0, 0);
+        uint supply_before = supply;
+        supply = supply_before - value;
 
         assert(IERC20(token).transfer(msg.sender, value));
 
