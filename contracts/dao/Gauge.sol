@@ -73,14 +73,14 @@ contract Gauge is ReentrancyGuard {
 
     function getReward(address account) external nonReentrant {
         require(msg.sender == account || msg.sender == boost);
-        IBoost(boost).distribute(address(this));
         UserInfo memory user = userInfo[account];
-        uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pendingAmount = pendingMax(account);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, account, pendingAmount);
             emit ClaimRewards(msg.sender, rewardToken, pendingAmount);
         }
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
+        IBoost(boost).distribute(address(this));
     }
 
     function derivedBalance(address account, uint _balance) public view returns (uint) {
@@ -106,7 +106,7 @@ contract Gauge is ReentrancyGuard {
         require(amount > 0, "amount is 0");
         UserInfo storage user = userInfo[msg.sender];
         if (user.amount > 0) {
-            uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+            uint256 pendingAmount = pendingMax(msg.sender);
             if (pendingAmount > 0) {
                 _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
             }
@@ -145,7 +145,7 @@ contract Gauge is ReentrancyGuard {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdrawSwap: not good");
 
-        uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+        uint256 pendingAmount = pendingMax(msg.sender);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
         }
@@ -167,7 +167,7 @@ contract Gauge is ReentrancyGuard {
     }
 
     // View function to see pending swap token on frontend.
-    function pending(address _user) external view returns (uint256){
+    function pendingMax(address _user) public view returns (uint256){
         UserInfo storage user = userInfo[_user];
         uint256 _accTokenPerShare = accTokenPerShare;
         if (user.amount > 0) {
@@ -182,6 +182,11 @@ contract Gauge is ReentrancyGuard {
             }
         }
         return 0;
+    }
+
+    function pending(address _user) public view returns (uint256){
+        uint256 amount = pendingMax(_user);
+        return derivedBalance(_user, amount);
     }
 
 

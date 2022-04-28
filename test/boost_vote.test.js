@@ -35,23 +35,31 @@ contract('Boost', () => {
         return after - before;
     }
 
-    async function getRewardAndPrint() {
-        result = await gauge_usdc.userInfo(dev.address);
+    async function getRewardAndPrint(user) {
+        result = await gauge_usdc.userInfo(user.address);
         console.log("rewardDebt:" + result.rewardDebt);
+        console.log("derivedBalance:" + await gauge_usdc.derivedBalance(user.address,"27000000000000000000"));
         console.log("accTokenPerShare:" + await gauge_usdc.accTokenPerShare());
         console.log("tokenPerBlock:" + await gauge_usdc.tokenPerBlock());
-        // console.log("derivedBalance:" + await gauge_usdc.derivedBalance(dev.address));
+        // console.log("derivedBalance:" + await gauge_usdc.derivedBalance(user.address));
         console.log("totalSupply:" + await gauge_usdc.totalSupply());
         console.log("_supply:" + await boost.weights(usdc.address));
         console.log("_adjusted:" + await boost.votes(1, usdc.address));
         console.log("useVe:" + await lock.balanceOfNFT(1));
+        maxPend=await gauge_usdc.pendingMax(user.address)
+        console.log("maxPend:" + maxPend);
+        pend = await gauge_usdc.pending(user.address);
+        console.log("pend:" + pend);
         console.log("get reward befor blocknum:" + await getCurrentBlock());
-        let beforeBalance = await fxs.balanceOf(dev.address);
-        await gauge_usdc.connect(dev).getReward(dev.address);
-        let afterBalance = await fxs.balanceOf(dev.address);
+        let beforeBalance = await fxs.balanceOf(user.address);
+        console.log("beforeBalance:" + beforeBalance);
+        await gauge_usdc.connect(user).getReward(user.address);
+        let afterBalance = await fxs.balanceOf(user.address);
+        console.log("afterBalance:" + afterBalance);
         let diffBef = afterBalance.sub(beforeBalance);
         console.log("increase:" + diffBef);
-        console.log("get reward after blocknum:" + await getCurrentBlock());
+        console.log("get reward after block num:" + await getCurrentBlock());
+        console.log("derivedBalance:" + await gauge_usdc.derivedBalance(user.address,"27000000000000000000"));
     }
 
     beforeEach(async () => {
@@ -139,7 +147,6 @@ contract('Boost', () => {
         await time.advanceBlockTo(parseInt(lastBlock) + 1);
         //  console.log("get reward befor blocknum:" + await getCurrentBlock());
 
-        const pend = await gauge_usdc.pending(owner.address);
 
         console.log("lastRewardBlock:" + await gauge_usdc.lastRewardBlock())
         console.log("accTokenPerShare:" + await gauge_usdc.accTokenPerShare())
@@ -162,16 +169,11 @@ contract('Boost', () => {
         //console.log("fxs bef:" + await fxs.balanceOf(owner.address))
         let bef = await fxs.balanceOf(owner.address)
         console.log("---------------------------")
-
-        await gauge_usdc.getReward(owner.address);
-
-        console.log("get reward befor blocknum:" + await getCurrentBlock());
-        let aft = await fxs.balanceOf(owner.address)
-        console.log("fxs aft:" + await fxs.balanceOf(owner.address))
-
-        console.log("diff:"+aft.sub(bef))
-        console.log("pend:" + pend)
-
+        maxPend=await gauge_usdc.pendingMax(owner.address)
+        console.log("maxPend:" + maxPend);
+        pend = await gauge_usdc.pending(owner.address);
+        console.log("pend:" + pend);
+        await getRewardAndPrint(owner);
 
 
     });
