@@ -5,15 +5,26 @@ import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../interface/IGauge.sol";
 import "../interface/IGaugeFactory.sol";
+import "./AbstractController.sol";
 
-import './AbstractBoost.sol';
 
-
-contract GaugeController is ReentrancyGuard {
+contract GaugeController is ReentrancyGuard, AbstractController {
     using SafeMath for uint256;
 
+    // Info of each user.
+    struct UserInfo {
+        uint256 amount;
+        uint256 rewardDebt;
+    }
+
+    uint public totalVe;
+
+    constructor(address _operatorMsg, address __ve)AbstractController(_operatorMsg, __ve) {
+
+    }
 
 }

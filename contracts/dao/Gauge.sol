@@ -175,7 +175,7 @@ contract Gauge is ReentrancyGuard {
                 uint256 mul = block.number.sub(lastRewardBlock);
                 uint256 tokenReward = tokenPerBlock.mul(mul);
                 _accTokenPerShare = _accTokenPerShare.add(tokenReward.mul(1e12).div(totalSupply));
-                return user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+                return user.amount.mul(_accTokenPerShare).div(1e12).sub(user.rewardDebt);
             }
             if (block.number == lastRewardBlock) {
                 return user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
