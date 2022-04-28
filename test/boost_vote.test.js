@@ -143,8 +143,8 @@ contract('Boost', () => {
     //
     // });
     async function getRewardAndPrint() {
-        console.log("_balance:" + await gauge_usdc.balanceOf(dev.address));
-        console.log("derivedBalance:" + await gauge_usdc.derivedBalance(dev.address));
+        // console.log("_balance:" + await gauge_usdc.balanceOf(dev.address));
+        // console.log("derivedBalance:" + await gauge_usdc.derivedBalance(dev.address));
         console.log("totalSupply:" + await gauge_usdc.totalSupply());
         console.log("_supply:" + await boost.weights(usdc.address));
         console.log("_adjusted:" + await boost.votes(1, usdc.address));

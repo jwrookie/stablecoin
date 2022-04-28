@@ -68,10 +68,10 @@ contract Gauge is ReentrancyGuard {
             _amount = bal;
         }
         _amount = derivedBalance(account, _amount);
-        TransferHelper.safeTransfer(token, _to, _amount);
+        TransferHelper.safeTransfer(token, account, _amount);
     }
 
-    function getReward(address account, address[] memory tokens) external nonReentrant {
+    function getReward(address account) external nonReentrant {
         require(msg.sender == account || msg.sender == boost);
         IBoost(boost).distribute(address(this));
         UserInfo memory user = userInfo[account];
