@@ -73,7 +73,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }));
         LpOfPid[address(_pool)] = poolLength() - 1;
 
-        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken);
+        address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken, address(swapToken));
         IERC20(address(swapToken)).approve(_gauge, type(uint).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;

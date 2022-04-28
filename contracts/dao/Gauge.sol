@@ -24,11 +24,17 @@ contract Gauge is ReentrancyGuard {
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt.
+
     }
+
+    uint256 public tokenPerBlock;
+    uint256 accTokenPerShare; // Accumulated swap token per share, times 1e12.
+    uint256 lastRewardBlock;  // Last block number that swap token distribution occurs
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
     address public immutable boost;
+    address public immutable rewardToken;
 
     uint public derivedSupply;
     mapping(address => uint) public derivedBalances;
@@ -81,10 +87,17 @@ contract Gauge is ReentrancyGuard {
     mapping(address => mapping(uint => RewardPerTokenCheckpoint)) public rewardPerTokenCheckpoints;
     mapping(address => uint) public rewardPerTokenNumCheckpoints;
 
-    constructor(address _stake, address __ve, address _boost) {
+    constructor(address _stake, address __ve, address _boost, address _rewardToken) {
         stake = _stake;
         veToken = __ve;
         boost = _boost;
+        rewardToken = _rewardToken;
+    }
+
+
+    modifier onlyBoost() {
+        require(msg.sender == boost, 'only boost');
+        _;
     }
 
     function getPriorBalanceIndex(address account, uint timestamp) public view returns (uint) {
@@ -249,17 +262,11 @@ contract Gauge is ReentrancyGuard {
     function getReward(address account, address[] memory tokens) external nonReentrant {
         require(msg.sender == account || msg.sender == boost);
         IBoost(boost).distribute(address(this));
-
-        for (uint i = 0; i < tokens.length; i++) {
-            (rewardPerTokenStored[tokens[i]], lastUpdateTime[tokens[i]]) = _updateRewardPerToken(tokens[i]);
-
-            uint _reward = earned(tokens[i], account);
-            lastEarn[tokens[i]][account] = block.timestamp;
-            userRewardPerTokenStored[tokens[i]][account] = rewardPerTokenStored[tokens[i]];
-            if (_reward > 0) {
-                _safeTokenTransfer(tokens[i], account, _reward);
-            }
-            emit ClaimRewards(msg.sender, tokens[i], _reward);
+        UserInfo memory user = userInfo[account];
+        uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+        if (pendingAmount > 0) {
+            _safeTokenTransfer(rewardToken, account, pendingAmount);
+            emit ClaimRewards(msg.sender, rewardToken, pendingAmount);
         }
 
         uint _derivedBalance = derivedBalances[account];
@@ -273,12 +280,12 @@ contract Gauge is ReentrancyGuard {
     }
 
 
-    function rewardPerToken(address token) public view returns (uint) {
-        if (derivedSupply == 0) {
-            return rewardPerTokenStored[token];
-        }
-        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - lastUpdateTime[token]) * rewardRate[token] * PRECISION / derivedSupply);
-    }
+    //    function rewardPerToken(address token) public view returns (uint) {
+    //        if (derivedSupply == 0) {
+    //            return rewardPerTokenStored[token];
+    //        }
+    //        return rewardPerTokenStored[token] + ((lastTimeRewardApplicable(token) - lastUpdateTime[token]) * rewardRate[token] * PRECISION / derivedSupply);
+    //    }
 
     function derivedBalance(address account) public view returns (uint) {
         uint _tokenId = tokenIds[account];
@@ -396,7 +403,7 @@ contract Gauge is ReentrancyGuard {
 
         Checkpoint memory cp = checkpoints[account][_endIndex];
         (uint _rewardPerTokenStored,) = getPriorRewardPerToken(token, cp.timestamp);
-        reward += cp.balanceOf * (rewardPerToken(token) - Math.max(_rewardPerTokenStored, userRewardPerTokenStored[token][account])) / PRECISION;
+        //        reward += cp.balanceOf * (rewardPerToken(token) - Math.max(_rewardPerTokenStored, userRewardPerTokenStored[token][account])) / PRECISION;
 
         return reward;
     }
@@ -474,7 +481,26 @@ contract Gauge is ReentrancyGuard {
         emit Withdraw(msg.sender, tokenId, amount);
     }
 
-    function notifyRewardAmount(address token, uint _rewardRate) external {
+    // View function to see pending swap token on frontend.
+    function pending(address _user) external view returns (uint256){
+        UserInfo storage user = userInfo[_user];
+        uint256 _accTokenPerShare = accTokenPerShare;
+        if (user.amount > 0) {
+            if (block.number > lastRewardBlock) {
+                uint256 mul = block.number.sub(lastRewardBlock);
+                uint256 tokenReward = tokenPerBlock.mul(mul);
+                _accTokenPerShare = _accTokenPerShare.add(tokenReward.mul(1e12).div(totalSupply));
+                return user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+            }
+            if (block.number == lastRewardBlock) {
+                return user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+            }
+        }
+        return 0;
+    }
+
+
+    function notifyRewardAmount(address token, uint _rewardRate) external onlyBoost {
         require(token != stake, "no stake");
         if (rewardRate[token] == 0) {
             _writeRewardPerTokenCheckpoint(token, 0, block.timestamp);
@@ -485,6 +511,7 @@ contract Gauge is ReentrancyGuard {
             isReward[token] = true;
             rewards.push(token);
         }
+        accTokenPerShare = accTokenPerShare.add(_rewardRate.mul(1e12).div(totalSupply));
         emit NotifyReward(msg.sender, token, _rewardRate);
     }
 
