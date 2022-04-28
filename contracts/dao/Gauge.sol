@@ -34,8 +34,8 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint) public tokenIds;
 
     uint256 public tokenPerBlock;
-    uint256 accTokenPerShare; // Accumulated swap token per share, times 1e12.
-    uint256 lastRewardBlock;  // Last block number that swap token distribution occurs
+    uint256 public accTokenPerShare; // Accumulated swap token per share, times 1e12.
+    uint256 public lastRewardBlock;  // Last block number that swap token distribution occurs
 
     uint public totalSupply;
 
@@ -80,6 +80,7 @@ contract Gauge is ReentrancyGuard {
             _safeTokenTransfer(rewardToken, account, pendingAmount);
             emit ClaimRewards(msg.sender, rewardToken, pendingAmount);
         }
+        user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
     }
 
     function derivedBalance(address account, uint _balance) public view returns (uint) {
@@ -190,8 +191,9 @@ contract Gauge is ReentrancyGuard {
             return;
         }
         tokenPerBlock = _rewardRate;
-        accTokenPerShare = accTokenPerShare.add(_rewardRate.mul(1e12).div(totalSupply));
         if (totalSupply > 0) {
+            uint256 mul = block.number.sub(lastRewardBlock);
+            accTokenPerShare = accTokenPerShare.add(_rewardRate.mul(mul).mul(1e12).div(totalSupply));
             lastRewardBlock = block.number;
         }
         emit NotifyReward(msg.sender, token, _rewardRate);
