@@ -27,22 +27,18 @@ contract Gauge is ReentrancyGuard {
 
     }
 
-    uint256 public tokenPerBlock;
-    uint256 accTokenPerShare; // Accumulated swap token per share, times 1e12.
-    uint256 lastRewardBlock;  // Last block number that swap token distribution occurs
+
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
     address public immutable boost;
     address public immutable rewardToken;
-
-    uint public derivedSupply;
-    mapping(address => uint) public derivedBalances;
-
     uint internal constant PRECISION = 10 ** 18;
-    
-
     mapping(address => uint) public tokenIds;
+
+    uint256 public tokenPerBlock;
+    uint256 accTokenPerShare; // Accumulated swap token per share, times 1e12.
+    uint256 lastRewardBlock;  // Last block number that swap token distribution occurs
 
     uint public totalSupply;
 
