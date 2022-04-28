@@ -73,7 +73,8 @@ contract Gauge is ReentrancyGuard {
 
     function getReward(address account) external nonReentrant {
         require(msg.sender == account || msg.sender == boost);
-        UserInfo memory user = userInfo[account];
+        updatePool();
+        UserInfo storage user = userInfo[account];
         uint256 pendingAmount = pendingMax(account);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, account, pendingAmount);
@@ -104,6 +105,7 @@ contract Gauge is ReentrancyGuard {
 
     function deposit(uint amount, uint tokenId) public nonReentrant {
         require(amount > 0, "amount is 0");
+        updatePool();
         UserInfo storage user = userInfo[msg.sender];
         if (user.amount > 0) {
             uint256 pendingAmount = pendingMax(msg.sender);
@@ -144,7 +146,7 @@ contract Gauge is ReentrancyGuard {
     function withdrawToken(uint _amount, uint tokenId) public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdrawSwap: not good");
-
+        updatePool();
         uint256 pendingAmount = pendingMax(msg.sender);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
@@ -165,6 +167,27 @@ contract Gauge is ReentrancyGuard {
         }
         emit Withdraw(msg.sender, tokenId, _amount);
     }
+
+    function updatePool() public {
+
+        if (block.number <= lastRewardBlock) {
+            return;
+        }
+
+        if (totalSupply == 0) {
+            lastRewardBlock = block.number;
+            return;
+        }
+        if (tokenPerBlock <= 0) {
+            return;
+        }
+        uint256 mul = block.number.sub(lastRewardBlock);
+        uint256 tokenReward = tokenPerBlock.mul(mul);
+
+        accTokenPerShare = accTokenPerShare.add(tokenReward.mul(1e12).div(totalSupply));
+        lastRewardBlock = block.number;
+    }
+
 
     // View function to see pending swap token on frontend.
     function pendingMax(address _user) public view returns (uint256){
