@@ -28,6 +28,11 @@ contract CheckPermission is ICheckPermission {
         _;
     }
 
+    modifier onlyAEOWhiteList() {
+        require(check(msg.sender), 'aeo or whitelist');
+        _;
+    }
+
     function operator() public view override returns (address) {
         return operatable.operator();
     }

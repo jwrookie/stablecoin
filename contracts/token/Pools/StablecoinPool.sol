@@ -37,7 +37,6 @@ contract StablecoinPool is AbstractPausable, Multicall {
     mapping(address => uint256) public redeemCollateralBalances;
     uint256 public unclaimedPoolCollateral;
     uint256 public unclaimedPoolFXS;
-    mapping(address => uint256) public lastRedeemed;
 
     // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
@@ -238,7 +237,6 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         redeemCollateralBalances[msg.sender] = redeemCollateralBalances[msg.sender].add(collateral_needed);
         unclaimedPoolCollateral = unclaimedPoolCollateral.add(collateral_needed);
-        lastRedeemed[msg.sender] = block.number;
 
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
@@ -274,8 +272,6 @@ contract StablecoinPool is AbstractPausable, Multicall {
         redeemFXSBalances[msg.sender] = redeemFXSBalances[msg.sender].add(fxs_amount);
         unclaimedPoolFXS = unclaimedPoolFXS.add(fxs_amount);
 
-        lastRedeemed[msg.sender] = block.number;
-
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
         FXS.poolMint(address(this), fxs_amount);
@@ -297,8 +293,6 @@ contract StablecoinPool is AbstractPausable, Multicall {
         redeemFXSBalances[msg.sender] = redeemFXSBalances[msg.sender].add(fxs_amount);
         unclaimedPoolFXS = unclaimedPoolFXS.add(fxs_amount);
 
-        lastRedeemed[msg.sender] = block.number;
-
         require(FXS_out_min <= fxs_amount, "Slippage limit reached");
         // Move all external functions to the end
         FRAX.poolBurnFrom(msg.sender, FRAX_amount);
@@ -308,9 +302,9 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // After a redemption happens, transfer the newly minted FXS and owed collateral from this pool
     // contract to the user. Redemption is split into two functions to prevent flash loans from being able
     // to take out FRAX/collateral from the system, use an AMM to trade the new price, and then mint back into the system.
-    function collectRedemption() external {
-        //todo
-        //        require((lastRedeemed[msg.sender].add(redemption_delay)) <= block.number, "Must wait for redemption_delay blocks before collecting redemption");
+    // Must wait for (AEO or Whitelist) blocks before collecting redemption
+    function collectRedemption() external onlyAEOWhiteList {
+
         bool sendFXS = false;
         bool sendCollateral = false;
         uint FXSAmount = 0;

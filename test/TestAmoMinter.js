@@ -192,7 +192,7 @@ contract('AMOMinter', async function () {
         await router.addLiquidity(
             frax.address,
             weth.address,
-            toWei('0.1'),
+            toWei('0.5'),
             toWei('1'),
             0,
             0,
@@ -433,9 +433,30 @@ contract('AMOMinter', async function () {
         expect(parseInt(await fxs.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         console.log("2");
         // await amoMinter.addAMO(owner.address, true);
-        await usdc.mint(amoMinter.address, toWei('1'));
-        expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
-        await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
+        // await mockChainLink.setAnswer(BigNumber.from(1e18));
+        await mockChainLink.setAnswer(BigNumber.from("1000000000000000000"));
+        // Set period
+        await frax_uniswapOracle.setPeriod(1);
+        expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
+        // Set oracle
+        await frax_uniswapOracle.update();
+        console.log("frax_price:\t" + await frax.fraxPrice());
+        console.log("usdc_value_in_pool:\t" + await usdc.balanceOf(usdcPool.address));
+        console.log("unclaimend_pool_collateral:\t" + await usdcPool.unclaimedPoolCollateral());
+        await usdcPool.setPoolParameters(toWei('1'), 0, 0, 0, 0, 0, 0);
+        console.log("owner_fxs:\t" + await fxs.balanceOf(owner.address));
+        console.log("second_global_collateral_ratio:\t" + globalCollateralRatio);
+        // Swap
+        pairArray = new Array(2);
+        pairArray[0] = frax.address;
+        pairArray[1] = weth.address;
+        await usdcPool.mint1t1FRAX(toWei('1'), 0);
+        await usdcPool.mintAlgorithmicFRAX(toWei('1'), 0);
+        await usdcPool.mintFractionalFRAX(toWei('1'), 1, 0);
+        // console.log("owner_fxs:\t" + await usdcPool.FXS_NEEDED());
+        console.log("usdc_value_in_pool:\t" + await usdc.balanceOf(usdcPool.address));
+
+        // await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
         // await amoMinter.receiveCollatFromAMO(100);
         // await amoMinter.oldPoolRedeem(1);
         // amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);

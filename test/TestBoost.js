@@ -10,8 +10,6 @@ contract('test Boost', async function() {
     let testERC20;
     let veToken;
     let duration;
-    let firstMockToken;
-    let secondMockToken;
     let oracle;
     let lpToken;
     let startBlock;
@@ -24,7 +22,6 @@ contract('test Boost', async function() {
     let poolInfoMap;
     let tokenSupply;
     let gaugeFactory;
-    let operatAble;
     let checkOper;
     let boost;
     let fax;
@@ -89,17 +86,17 @@ contract('test Boost', async function() {
 
     beforeEach(async function(){
         [owner, seObject] = await ethers.getSigners();
-        const Operatable = await ethers.getContractFactory("Operatable");
-        operatAble = await Operatable.deploy();
-        const CheckOper = await ethers.getContractFactory("CheckOper");
-        checkOper = await CheckOper.deploy(operatAble.address);
+        const testOperatable = await ethers.getContractFactory("Operatable");
+        operatable = await testOperatable.deploy();
+        // const CheckOper = await ethers.getContractFactory("CheckOper");
+        // checkOper = await CheckOper.deploy(operatable.address);
 
         // VeToken address
         const VeToken = await ethers.getContractFactory("Locker");
         const TestERC20 = await ethers.getContractFactory("TestERC20");
         testERC20 = await TestERC20.deploy();
         duration = getDurationTime(1);
-        veToken = await VeToken.deploy(testERC20.address, duration);
+        veToken = await VeToken.deploy(operatable.address,testERC20.address, duration);
         // Approve
         await testERC20.connect(owner).approve(veToken.address, toWei("1000"));
         await testERC20.connect(seObject).approve(veToken.address, toWei("1000"));
@@ -117,26 +114,26 @@ contract('test Boost', async function() {
         oracle = await Oracle.deploy();
 
         // Lp token
-        const Frax = await ethers.getContractFactory("FRAXStablecoin");
-        frax = await Frax.deploy("testName", "testSymbol");
-        const Fax = await ethers.getContractFactory("FRAXShares");
-        fax = await Fax.deploy("testName", "testSymbol", oracle.address);
+        const Frax = await ethers.getContractFactory("RStablecoin");
+        frax = await Frax.deploy(operatable.address, "frax", "frax");
+        const Fax = await ethers.getContractFactory("Stock");
+        fax = await Fax.deploy(operatable.address, "fxs", "fxs", oracle.address);
         await fax.setFraxAddress(frax.address);
         await frax.setFXSAddress(fax.address);
         lpToken = testERC20.address;
 
         // Swap token address
         const MockToken = await ethers.getContractFactory("MockToken");
-        firstMockToken = await MockToken.deploy("firstObject", "firstObject", 18, toWei("1"));
-        secondMockToken = await MockToken.deploy("secondObject", "secondObject", 18, toWei("1"));
-        seLpToken = firstMockToken.address;
-        thLpToken = secondMockToken.address;
+        token0 = await MockToken.deploy("firstObject", "firstObject", 18, toWei("1"));
+        token1 = await MockToken.deploy("secondObject", "secondObject", 18, toWei("1"));
+        seLpToken = token0.address;
+        thLpToken = token1.address;
 
         // Boost address
         startBlock = await time.latestBlock();
         const Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            checkOper.address,
+            operatable.address,
             veToken.address,
             gaugeFactory.address,
             fax.address,
@@ -153,7 +150,7 @@ contract('test Boost', async function() {
         await fax.mint(seObject.address, toWei("100000"));
         await testERC20.mint(seObject.address, toWei("100000"));
 
-        await veToken.setVoter(boost.address);
+        await veToken.addBoosts(boost.address);
     });
 
     it('test poolLength', async function(){
@@ -245,35 +242,6 @@ contract('test Boost', async function() {
         poolInfoAllocPoint = poolInfoMap[1];
         console.log(checkInfoEq(parseInt(poolInfoAllocPoint), 300)); // true
     });
-
-    it('test attachTokenToGauge', async function(){
-        let lockBalanceMap;
-        let lockBalanceAmount;
-        let lockAttachments;
-
-        duration = getDurationTime(1);
-
-        // Get supply
-        gaugeLpToken = await boost.gauges(lpToken);
-        tokenSupply = await frax.balanceOf(gaugeLpToken);
-        tokenSupply = tokenSupply + 10;
-
-        // Call the function create_lock
-        durationTime = getDurationTime(1) // Lock one day
-
-        // Get tokenId before add you need to approve
-        await veToken.create_lock(tokenSupply, duration);
-
-        // Get attachments
-        lockAttachments = await veToken.attachments(0);
-        assert.equal(parseInt(lockAttachments), 0);
-
-        // Get lockbalance
-        lockBalanceMap = await veToken.locked(0);
-        lockBalanceAmount = lockBalanceMap[0];
-        console.log(parseInt(lockBalanceAmount));
-    });
-
     it('test distribute', async function(){
         let poolInfoLastRewardBlock;
         let mul;
