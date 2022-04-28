@@ -143,6 +143,7 @@ contract('Boost', () => {
     //
     // });
     async function getRewardAndPrint() {
+        console.log("derivedBalance:" + gauge_usdc.derivedBalance(dev.address));
         console.log("get reward befor blocknum:" + await getCurrentBlock());
         let beforeBalance = await fxs.balanceOf(dev.address);
         await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
