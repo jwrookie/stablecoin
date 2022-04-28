@@ -19,15 +19,12 @@ contract Gauge is ReentrancyGuard {
     event NotifyReward(address indexed from, address indexed reward, uint rewardRate);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
-
     // Info of each user.
     struct UserInfo {
         uint256 amount;     // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt.
 
     }
-
-
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
@@ -64,12 +61,13 @@ contract Gauge is ReentrancyGuard {
         }
     }
 
-    function _safeTokenTransfer(address token, address _to, uint256 _amount) internal {
+    function _safeTokenTransfer(address token, address account, uint256 _amount) internal {
         _safeTransferFromToken(token, _amount);
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (_amount > bal) {
             _amount = bal;
         }
+        _amount = derivedBalance(account, _amount);
         TransferHelper.safeTransfer(token, _to, _amount);
     }
 
@@ -84,9 +82,8 @@ contract Gauge is ReentrancyGuard {
         }
     }
 
-    function derivedBalance(address account) public view returns (uint) {
+    function derivedBalance(address account, uint _balance) public view returns (uint) {
         uint _tokenId = tokenIds[account];
-        uint _balance = userInfo[account].amount;
         uint _derived = _balance * 30 / 100;
         uint _adjusted = 0;
         uint _supply = IBoost(boost).weights(stake);
@@ -105,13 +102,19 @@ contract Gauge is ReentrancyGuard {
     }
 
     function deposit(uint amount, uint tokenId) public nonReentrant {
-        require(amount > 0);
-
-        TransferHelper.safeTransferFrom(stake, msg.sender, address(this), amount);
-        totalSupply += amount;
-        //todo
-        //        userInfo[msg.sender] += amount;
-
+        require(amount > 0, "amount is 0");
+        UserInfo storage user = userInfo[msg.sender];
+        if (user.amount > 0) {
+            uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+            if (pendingAmount > 0) {
+                _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
+            }
+        }
+        if (amount > 0) {
+            TransferHelper.safeTransferFrom(stake, msg.sender, address(this), amount);
+            totalSupply += amount;
+            user.amount = user.amount.add(amount);
+        }
         if (tokenId > 0) {
             require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
             if (tokenIds[msg.sender] == 0) {
@@ -121,7 +124,7 @@ contract Gauge is ReentrancyGuard {
         } else {
             tokenId = tokenIds[msg.sender];
         }
-
+        user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
         emit Deposit(msg.sender, tokenId, amount);
     }
 
@@ -137,11 +140,21 @@ contract Gauge is ReentrancyGuard {
         withdrawToken(amount, tokenId);
     }
 
-    function withdrawToken(uint amount, uint tokenId) public nonReentrant {
-        totalSupply -= amount;
-        //todo
-        //        balanceOf[msg.sender] -= amount;
-        TransferHelper.safeTransfer(stake, msg.sender, amount);
+    function withdrawToken(uint _amount, uint tokenId) public nonReentrant {
+        UserInfo storage user = userInfo[msg.sender];
+        require(user.amount >= _amount, "withdrawSwap: not good");
+
+        uint256 pendingAmount = user.amount.mul(accTokenPerShare).div(1e12).sub(user.rewardDebt);
+        if (pendingAmount > 0) {
+            _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
+        }
+        if (_amount > 0) {
+            user.amount = user.amount.sub(_amount);
+            totalSupply = totalSupply.sub(_amount);
+            TransferHelper.safeTransfer(stake, msg.sender, _amount);
+        }
+
+        user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
 
         if (tokenId > 0) {
             require(tokenId == tokenIds[msg.sender]);
@@ -149,7 +162,7 @@ contract Gauge is ReentrancyGuard {
         } else {
             tokenId = tokenIds[msg.sender];
         }
-        emit Withdraw(msg.sender, tokenId, amount);
+        emit Withdraw(msg.sender, tokenId, _amount);
     }
 
     // View function to see pending swap token on frontend.
@@ -173,9 +186,14 @@ contract Gauge is ReentrancyGuard {
 
     function notifyRewardAmount(address token, uint _rewardRate) external onlyBoost {
         require(token != stake, "no stake");
-
+        if (block.number <= lastRewardBlock) {
+            return;
+        }
         tokenPerBlock = _rewardRate;
         accTokenPerShare = accTokenPerShare.add(_rewardRate.mul(1e12).div(totalSupply));
+        if (totalSupply > 0) {
+            lastRewardBlock = block.number;
+        }
         emit NotifyReward(msg.sender, token, _rewardRate);
     }
 
