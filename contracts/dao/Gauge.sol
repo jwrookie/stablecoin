@@ -20,6 +20,12 @@ contract Gauge is ReentrancyGuard {
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
 
 
+    // Info of each user.
+    struct UserInfo {
+        uint256 amount;     // How many LP tokens the user has provided.
+        uint256 rewardDebt; // Reward debt.
+    }
+
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
     address public immutable boost;
@@ -40,7 +46,8 @@ contract Gauge is ReentrancyGuard {
     mapping(address => uint) public tokenIds;
 
     uint public totalSupply;
-    mapping(address => uint) public balanceOf;
+
+    mapping(address => UserInfo) public userInfo;
 
     address[] public rewards;
     mapping(address => bool) public isReward;
@@ -275,7 +282,7 @@ contract Gauge is ReentrancyGuard {
 
     function derivedBalance(address account) public view returns (uint) {
         uint _tokenId = tokenIds[account];
-        uint _balance = balanceOf[account];
+        uint _balance = userInfo[account].amount;
         uint _derived = _balance * 30 / 100;
         uint _adjusted = 0;
         uint _supply = IBoost(boost).weights(stake);
@@ -403,7 +410,8 @@ contract Gauge is ReentrancyGuard {
 
         TransferHelper.safeTransferFrom(stake, msg.sender, address(this), amount);
         totalSupply += amount;
-        balanceOf[msg.sender] += amount;
+        //todo
+        //        userInfo[msg.sender] += amount;
 
         if (tokenId > 0) {
             require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
@@ -429,12 +437,12 @@ contract Gauge is ReentrancyGuard {
     }
 
     function withdrawAll() external {
-        withdraw(balanceOf[msg.sender]);
+        withdraw(userInfo[msg.sender].amount);
     }
 
     function withdraw(uint amount) public {
         uint tokenId = 0;
-        if (amount == balanceOf[msg.sender]) {
+        if (amount == userInfo[msg.sender].amount) {
             tokenId = tokenIds[msg.sender];
         }
         withdrawToken(amount, tokenId);
@@ -442,7 +450,8 @@ contract Gauge is ReentrancyGuard {
 
     function withdrawToken(uint amount, uint tokenId) public nonReentrant {
         totalSupply -= amount;
-        balanceOf[msg.sender] -= amount;
+        //todo
+        //        balanceOf[msg.sender] -= amount;
         TransferHelper.safeTransfer(stake, msg.sender, amount);
 
         if (tokenId > 0) {
