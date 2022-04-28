@@ -142,8 +142,18 @@ contract('Boost', () => {
     //
     //
     // });
+    async function getRewardAndPrint() {
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
+        let beforeBalance = await fxs.balanceOf(dev.address);
+        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
+        let afterBalance = await fxs.balanceOf(dev.address);
+        let diffBef = parseInt(afterBalance) - parseInt(beforeBalance);
+        console.log("increase:" + diffBef);
+        console.log("get reward after blocknum:" + await getCurrentBlock());
+    }
+
     it("test boost vote with boost", async () => {
-        let eta = time.duration.days(7);
+        let eta = time.duration.days(52 * 7);
         await lock.connect(dev).create_lock(toWei('1'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
@@ -152,29 +162,14 @@ contract('Boost', () => {
         await boost.updatePool(0);
         let FxsAmount = await fxs.balanceOf(dev.address);
 
-        console.log("lastBlock:" + await getCurrentBlock());
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
-        let beforeFxs = await fxs.balanceOf(dev.address);
-        let diffBef = parseInt(beforeFxs) - parseInt(FxsAmount);
-        console.log("diffBef:" + diffBef);
+        await getRewardAndPrint();
 
         console.log("-----------------------")
 
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
-        console.log("lastBlock:" + await getCurrentBlock());
-        let AftFxs = await fxs.balanceOf(dev.address);
-
-
-        let diffAft = parseInt(AftFxs) - parseInt(beforeFxs);
-        console.log("diffAft:" + diffAft);
+        await getRewardAndPrint();
         console.log("-----------------------")
-
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address]);
-        let AftFxs1 = await fxs.balanceOf(dev.address);
-        console.log("lastBlock:" + await getCurrentBlock());
-        diffAft = parseInt(AftFxs1) - parseInt(AftFxs);
-        console.log("diffAft:" + diffAft);
+        await getRewardAndPrint();
 
 
     });
