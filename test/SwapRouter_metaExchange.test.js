@@ -135,7 +135,7 @@ contract('3metaPool', () => {
       abi: MetaPoolAbi.abi
     }, [poolAddress, poolAddress, [token0.address, token1.address, token2.address]]);
 
-    await pool.add_liquidity([toWei('1'), toWei('1'), toWei('1')], 0, gas);
+    await pool.add_liquidity([toWei('1000'), toWei('1000'), toWei('1000')], 0, gas);
 
 
     await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
@@ -190,7 +190,7 @@ contract('3metaPool', () => {
     await pool.approve(pool1.address, toWei("10000"));
 
 
-    await pool1.add_liquidity([toWei('1'), toWei('1')], 0, gas);
+    await pool1.add_liquidity([toWei('1000'), toWei('1000')], 0, gas);
     const n_coins = await pool.n_coins()
     expect(n_coins).to.be.eq(3);
     coins1 = await pool1.coins(0, gas);
@@ -199,16 +199,16 @@ contract('3metaPool', () => {
     coins2 = await pool1.coins(1, gas);
     expect(coins2).to.be.eq(pool.address);
 
-    await token0.mint(dev.address, toWei('100'));
-    await token1.mint(dev.address, toWei('100'));
-    await token2.mint(dev.address, toWei('100'));
-    await token3.mint(dev.address, toWei('100'));
+    await token0.mint(dev.address, toWei('1000000'));
+    await token1.mint(dev.address, toWei('1000000'));
+    await token2.mint(dev.address, toWei('1000000'));
+    await token3.mint(dev.address, toWei('1000000'));
 
     await token0.connect(dev).approve(pool.address, toWei("10000"));
     await token1.connect(dev).approve(pool.address, toWei("10000"));
     await token2.connect(dev).approve(pool.address, toWei("10000"));
 
-    await pool.connect(dev).add_liquidity([toWei('1'), toWei('1'), toWei('1')], 0, gas);
+    await pool.connect(dev).add_liquidity([toWei('1000'), toWei('1000'), toWei('1000')], 0, gas);
 
     await token3.connect(dev).approve(pool1.address, toWei("10000"));
     await pool.connect(dev).approve(pool1.address, toWei("10000"));
@@ -229,31 +229,33 @@ contract('3metaPool', () => {
 
     await swapMining.addPair(100, pool1.address, true)
 
+    await frax.addPool(swapMining.address)
+
   });
-  // it('metaPool exchange_underlying token3 ->pool[token0,token1,token2]', async () => {
-  //   let token3Bef = await token3.balanceOf(owner.address);
-  //   let token0Bef = await token0.balanceOf(owner.address);
-  //   let token3Pool1Bef = await token3.balanceOf(pool1.address);
-  //   let token0Pool1Bef = await token0.balanceOf(pool.address);
+  it('metaPool exchange_underlying token3 ->pool[token0,token1,token2]', async () => {
+    let token3Bef = await token3.balanceOf(owner.address);
+    let token0Bef = await token0.balanceOf(owner.address);
+    let token3Pool1Bef = await token3.balanceOf(pool1.address);
+    let token0Pool1Bef = await token0.balanceOf(pool.address);
 
 
-  //   //token3-> token0
-  //   await pool1.exchange_underlying(0, 1, "10000000", 0, owner.address, gas);
+    //token3-> token0
+    await pool1.exchange_underlying(0, 1, "10000000", 0, owner.address, gas);
 
-  //   let token3Aft = await token3.balanceOf(owner.address);
-  //   let token0Aft = await token0.balanceOf(owner.address);
-  //   let token3Pool1Aft = await token3.balanceOf(pool1.address);
-  //   let token0Pool1Aft = await token0.balanceOf(pool.address);
+    let token3Aft = await token3.balanceOf(owner.address);
+    let token0Aft = await token0.balanceOf(owner.address);
+    let token3Pool1Aft = await token3.balanceOf(pool1.address);
+    let token0Pool1Aft = await token0.balanceOf(pool.address);
 
-  //   expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).sub("10000000"));
-  //   expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).add("9994002"));
-  //   expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).add("10000000"));
-  //   expect(token0Pool1Aft).to.be.eq(BigNumber.from(token0Pool1Bef).sub("9994002"));
-  // });
+    expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).sub("10000000"));
+    expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).add("9994002"));
+    expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).add("10000000"));
+    expect(token0Pool1Aft).to.be.eq(BigNumber.from(token0Pool1Bef).sub("9994002"));
+  });
 
 
 
-  it('metaPool router exchange_underlying token3 ->pool[token0,token1,token2]', async () => {
+  it('metaPool router exchange_underlying token3 ->pool[token0,,]', async () => {
     let token3Bef = await token3.balanceOf(owner.address);
     let token0Bef = await token0.balanceOf(owner.address);
     let token3Pool1Bef = await token3.balanceOf(pool1.address);
@@ -261,45 +263,112 @@ contract('3metaPool', () => {
 
 
     await token3.approve(swapRouter.address, toWei("10000"))
-
-    // await token2.approve(swapRouter.address, toWei("10000"))
-    // await token1.approve(swapRouter.address, toWei("10000"))
-    await token0.approve(swapRouter.address, toWei("10000"))
-    // await pool.approve(swapRouter.address, toWei('100000'))
-
-    //token3-> token0
-    // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
+    await token0.approve(swapRouter.address, toWei("10000"));
 
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
     await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times)
-    const reword = await swapMining.rewardInfo(owner.address)
+
+
+    let token3Aft = await token3.balanceOf(owner.address);
+    let token0Aft = await token0.balanceOf(owner.address);
+    let token3Pool1Aft = await token3.balanceOf(pool1.address);
+    let token0Pool1Aft = await token0.balanceOf(pool.address);
+
+    expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).sub("10000000"));
+    expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).add("9994002"));
+    expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).add("10000000"));
+    expect(token0Pool1Aft).to.be.eq(BigNumber.from(token0Pool1Bef).sub("9994002"));
+
+  });
+
+  it('metaPool router exchange_underlying pool[token0,,]=> token3', async () => {
+    let token3Bef = await token3.balanceOf(owner.address);
+    let token0Bef = await token0.balanceOf(owner.address);
+
+    let token3Pool1Bef = await token3.balanceOf(pool1.address);
+    let token0Pool1Bef = await token0.balanceOf(pool.address);
+    await token3.approve(swapRouter.address, toWei("10000"))
+    await token0.approve(swapRouter.address, toWei("10000"))
+
+    const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+    await swapRouter.swapMeta(pool1.address, 1, 0, "10000000", 0, owner.address, times)
+    let token3Aft = await token3.balanceOf(owner.address);
+    let token0Aft = await token0.balanceOf(owner.address);
+    let token3Pool1Aft = await token3.balanceOf(pool1.address);
+    let token0Pool1Aft = await token0.balanceOf(pool.address);
+
+    expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).sub("10000000"));
+    expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).add('9994001'));
+
+    expect(token0Pool1Aft).to.be.eq(BigNumber.from(token0Pool1Bef).add("10000000"));
+    expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).sub("9994001"));
+
     // expect(reword).to.be.eq('210000000000000000')
 
   });
 
 
-  it('metaPool router exchange_underlying pool[token0,token1,token2]=> token3', async () => {
+
+  it('metaPool router exchange_underlying pool[,token1,]=> token3', async () => {
     let token3Bef = await token3.balanceOf(owner.address);
-    let token0Bef = await token0.balanceOf(owner.address);
+    let token1Bef = await token1.balanceOf(owner.address);
     let token3Pool1Bef = await token3.balanceOf(pool1.address);
-    let token0Pool1Bef = await token0.balanceOf(pool.address);
 
-
+    let token1Pool1Bef = await token1.balanceOf(pool.address);
     await token3.approve(swapRouter.address, toWei("10000"))
-
-    await token2.approve(swapRouter.address, toWei("10000"))
     await token1.approve(swapRouter.address, toWei("10000"))
-    await token0.approve(swapRouter.address, toWei("10000"))
-    // await pool.approve(swapRouter.address, toWei('100000'))
 
-    //token3-> token0
-    // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
+    const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+    await swapRouter.swapMeta(pool1.address, 2, 0, "10000000", 0, owner.address, times)
+    let token3Aft = await token3.balanceOf(owner.address);
+    let token1Aft = await token1.balanceOf(owner.address);
+    let token3Pool1Aft = await token3.balanceOf(pool1.address);
+    let token1Pool1Aft = await token1.balanceOf(pool.address);
+
+    expect(token1Aft).to.be.eq(BigNumber.from(token1Bef).sub("10000000"));
+    expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).add('9994001'));
+
+    expect(token1Pool1Aft).to.be.eq(BigNumber.from(token1Pool1Bef).add("10000000"));
+    expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).sub("9994001"));
+
+    // expect(reword).to.be.eq('210000000000000000')
+
+  });
+
+
+
+  it('metaPool router exchange_underlying pool[,,token2]=> token3', async () => {
+    let token3Bef = await token3.balanceOf(owner.address);
+    let token2Bef = await token2.balanceOf(owner.address);
+    let token3Pool1Bef = await token3.balanceOf(pool1.address);
+
+    let token2Pool1Bef = await token2.balanceOf(pool.address);
+    await token3.approve(swapRouter.address, toWei("10000"))
+    await token2.approve(swapRouter.address, toWei("10000"))
 
     const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
     await swapRouter.swapMeta(pool1.address, 3, 0, "10000000", 0, owner.address, times)
-    const reword = await swapMining.rewardInfo(owner.address)
-    // expect(reword).to.be.eq('210000000000000000')
+    let token3Aft = await token3.balanceOf(owner.address);
+    let token2Aft = await token2.balanceOf(owner.address);
+    let token3Pool1Aft = await token3.balanceOf(pool1.address);
+    let token2Pool1Aft = await token2.balanceOf(pool.address);
+
+    expect(token2Aft).to.be.eq(BigNumber.from(token2Bef).sub("10000000"));
+    expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).add('9994001'));
+
+    expect(token2Pool1Aft).to.be.eq(BigNumber.from(token2Pool1Bef).add("10000000"));
+    expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).sub("9994001"));
+
+    const amountBef = await fxs.balanceOf(owner.address);
+
+    await swapMining.getRewardAll()
+
+    const amountAft = await fxs.balanceOf(owner.address);
+    const amount = BigNumber.from(amountAft).sub(amountBef)
+    expect(amountAft).to.be.eq(BigNumber.from(amountBef).add(amount))
 
   });
 
-});
+
+
+}); 
