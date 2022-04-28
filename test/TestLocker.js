@@ -188,6 +188,8 @@ contract('Locker', async () => {
         initFirstVoteBoolean = await lock.voted(1);
         assert.equal(initFirstVoteBoolean, false);
 
+        await lock.addBoosts(owner.address);
+
         await lock.voting(1);
         firstVoteBoolean = await lock.voted(1);
         assert.equal(firstVoteBoolean, true);
@@ -203,7 +205,7 @@ contract('Locker', async () => {
 
         secondAddress = await lock.ownerOf(2);
         expect(secondAddress).to.be.not.eq(null);
-        await lock.setVoter(secondAddress);
+        await lock.addBoosts(secondAddress);
         assert.equal(await lock.voter(), secondAddress);
 
         secondVoteBoolean = await lock.connect(seObject).voted(2);
