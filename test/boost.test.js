@@ -12,15 +12,15 @@ contract('Boost', () => {
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
-
-        Operatable = await ethers.getContractFactory("Operatable");
+        const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
-         const FRAXShares = await ethers.getContractFactory('Stock');
+        const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+
 
         MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
@@ -36,7 +36,7 @@ contract('Boost', () => {
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(usdc.address, parseInt(eta));
+        lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
@@ -53,14 +53,12 @@ contract('Boost', () => {
         );
 
         await fxs.addPool(boost.address);
-        //await frax.addPool(owner.address);
-        await lock.setVoter(boost.address);
-        await usdc.mint(owner.address, toWei('100'));
+        await lock.addBoosts(boost.address);
         await fxs.connect(dev).approve(lock.address, toWei('10000'));
         await fxs.approve(lock.address, toWei('10000'));
-        await usdc.mint(dev.address, toWei('100000000000000'));
-        // await frax.addPool(dev.address);
-        // await fxs.poolMint(dev.address, toWei('100000'));
+        await fxs.transfer(dev.address, toWei('10000'));
+        await usdc.mint(dev.address, toWei('10000'));
+
         await boost.createGauge(usdc.address, "100", true);
 
         gaugeAddr = await boost.gauges(usdc.address);
@@ -86,15 +84,17 @@ contract('Boost', () => {
 
     });
     it('should two users getReward correct', async () => {
-        await usdc.approve(lock.address, toWei('10000000'));
-        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        await fxs.approve(lock.address, toWei('10000000'));
+        await fxs.connect(dev).approve(lock.address, toWei('10000000'));
         let eta = time.duration.days(1);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
-        await lock.create_lock_for("2000", parseInt(eta), owner.address);
+        await lock.connect(dev).create_lock("1000", parseInt(eta));
+        await lock.create_lock("2000", parseInt(eta));
+        await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
         await usdc.approve(gauge_usdc.address, toWei('10000000'))
+        await fxs.approve(gauge_usdc.address, toWei('10000000'))
 
         await gauge_usdc.connect(dev).deposit("1000", 1);
         await gauge_usdc.connect(owner).deposit("2000", 2);
@@ -102,12 +102,12 @@ contract('Boost', () => {
         await boost.updatePool(0);
         expect(await gauge_usdc.rewardsListLength()).to.be.eq(1);
 
-        // let point = await gauge_usdc.checkpoints(dev.address, 0)
-        // console.log("timestamp:" + point[0])
-        // console.log("balanceOf:" + point[1])
+        let point = await gauge_usdc.checkpoints(dev.address, 0)
+        console.log("timestamp:" + point[0])
+        console.log("balanceOf:" + point[1])
 
         expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_usdc.rewardRate(usdc.address)).to.be.eq(0)
+        expect(await gauge_usdc.rewardRate(fxs.address)).to.be.eq(toWei('0.5'))
         expect(await gauge_usdc.rewards(0)).to.be.eq(fxs.address);
 
         await time.increase(time.duration.days(1));

@@ -21,21 +21,21 @@ contract('Locker', () => {
         operatable = await Operatable.deploy();
 
 
-        const FRAXShares = await ethers.getContractFactory('FRAXShares');
-        fxs = await FRAXShares.deploy("fxs", "fxs", oracle.address);
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
 
-        const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-        frax = await FRAXStablecoin.deploy("frax", "frax");
+        const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
-        let eta = time.duration.days(1460);
+        // let eta = time.duration.days(1460);
 
         const Locker = await ethers.getContractFactory('Locker');
         // let eta = time.duration.days(1);
-        lock = await Locker.deploy(fxs.address, parseInt("7200"));
+        lock = await Locker.deploy(operatable.address, fxs.address, parseInt("7200"));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy();
@@ -51,9 +51,9 @@ contract('Locker', () => {
             "1000"
         );
 
-        await lock.setVoter(boost.address);
+        await lock.addBoosts(boost.address);
         await usdc.mint(owner.address, toWei('1000000'));
-          await usdc.mint(dev.address, toWei('1000000'));
+        await usdc.mint(dev.address, toWei('1000000'));
 
         // await fxs.connect(dev).approve(lock.address, toWei('10000'));
         await fxs.approve(lock.address, toWei('10000'));
@@ -85,7 +85,7 @@ contract('Locker', () => {
     it("test increase_amount and increase_unlock_time error", async () => {
         let eta = time.duration.days(1460);
         await lock.create_lock(toWei('1002'), parseInt(eta));
-         await lock.connect(dev).create_lock(toWei('1002'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('1002'), parseInt(eta));
 
         await boost.vote(1, [usdc.address], [toWei('100')]);
         await boost.connect(dev).vote(2, [usdc.address], [toWei('100')]);
@@ -93,7 +93,7 @@ contract('Locker', () => {
         console.log("weights gauge_usdc:" + await boost.weights(usdc.address) / 10 ** 18)
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
-           await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('96'), 1);
         await gauge_usdc.connect(dev).deposit(toWei('96'), 2);
 
