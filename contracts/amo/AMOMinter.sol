@@ -21,7 +21,6 @@ contract AMOMinter is CheckPermission {
     ERC20 public immutable collateralToken;
     IStablecoinPool public  pool;
 
-    address public collateralAddress;
     address[] public amosArray;
     mapping(address => bool) public amos; // Mapping is also used for faster verification
 
@@ -68,12 +67,7 @@ contract AMOMinter is CheckPermission {
 
         stablecoin = IStablecoin(_stableAddress);
         stock = IStock(_stockAddress);
-        // Pool related
         pool = IStablecoinPool(_pool_address);
-
-        // Collateral related
-        collateralAddress = _collateral_address;
-        //        col_idx = pool.collateralAddrToIdx(_collateral_address);
         collateralToken = ERC20(_collateral_address);
         missingDecimals = uint(18) - collateralToken.decimals();
     }
@@ -163,7 +157,7 @@ contract AMOMinter is CheckPermission {
         collatBorrowedBalances[destination_amo] += int256(collat_amount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(collateralAddress, destination_amo, collat_amount);
+        TransferHelper.safeTransfer(address(collateralToken), destination_amo, collat_amount);
 
         // Sync
         syncDollarBalances();
@@ -266,7 +260,7 @@ contract AMOMinter is CheckPermission {
         pool.amoMinterBorrow(collat_amount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(collateralAddress, destination_amo, collat_amount);
+        TransferHelper.safeTransfer(address(collateralToken), destination_amo, collat_amount);
 
         // Sync
         syncDollarBalances();
@@ -276,7 +270,7 @@ contract AMOMinter is CheckPermission {
         int256 collat_amt_i256 = int256(usdc_amount);
 
         // Give back first
-        TransferHelper.safeTransferFrom(collateralAddress, msg.sender, address(pool), usdc_amount);
+        TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(pool), usdc_amount);
 
         // Then update the balances
         collatBorrowedBalances[msg.sender] -= collat_amt_i256;
