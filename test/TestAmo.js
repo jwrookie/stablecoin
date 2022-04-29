@@ -142,7 +142,7 @@ contract('AMOMinter', async function () {
         // Add pool
         await frax.addPool(stableCoinPool.address);
 
-        await fxs.addPool(owner.address);
+        await fxs.addPool(stableCoinPool.address);
 
         // Deploy weth
         weth = await deployContract(owner, {
@@ -469,6 +469,7 @@ contract('AMOMinter', async function () {
         // expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
         initUsdcInOwner = await getBalances(usdc, owner);
+        await stableCoinPool.addAMOMinter(amoMinter.address);
         await amoMinter.giveCollatToAMO(exchangeAMO.address, 1000000);
         await frax.setRefreshCooldown(0);
         // (await time.latest()).add(time.duration.days(1));
@@ -477,10 +478,7 @@ contract('AMOMinter', async function () {
         await frax.setPriceBand(1);
         await frax.refreshCollateralRatio();
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(997500);
-        // await stableCoinPool.addAMOMinter(owner.address);
-        // await stableCoinPool.addAMOMinter(amoMinter.address);
-        // await stableCoinPool.addAMOMinter(amoMinter.address);
-        await amoMinter.oldPoolRedeem(100);
+        await amoMinter.poolRedeem(100);
     });
 
     it('test collatDollarBalance', async function () {
