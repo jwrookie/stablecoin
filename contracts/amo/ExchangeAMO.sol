@@ -29,15 +29,14 @@ contract ExchangeAMO is CheckPermission {
     uint256 public liqSlippage3crv;
 
     // Convergence window
-    uint256 public convergence_window; // 0.1 cent
+    uint256 public convergenceWindow; // 0.1 cent
 
-    // Default will use globalCollateralRatio()
-    bool public custom_floor;
-    uint256 public frax_floor;
+    bool public customFloor;
+    uint256 public stableCoinFloor;
 
     // Discount
-    bool public set_discount;
-    uint256 public discount_rate;
+    bool public setDiscount;
+    uint256 public discountRate;
 
     /* ========== CONSTRUCTOR ========== */
 
@@ -57,9 +56,9 @@ contract ExchangeAMO is CheckPermission {
         threePoolLp = ERC20(poolTokenAddress);
         // Other variable initializations
         liqSlippage3crv = 800000;
-        convergence_window = 1e15;
-        custom_floor = false;
-        set_discount = false;
+        convergenceWindow = 1e15;
+        customFloor = false;
+        setDiscount = false;
     }
 
     modifier onlyByMinter() {
@@ -138,7 +137,7 @@ contract ExchangeAMO is CheckPermission {
         for (uint i = 0; i < 256; i++) {
             crv3Received = threePool.get_dy(0, 1, 1e18);
             dollarValue = crv3Received.mul(1e18).div(threePool.get_virtual_price());
-            if (dollarValue <= floorPrice.add(convergence_window) && dollarValue >= floorPrice.sub(convergence_window)) {
+            if (dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)) {
 
                 uint256 factor = uint256(1e6);
 
@@ -146,10 +145,10 @@ contract ExchangeAMO is CheckPermission {
                 stablecoinBalance = stablecoinBalance.mul(factor).div(1e6);
 
                 return (stablecoinBalance, i, factor);
-            } else if (dollarValue <= floorPrice.add(convergence_window)) {
+            } else if (dollarValue <= floorPrice.add(convergenceWindow)) {
                 uint256 crv3_to_swap = stablecoinBalance.div(2 ** i);
                 stablecoinBalance = stablecoinBalance.sub(threePool.get_dy(1, 0, crv3_to_swap));
-            } else if (dollarValue >= floorPrice.sub(convergence_window)) {
+            } else if (dollarValue >= floorPrice.sub(convergenceWindow)) {
                 uint256 frax_to_swap = stablecoinBalance.div(2 ** i);
                 stablecoinBalance = stablecoinBalance.add(frax_to_swap);
             }
@@ -159,16 +158,16 @@ contract ExchangeAMO is CheckPermission {
     }
 
     function fraxFloor() public view returns (uint256) {
-        if (custom_floor) {
-            return frax_floor;
+        if (customFloor) {
+            return stableCoinFloor;
         } else {
             return stablecoin.globalCollateralRatio();
         }
     }
 
     function fraxDiscountRate() public view returns (uint256) {
-        if (set_discount) {
-            return discount_rate;
+        if (setDiscount) {
+            return discountRate;
         } else {
             return stablecoin.globalCollateralRatio();
         }
@@ -302,19 +301,19 @@ contract ExchangeAMO is CheckPermission {
     }
 
     function setConvergenceWindow(uint256 _window) external onlyOperator {
-        convergence_window = _window;
+        convergenceWindow = _window;
     }
 
     // in terms of 1e6 (overriding globalCollateralRatio)
     function setCustomFloor(bool _state, uint256 _floor_price) external onlyOperator {
-        custom_floor = _state;
-        frax_floor = _floor_price;
+        customFloor = _state;
+        stableCoinFloor = _floor_price;
     }
 
     // in terms of 1e6 (overriding globalCollateralRatio)
     function setDiscountRate(bool _state, uint256 _discount_rate) external onlyOperator {
-        set_discount = _state;
-        discount_rate = _discount_rate;
+        setDiscount = _state;
+        discountRate = _discount_rate;
     }
 
     function setSlippages(uint256 _liq_slippage_3crv, uint256 _slippage_metapool) external onlyOperator {
