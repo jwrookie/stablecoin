@@ -333,7 +333,7 @@ contract('AMOMinter', async function() {
         await amoMinter.removeAMO(exchangeAMO.address, true);
         expect(await amoMinter.amos(exchangeAMO.address)).to.be.eq(false);
         expect(await amoMinter.allAMOsLength()).to.be.eq(1);
-        expect(await amoMinter.amosArray(0)).to.be.eq(ZERO_ADDRESS);
+        expect(await amoMinter.amos_array(0)).to.be.eq(ZERO_ADDRESS);
         expect(await amoMinter.frax_mint_balances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.fxs_mint_balances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(0);
@@ -350,7 +350,7 @@ contract('AMOMinter', async function() {
         expect(await getBalances(frax, amoMinter)).to.be.eq(0);
         expect(await getBalances(frax, stableCoinPool)).to.be.eq(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
-        expect(await amoMinter.amosArray(0)).to.be.eq(exchangeAMO.address);
+        expect(await amoMinter.amos_array(0)).to.be.eq(exchangeAMO.address);
         fraxPoolsLength = await frax.fraxPoolAddressCount();
         // expect(fraxPoolsLength).to.be.eq(3);
         for (let i = 0; i < fraxPoolsLength; i++) {
@@ -418,7 +418,7 @@ contract('AMOMinter', async function() {
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(1000000 - 10000);
     });
 
-    it('test poolRedeem and poolCollectAndGive', async function () {
+    it('test oldPoolRedeem and oldPoolCollectAndGive', async function () {
         let redemptionFee;
         let colPriceUsd;
         let globalCollateralRatio;
@@ -477,7 +477,7 @@ contract('AMOMinter', async function() {
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(997500);
         // await stableCoinPool.addAMOMinter(owner.address);
         // await stableCoinPool.addAMOMinter(amoMinter.address);
-        await amoMinter.poolRedeem(100);
+        await amoMinter.oldPoolRedeem(100);
     });
 
     it('test collatDollarBalance', async function () {
