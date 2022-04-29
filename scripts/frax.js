@@ -20,13 +20,13 @@ async function main() {
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     //  let fxs = "0x9903C08A1Ec72AF241AB29BA4B83326E7B4c68c6"
     //let frax = "0x73dE6f92421FF0e3B1bE48EFDA2BF6d2e395cAfE"
-    let operatable = "0x3F2411aAbD1413357E891e9248A766f80481E27e"
+    let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
     //let fxb = "0x0830b7Bb803965D47a2c5Dcfcd819d7BC4B69Ebf"
 
 
     // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
     // let fxb = "0x4858585fbD412c1Eb942e1E39Ebb1e2298A4BE27"
-    //  let fxs = "0x2C4Dc61958e1090B9c64C21d8607BE81f7c5cD4D"
+     let fxs = "0x6d2138C3Aa8e20437a541AE287dD047Aed4731De"
     // // const TestERC20 = await ethers.getContractFactory("TestERC20");
     // // let usdc = await TestERC20.attach(usdcAddr);
     // let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
@@ -37,15 +37,11 @@ async function main() {
     // // let poolAddr ="0x5ca013872bB0729134725EBa04dF3caB8d256a58"
     // let oracle = "0x821Ce313D3F015C4290D1035a3d0Df1153D556c3"
     // let fraxPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
-    let frax = "0xf5E1a792cDC71A5B11a7fb5e6DB290316143de5F"
-    let fxb  = "0xe39652dA3D210436D9aaBa85D39f61BfF73927b1"
+    let frax = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
+   let fxb  = "0xF74721BF71912D8e56A9347f56afd7f2d4C533Ee"
 
 
 
-    // const FRAXStablecoin = await ethers.getContractFactory('FRAXStablecoin');
-    // let fraxAddr = "0x189F19990FA4728e986525aD521A6e4361B646AE"
-    // let fraxPoolLibrary = "0x77748f6518C4BbCd1beDeD1132eD11A66F745750"
-    //frax = await FRAXStablecoin.attach(fraxAddr)
 
     for (const account of accounts) {
         //console.log('Account address' + account.address)
@@ -107,15 +103,14 @@ async function main() {
     //         PoolLibrary: poolLibrary.address,
     //     },
     // });
-    // pool = await Pool_USDC.deploy(operatable, frax.address, fxs.address, usdc, toWei('10000000000'));
+    // pool = await Pool_USDC.deploy(operatable, frax, fxs, usdc, toWei('10000000000'));
     // console.log("pool:" + pool.address)
-
+    //
     // const MockChainLink = await ethers.getContractFactory("MockChainLink");
     // chainLink = await MockChainLink.deploy();
     // console.log("chainLink:" + chainLink.address);
     // await chainLink.setAnswer(toWei('100'));
     //
-    // // // //
     // const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
     // chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
     // console.log("chainlinkETHUSDPriceConsumer:" + chainlinkETHUSDPriceConsumer.address);

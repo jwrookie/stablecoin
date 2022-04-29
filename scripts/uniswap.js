@@ -1,12 +1,4 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
-// const TestOwnableToken = artifacts.require('TestOwnableToken');
-// const Timelock = artifacts.require('Timelock');
-// const FRAXShares = artifacts.require('FRAXShares');
-// const FRAXStablecoin = artifacts.require('FRAXStablecoin');
-// const Pool_USDC = artifacts.require('Pool_USDC');
-// const TestERC20 = artifacts.require('TestERC20');
-// const TestOracle = artifacts.require('TestOracle')
-// const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
 const {toWei} = web3.utils;
 
 // const {BigNumber} = require('ethers');
@@ -38,10 +30,9 @@ async function main() {
 
      let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let frax = '0xf5E1a792cDC71A5B11a7fb5e6DB290316143de5F'
-    let fxs = '0x106CdFe20F0cc24C936F27D5fCe73b9aCD9C1C37'
+    let frax = '0x5AF694EC26FFD0141ff385e4793fbFF89e915B57'
+    let fxs = '0x6d2138C3Aa8e20437a541AE287dD047Aed4731De'
 
-    //let timelock = '';
 
 
 
@@ -78,27 +69,6 @@ async function main() {
     fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock.address);
     console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
 
-
-
-    //
-    // let frax = await FRAXStablecoin.at(fraxAddr)
-    //
-    // const FraxBond = await ethers.getContractFactory("FraxBond");
-    // fxb = await FraxBond.deploy("fxb", "fxb");
-    // console.log("fxb:" + fxb.address)
-    //
-    // const FraxBondIssuer = await ethers.getContractFactory('FraxBondIssuer');
-    // fraxBondIssuer = await FraxBondIssuer.deploy(frax.address, fxb.address);
-    // console.log("fraxBondIssuer:" + fraxBondIssuer.address)
-    //
-    // await fxb.addIssuer(deployer.address);
-    // await fxb.addIssuer(fraxBondIssuer.address);
-    // //await fxb.issuer_mint(fraxBondIssuer.address, toWei('100000'))
-    // await fxb.issuer_mint(deployer.address, toWei('1000000'))
-    //
-    // await frax.approve(fraxBondIssuer.address, toWei('1000'))
-    // await fxb.approve(fraxBondIssuer.address, toWei('1000'))
-    // await frax.addPool(fraxBondIssuer.address)
 
 
 
