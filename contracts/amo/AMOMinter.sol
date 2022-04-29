@@ -13,73 +13,69 @@ import "../interface/IStablecoin.sol";
 import "../interface/IStock.sol";
 
 contract AMOMinter is CheckPermission {
-    // Core
-    IStablecoin public immutable FRAX;
-    IStock public immutable FXS;
+
+    uint256 private constant PRICE_PRECISION = 1e6;
+
+    IStablecoin public immutable stablecoin;
+    IStock public immutable stock;
     ERC20 public immutable collateralToken;
     IStablecoinPool public  pool;
 
-    // Collateral related
-    address public collateral_address;
-    //    uint256 public col_idx;
-
-    // AMO addresses
+    address public collateralAddress;
     address[] public amosArray;
     mapping(address => bool) public amos; // Mapping is also used for faster verification
 
-    // Price constants
-    uint256 private constant PRICE_PRECISION = 1e6;
 
-    // Max amount of collateral the contract can borrow from the FraxPool
-    int256 public collat_borrow_cap = int256(10000000e6);
 
-    // Max amount of FRAX and FXS this contract can mint
-    int256 public frax_mint_cap = int256(100000000e18);
-    int256 public fxs_mint_cap = int256(100000000e18);
+    int256 public collatBorrowCap = int256(10000000e6);
+
+
+    int256 public stableCoinMintCap = int256(100000000e18);
+    int256 public fxsMintCap = int256(100000000e18);
 
     // Minimum collateral ratio needed for new FRAX minting
-    uint256 public min_cr = 810000;
+    uint256 public minCR = 810000;
 
-    mapping(address => int256) public frax_mint_balances; // Amount of FRAX the contract minted, by AMO
-    int256 public frax_mint_sum = 0; // Across all AMOs
+    mapping(address => int256) public stablecoinMintBalances;
+    int256 public stableCoinMintSum;
 
-    mapping(address => int256) public fxs_mint_balances; // Amount of FXS the contract minted, by AMO
-    int256 public fxs_mint_sum = 0; // Across all AMOs
+    mapping(address => int256) public stockMintBalances;
+    int256 public stockMintSum = 0; // Across all AMOs
 
     // Collateral borrowed balances
-    mapping(address => int256) public collat_borrowed_balances; // Amount of collateral the contract borrowed, by AMO
-    int256 public collat_borrowed_sum = 0; // Across all AMOs
+    mapping(address => int256) public collatBorrowedBalances; // Amount of collateral the contract borrowed, by AMO
+    int256 public collatBorrowedSum = 0; // Across all AMOs
 
-    // FRAX balance related
-    uint256 public fraxDollarBalanceStored = 0;
+
+    uint256 public stableDollarBalanceStored = 0;
 
     // Collateral balance related
-    uint256 public missing_decimals;
+    uint256 public missingDecimals;
     uint256 public collatDollarBalanceStored = 0;
 
     // AMO balance corrections
-    mapping(address => int256[2]) public correction_offsets_amos;
+    mapping(address => int256[2]) public correctionOffsetsAmos;
 
 
     constructor (
         address _operatorMsg,
         address _custodian_address,
         address _stableAddress,
-        address _shareAddress,
+        address _stockAddress,
         address _collateral_address,
         address _pool_address
     ) CheckPermission(_operatorMsg) {
 
-        FRAX = IStablecoin(_stableAddress);
-        FXS = IStock(_shareAddress);
+        stablecoin = IStablecoin(_stableAddress);
+        stock = IStock(_stockAddress);
         // Pool related
         pool = IStablecoinPool(_pool_address);
 
         // Collateral related
-        collateral_address = _collateral_address;
+        collateralAddress = _collateral_address;
         //        col_idx = pool.collateralAddrToIdx(_collateral_address);
         collateralToken = ERC20(_collateral_address);
-        missing_decimals = uint(18) - collateralToken.decimals();
+        missingDecimals = uint(18) - collateralToken.decimals();
     }
 
     /* ========== MODIFIERS ========== */
@@ -102,7 +98,7 @@ contract AMOMinter is CheckPermission {
     }
 
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
-        frax_val_e18 = fraxDollarBalanceStored;
+        frax_val_e18 = stableDollarBalanceStored;
         collat_val_e18 = collatDollarBalanceStored;
     }
 
@@ -115,13 +111,13 @@ contract AMOMinter is CheckPermission {
     }
 
     function fraxTrackedGlobal() external view returns (int256) {
-        return int256(fraxDollarBalanceStored) - frax_mint_sum - (collat_borrowed_sum * int256(10 ** missing_decimals));
+        return int256(stableDollarBalanceStored) - stableCoinMintSum - (collatBorrowedSum * int256(10 ** missingDecimals));
     }
 
     function fraxTrackedAMO(address amo_address) external view returns (int256) {
         (uint256 frax_val_e18,) = IAMO(amo_address).dollarBalances();
-        int256 frax_val_e18_corrected = int256(frax_val_e18) + correction_offsets_amos[amo_address][0];
-        return frax_val_e18_corrected - frax_mint_balances[amo_address] - ((collat_borrowed_balances[amo_address]) * int256(10 ** missing_decimals));
+        int256 frax_val_e18_corrected = int256(frax_val_e18) + correctionOffsetsAmos[amo_address][0];
+        return frax_val_e18_corrected - stablecoinMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * int256(10 ** missingDecimals));
     }
 
     /* ========== PUBLIC FUNCTIONS ========== */
@@ -135,11 +131,11 @@ contract AMOMinter is CheckPermission {
             address amo_address = amosArray[i];
             if (amo_address != address(0)) {
                 (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
-                total_frax_value_d18 += uint256(int256(frax_val_e18) + correction_offsets_amos[amo_address][0]);
-                total_collateral_value_d18 += uint256(int256(collat_val_e18) + correction_offsets_amos[amo_address][1]);
+                total_frax_value_d18 += uint256(int256(frax_val_e18) + correctionOffsetsAmos[amo_address][0]);
+                total_collateral_value_d18 += uint256(int256(collat_val_e18) + correctionOffsetsAmos[amo_address][1]);
             }
         }
-        fraxDollarBalanceStored = total_frax_value_d18;
+        stableDollarBalanceStored = total_frax_value_d18;
         collatDollarBalanceStored = total_collateral_value_d18;
     }
 
@@ -148,19 +144,19 @@ contract AMOMinter is CheckPermission {
     function oldPoolRedeem(uint256 frax_amount) external onlyByOwnGov {
         uint256 redemption_fee = pool.redemption_fee();
         uint256 col_price_usd = pool.getCollateralPrice();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
-        uint256 redeem_amount_E6 = ((frax_amount * (uint256(1e6) - redemption_fee)) / 1e6) / (10 ** missing_decimals);
+        uint256 globalCollateralRatio = stablecoin.globalCollateralRatio();
+        uint256 redeem_amount_E6 = ((frax_amount * (uint256(1e6) - redemption_fee)) / 1e6) / (10 ** missingDecimals);
         uint256 expected_collat_amount = (redeem_amount_E6 * globalCollateralRatio) / 1e6;
         expected_collat_amount = (expected_collat_amount * 1e6) / col_price_usd;
 
-        require((collat_borrowed_sum + int256(expected_collat_amount)) <= collat_borrow_cap, "Borrow cap");
-        collat_borrowed_sum += int256(expected_collat_amount);
+        require((collatBorrowedSum + int256(expected_collat_amount)) <= collatBorrowCap, "Borrow cap");
+        collatBorrowedSum += int256(expected_collat_amount);
 
         // Mint the frax 
-        FRAX.poolMint(address(this), frax_amount);
+        stablecoin.poolMint(address(this), frax_amount);
 
         // Redeem the frax
-        FRAX.approve(address(pool), frax_amount);
+        stablecoin.approve(address(pool), frax_amount);
         pool.redeemFractionalFRAX(frax_amount, 0, 0);
     }
 
@@ -172,10 +168,10 @@ contract AMOMinter is CheckPermission {
         pool.collectRedemption();
 
         // Mark the destination amo's borrowed amount
-        collat_borrowed_balances[destination_amo] += int256(collat_amount);
+        collatBorrowedBalances[destination_amo] += int256(collat_amount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(collateral_address, destination_amo, collat_amount);
+        TransferHelper.safeTransfer(collateralAddress, destination_amo, collat_amount);
 
         // Sync
         syncDollarBalances();
@@ -194,20 +190,20 @@ contract AMOMinter is CheckPermission {
         int256 frax_amt_i256 = int256(frax_amount);
 
         // Make sure you aren't minting more than the mint cap
-        require((frax_mint_sum + frax_amt_i256) <= frax_mint_cap, "Mint cap reached");
-        frax_mint_balances[destination_amo] += frax_amt_i256;
-        frax_mint_sum += frax_amt_i256;
+        require((stableCoinMintSum + frax_amt_i256) <= stableCoinMintCap, "Mint cap reached");
+        stablecoinMintBalances[destination_amo] += frax_amt_i256;
+        stableCoinMintSum += frax_amt_i256;
 
         // Make sure the FRAX minting wouldn't push the CR down too much
         // This is also a sanity check for the int256 math
-        uint256 current_collateral_E18 = FRAX.globalCollateralValue();
-        uint256 cur_frax_supply = FRAX.totalSupply();
+        uint256 current_collateral_E18 = stablecoin.globalCollateralValue();
+        uint256 cur_frax_supply = stablecoin.totalSupply();
         uint256 new_frax_supply = cur_frax_supply + frax_amount;
         uint256 new_cr = (current_collateral_E18 * PRICE_PRECISION) / new_frax_supply;
-        require(new_cr >= min_cr, "CR would be too low");
+        require(new_cr >= minCR, "CR would be too low");
 
         // Mint the FRAX to the AMO
-        FRAX.poolMint(destination_amo, frax_amount);
+        stablecoin.poolMint(destination_amo, frax_amount);
 
         // Sync
         syncDollarBalances();
@@ -217,11 +213,11 @@ contract AMOMinter is CheckPermission {
         int256 frax_amt_i256 = int256(frax_amount);
 
         // Burn first
-        FRAX.poolBurnFrom(msg.sender, frax_amount);
+        stablecoin.poolBurnFrom(msg.sender, frax_amount);
 
         // Then update the balances
-        frax_mint_balances[msg.sender] -= frax_amt_i256;
-        frax_mint_sum -= frax_amt_i256;
+        stablecoinMintBalances[msg.sender] -= frax_amt_i256;
+        stableCoinMintSum -= frax_amt_i256;
 
         // Sync
         syncDollarBalances();
@@ -235,12 +231,12 @@ contract AMOMinter is CheckPermission {
         int256 fxs_amt_i256 = int256(fxs_amount);
 
         // Make sure you aren't minting more than the mint cap
-        require((fxs_mint_sum + fxs_amt_i256) <= fxs_mint_cap, "Mint cap reached");
-        fxs_mint_balances[destination_amo] += fxs_amt_i256;
-        fxs_mint_sum += fxs_amt_i256;
+        require((stockMintSum + fxs_amt_i256) <= fxsMintCap, "Mint cap reached");
+        stockMintBalances[destination_amo] += fxs_amt_i256;
+        stockMintSum += fxs_amt_i256;
 
         // Mint the FXS to the AMO
-        FXS.poolMint(destination_amo, fxs_amount);
+        stock.poolMint(destination_amo, fxs_amount);
 
         // Sync
         syncDollarBalances();
@@ -250,11 +246,11 @@ contract AMOMinter is CheckPermission {
         int256 fxs_amt_i256 = int256(fxs_amount);
 
         // Burn first
-        FXS.poolBurnFrom(msg.sender, fxs_amount);
+        stock.poolBurnFrom(msg.sender, fxs_amount);
 
         // Then update the balances
-        fxs_mint_balances[msg.sender] -= fxs_amt_i256;
-        fxs_mint_sum -= fxs_amt_i256;
+        stockMintBalances[msg.sender] -= fxs_amt_i256;
+        stockMintSum -= fxs_amt_i256;
 
         // Sync
         syncDollarBalances();
@@ -270,15 +266,15 @@ contract AMOMinter is CheckPermission {
     ) external onlyByOwnGov validAMO(destination_amo) {
         int256 collat_amount_i256 = int256(collat_amount);
 
-        require((collat_borrowed_sum + collat_amount_i256) <= collat_borrow_cap, "Borrow cap");
-        collat_borrowed_balances[destination_amo] += collat_amount_i256;
-        collat_borrowed_sum += collat_amount_i256;
+        require((collatBorrowedSum + collat_amount_i256) <= collatBorrowCap, "Borrow cap");
+        collatBorrowedBalances[destination_amo] += collat_amount_i256;
+        collatBorrowedSum += collat_amount_i256;
 
         // Borrow the collateral
         pool.amoMinterBorrow(collat_amount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(collateral_address, destination_amo, collat_amount);
+        TransferHelper.safeTransfer(collateralAddress, destination_amo, collat_amount);
 
         // Sync
         syncDollarBalances();
@@ -288,11 +284,11 @@ contract AMOMinter is CheckPermission {
         int256 collat_amt_i256 = int256(usdc_amount);
 
         // Give back first
-        TransferHelper.safeTransferFrom(collateral_address, msg.sender, address(pool), usdc_amount);
+        TransferHelper.safeTransferFrom(collateralAddress, msg.sender, address(pool), usdc_amount);
 
         // Then update the balances
-        collat_borrowed_balances[msg.sender] -= collat_amt_i256;
-        collat_borrowed_sum -= collat_amt_i256;
+        collatBorrowedBalances[msg.sender] -= collat_amt_i256;
+        collatBorrowedSum -= collat_amt_i256;
 
         // Sync
         syncDollarBalances();
@@ -312,13 +308,13 @@ contract AMOMinter is CheckPermission {
         amosArray.push(amo_address);
 
         // Mint balances
-        frax_mint_balances[amo_address] = 0;
-        fxs_mint_balances[amo_address] = 0;
-        collat_borrowed_balances[amo_address] = 0;
+        stablecoinMintBalances[amo_address] = 0;
+        stockMintBalances[amo_address] = 0;
+        collatBorrowedBalances[amo_address] = 0;
 
         // Offsets
-        correction_offsets_amos[amo_address][0] = 0;
-        correction_offsets_amos[amo_address][1] = 0;
+        correctionOffsetsAmos[amo_address][0] = 0;
+        correctionOffsetsAmos[amo_address][1] = 0;
 
         if (sync_too) syncDollarBalances();
 
@@ -348,24 +344,24 @@ contract AMOMinter is CheckPermission {
     }
 
     function setFraxMintCap(uint256 _frax_mint_cap) external onlyByOwnGov {
-        frax_mint_cap = int256(_frax_mint_cap);
+        stableCoinMintCap = int256(_frax_mint_cap);
     }
 
     function setFxsMintCap(uint256 _fxs_mint_cap) external onlyByOwnGov {
-        fxs_mint_cap = int256(_fxs_mint_cap);
+        fxsMintCap = int256(_fxs_mint_cap);
     }
 
     function setCollatBorrowCap(uint256 _collat_borrow_cap) external onlyByOwnGov {
-        collat_borrow_cap = int256(_collat_borrow_cap);
+        collatBorrowCap = int256(_collat_borrow_cap);
     }
 
     function setMinimumCollateralRatio(uint256 _min_cr) external onlyByOwnGov {
-        min_cr = _min_cr;
+        minCR = _min_cr;
     }
 
     function setAMOCorrectionOffsets(address amo_address, int256 frax_e18_correction, int256 collat_e18_correction) external onlyByOwnGov {
-        correction_offsets_amos[amo_address][0] = frax_e18_correction;
-        correction_offsets_amos[amo_address][1] = collat_e18_correction;
+        correctionOffsetsAmos[amo_address][0] = frax_e18_correction;
+        correctionOffsetsAmos[amo_address][1] = collat_e18_correction;
 
         syncDollarBalances();
     }
@@ -375,7 +371,7 @@ contract AMOMinter is CheckPermission {
 
         // Make sure the collaterals match, or balances could get corrupted
         //todo
-        //        require(old_pool.collateralAddrToIdx(collateral_address) == col_idx, "collateral address mismatch");
+        //        require(old_pool.collateralAddrToIdx(collateralAddress) == col_idx, "collateral address mismatch");
     }
 
     function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyByOwnGov {

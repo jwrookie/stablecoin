@@ -19,7 +19,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     /* ========== STATE VARIABLES ========== */
 
     ERC20 private collateral_token;
-    address private collateral_address;
+    address private collateralAddress;
 
     Stock private FXS;
     RStablecoin private FRAX;
@@ -74,7 +74,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         , "Zero address detected");
         FRAX = RStablecoin(_frax_contract_address);
         FXS = Stock(_fxs_contract_address);
-        collateral_address = _collateral_address;
+        collateralAddress = _collateral_address;
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
         missing_decimals = uint(18).sub(collateral_token.decimals());
@@ -338,7 +338,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // Bypasses the gassy mint->redeem cycle for AMOs to borrow collateral
     function amoMinterBorrow(uint256 collateral_amount) external whenNotPaused onlyAMOMinters {
         // Transfer
-        TransferHelper.safeTransfer(collateral_address, msg.sender, collateral_amount);
+        TransferHelper.safeTransfer(collateralAddress, msg.sender, collateral_amount);
     }
 
     // When the protocol is recollateralizing, we need to give a discount of FXS to hit the new CR target
