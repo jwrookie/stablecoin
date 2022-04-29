@@ -418,7 +418,7 @@ contract('AMOMinter', async function() {
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(1000000 - 10000);
     });
 
-    it('test oldPoolRedeem and oldPoolCollectAndGive', async function () {
+    it('test poolRedeem and poolCollectAndGive', async function () {
         let redemptionFee;
         let colPriceUsd;
         let globalCollateralRatio;
@@ -477,7 +477,7 @@ contract('AMOMinter', async function() {
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(997500);
         // await stableCoinPool.addAMOMinter(owner.address);
         // await stableCoinPool.addAMOMinter(amoMinter.address);
-        await amoMinter.oldPoolRedeem(100);
+        await amoMinter.poolRedeem(100);
     });
 
     it('test collatDollarBalance', async function () {

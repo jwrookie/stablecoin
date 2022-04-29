@@ -77,76 +77,70 @@ contract AMOMinter is CheckPermission {
         _;
     }
 
-
     function collatDollarBalance() external view returns (uint256) {
-        (, uint256 collat_val_e18) = dollarBalances();
-        return collat_val_e18;
+        (, uint256 collatValE18) = dollarBalances();
+        return collatValE18;
     }
 
-    function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
-        frax_val_e18 = stableDollarBalanceStored;
-        collat_val_e18 = collatDollarBalanceStored;
-    }
-
-    function allAMOAddresses() external view returns (address[] memory) {
-        return amosArray;
+    function dollarBalances() public view returns (uint256 stableValE18, uint256 collatValE18) {
+        stableValE18 = stableDollarBalanceStored;
+        collatValE18 = collatDollarBalanceStored;
     }
 
     function allAMOsLength() external view returns (uint256) {
         return amosArray.length;
     }
 
-    function fraxTrackedGlobal() external view returns (int256) {
+    function stableTrackedGlobal() external view returns (int256) {
         return int256(stableDollarBalanceStored) - stableCoinMintSum - (collatBorrowedSum * int256(10 ** missingDecimals));
     }
 
-    function fraxTrackedAMO(address amo_address) external view returns (int256) {
-        (uint256 frax_val_e18,) = IAMO(amo_address).dollarBalances();
-        int256 frax_val_e18_corrected = int256(frax_val_e18) + correctionOffsetsAmos[amo_address][0];
-        return frax_val_e18_corrected - stablecoinMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * int256(10 ** missingDecimals));
+    function stableTrackedAMO(address amo_address) external view returns (int256) {
+        (uint256 fraxValE18,) = IAMO(amo_address).dollarBalances();
+        int256 stableValE18Corrected = int256(fraxValE18) + correctionOffsetsAmos[amo_address][0];
+        return stableValE18Corrected - stablecoinMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * int256(10 ** missingDecimals));
     }
 
-    /* ========== PUBLIC FUNCTIONS ========== */
 
     // Callable by anyone willing to pay the gas
     function syncDollarBalances() public {
-        uint256 total_frax_value_d18 = 0;
-        uint256 total_collateral_value_d18 = 0;
+        uint256 totalStableValueD18 = 0;
+        uint256 totalCollateralValueD18 = 0;
         for (uint i = 0; i < amosArray.length; i++) {
             // Exclude null addresses
             address amo_address = amosArray[i];
             if (amo_address != address(0)) {
-                (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
-                total_frax_value_d18 += uint256(int256(frax_val_e18) + correctionOffsetsAmos[amo_address][0]);
-                total_collateral_value_d18 += uint256(int256(collat_val_e18) + correctionOffsetsAmos[amo_address][1]);
+                (uint256 stableValE18, uint256 collatValE18) = IAMO(amo_address).dollarBalances();
+                totalStableValueD18 += uint256(int256(stableValE18) + correctionOffsetsAmos[amo_address][0]);
+                totalCollateralValueD18 += uint256(int256(collatValE18) + correctionOffsetsAmos[amo_address][1]);
             }
         }
-        stableDollarBalanceStored = total_frax_value_d18;
-        collatDollarBalanceStored = total_collateral_value_d18;
+        stableDollarBalanceStored = totalStableValueD18;
+        collatDollarBalanceStored = totalCollateralValueD18;
     }
 
-    /* ========== OLD POOL / BACKWARDS COMPATIBILITY ========== */
+    function poolRedeem(uint256 _amount) external onlyOperator {
+        uint256 redemptionFee = pool.redemption_fee();
+        uint256 colPriceUsd = pool.getCollateralPrice();
 
-    function oldPoolRedeem(uint256 frax_amount) external onlyOperator {
-        uint256 redemption_fee = pool.redemption_fee();
-        uint256 col_price_usd = pool.getCollateralPrice();
         uint256 globalCollateralRatio = stablecoin.globalCollateralRatio();
-        uint256 redeem_amount_E6 = ((frax_amount * (uint256(1e6) - redemption_fee)) / 1e6) / (10 ** missingDecimals);
-        uint256 expected_collat_amount = (redeem_amount_E6 * globalCollateralRatio) / 1e6;
-        expected_collat_amount = (expected_collat_amount * 1e6) / col_price_usd;
 
-        require((collatBorrowedSum + int256(expected_collat_amount)) <= collatBorrowCap, "Borrow cap");
-        collatBorrowedSum += int256(expected_collat_amount);
+        uint256 redeemAmountE6 = ((_amount * (uint256(1e6) - redemptionFee)) / 1e6) / (10 ** missingDecimals);
+        uint256 expectedCollatAmount = (redeemAmountE6 * globalCollateralRatio) / 1e6;
+        expectedCollatAmount = (expectedCollatAmount * 1e6) / colPriceUsd;
 
-        // Mint the frax 
-        stablecoin.poolMint(address(this), frax_amount);
+        require((collatBorrowedSum + int256(expectedCollatAmount)) <= collatBorrowCap, "Borrow cap");
+        collatBorrowedSum += int256(expectedCollatAmount);
 
-        // Redeem the frax
-        stablecoin.approve(address(pool), frax_amount);
-        pool.redeemFractionalFRAX(frax_amount, 0, 0);
+        // Mint the stablecoin
+        stablecoin.poolMint(address(this), _amount);
+
+        // Redeem the stablecoin
+        stablecoin.approve(address(pool), _amount);
+        pool.redeemFractionalFRAX(_amount, 0, 0);
     }
 
-    function oldPoolCollectAndGive(address destination_amo) external onlyOperator validAMO(destination_amo) {
+    function poolCollectAndGive(address destination_amo) external onlyOperator validAMO(destination_amo) {
         // Get the amount to be collected
         uint256 collat_amount = pool.redeemCollateralBalances(address(this));
 
