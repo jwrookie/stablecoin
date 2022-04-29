@@ -15,14 +15,6 @@ import "./AbstractController.sol";
 contract GaugeController is ReentrancyGuard, AbstractController {
     using SafeMath for uint256;
 
-    // Info of each user.
-    struct UserInfo {
-        uint256 amount;
-        uint256 rewardDebt;
-    }
-
-    uint public totalVe;
-
     constructor(address _operatorMsg, address __ve)AbstractController(_operatorMsg, __ve) {
 
     }
