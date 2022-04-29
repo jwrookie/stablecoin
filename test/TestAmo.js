@@ -7,15 +7,15 @@ const POOLREGISTRY = require('./mock/mockPool/PoolRegistry.json');
 const FACTORY = require('../test/mock/PancakeFactory.json');
 const ROUTER = require('../test/mock/PancakeRouter.json');
 const WETH = require('../test/mock/WETH9.json');
-const { deployContract } = require('ethereum-waffle');
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
-const { BigNumber } = require('ethers');
-const { toWei } = web3.utils;
-const { time } = require('@openzeppelin/test-helpers');
+const {deployContract} = require('ethereum-waffle');
+const {ethers} = require('hardhat');
+const {expect} = require('chai');
+const {BigNumber} = require('ethers');
+const {toWei} = web3.utils;
+const {time} = require('@openzeppelin/test-helpers');
 const GAS = {gasLimit: "9550000"};
 
-contract('AMOMinter', async function() {
+contract('AMOMinter', async function () {
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const POOL_CELLING = toWei('10000000000');
     let initFraxDollarBalanceStored;
@@ -71,19 +71,19 @@ contract('AMOMinter', async function() {
     }
 
     async function getBalances(coin, account) {
-        return parseInt(await coin.balanceOf(account.address));
+        return await coin.balanceOf(account.address);
     }
 
     async function refreshOracle(oracle, periodDay) {
         await oracle.setPeriod(periodDay);
         if (expect(await oracle.canUpdate()).to.be.eq(true)) {
             await oracle.update();
-        }else {
+        } else {
             await refreshOracle(oracle, periodDay);
         }
     }
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
         // About fxs and rusd
         const TestOracle = await ethers.getContractFactory('TestOracle');
@@ -152,8 +152,8 @@ contract('AMOMinter', async function() {
 
         // Factory ---> deploy pool ---> The last parameter is sender
         factory = await deployContract(owner, {
-                bytecode: FACTORY.bytecode,
-                abi: FACTORY.abi
+            bytecode: FACTORY.bytecode,
+            abi: FACTORY.abi
         }, [owner.address]);
 
         // Router -> for adding liquidity
@@ -311,7 +311,7 @@ contract('AMOMinter', async function() {
         // await stableCoinPool.addAMOMinter(exchangeAMO.address);
     });
 
-    it('test addAMO and removeAMO', async function() {
+    it('test addAMO and removeAMO', async function () {
         expect(await amoMinter.allAMOsLength()).to.be.eq(1);
         amosMap = await amoMinter.allAMOAddresses()
         expect(exchangeAMO.address).to.be.eq(amosMap[0]);
@@ -381,8 +381,8 @@ contract('AMOMinter', async function() {
         expect(await amoMinter.frax_mint_balances(exchangeAMO.address)).to.be.eq(1000);
         expect(await amoMinter.frax_mint_sum()).to.be.eq(1000);
 
-        await amoMinter.addAMO(owner.address, true);
-        await amoMinter.burnFraxFromAMO(100);
+        await exchangeAMO.burnFRAX(100);
+        expect(await getBalances(frax, exchangeAMO)).to.be.eq(900);
         // await frax.poolMint(owner.address, 10000); // Question
     });
 
@@ -391,8 +391,8 @@ contract('AMOMinter', async function() {
         await amoMinter.mintFxsForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
-        await amoMinter.addAMO(owner.address, true);
-        await amoMinter.burnFxsFromAMO(1e3);
+        // await exchangeAMO.burnFXS(100);
+        await amoMinter.burnFxsFromAMO(100);
         expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
         console.log(await amoMinter.fxs_mint_balances(owner.address));
     });
@@ -404,7 +404,8 @@ contract('AMOMinter', async function() {
         initUsdcInPool = await getBalances(usdc, stableCoinPool);
         expect(parseInt(initUsdcInPool)).to.be.eq(0);
         await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
-        expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
+        // console.log(await usdc.balanceOf(stableCoinPool.address));
+        // expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(parseInt(toWei("1")));
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
         await stableCoinPool.addAMOMinter(amoMinter.address);
         initUsdcInOwner = await getBalances(usdc, owner);
@@ -413,8 +414,7 @@ contract('AMOMinter', async function() {
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(1000000);
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(1000000);
 
-        await amoMinter.addAMO(owner.address, true);
-        await amoMinter.receiveCollatFromAMO(10000);
+        await exchangeAMO.giveCollatBack(10000);
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(1000000 - 10000);
     });
 
@@ -464,7 +464,8 @@ contract('AMOMinter', async function() {
         expect(parseInt(await frax.fraxPrice())).to.be.eq(20);
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(1000000);
         await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
-        expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
+        // console.log(await usdc.balanceOf(stableCoinPool.address));
+        // expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
         initUsdcInOwner = await getBalances(usdc, owner);
         await amoMinter.giveCollatToAMO(exchangeAMO.address, 1000000);
@@ -476,6 +477,7 @@ contract('AMOMinter', async function() {
         await frax.refreshCollateralRatio();
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(997500);
         // await stableCoinPool.addAMOMinter(owner.address);
+        // await stableCoinPool.addAMOMinter(amoMinter.address);
         // await stableCoinPool.addAMOMinter(amoMinter.address);
         await amoMinter.oldPoolRedeem(100);
     });
