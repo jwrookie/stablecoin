@@ -12,6 +12,7 @@ const {ethers} = require('hardhat');
 const {expect} = require('chai');
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
+const {time} = require('@openzeppelin/test-helpers');
 const GAS = {gasLimit: "9550000"};
 
 contract('AMOMinter', async function () {
@@ -24,6 +25,10 @@ contract('AMOMinter', async function () {
         }
 
         return bufferArray;
+    }
+
+    async function setOracle() {
+
     }
 
     beforeEach(async function () {
@@ -138,7 +143,7 @@ contract('AMOMinter', async function () {
                 zeroAddr,
                 zeroAddr,
                 zeroAddr,
-                zeroAddr])
+                zeroAddr]);
 
 
         // create  token0 token1 token2
@@ -153,11 +158,11 @@ contract('AMOMinter', async function () {
 
         pool = await plain3Balances.attach(poolAddress);
 
-        await token0.approve(pool.address, toWei("10000"))
-        await frax.approve(pool.address, toWei("10000"))
-        await token2.approve(pool.address, toWei("10000"))
+        await token0.approve(pool.address, toWei("10000"));
+        await frax.approve(pool.address, toWei("10000"));
+        await token2.approve(pool.address, toWei("10000"));
 
-        await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, GAS)
+        await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, GAS);
 
         // ETHOracle
         const MockChainLink = await ethers.getContractFactory("MockChainLink");
@@ -292,70 +297,64 @@ contract('AMOMinter', async function () {
         // console.log("owner_price::\t" + await usdc.balanceOf(owner.address));
     });
 
-    // it('test collatDollarBalance', async function () {
-    //     let collatValue;
-    //
-    //     collatValue = await amoMinter.collatDollarBalance();
-    //     expect(parseInt(collatValue)).to.be.eq(0);
-    // });
-    //
-    // it('test dollarBalances', async function () {
-    //     let valueMap;
-    //     let fraxValueE18;
-    //     let collatValueE18;
-    //
-    //     valueMap = await amoMinter.dollarBalances();
-    //     fraxValueE18 = valueMap[0];
-    //     collatValueE18 = valueMap[1];
-    //     expect(parseInt(fraxValueE18)).to.be.eq(0);
-    //     expect(parseInt(collatValueE18)).to.be.eq(0);
-    // });
-    //
-    // it('test allAMOAddress、allAMOsLength', async function () {
-    //     price = await pool.get_virtual_price();
-    //
-    //     resultArrayLength = await amoMinter.allAMOsLength();
-    //     expect(resultArrayLength).to.be.eq(1);
-    //     resultArray = await amoMinter.allAMOAddresses();
-    //     resultArrayValue = resultArray[0];
-    //     expect(resultArrayValue).to.be.eq(exchangeAMO.address);
-    //
-    //     await amoMinter.removeAMO(exchangeAMO.address, true);
-    //     resultArrayLength = await amoMinter.allAMOsLength();
-    //     expect(resultArrayLength).to.be.eq(1);
-    //     amoAddress = await amoMinter.amos_array(0);
-    //     expect(amoAddress).to.be.eq(zeroAddr);
-    // });
-    //
-    // it('test fraxTrackedGlobal', async function () {
-    //     let fraxDollarBalance;
-    //     let fraxTrackedGlobalValue;
-    //
-    //     fraxDollarBalance = await amoMinter.fraxDollarBalanceStored();
-    //     expect(parseInt(fraxDollarBalance)).to.be.eq(0);
-    //
-    //     fraxTrackedGlobalValue = await amoMinter.fraxTrackedGlobal();
-    //     expect(parseInt(fraxTrackedGlobalValue)).to.be.eq(0);
-    //
-    //     expect(await amoMinter.fraxTrackedGlobal()).to.be.eq(0);
-    // });
-    //
-    // it('test fraxTrackedAMO', async function () {
-    //     let dollarBalancesMap;
-    //     let fraxValE18;
-    //
-    //     dollarBalancesMap = await amoMinter.dollarBalances();
-    //     fraxValE18 = dollarBalancesMap[0];
-    //     expect(fraxValE18).to.be.eq(0);
-    // });
+    it('test collatDollarBalance', async function () {
+        let collatValue;
+
+        collatValue = await amoMinter.collatDollarBalance();
+        expect(parseInt(collatValue)).to.be.eq(0);
+    });
+
+    it('test dollarBalances', async function () {
+        let valueMap;
+        let fraxValueE18;
+        let collatValueE18;
+
+        valueMap = await amoMinter.dollarBalances();
+        fraxValueE18 = valueMap[0];
+        collatValueE18 = valueMap[1];
+        expect(parseInt(fraxValueE18)).to.be.eq(0);
+        expect(parseInt(collatValueE18)).to.be.eq(0);
+    });
+
+    it('test allAMOAddress、allAMOsLength', async function () {
+        price = await pool.get_virtual_price();
+
+        resultArrayLength = await amoMinter.allAMOsLength();
+        expect(resultArrayLength).to.be.eq(1);
+        resultArray = await amoMinter.allAMOAddresses();
+        resultArrayValue = resultArray[0];
+        expect(resultArrayValue).to.be.eq(exchangeAMO.address);
+
+        await amoMinter.removeAMO(exchangeAMO.address, true);
+        resultArrayLength = await amoMinter.allAMOsLength();
+        expect(resultArrayLength).to.be.eq(1);
+        amoAddress = await amoMinter.amos_array(0);
+        expect(amoAddress).to.be.eq(zeroAddr);
+    });
+
+    it('test fraxTrackedGlobal', async function () {
+        let fraxDollarBalance;
+        let fraxTrackedGlobalValue;
+
+        fraxDollarBalance = await amoMinter.fraxDollarBalanceStored();
+        expect(parseInt(fraxDollarBalance)).to.be.eq(0);
+
+        fraxTrackedGlobalValue = await amoMinter.fraxTrackedGlobal();
+        expect(parseInt(fraxTrackedGlobalValue)).to.be.eq(0);
+
+        expect(await amoMinter.fraxTrackedGlobal()).to.be.eq(0);
+    });
+
+    it('test fraxTrackedAMO', async function () {
+        let dollarBalancesMap;
+        let fraxValE18;
+
+        dollarBalancesMap = await amoMinter.dollarBalances();
+        fraxValE18 = dollarBalancesMap[0];
+        expect(fraxValE18).to.be.eq(0);
+    });
 
     it('test oldPoolRedeem', async function () {
-        let redeemPtionFee;
-        let colPriceUsd;
-        let globalCollateralRatio;
-        let latestPrice;
-        let amoMinterBalanceOfFrax;
-        let fxsPrice;
         const REDEEM_FEE = 1e4;
 
         // await mockChainLink.setAnswer(BigNumber.from(1e18));
@@ -368,7 +367,7 @@ contract('AMOMinter', async function () {
         console.log("frax_price:\t" + await frax.fraxPrice());
 
         // Set redeem fee
-        await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
+        await usdcPool.setPoolParameters(toWei('10000000000'), 0, 0, 0, 0, REDEEM_FEE, 0);
         redeemPtionFee = await usdcPool.redemption_fee();
         console.log("redeem_fee:\t" + redeemPtionFee);
         latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
