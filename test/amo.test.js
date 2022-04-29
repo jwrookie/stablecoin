@@ -293,7 +293,7 @@ contract('AMOMinter', async function () {
     });
 
 
-    it('test oldPoolRedeem', async function () {
+    it('test poolRedeem', async function () {
         let redeemPtionFee;
         let colPriceUsd;
         let globalCollateralRatio;
@@ -466,7 +466,7 @@ contract('AMOMinter', async function () {
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
         // await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
         // await amoMinter.receiveCollatFromAMO(100);
-        // await amoMinter.oldPoolRedeem(1);
+        // await amoMinter.poolRedeem(1);
         // amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);
         // expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(100000);
     });

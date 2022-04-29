@@ -289,7 +289,7 @@ contract('AMOMinter', async function () {
 
     });
 
-    it('test oldPoolRedeem', async function () {
+    it('test poolRedeem', async function () {
         let redeemPtionFee;
         let colPriceUsd;
         let globalCollateralRatio;
