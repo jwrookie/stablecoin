@@ -97,12 +97,10 @@ contract ExchangeAMO is CheckPermission {
 
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
         // Get the allocations
-//        uint256[9] memory allocations = showAllocations();
+        uint256[9] memory allocations = showAllocations();
 
-        frax_val_e18 = 0;
-        //(allocations[2]).add((allocations[5]).mul((10 ** missingDecimals)));
-        collat_val_e18 = 0;
-        //(allocations[6]).mul(10 ** missingDecimals);
+        frax_val_e18 = (allocations[2]).add((allocations[5]).mul((10 ** missingDecimals)));
+        collat_val_e18 = (allocations[6]).mul(10 ** missingDecimals);
     }
 
     // Returns hypothetical reserves of metapool if the FRAX price went to the CR,
