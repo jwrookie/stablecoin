@@ -35,8 +35,8 @@ contract AMOMinter is CheckPermission {
     // Minimum collateral ratio needed for new FRAX minting
     uint256 public minCR = 810000;
 
-    mapping(address => int256) public stablecoinMintBalances;
-    int256 public stableCoinMintSum;
+    mapping(address => int256) public stableMintBalances;
+    int256 public stableMintSum;
 
     mapping(address => int256) public stockMintBalances;
     int256 public stockMintSum = 0; // Across all AMOs
@@ -92,13 +92,13 @@ contract AMOMinter is CheckPermission {
     }
 
     function stableTrackedGlobal() external view returns (int256) {
-        return int256(stableDollarBalanceStored) - stableCoinMintSum - (collatBorrowedSum * int256(10 ** missingDecimals));
+        return int256(stableDollarBalanceStored) - stableMintSum - (collatBorrowedSum * int256(10 ** missingDecimals));
     }
 
     function stableTrackedAMO(address amo_address) external view returns (int256) {
         (uint256 fraxValE18,) = IAMO(amo_address).dollarBalances();
         int256 stableValE18Corrected = int256(fraxValE18) + correctionOffsetsAmos[amo_address][0];
-        return stableValE18Corrected - stablecoinMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * int256(10 ** missingDecimals));
+        return stableValE18Corrected - stableMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * int256(10 ** missingDecimals));
     }
 
 
@@ -163,9 +163,9 @@ contract AMOMinter is CheckPermission {
         int256 stableAmtI256 = int256(stableAmount);
 
         // Make sure you aren't minting more than the mint cap
-        require((stableCoinMintSum + stableAmtI256) <= stableCoinMintCap, "Mint cap reached");
-        stablecoinMintBalances[destinationAmo] += stableAmtI256;
-        stableCoinMintSum += stableAmtI256;
+        require((stableMintSum + stableAmtI256) <= stableCoinMintCap, "Mint cap reached");
+        stableMintBalances[destinationAmo] += stableAmtI256;
+        stableMintSum += stableAmtI256;
 
         // Make sure the FRAX minting wouldn't push the CR down too much
         // This is also a sanity check for the int256 math
@@ -189,8 +189,8 @@ contract AMOMinter is CheckPermission {
         stablecoin.poolBurnFrom(msg.sender, frax_amount);
 
         // Then update the balances
-        stablecoinMintBalances[msg.sender] -= frax_amt_i256;
-        stableCoinMintSum -= frax_amt_i256;
+        stableMintBalances[msg.sender] -= frax_amt_i256;
+        stableMintSum -= frax_amt_i256;
 
         // Sync
         syncDollarBalances();
@@ -281,7 +281,7 @@ contract AMOMinter is CheckPermission {
         amosArray.push(amo_address);
 
         // Mint balances
-        stablecoinMintBalances[amo_address] = 0;
+        stableMintBalances[amo_address] = 0;
         stockMintBalances[amo_address] = 0;
         collatBorrowedBalances[amo_address] = 0;
 
