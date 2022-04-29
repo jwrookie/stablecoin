@@ -140,50 +140,43 @@ contract AMOMinter is CheckPermission {
         pool.redeemFractionalFRAX(_amount, 0, 0);
     }
 
-    function poolCollectAndGive(address destination_amo) external onlyOperator validAMO(destination_amo) {
+    function poolCollectAndGive(address destinationAmo) external onlyOperator validAMO(destinationAmo) {
         // Get the amount to be collected
-        uint256 collat_amount = pool.redeemCollateralBalances(address(this));
+        uint256 collatAmount = pool.redeemCollateralBalances(address(this));
 
         // Collect the redemption
         pool.collectRedemption();
 
         // Mark the destination amo's borrowed amount
-        collatBorrowedBalances[destination_amo] += int256(collat_amount);
+        collatBorrowedBalances[destinationAmo] += int256(collatAmount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(address(collateralToken), destination_amo, collat_amount);
+        TransferHelper.safeTransfer(address(collateralToken), destinationAmo, collatAmount);
 
         // Sync
         syncDollarBalances();
     }
 
-    /* ========== OWNER / GOVERNANCE FUNCTIONS ONLY ========== */
-    // Only owner or timelock can call, to limit risk 
-
-    // ------------------------------------------------------------------
-    // ------------------------------ FRAX ------------------------------
-    // ------------------------------------------------------------------
-
     // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like poolMint and poolBurnFrom
-    // on the main FRAX contract
-    function mintFraxForAMO(address destination_amo, uint256 frax_amount) external onlyOperator validAMO(destination_amo) {
-        int256 frax_amt_i256 = int256(frax_amount);
+    // on the main stable contract
+    function mintFraxForAMO(address destinationAmo, uint256 stableAmount) external onlyOperator validAMO(destinationAmo) {
+        int256 stableAmtI256 = int256(stableAmount);
 
         // Make sure you aren't minting more than the mint cap
-        require((stableCoinMintSum + frax_amt_i256) <= stableCoinMintCap, "Mint cap reached");
-        stablecoinMintBalances[destination_amo] += frax_amt_i256;
-        stableCoinMintSum += frax_amt_i256;
+        require((stableCoinMintSum + stableAmtI256) <= stableCoinMintCap, "Mint cap reached");
+        stablecoinMintBalances[destinationAmo] += stableAmtI256;
+        stableCoinMintSum += stableAmtI256;
 
         // Make sure the FRAX minting wouldn't push the CR down too much
         // This is also a sanity check for the int256 math
-        uint256 current_collateral_E18 = stablecoin.globalCollateralValue();
-        uint256 cur_frax_supply = stablecoin.totalSupply();
-        uint256 new_frax_supply = cur_frax_supply + frax_amount;
-        uint256 new_cr = (current_collateral_E18 * PRICE_PRECISION) / new_frax_supply;
-        require(new_cr >= minCR, "CR would be too low");
+        uint256 currentCollateralE18 = stablecoin.globalCollateralValue();
+        uint256 curFraxSupply = stablecoin.totalSupply();
+        uint256 newStableSupply = curFraxSupply + stableAmount;
+        uint256 newCR = (currentCollateralE18 * PRICE_PRECISION) / newStableSupply;
+        require(newCR >= minCR, "CR would be too low");
 
         // Mint the FRAX to the AMO
-        stablecoin.poolMint(destination_amo, frax_amount);
+        stablecoin.poolMint(destinationAmo, stableAmount);
 
         // Sync
         syncDollarBalances();
