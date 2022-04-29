@@ -159,7 +159,7 @@ contract AMOMinter is CheckPermission {
 
     // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like poolMint and poolBurnFrom
     // on the main stable contract
-    function mintFraxForAMO(address destinationAmo, uint256 stableAmount) external onlyOperator validAMO(destinationAmo) {
+    function mintStableForAMO(address destinationAmo, uint256 stableAmount) external onlyOperator validAMO(destinationAmo) {
         int256 stableAmtI256 = int256(stableAmount);
 
         // Make sure you aren't minting more than the mint cap
@@ -182,7 +182,7 @@ contract AMOMinter is CheckPermission {
         syncDollarBalances();
     }
 
-    function burnFraxFromAMO(uint256 frax_amount) external validAMO(msg.sender) {
+    function burnStableFromAMO(uint256 frax_amount) external validAMO(msg.sender) {
         int256 frax_amt_i256 = int256(frax_amount);
 
         // Burn first
@@ -215,7 +215,7 @@ contract AMOMinter is CheckPermission {
         syncDollarBalances();
     }
 
-    function burnFxsFromAMO(uint256 fxs_amount) external validAMO(msg.sender) {
+    function burnStockFromAMO(uint256 fxs_amount) external validAMO(msg.sender) {
         int256 fxs_amt_i256 = int256(fxs_amount);
 
         // Burn first

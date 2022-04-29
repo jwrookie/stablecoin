@@ -146,7 +146,7 @@ contract ExchangeAMO is CheckPermission {
     }
     // Backwards compatibility
     function mintedBalance() public view returns (int256) {
-        return amoMinter.frax_mint_balances(address(this));
+        return amoMinter.stableMintBalances(address(this));
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */
@@ -254,10 +254,16 @@ contract ExchangeAMO is CheckPermission {
         amoMinter.receiveCollatFromAMO(collat_amount);
     }
 
+    function burnStock(uint256 _amount) public onlyOperator {
+        stablecoin.approve(address(amoMinter), _amount);
+        amoMinter.burnStockFromAMO(_amount);
+    }
+
+
     // Burn unneeded or excess FRAX. Goes through the minter
     function burnFRAX(uint256 frax_amount) public onlyOperator {
         stablecoin.approve(address(amoMinter), frax_amount);
-        amoMinter.burnFraxFromAMO(frax_amount);
+        amoMinter.burnStableFromAMO(frax_amount);
     }
 
     /* ========== RESTRICTED GOVERNANCE FUNCTIONS ========== */

@@ -346,7 +346,7 @@ contract('AMOMinter', async function () {
         expect(await amoMinter.collatDollarBalanceStored()).to.be.eq(0);
     });
 
-    it('test mintFraxForAMO and burnFraxFromAMO', async function () {
+    it('test mintStableForAMO and burnStableFromAMO', async function () {
         expect(await getBalances(frax, amoMinter)).to.be.eq(0);
         expect(await getBalances(frax, stableCoinPool)).to.be.eq(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
@@ -376,7 +376,7 @@ contract('AMOMinter', async function () {
         await usdcUniswapOracle.update();
         await amoMinter.setMinimumCollateralRatio(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
-        await amoMinter.mintFraxForAMO(exchangeAMO.address, 1000);
+        await amoMinter.mintStableForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(1000);
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(1000);
         expect(await amoMinter.stableMintSum()).to.be.eq(1000);
@@ -386,15 +386,16 @@ contract('AMOMinter', async function () {
         // await frax.poolMint(owner.address, 10000); // Question
     });
 
-    it('test mintFxsForMO and burnFxsFromAMO', async function () {
+    it('test mintFxsForMO and burnStockFromAMO', async function () {
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(0);
         await amoMinter.mintFxsForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
         // await exchangeAMO.burnFXS(100);
-        await amoMinter.burnFxsFromAMO(100);
-        expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
-        console.log(await amoMinter.stockMintBalances(owner.address));
+        //todo buransTock
+        await exchangeAMO.burnStock(0);
+        // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
+        // console.log(await amoMinter.stockMintBalances(owner.address));
     });
 
     it('test giveCollatToAmo and receiveCollatFromAMO', async function () {
@@ -456,7 +457,7 @@ contract('AMOMinter', async function () {
         // await refreshOracle(fraxUniswapOracle, 1);
         await amoMinter.setMinimumCollateralRatio(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
-        await amoMinter.mintFraxForAMO(exchangeAMO.address, 1000);
+        await amoMinter.mintStableForAMO(exchangeAMO.address, 1000);
         await frax.setPriceTarget(22);
         await frax.setPriceBand(1);
         // await frax.setFraxStep(1);

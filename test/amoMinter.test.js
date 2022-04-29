@@ -380,7 +380,7 @@ contract('AMOMinter', async function () {
     //     // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
     // });
 
-    // it('test mintFraxForAMO and burnFraxForAMO', async function () {
+    // it('test mintStableForAMO and burnFraxForAMO', async function () {
     //     let fraxMintBalance;
     //     let fraxOfExchange;
     //     let fraxMintSum;
@@ -403,16 +403,16 @@ contract('AMOMinter', async function () {
     //     await amoMinter.setMinimumCollateralRatio(0);
     //
     //     await frax.addPool(amoMinter.address);
-    //     await amoMinter.mintFraxForAMO(exchangeAMO.address, toWei("100"));
+    //     await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("100"));
     //     // fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
     //     // console.log(fraxMintBalance);
     //     // fraxMintSum = await amoMinter.frax_mint_sum();
     //     // expect(parseInt(fraxMintSum)).to.be.eq(parseInt(toWei("100")));
     //
-    //     await amoMinter.burnFraxFromAMO(toWei("1"));
+    //     await amoMinter.burnStableFromAMO(toWei("1"));
     // });
 
-    // it('test mintFxsForAMO and burnFxsFromAMO', async function () {
+    // it('test mintFxsForAMO and burnStockFromAMO', async function () {
     //     let fxsMintBalances;
     //     let initFxsInPool;
     //
@@ -431,7 +431,7 @@ contract('AMOMinter', async function () {
     //     // expect(parseInt(fxsInPool)).to.be.eq(parseInt(initFxsInPool + toWei("1")));
     //
     //     // Burn
-    //     await amoMinter.burnFxsFromAMO(toWei("1"));
+    //     await amoMinter.burnStockFromAMO(toWei("1"));
     //     fxsMintBalances = await amoMinter.fxs_mint_balances(exchangeAMO.address); // Error
     //     expect(parseInt(fxsMintBalances)).to.be.eq(0);
     //     expect(parseInt(fxsMintBalances)).to.be.not.eq(parseInt(initFxsInPool));
