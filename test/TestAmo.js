@@ -391,7 +391,7 @@ contract('AMOMinter', async function() {
         await amoMinter.mintFxsForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
-        await amoMinter.addAMO(amoMinter.address, true);
+        // await exchangeAMO.burnFXS(100);
         await amoMinter.burnFxsFromAMO(100);
         expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
         console.log(await amoMinter.fxs_mint_balances(owner.address));
