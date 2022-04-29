@@ -96,7 +96,7 @@ contract('test Boost', async function() {
         const TestERC20 = await ethers.getContractFactory("TestERC20");
         testERC20 = await TestERC20.deploy();
         duration = getDurationTime(1);
-        veToken = await VeToken.deploy(testERC20.address, duration);
+        veToken = await VeToken.deploy(operatable.address,testERC20.address, duration);
         // Approve
         await testERC20.connect(owner).approve(veToken.address, toWei("1000"));
         await testERC20.connect(seObject).approve(veToken.address, toWei("1000"));
@@ -150,7 +150,7 @@ contract('test Boost', async function() {
         await fax.mint(seObject.address, toWei("100000"));
         await testERC20.mint(seObject.address, toWei("100000"));
 
-        await veToken.setVoter(boost.address);
+        await veToken.addBoosts(boost.address);
     });
 
     it('test poolLength', async function(){
@@ -242,35 +242,6 @@ contract('test Boost', async function() {
         poolInfoAllocPoint = poolInfoMap[1];
         console.log(checkInfoEq(parseInt(poolInfoAllocPoint), 300)); // true
     });
-
-    it('test attachTokenToGauge', async function(){
-        let lockBalanceMap;
-        let lockBalanceAmount;
-        let lockAttachments;
-
-        duration = getDurationTime(1);
-
-        // Get supply
-        gaugeLpToken = await boost.gauges(lpToken);
-        tokenSupply = await frax.balanceOf(gaugeLpToken);
-        tokenSupply = tokenSupply + 10;
-
-        // Call the function create_lock
-        durationTime = getDurationTime(1) // Lock one day
-
-        // Get tokenId before add you need to approve
-        await veToken.create_lock(tokenSupply, duration);
-
-        // Get attachments
-        lockAttachments = await veToken.attachments(0);
-        assert.equal(parseInt(lockAttachments), 0);
-
-        // Get lockbalance
-        lockBalanceMap = await veToken.locked(0);
-        lockBalanceAmount = lockBalanceMap[0];
-        console.log(parseInt(lockBalanceAmount));
-    });
-
     it('test distribute', async function(){
         let poolInfoLastRewardBlock;
         let mul;
