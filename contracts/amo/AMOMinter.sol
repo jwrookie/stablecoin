@@ -78,19 +78,11 @@ contract AMOMinter is CheckPermission {
         missingDecimals = uint(18) - collateralToken.decimals();
     }
 
-    /* ========== MODIFIERS ========== */
-
-    modifier onlyByOwnGov() {
-        require(msg.sender == owner(), "Not owner or timelock");
-        _;
-    }
-
     modifier validAMO(address amo_address) {
         require(amos[amo_address], "Invalid AMO");
         _;
     }
 
-    /* ========== VIEWS ========== */
 
     function collatDollarBalance() external view returns (uint256) {
         (, uint256 collat_val_e18) = dollarBalances();
@@ -141,7 +133,7 @@ contract AMOMinter is CheckPermission {
 
     /* ========== OLD POOL / BACKWARDS COMPATIBILITY ========== */
 
-    function oldPoolRedeem(uint256 frax_amount) external onlyByOwnGov {
+    function oldPoolRedeem(uint256 frax_amount) external onlyOperator {
         uint256 redemption_fee = pool.redemption_fee();
         uint256 col_price_usd = pool.getCollateralPrice();
         uint256 globalCollateralRatio = stablecoin.globalCollateralRatio();
@@ -160,7 +152,7 @@ contract AMOMinter is CheckPermission {
         pool.redeemFractionalFRAX(frax_amount, 0, 0);
     }
 
-    function oldPoolCollectAndGive(address destination_amo) external onlyByOwnGov validAMO(destination_amo) {
+    function oldPoolCollectAndGive(address destination_amo) external onlyOperator validAMO(destination_amo) {
         // Get the amount to be collected
         uint256 collat_amount = pool.redeemCollateralBalances(address(this));
 
@@ -186,7 +178,7 @@ contract AMOMinter is CheckPermission {
 
     // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like poolMint and poolBurnFrom
     // on the main FRAX contract
-    function mintFraxForAMO(address destination_amo, uint256 frax_amount) external onlyByOwnGov validAMO(destination_amo) {
+    function mintFraxForAMO(address destination_amo, uint256 frax_amount) external onlyOperator validAMO(destination_amo) {
         int256 frax_amt_i256 = int256(frax_amount);
 
         // Make sure you aren't minting more than the mint cap
@@ -227,7 +219,7 @@ contract AMOMinter is CheckPermission {
     // ------------------------------- FXS ------------------------------
     // ------------------------------------------------------------------
 
-    function mintFxsForAMO(address destination_amo, uint256 fxs_amount) external onlyByOwnGov validAMO(destination_amo) {
+    function mintFxsForAMO(address destination_amo, uint256 fxs_amount) external onlyOperator validAMO(destination_amo) {
         int256 fxs_amt_i256 = int256(fxs_amount);
 
         // Make sure you aren't minting more than the mint cap
@@ -263,7 +255,7 @@ contract AMOMinter is CheckPermission {
     function giveCollatToAMO(
         address destination_amo,
         uint256 collat_amount
-    ) external onlyByOwnGov validAMO(destination_amo) {
+    ) external onlyOperator validAMO(destination_amo) {
         int256 collat_amount_i256 = int256(collat_amount);
 
         require((collatBorrowedSum + collat_amount_i256) <= collatBorrowCap, "Borrow cap");
@@ -297,7 +289,7 @@ contract AMOMinter is CheckPermission {
     /* ========== RESTRICTED GOVERNANCE FUNCTIONS ========== */
 
     // Adds an AMO 
-    function addAMO(address amo_address, bool sync_too) public onlyByOwnGov {
+    function addAMO(address amo_address, bool sync_too) public onlyOperator {
         require(amo_address != address(0), "Zero address detected");
 
         (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
@@ -322,7 +314,7 @@ contract AMOMinter is CheckPermission {
     }
 
     // Removes an AMO
-    function removeAMO(address amo_address, bool sync_too) public onlyByOwnGov {
+    function removeAMO(address amo_address, bool sync_too) public onlyOperator {
         require(amo_address != address(0), "Zero address detected");
         require(amos[amo_address] == true, "Address no exist");
 
@@ -343,30 +335,30 @@ contract AMOMinter is CheckPermission {
         emit AMORemoved(amo_address);
     }
 
-    function setFraxMintCap(uint256 _frax_mint_cap) external onlyByOwnGov {
+    function setFraxMintCap(uint256 _frax_mint_cap) external onlyOperator {
         stableCoinMintCap = int256(_frax_mint_cap);
     }
 
-    function setFxsMintCap(uint256 _fxs_mint_cap) external onlyByOwnGov {
+    function setFxsMintCap(uint256 _fxs_mint_cap) external onlyOperator {
         fxsMintCap = int256(_fxs_mint_cap);
     }
 
-    function setCollatBorrowCap(uint256 _collat_borrow_cap) external onlyByOwnGov {
+    function setCollatBorrowCap(uint256 _collat_borrow_cap) external onlyOperator {
         collatBorrowCap = int256(_collat_borrow_cap);
     }
 
-    function setMinimumCollateralRatio(uint256 _min_cr) external onlyByOwnGov {
+    function setMinimumCollateralRatio(uint256 _min_cr) external onlyOperator {
         minCR = _min_cr;
     }
 
-    function setAMOCorrectionOffsets(address amo_address, int256 frax_e18_correction, int256 collat_e18_correction) external onlyByOwnGov {
+    function setAMOCorrectionOffsets(address amo_address, int256 frax_e18_correction, int256 collat_e18_correction) external onlyOperator {
         correctionOffsetsAmos[amo_address][0] = frax_e18_correction;
         correctionOffsetsAmos[amo_address][1] = collat_e18_correction;
 
         syncDollarBalances();
     }
 
-    function setFraxPool(address _pool_address) external onlyByOwnGov {
+    function setFraxPool(address _pool_address) external onlyOperator {
         pool = IStablecoinPool(_pool_address);
 
         // Make sure the collaterals match, or balances could get corrupted
@@ -374,7 +366,7 @@ contract AMOMinter is CheckPermission {
         //        require(old_pool.collateralAddrToIdx(collateralAddress) == col_idx, "collateral address mismatch");
     }
 
-    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyByOwnGov {
+    function recoverERC20(address tokenAddress, uint256 tokenAmount) external onlyOperator {
         // Can only be triggered by owner or governance
         TransferHelper.safeTransfer(tokenAddress, owner(), tokenAmount);
 
@@ -386,7 +378,7 @@ contract AMOMinter is CheckPermission {
         address _to,
         uint256 _value,
         bytes calldata _data
-    ) external onlyByOwnGov returns (bool, bytes memory) {
+    ) external onlyOperator returns (bool, bytes memory) {
         (bool success, bytes memory result) = _to.call{value : _value}(_data);
         return (success, result);
     }
