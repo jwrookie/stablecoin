@@ -401,7 +401,7 @@ contract('ExchangeAMO', async function () {
         // Quetion function
         collatDollarBalance = await amoMinter.collatDollarBalance();
         console.log("coolatDollarBalance:\t" + parseInt(collatDollarBalance));
-        await amoMinter.mintFraxForAMO(amoMinter.address, toWei("1"));
+        await amoMinter.mintStableForAMO(amoMinter.address, toWei("1"));
         amoFraxBalance = await amoMinter.frax_mint_balances(amoMinter.address);
         console.log(amoFraxBalance);
     });
