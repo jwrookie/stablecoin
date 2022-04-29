@@ -16,7 +16,7 @@ abstract contract AbstractController is CheckPermission {
     event Voted(address indexed voter, uint tokenId, int256 weight);
     event Abstained(uint tokenId, int256 weight);
 
-    uint internal immutable duration;
+//    uint internal immutable duration;
 
 
 
