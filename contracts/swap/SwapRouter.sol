@@ -129,10 +129,19 @@ contract SwapRouter is Ownable {
     ) external ensure(deadline) {
         int128 fromInt = int128(uint128(from));
         int128 toInt = int128(uint128(to));
-        address fromToken = IStablePool(pool).coins(from);
+        address fromToken;
+        uint256 callStable = 0;
+        if (from == 0) {
+            fromToken = IStablePool(pool).coins(from);
+        } else {
+            fromToken = IStablePool(pool).base_coins(from - 1);
+            callStable = 1;
+        }
+
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
+
         TransferHelper.safeTransferFrom(
             fromToken,
             msg.sender,
@@ -146,7 +155,7 @@ contract SwapRouter is Ownable {
             _min_to_amount,
             receiver
         );
-        callStableSwapMining(receiver, pool, from, _from_amount);
+        callStableSwapMining(receiver, pool, callStable, _from_amount);
     }
 
     function swapToken(
