@@ -412,7 +412,7 @@ contract('AMOMinter', async function () {
     //     await amoMinter.burnStableFromAMO(toWei("1"));
     // });
 
-    // it('test mintFxsForAMO and burnStockFromAMO', async function () {
+    // it('test mintStockForAMO and burnStockFromAMO', async function () {
     //     let fxsMintBalances;
     //     let initFxsInPool;
     //
@@ -425,7 +425,7 @@ contract('AMOMinter', async function () {
     //     expect(amosMap).to.be.eq(true);
     //     await amoMinter.removeAMO(exchangeAMO.address, true);
     //     // await amoMinter.addAMO(exchangeAMO.address, true);
-    //     // await amoMinter.mintFxsForAMO(exchangeAMO.address, toWei("1"));
+    //     // await amoMinter.mintStockForAMO(exchangeAMO.address, toWei("1"));
     //     // fxsMintBalances = await amoMinter.fxs_mint_balances(exchangeAMO.address);
     //     // initFxsInPool = fxsMintBalances;
     //     // expect(parseInt(fxsInPool)).to.be.eq(parseInt(initFxsInPool + toWei("1")));
