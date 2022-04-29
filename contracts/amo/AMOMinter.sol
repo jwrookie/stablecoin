@@ -224,92 +224,90 @@ contract AMOMinter is CheckPermission {
     // ------------------------------------------------------------------
 
     function giveCollatToAMO(
-        address destination_amo,
-        uint256 collat_amount
-    ) external onlyOperator validAMO(destination_amo) {
+        address destinationAmo,
+        uint256 _amount
+    ) external onlyOperator validAMO(destinationAmo) {
 
-        require((collatBorrowedSum + collat_amount) <= collatBorrowCap, "Borrow cap");
-        collatBorrowedBalances[destination_amo] += collat_amount;
-        collatBorrowedSum += collat_amount;
+        require((collatBorrowedSum + _amount) <= collatBorrowCap, "Borrow cap");
+        collatBorrowedBalances[destinationAmo] += _amount;
+        collatBorrowedSum += _amount;
 
         // Borrow the collateral
-        pool.amoMinterBorrow(collat_amount);
+        pool.amoMinterBorrow(_amount);
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(address(collateralToken), destination_amo, collat_amount);
+        TransferHelper.safeTransfer(address(collateralToken), destinationAmo, _amount);
 
         // Sync
         syncDollarBalances();
     }
 
-    function receiveCollatFromAMO(uint256 usdc_amount) external validAMO(msg.sender) {
+    function receiveCollatFromAMO(uint256 _amount) external validAMO(msg.sender) {
 
         // Give back first
-        TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(pool), usdc_amount);
+        TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(pool), _amount);
 
         // Then update the balances
-        collatBorrowedBalances[msg.sender] -= usdc_amount;
-        collatBorrowedSum -= usdc_amount;
+        collatBorrowedBalances[msg.sender] -= _amount;
+        collatBorrowedSum -= _amount;
 
         // Sync
         syncDollarBalances();
     }
 
-    /* ========== RESTRICTED GOVERNANCE FUNCTIONS ========== */
-
     // Adds an AMO 
-    function addAMO(address amo_address, bool sync_too) public onlyOperator {
-        require(amo_address != address(0), "Zero address detected");
+    function addAMO(address amoAddress, bool _sync) public onlyOperator {
+        require(amoAddress != address(0), "Zero address detected");
 
-        (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
-        require(frax_val_e18 >= 0 && collat_val_e18 >= 0, "Invalid AMO");
+        (uint256 stableValE18, uint256 collatValE18) = IAMO(amoAddress).dollarBalances();
+        require(stableValE18 >= 0 && collatValE18 >= 0, "Invalid AMO");
 
-        require(amos[amo_address] == false, "Address already exists");
-        amos[amo_address] = true;
-        amosArray.push(amo_address);
+        require(amos[amoAddress] == false, "Address already exists");
+        amos[amoAddress] = true;
+        amosArray.push(amoAddress);
 
         // Mint balances
-        stableMintBalances[amo_address] = 0;
-        stockMintBalances[amo_address] = 0;
-        collatBorrowedBalances[amo_address] = 0;
+        stableMintBalances[amoAddress] = 0;
+        stockMintBalances[amoAddress] = 0;
+        collatBorrowedBalances[amoAddress] = 0;
 
         // Offsets
-        correctionOffsetsAmos[amo_address][0] = 0;
-        correctionOffsetsAmos[amo_address][1] = 0;
+        correctionOffsetsAmos[amoAddress][0] = 0;
+        correctionOffsetsAmos[amoAddress][1] = 0;
 
-        if (sync_too) syncDollarBalances();
+        if (_sync) syncDollarBalances();
 
-        emit AMOAdded(amo_address);
+        emit AMOAdded(amoAddress);
     }
 
     // Removes an AMO
-    function removeAMO(address amo_address, bool sync_too) public onlyOperator {
-        require(amo_address != address(0), "Zero address detected");
-        require(amos[amo_address] == true, "Address no exist");
+    function removeAMO(address amoAddress, bool _sync) public onlyOperator {
+        require(amoAddress != address(0), "Zero address detected");
+        require(amos[amoAddress] == true, "Address no exist");
 
         // Delete from the mapping
-        delete amos[amo_address];
+        delete amos[amoAddress];
 
         // 'Delete' from the array by setting the address to 0x0
         for (uint i = 0; i < amosArray.length; i++) {
-            if (amosArray[i] == amo_address) {
+            if (amosArray[i] == amoAddress) {
                 amosArray[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
 
-        if (sync_too) syncDollarBalances();
+        if (_sync) syncDollarBalances();
 
-        emit AMORemoved(amo_address);
+        emit AMORemoved(amoAddress);
     }
 
-    function setFraxMintCap(uint256 _frax_mint_cap) external onlyOperator {
-        stableCoinMintCap = _frax_mint_cap;
+    function setStableMintCap(uint256 _stableMintCap) external onlyOperator {
+        stableCoinMintCap = _stableMintCap;
     }
 
-    function setFxsMintCap(uint256 _fxs_mint_cap) external onlyOperator {
-        fxsMintCap = _fxs_mint_cap;
+    function setStockMintCap(uint256 _stockMintCap) external onlyOperator {
+        fxsMintCap = _stockMintCap;
     }
 
     function setCollatBorrowCap(uint256 _collatBorrowCap) external onlyOperator {

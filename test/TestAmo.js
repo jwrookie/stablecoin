@@ -370,7 +370,7 @@ contract('AMOMinter', async function () {
         Mint some frax in stable coin pool
         Need to get get global collateral value by oracle
          */
-        expect(await amoMinter.minCR()).to.be.eq(810000);
+        expect(await amoMinter.minCR()).to.be.eq(950000);
         await usdcUniswapOracle.setPeriod(1);
         expect(await usdcUniswapOracle.canUpdate()).to.be.eq(true);
         await usdcUniswapOracle.update();
