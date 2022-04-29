@@ -26,14 +26,13 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let fxs = "0xAd510519008772007d3458502EF26D831BEDb155"
+   // let fxs = "0xAd510519008772007d3458502EF26D831BEDb155"
     //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
-    let operatable = "0x3724b782b8fec00cCa312a736C60dee9Be12b0aC"
+   // let operatable = "0x3724b782b8fec00cCa312a736C60dee9Be12b0aC"
     // let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
     // let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
 
-    //
 
 
     for (const account of accounts) {
@@ -46,6 +45,25 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
+    const TestOracle = await ethers.getContractFactory("TestOracle");
+    oracle = await TestOracle.deploy();
+    console.log("oracle:" + oracle.address);
+
+     const Operatable = await ethers.getContractFactory('Operatable');
+     operatable = await Operatable.deploy();
+     console.log("operatable:" + operatable.address)
+
+    const FRAXShares = await ethers.getContractFactory('Stock');
+    fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+    console.log("fxs:" + fxs.address);
+
+    const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
+    frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+    console.log("frax:" + frax.address);
+
+    await fxs.setFraxAddress(frax.address);
+    await frax.setFXSAddress(fxs.address);
+
     const Locker = await ethers.getContractFactory('Locker');
     lock = await Locker.deploy(fxs, "300");
     console.log("Locker:" + lock.address)
@@ -56,19 +74,19 @@ async function main() {
 
     Boost = await ethers.getContractFactory("Boost");
     boost = await Boost.deploy(
-        operatable,
+        operatable.address,
         lock.address,
         gaugeFactory.address,
-        fxs,
+        fxs.address,
         toWei('1'),
         parseInt("10684360"),
         "1000"
     );
     console.log("boost:" + boost.address)
 
-    await lock.setVoter(boost.address)
+    await lock.addBoosts(boost.address)
+    await fxs.addPool(boost.address);
 
-    // await frax.addPool(boost.address);
 
 
 

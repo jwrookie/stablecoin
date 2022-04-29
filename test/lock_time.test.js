@@ -82,13 +82,14 @@ contract('Locker', () => {
 
 
     });
-    it("test increase_amount and increase_unlock_time error", async () => {
+    it("failure to conduct checkpoint for a long time will lead to too high gas", async () => {
         let eta = time.duration.days(1460);
         await lock.create_lock(toWei('1002'), parseInt(eta));
         await lock.connect(dev).create_lock(toWei('1002'), parseInt(eta));
 
         await boost.vote(1, [usdc.address], [toWei('100')]);
         await boost.connect(dev).vote(2, [usdc.address], [toWei('100')]);
+        expect(await lock.tokenId()).to.be.eq(2);
 
         console.log("weights gauge_usdc:" + await boost.weights(usdc.address) / 10 ** 18)
 
@@ -109,32 +110,36 @@ contract('Locker', () => {
 
         await time.increase(time.duration.days("1"));
 
-        await lock.checkpoint();
-        let gasFee3 = await lock.estimateGas.increase_amount(1, toWei('200'))
-        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+       await lock.checkpoint();
+        let gasFee2 = await lock.estimateGas.increase_amount(1, toWei('200'))
+
+        console.log("gasFee2:" + gasFee2)
+
+
+       await lock.connect(dev).checkpoint();
+        let gasFee3 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
 
         console.log("gasFee3:" + gasFee3)
-        //  console.log("gasFee4:" + gasFee4)
-
-
-        await lock.connect(dev).checkpoint();
-        let gasFee4 = await lock.estimateGas.increase_amount(2, toWei('200'))
-        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-
-        console.log("gasFee4:" + gasFee4)
 
 
         // await time.increase(time.duration.days("1"));
-        //  await lock.checkpoint();
+         await lock.checkpoint();
         //
-        // let gasFee5 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
-        // let gasFee6 = await lock.connect(dev).estimateGas.increase_unlock_time(2, parseInt(eta1));
+        let gasFee4 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
+        let gasFee5 = await lock.connect(dev).estimateGas.increase_unlock_time(2, parseInt(eta));
         //
-        // console.log("gasFee5:" + gasFee5)
-        // console.log("gasFee6:" + gasFee6)
+        console.log("gasFee5:" + gasFee4)
+        console.log("gasFee6:" + gasFee5)
 
 
     });
+    it("when the withdrawal gas is too high users are allowed to " +
+        "withdraw cash urgently",async ()=> {
+
+        // await
+
+
+    })
 
 
 });

@@ -47,7 +47,7 @@ contract('Boost', () => {
             lock.address,
             gaugeFactory.address,
             fxs.address,
-            toWei('1'),
+            "10000",
             parseInt(lastBlock),
             "1000"
         );
@@ -100,128 +100,162 @@ contract('Boost', () => {
         await gauge_usdc.connect(owner).deposit("2000", 2);
 
         await boost.updatePool(0);
-        expect(await gauge_usdc.rewardsListLength()).to.be.eq(1);
 
-        let point = await gauge_usdc.checkpoints(dev.address, 0)
-        console.log("timestamp:" + point[0])
-        console.log("balanceOf:" + point[1])
-
-        expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_usdc.rewardRate(fxs.address)).to.be.eq(toWei('0.5'))
-        expect(await gauge_usdc.rewards(0)).to.be.eq(fxs.address);
-
-        await time.increase(time.duration.days(1));
-
-        //  console.log("boost fxs:" + await fxs.balanceOf(boost.address));
-        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
-        console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-
-        console.log("fxs bef:" + await fxs.balanceOf(owner.address))
-        await time.increase(time.duration.days(1));
-        let rewardOwner = await gauge_usdc.earned(fxs.address, owner.address)
-        console.log("rewardOwner:" + rewardOwner)
-        await gauge_usdc.connect(owner).getReward(owner.address, [fxs.address])
-        console.log("fxs aft:" + await fxs.balanceOf(owner.address))
-
-
-    });
-    it('should two pools, single user getReward correct', async () => {
-        await busd.connect(dev).approve(lock.address, toWei('10000000'));
-        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
-        let eta = time.duration.days(1);
-        // console.log("eta:" + parseInt(eta));
-
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
-
-        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-        await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'))
-
-
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        await gauge_busd.connect(dev).deposit("1000", 1);
-
-        await boost.updatePool(0);
-        await boost.updatePool(1);
-
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        expect(await gauge_usdc.rewardsListLength()).to.be.eq(1);
-        expect(await gauge_busd.rewardsListLength()).to.be.eq(1);
-
-        expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_busd.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_usdc.rewards(0)).to.be.eq(fxs.address);
-        expect(await gauge_busd.rewards(0)).to.be.eq(fxs.address);
-
-        await time.increase(time.duration.days(1));
-
-        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
-        console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-
-        let rewardDev1 = await gauge_busd.earned(fxs.address, dev.address)
-        console.log("rewardDev1:" + rewardDev1)
-        await gauge_busd.connect(dev).getReward(dev.address, [fxs.address])
-        console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
-
-
-    });
-    it('test vote', async () => {
-        await usdc.connect(dev).approve(lock.address, toWei('100000000000'));
-        let eta = time.duration.days(1);
-        // console.log("eta:" + parseInt(eta));
-
-        await lock.connect(dev).create_lock_for(toWei('1'), parseInt(eta), dev.address);
-
-        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-
-        await boost.updatePool(0);
-
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        // await time.increase(time.duration.days(1));
-
-        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
-        console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
-
-        console.log("-----------------------")
+        //await time.increase(time.duration.days(1));
 
         let lockBlock = await time.latestBlock();
-        await time.advanceBlockTo(parseInt(lockBlock) + 10);
-
-        //await boost.reset(1)
-        //await boost.poke(1)
-        //console.log(await boost.weights(usdc.address))
-        let balanceOfNFT = await lock.balanceOfNFT("1");
-        console.log("balanceOfNFT:" + balanceOfNFT);
-        epoch = await lock.user_point_epoch("1");
+        console.log("lockBlock:" + lockBlock)
+        // await time.advanceBlockTo(parseInt(lockBlock) + 1);
 
 
-        console.log("weights usdc:" + await boost.weights(usdc.address))
-        console.log("epoch:" + epoch);
-        await boost.connect(dev).vote(1, [usdc.address], [toWei('10000')])
-        console.log("weights btc:" + await boost.weights(btc.address))
-        console.log("weights usdc:" + await boost.weights(usdc.address))
+        // console.log("boost fxs:" + await fxs.balanceOf(boost.address));
+        console.log("fxs bef dev:" + await fxs.balanceOf(dev.address))
 
-        // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-        // let rewardDev1 = await gauge_usdc.earned(fxs.address, dev.address)
-        // console.log("rewardDev1:" + rewardDev1)
-        // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
-        // console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+        let rewardDev = await gauge_usdc.pendingMax(dev.address)
+        console.log("rewardDev:" + rewardDev)
 
-        //console.log(await boost.getPoolVote(1))
+        let rewardDev1 = await gauge_usdc.pending(dev.address)
+        console.log("rewardDev1:" + rewardDev1)
+        let multiple = parseInt(rewardDev) / parseInt(rewardDev1)
+        console.log("multiple:" + multiple)
+
+
+        let devPend = await gauge_usdc.connect(dev).derivedBalance(dev.address, rewardDev)
+
+        expect(devPend).to.be.eq(rewardDev1)
+
+        await gauge_usdc.connect(dev).getReward(dev.address)
+        lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+        console.log("fxs aft dev:" + await fxs.balanceOf(dev.address))
+        console.log("---------------------")
+
+        console.log("fxs bef owner:" + await fxs.balanceOf(owner.address))
+        await time.increase(time.duration.days(1));
+        let rewardOwner = await gauge_usdc.pendingMax(owner.address)
+        console.log("rewardOwner:" + rewardOwner)
+        let rewardOwner1 = await gauge_usdc.pending(owner.address)
+        console.log("rewardOwner1:" + rewardOwner1)
+
+        let multiple1 = parseInt(rewardOwner) / parseInt(rewardOwner1)
+        console.log("multiple1:" + multiple1)
+        lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+
+        await gauge_usdc.connect(owner).getReward(owner.address)
+        lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+        console.log("fxs aft owner:" + await fxs.balanceOf(owner.address))
+
+
+         await gauge_usdc.connect(dev).withdrawToken("1000", 1);
+        await gauge_usdc.connect(owner).withdrawToken("2000", 2);
 
 
     });
+    // it('should two pools, single user getReward correct', async () => {
+    //     await busd.connect(dev).approve(lock.address, toWei('10000000'));
+    //     await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+    //     let eta = time.duration.days(1);
+    //     // console.log("eta:" + parseInt(eta));
+    //
+    //     await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+    //
+    //     await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
+    //     await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'))
+    //
+    //
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //     await gauge_busd.connect(dev).deposit("1000", 1);
+    //
+    //     await boost.updatePool(0);
+    //     await boost.updatePool(1);
+    //
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //
+    //     //await time.increase(time.duration.days(1));
+    //     let lockBlock = await time.latestBlock();
+    //     await time.advanceBlockTo(parseInt(lockBlock) + 1);
+    //       console.log("lockBlock:" + lockBlock)
+    //
+    //     console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+    //
+    //     let usdcDev = await gauge_usdc.pendingMax(fxs.address)
+    //     console.log("usdcDev:" + usdcDev)
+    //
+    //     let usdcDev1 = await gauge_usdc.pending(dev.address)
+    //     console.log("usdcDev1:" + usdcDev1)
+    //     let multiple = parseInt(usdcDev) / parseInt(usdcDev1)
+    //     console.log("multiple:" + multiple)
+    //
+    //     await gauge_usdc.connect(dev).getReward(dev.address)
+    //     console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+    //
+    //     console.log("----------------------------")
+    //
+    //     let busdDev = await gauge_busd.pendingMax(fxs.address)
+    //     console.log("busdDev:" + busdDev)
+    //     let busdDev1 = await gauge_busd.pending(dev.address)
+    //     console.log("busdDev1:" + busdDev1)
+    //
+    //     let multiple1 = parseInt(busdDev) / parseInt(busdDev1)
+    //     console.log("multiple1:" + multiple1)
+    //
+    //     await gauge_busd.connect(dev).getReward(dev.address)
+    //     console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+    //
+    //
+    // });
+    // it('test vote', async () => {
+    //     await usdc.connect(dev).approve(lock.address, toWei('100000000000'));
+    //     let eta = time.duration.days(1);
+    //     // console.log("eta:" + parseInt(eta));
+    //
+    //     await lock.connect(dev).create_lock_for(toWei('1'), parseInt(eta), dev.address);
+    //
+    //     await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //
+    //     await boost.updatePool(0);
+    //
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //     // await time.increase(time.duration.days(1));
+    //
+    //     console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+    //     let rewardDev = await gauge_usdc.pendingMax(dev.address)
+    //     console.log("rewardDev:" + rewardDev)
+    //     await gauge_usdc.connect(dev).getReward(dev.address)
+    //     console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+    //
+    //     console.log("-----------------------")
+    //
+    //     let lockBlock = await time.latestBlock();
+    //     await time.advanceBlockTo(parseInt(lockBlock) + 10);
+    //
+    //     //await boost.reset(1)
+    //     //await boost.poke(1)
+    //     //console.log(await boost.weights(usdc.address))
+    //     let balanceOfNFT = await lock.balanceOfNFT("1");
+    //     console.log("balanceOfNFT:" + balanceOfNFT);
+    //     epoch = await lock.user_point_epoch("1");
+    //
+    //
+    //     console.log("weights usdc:" + await boost.weights(usdc.address))
+    //     console.log("epoch:" + epoch);
+    //     await boost.connect(dev).vote(1, [usdc.address], [toWei('10000')])
+    //     console.log("weights btc:" + await boost.weights(btc.address))
+    //     console.log("weights usdc:" + await boost.weights(usdc.address))
+    //
+    //     // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+    //     // let rewardDev1 = await gauge_usdc.pendingMax(fxs.address, dev.address)
+    //     // console.log("rewardDev1:" + rewardDev1)
+    //     // await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
+    //     // console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+    //
+    //     //console.log(await boost.getPoolVote(1))
+    //
+    //
+    // });
 
 
 });

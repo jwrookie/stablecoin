@@ -1,17 +1,17 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const TestOwnableToken = artifacts.require('TestOwnableToken');
+// const TestOwnableToken = artifacts.require('TestOwnableToken');
 // const Timelock = artifacts.require('Timelock');
-const FRAXShares = artifacts.require('FRAXShares');
-const FRAXStablecoin = artifacts.require('FRAXStablecoin');
-const Pool_USDC = artifacts.require('Pool_USDC');
-const TestERC20 = artifacts.require('TestERC20');
-const TestOracle = artifacts.require('TestOracle')
-const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
+// const FRAXShares = artifacts.require('FRAXShares');
+// const FRAXStablecoin = artifacts.require('FRAXStablecoin');
+// const Pool_USDC = artifacts.require('Pool_USDC');
+// const TestERC20 = artifacts.require('TestERC20');
+// const TestOracle = artifacts.require('TestOracle')
+// const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
 const {toWei} = web3.utils;
 
 // const {BigNumber} = require('ethers');
 
-//const Timelock = require('../contracts/tools/Timelock.json');
+const Timelock = require('../test/Timelock.json');
 const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
 const {ethers, waffle} = require("hardhat");
 
@@ -24,7 +24,7 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    // let usdc = "0x42d903C9503c22a83a92e216F088d8BaDff0c699"
+    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
     //
     // let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
@@ -34,7 +34,15 @@ async function main() {
     // // let tokenA = "0x17b16eAF39C055405a6Ccc41258698F048b4bA38"//usdt
     // let frax = ""
     // let fxs = ""
-    // let wbnb = ""
+    let wbnb = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
+
+     let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
+    //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
+    let frax = '0xf5E1a792cDC71A5B11a7fb5e6DB290316143de5F'
+    let fxs = '0x106CdFe20F0cc24C936F27D5fCe73b9aCD9C1C37'
+
+    //let timelock = '';
+
 
 
     for (const account of accounts) {
@@ -47,22 +55,30 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-    // const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-    // usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, deployer.address, timeLock);
-    // console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
-    //
-    // frax_uniswapOracle = await UniswapPairOracle.deploy(factory, frax, wbnb, deployer.address, timeLock);
-    // console.log("frax_uniswapOracle:" + frax_uniswapOracle.address)
-    //
-    // fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock);
-    // console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
 
 
-    // timeLock = await deployContract(deployer, {
-    //      bytecode: Timelock.bytecode,
-    //      abi: Timelock.abi
-    //  }, [deployer.address, 0]);
-    //  console.log("timeLock:" + timeLock.address)
+      // const Timelock = await ethers.getContractFactory('Timelock');
+      //   timelock = await Timelock.deploy(deployer.address,0);
+      //     console.log("timeLock:" + timeLock.address)
+     timeLock = await deployContract(deployer, {
+         bytecode: Timelock.bytecode,
+         abi: Timelock.abi
+     }, [deployer.address, 0]);
+     console.log("timeLock:" + timeLock.address)
+
+
+
+    const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
+    usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, deployer.address, timeLock.address);
+    console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
+
+    frax_uniswapOracle = await UniswapPairOracle.deploy(factory, frax, wbnb, deployer.address, timeLock.address);
+    console.log("frax_uniswapOracle:" + frax_uniswapOracle.address)
+
+    fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock.address);
+    console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
+
+
 
     //
     // let frax = await FRAXStablecoin.at(fraxAddr)
@@ -84,19 +100,7 @@ async function main() {
     // await fxb.approve(fraxBondIssuer.address, toWei('1000'))
     // await frax.addPool(fraxBondIssuer.address)
 
-    let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
-    let pool = "0xB9e324530540225173C6290958372620b3139638"
-    let frax = '0x7b206BA4873E9CB7568f778F8fad20DFA52BC2B2'
-    let fxs = '0x7226F2c1bBbBE4eFB335528fE015d7A05eC4C5BF'
-    let weth = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
-    let timelock = '0xF43D50BcA24825541e45698C86c14A37Cf1D324D';
-    const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-    uniswapOracle1 = await UniswapPairOracle.deploy(factory, pool, weth, deployer.address, timelock);
-    uniswapOracle2 = await UniswapPairOracle.deploy(factory, frax, weth, deployer.address, timelock);
-    uniswapOracle3 = await UniswapPairOracle.deploy(factory, fxs, weth, deployer.address, timelock);
-    console.log("uniswapOracle1:" + uniswapOracle1.address)
-    console.log("uniswapOracle2:" + uniswapOracle2.address)
-    console.log("uniswapOracle3:" + uniswapOracle3.address)
+
 
 
 }
