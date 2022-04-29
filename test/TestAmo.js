@@ -67,12 +67,20 @@ contract('AMOMinter', async function() {
             default:
                 await console.log("Unknow token!");
         }
-
         return uniswapOracle;
     }
 
     async function getBalances(coin, account) {
         return parseInt(await coin.balanceOf(account.address));
+    }
+
+    async function refreshOracle(oracle, periodDay) {
+        await oracle.setPeriod(periodDay);
+        if (expect(await oracle.canUpdate()).to.be.eq(true)) {
+            await oracle.update();
+        }else {
+            await refreshOracle(oracle, periodDay);
+        }
     }
 
     beforeEach(async function() {
@@ -410,62 +418,65 @@ contract('AMOMinter', async function() {
         expect(await amoMinter.collat_borrowed_balances(exchangeAMO.address)).to.be.eq(1000000 - 10000);
     });
 
-    it('test oldPoolRedeem and oldPoolCollectAndGive', async function () {
-        let redemptionFee;
-        let colPriceUsd;
-        let globalCollateralRatio;
-
-        redemptionFee = await stableCoinPool.redemption_fee();
-        // Set oracle
-        expect(parseInt(redemptionFee)).to.be.eq(0);
-        // Set mockChainLink
-        await mockChainLink.setAnswer(10 ** 13);
-        mockChainLinkMap = await mockChainLink.latestRoundData();
-        mockChainLinkMapLength = mockChainLinkMap.length;
-        for (let i = 0; i < mockChainLinkMapLength; i++) {
-            if (i == 1) {
-                expect(parseInt(mockChainLinkMap[i])).to.be.eq(10 ** 13);
-                break;
-            }
-        }
-        expect(parseInt(await frax.ethUsdPrice())).to.be.eq(10); // 10 -> 1e13 * 1e6 / 1e18
-        await usdcUniswapOracle.setPeriod(1);
-        expect(await usdcUniswapOracle.canUpdate()).to.be.eq(true);
-        await usdcUniswapOracle.update();
-        colPriceUsd = await stableCoinPool.getCollateralPrice();
-        expect(parseInt(colPriceUsd)).to.be.eq(101010); // By calculation
-        globalCollateralRatio = await frax.globalCollateralRatio();
-        expect(parseInt(globalCollateralRatio)).to.be.eq(1e6);
-        // Frax price -> first need to refresh frax oracle
-        await fxsUniswapOracle.setPeriod(1);
-        expect(await fxsUniswapOracle.canUpdate()).to.be.eq(true);
-        await fxsUniswapOracle.update();
-        await fraxUniswapOracle.setPeriod(1);
-        expect(await fraxUniswapOracle.canUpdate()).to.be.eq(true);
-        await fraxUniswapOracle.update();
-        await amoMinter.setMinimumCollateralRatio(0);
-        expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
-        await amoMinter.mintFraxForAMO(exchangeAMO.address, 1000);
-        await frax.setFraxStep(30000);
-        await frax.setPriceTarget(18);
-        await frax.setPriceBand(1);
-        await frax.setFraxStep(1);
-        await frax.refreshCollateralRatio();
-        expect(parseInt(await frax.fraxPrice())).to.be.eq(20);
-        // expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(975000);
-        // (await time.latest()).add(time.duration.days(1));
-        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 1);
-        // await frax.setPriceTarget(20);
-        // await frax.setPriceBand(1);
-        // await frax.refreshCollateralRatio();
-        await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
-        expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
-        expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
-        await stableCoinPool.addAMOMinter(amoMinter.address);
-        initUsdcInOwner = await getBalances(usdc, owner);
-        await amoMinter.giveCollatToAMO(exchangeAMO.address, 1000000);
-        await amoMinter.oldPoolRedeem(100);
-    });
+    // it('test oldPoolRedeem and oldPoolCollectAndGive', async function () {
+    //     let redemptionFee;
+    //     let colPriceUsd;
+    //     let globalCollateralRatio;
+    //
+    //     redemptionFee = await stableCoinPool.redemption_fee();
+    //     // Set oracle
+    //     expect(parseInt(redemptionFee)).to.be.eq(0);
+    //     // Set mockChainLink
+    //     await mockChainLink.setAnswer(10 ** 13);
+    //     mockChainLinkMap = await mockChainLink.latestRoundData();
+    //     mockChainLinkMapLength = mockChainLinkMap.length;
+    //     for (let i = 0; i < mockChainLinkMapLength; i++) {
+    //         if (i == 1) {
+    //             expect(parseInt(mockChainLinkMap[i])).to.be.eq(10 ** 13);
+    //             break;
+    //         }
+    //     }
+    //     expect(parseInt(await frax.ethUsdPrice())).to.be.eq(10); // 10 -> 1e13 * 1e6 / 1e18
+    //     // await usdcUniswapOracle.setPeriod(1);
+    //     // expect(await usdcUniswapOracle.canUpdate()).to.be.eq(true);
+    //     // await usdcUniswapOracle.update();
+    //     await refreshOracle(usdcUniswapOracle, 1);
+    //     colPriceUsd = await stableCoinPool.getCollateralPrice();
+    //     expect(parseInt(colPriceUsd)).to.be.eq(101010); // By calculation
+    //     globalCollateralRatio = await frax.globalCollateralRatio();
+    //     expect(parseInt(globalCollateralRatio)).to.be.eq(1e6);
+    //     // Frax price -> first need to refresh frax oracle
+    //     // await fxsUniswapOracle.setPeriod(1);
+    //     // expect(await fxsUniswapOracle.canUpdate()).to.be.eq(true);
+    //     // await fxsUniswapOracle.update();
+    //     await refreshOracle(fxsUniswapOracle, 1);
+    //     // await fraxUniswapOracle.setPeriod(1);
+    //     // expect(await fraxUniswapOracle.canUpdate()).to.be.eq(true);
+    //     // await fraxUniswapOracle.update();
+    //     await refreshOracle(fraxUniswapOracle, 1);
+    //     await amoMinter.setMinimumCollateralRatio(0);
+    //     expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
+    //     await amoMinter.mintFraxForAMO(exchangeAMO.address, 1000);
+    //     await frax.setFraxStep(30000);
+    //     await frax.setPriceTarget(18);
+    //     await frax.setPriceBand(1);
+    //     await frax.setFraxStep(1);
+    //     await frax.refreshCollateralRatio();
+    //     expect(parseInt(await frax.fraxPrice())).to.be.eq(20);
+    //     // expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(975000);
+    //     // (await time.latest()).add(time.duration.days(1));
+    //     await time.advanceBlockTo(parseInt(await time.latestBlock()) + 1);
+    //     // await frax.setPriceTarget(20);
+    //     // await frax.setPriceBand(1);
+    //     // await frax.refreshCollateralRatio();
+    //     await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
+    //     expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
+    //     expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
+    //     await stableCoinPool.addAMOMinter(amoMinter.address);
+    //     initUsdcInOwner = await getBalances(usdc, owner);
+    //     await amoMinter.giveCollatToAMO(exchangeAMO.address, 1000000);
+    //     await amoMinter.oldPoolRedeem(100);
+    // });
 
     it('test collatDollarBalance', async function () {
         collatValue = await amoMinter.collatDollarBalance();
