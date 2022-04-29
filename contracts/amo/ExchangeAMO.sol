@@ -209,7 +209,7 @@ contract ExchangeAMO is CheckPermission {
 
         // Optionally burn the FRAX
         if (burn_the_frax) {
-            burnFRAX(frax_received);
+            burnStable(frax_received);
         }
 
     }
@@ -221,7 +221,7 @@ contract ExchangeAMO is CheckPermission {
 
         // Optionally burn the FRAX
         if (burn_the_frax) {
-            burnFRAX(frax_received);
+            burnStable(frax_received);
         }
     }
 
@@ -260,8 +260,8 @@ contract ExchangeAMO is CheckPermission {
     }
 
 
-    // Burn unneeded or excess FRAX. Goes through the minter
-    function burnFRAX(uint256 frax_amount) public onlyOperator {
+    // Burn unneeded or excess stable. Goes through the minter
+    function burnStable(uint256 frax_amount) public onlyOperator {
         stablecoin.approve(address(amoMinter), frax_amount);
         amoMinter.burnStableFromAMO(frax_amount);
     }

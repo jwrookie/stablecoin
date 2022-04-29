@@ -381,7 +381,7 @@ contract('AMOMinter', async function () {
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(1000);
         expect(await amoMinter.stableMintSum()).to.be.eq(1000);
 
-        await exchangeAMO.burnFRAX(100);
+        await exchangeAMO.burnStable(100);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(900);
         // await frax.poolMint(owner.address, 10000); // Question
     });

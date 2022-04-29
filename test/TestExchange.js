@@ -447,8 +447,8 @@ contract('ExchangeAMO', async function () {
         expect(parseInt(collatBorrowedSum)).to.be.eq(0);
     });
 
-    it('test burnFRAX', async function () {
-        // await exchangeAMO.burnFRAX(toWei("1"));
+    it('test burnStable', async function () {
+        // await exchangeAMO.burnStable(toWei("1"));
     });
 
     it('test setAMOMinter', async function() {
