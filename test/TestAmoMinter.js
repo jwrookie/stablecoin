@@ -323,7 +323,7 @@ contract('AMOMinter', async function () {
     //     await amoMinter.removeAMO(exchangeAMO.address, true);
     //     resultArrayLength = await amoMinter.allAMOsLength();
     //     expect(resultArrayLength).to.be.eq(1);
-    //     amoAddress = await amoMinter.amos_array(0);
+    //     amoAddress = await amoMinter.amosArray(0);
     //     expect(amoAddress).to.be.eq(zeroAddr);
     // });
     //

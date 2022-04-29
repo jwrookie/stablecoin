@@ -16,16 +16,15 @@ contract AMOMinter is CheckPermission {
     // Core
     IStablecoin public immutable FRAX;
     IStock public immutable FXS;
-    ERC20 public immutable collateral_token;
+    ERC20 public immutable collateralToken;
     IStablecoinPool public  pool;
-    address public custodian_address;
 
     // Collateral related
     address public collateral_address;
     //    uint256 public col_idx;
 
     // AMO addresses
-    address[] public amos_array;
+    address[] public amosArray;
     mapping(address => bool) public amos; // Mapping is also used for faster verification
 
     // Price constants
@@ -70,7 +69,6 @@ contract AMOMinter is CheckPermission {
         address _collateral_address,
         address _pool_address
     ) CheckPermission(_operatorMsg) {
-        custodian_address = _custodian_address;
 
         FRAX = IStablecoin(_stableAddress);
         FXS = IStock(_shareAddress);
@@ -80,8 +78,8 @@ contract AMOMinter is CheckPermission {
         // Collateral related
         collateral_address = _collateral_address;
         //        col_idx = pool.collateralAddrToIdx(_collateral_address);
-        collateral_token = ERC20(_collateral_address);
-        missing_decimals = uint(18) - collateral_token.decimals();
+        collateralToken = ERC20(_collateral_address);
+        missing_decimals = uint(18) - collateralToken.decimals();
     }
 
     /* ========== MODIFIERS ========== */
@@ -109,11 +107,11 @@ contract AMOMinter is CheckPermission {
     }
 
     function allAMOAddresses() external view returns (address[] memory) {
-        return amos_array;
+        return amosArray;
     }
 
     function allAMOsLength() external view returns (uint256) {
-        return amos_array.length;
+        return amosArray.length;
     }
 
     function fraxTrackedGlobal() external view returns (int256) {
@@ -132,9 +130,9 @@ contract AMOMinter is CheckPermission {
     function syncDollarBalances() public {
         uint256 total_frax_value_d18 = 0;
         uint256 total_collateral_value_d18 = 0;
-        for (uint i = 0; i < amos_array.length; i++) {
+        for (uint i = 0; i < amosArray.length; i++) {
             // Exclude null addresses
-            address amo_address = amos_array[i];
+            address amo_address = amosArray[i];
             if (amo_address != address(0)) {
                 (uint256 frax_val_e18, uint256 collat_val_e18) = IAMO(amo_address).dollarBalances();
                 total_frax_value_d18 += uint256(int256(frax_val_e18) + correction_offsets_amos[amo_address][0]);
@@ -311,7 +309,7 @@ contract AMOMinter is CheckPermission {
 
         require(amos[amo_address] == false, "Address already exists");
         amos[amo_address] = true;
-        amos_array.push(amo_address);
+        amosArray.push(amo_address);
 
         // Mint balances
         frax_mint_balances[amo_address] = 0;
@@ -336,9 +334,9 @@ contract AMOMinter is CheckPermission {
         delete amos[amo_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < amos_array.length; i++) {
-            if (amos_array[i] == amo_address) {
-                amos_array[i] = address(0);
+        for (uint i = 0; i < amosArray.length; i++) {
+            if (amosArray[i] == amo_address) {
+                amosArray[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
                 break;
             }
@@ -347,11 +345,6 @@ contract AMOMinter is CheckPermission {
         if (sync_too) syncDollarBalances();
 
         emit AMORemoved(amo_address);
-    }
-
-    function setCustodian(address _custodian_address) external onlyByOwnGov {
-        require(_custodian_address != address(0), "Custodian address cannot be 0");
-        custodian_address = _custodian_address;
     }
 
     function setFraxMintCap(uint256 _frax_mint_cap) external onlyByOwnGov {
