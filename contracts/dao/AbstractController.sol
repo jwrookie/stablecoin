@@ -18,6 +18,8 @@ abstract contract AbstractController is CheckPermission {
 
     uint internal immutable duration;
 
+
+
     uint public totalWeight; // total voting weight
 
     address public immutable veToken; // the ve token that governs these contracts
@@ -132,4 +134,5 @@ abstract contract AbstractController is CheckPermission {
     function _updatePoolInfo(address _pool) internal {
 
     }
+
 }
