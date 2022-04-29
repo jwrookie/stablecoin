@@ -44,7 +44,7 @@ contract PoolvAMM is AbstractPausable {
     Stock private FXS;
     UniswapPairOracle private fxsUSDCOracle;
 
-    address private collateral_address;
+    address private collateralAddress;
     address private frax_contract_address;
     address private fxs_contract_address;
     address public fxs_usdc_oracle_address;
@@ -130,7 +130,7 @@ contract PoolvAMM is AbstractPausable {
         FXS = Stock(_fxs_contract_address);
         frax_contract_address = _frax_contract_address;
         fxs_contract_address = _fxs_contract_address;
-        collateral_address = _collateral_address;
+        collateralAddress = _collateral_address;
         collateral_token = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
         uniswap_factory = _uniswap_factory_address;

@@ -148,9 +148,9 @@ export const cleanLockedNFT = (locked_nft_info: any) => {
     }
 }
 
-export const printCollateralInfo = async (pool_multicollateral_contract: any, collateral_address: string) => {
+export const printCollateralInfo = async (pool_multicollateral_contract: any, collateralAddress: string) => {
     // Collateral Info
-    const pack = await pool_multicollateral_contract.collateral_information(collateral_address);
+    const pack = await pool_multicollateral_contract.collateral_information(collateralAddress);
     const { index, symbol, col_addr, is_enabled, missing_decs, price, price_dec_multiplier, pool_ceiling, mint_paused, redeem_paused, recollat_paused, buyback_paused, minting_fee, redemption_fee, buyback_fee, recollat_fee } = pack;
     
     const collateral_info = {
