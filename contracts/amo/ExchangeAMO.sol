@@ -44,12 +44,12 @@ contract ExchangeAMO is CheckPermission {
         address _operatorMsg,
         address _amo_minter_address,
         address stableCoinAddress,
-        address _collateralToken,
+        address collateralAddress,
         address poolAddress,
         address poolTokenAddress
     )  CheckPermission(_operatorMsg){
         stablecoin = RStablecoin(stableCoinAddress);
-        collateralToken = ERC20(_collateralToken);
+        collateralToken = ERC20(collateralAddress);
         missingDecimals = uint(18).sub(collateralToken.decimals());
         amoMinter = IAMOMinter(_amo_minter_address);
         threePool = IStableSwap3Pool(poolAddress);
@@ -66,41 +66,20 @@ contract ExchangeAMO is CheckPermission {
         _;
     }
 
-    function showAllocations() public view returns (uint256[10] memory return_arr) {
-        // ------------LP Balance------------
+    function showAllocations() public view returns (uint256[9] memory arr) {
 
-        // Free LP
-        uint256 lp_owned = (threePoolLp.balanceOf(address(this)));
+        uint256 lpBalance = threePoolLp.balanceOf(address(this));
 
-        // Staked in the vault
-        uint256 lp_value_in_vault = usdValueInVault();
-        lp_owned = lp_owned.add(lp_value_in_vault);
-
-        // ------------3pool Withdrawable------------
-        // Uses iterate() to get metapool withdrawable amounts at FRAX floor price (globalCollateralRatio)
         uint256 frax3crv_supply = threePoolLp.totalSupply();
 
         uint256 frax_withdrawable;
+
         uint256 _3pool_withdrawable;
-        (frax_withdrawable,,) = iterate();
-        //        if (frax3crv_supply > 0) {
-        //            _3pool_withdrawable = _3pool_withdrawable.mul(lp_owned).div(frax3crv_supply);
-        //            frax_withdrawable = frax_withdrawable.mul(lp_owned).div(frax3crv_supply);
-        //        }
-        //        else _3pool_withdrawable = 0;
 
-        // ------------Frax Balance------------
-        // Frax sums
+        frax_withdrawable = iterate();
         uint256 frax_in_contract = stablecoin.balanceOf(address(this));
-
-        // ------------Collateral Balance------------
-        // Free Collateral
         uint256 usdc_in_contract = collateralToken.balanceOf(address(this));
-
-        // Returns the dollar value withdrawable of USDC if the contract redeemed its 3CRV from the metapool; assume 1 USDC = $1
         uint256 usdc_withdrawable = _3pool_withdrawable.mul(threePool.get_virtual_price()).div(1e18).div(10 ** missingDecimals);
-
-        // USDC subtotal assuming FRAX drops to the CR and all reserves are arbed
         uint256 usdc_subtotal = usdc_in_contract.add(usdc_withdrawable);
 
         return [
@@ -111,49 +90,42 @@ contract ExchangeAMO is CheckPermission {
         usdc_withdrawable, // [4] USDC withdrawable from the FRAX3CRV tokens
         usdc_subtotal, // [5] USDC subtotal assuming FRAX drops to the CR and all reserves are arbed
         usdc_subtotal.add((frax_in_contract.add(frax_withdrawable)).mul(fraxDiscountRate()).div(1e6 * (10 ** missingDecimals))), // [6] USDC Total
-        lp_owned, // [7] FRAX3CRV free or in the vault
-        frax3crv_supply, // [8] Total supply of FRAX3CRV tokens
-        lp_value_in_vault // [10] FRAX3CRV in the vault
+        lpBalance, // [7] FRAX3CRV free or in the vault
+        frax3crv_supply // [8] Total supply of FRAX3CRV tokens
         ];
     }
 
     function dollarBalances() public view returns (uint256 frax_val_e18, uint256 collat_val_e18) {
         // Get the allocations
-        uint256[10] memory allocations = showAllocations();
+        uint256[9] memory allocations = showAllocations();
 
         frax_val_e18 = (allocations[2]).add((allocations[5]).mul((10 ** missingDecimals)));
         collat_val_e18 = (allocations[6]).mul(10 ** missingDecimals);
     }
 
     // Returns hypothetical reserves of metapool if the FRAX price went to the CR,
-    // assuming no removal of liquidity from the metapool.
-    function iterate() public view returns (uint256, uint256, uint256) {
-        uint256 stablecoinBalance = stablecoin.balanceOf(address(threePool));
+    function iterate() public view returns (uint256) {
+        uint256 lpBalance = threePoolLp.balanceOf(address(threePool));
 
         uint256 floorPrice = uint(1e18).mul(fraxFloor()).div(1e6);
         uint256 crv3Received;
         uint256 dollarValue;
         // 3crv is usually slightly above $1 due to collecting 3pool swap fees
-        for (uint i = 0; i < 256; i++) {
-            crv3Received = threePool.get_dy(0, 1, 1e18);
-            dollarValue = crv3Received.mul(1e18).div(threePool.get_virtual_price());
-            if (dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)) {
 
-                uint256 factor = uint256(1e6);
+        // Calculate the current output dy given input dx
+        crv3Received = threePool.get_dy(0, 1, 1e18);
+        dollarValue = crv3Received.mul(1e18).div(threePool.get_virtual_price());
+        if (dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)) {
 
-                // Normalize back to initial balances, since this estimation method adds in extra tokens
-                stablecoinBalance = stablecoinBalance.mul(factor).div(1e6);
-
-                return (stablecoinBalance, i, factor);
-            } else if (dollarValue <= floorPrice.add(convergenceWindow)) {
-                uint256 crv3_to_swap = stablecoinBalance.div(2 ** i);
-                stablecoinBalance = stablecoinBalance.sub(threePool.get_dy(1, 0, crv3_to_swap));
-            } else if (dollarValue >= floorPrice.sub(convergenceWindow)) {
-                uint256 frax_to_swap = stablecoinBalance.div(2 ** i);
-                stablecoinBalance = stablecoinBalance.add(frax_to_swap);
-            }
+        } else if (dollarValue <= floorPrice.add(convergenceWindow)) {
+            uint256 crv3_to_swap = lpBalance.div(2);
+            lpBalance = lpBalance.sub(threePool.get_dy(1, 0, crv3_to_swap));
+        } else if (dollarValue >= floorPrice.sub(convergenceWindow)) {
+            uint256 frax_to_swap = lpBalance.div(2);
+            lpBalance = lpBalance.add(frax_to_swap);
         }
-        return (0, 0, 0);
+
+        return lpBalance;
         // in 256 rounds
     }
 
@@ -172,12 +144,6 @@ contract ExchangeAMO is CheckPermission {
             return stablecoin.globalCollateralRatio();
         }
     }
-
-    function usdValueInVault() public view returns (uint256) {
-        //            uint256 yvCurveFrax_balance = yvCurveFRAXBalance();
-        return 1e18;
-    }
-
     // Backwards compatibility
     function mintedBalance() public view returns (int256) {
         return amoMinter.frax_mint_balances(address(this));
