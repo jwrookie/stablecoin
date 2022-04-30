@@ -255,20 +255,6 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test showAllocations', async function () {
-        let allocationsArray = new Array(11);
-        let initLpOwned;
-        let lpOwned;
-        let lpValueInVault;
-        let valueMap;
-        let fraxWithDrawAble;
-        let threePoolWithDrawAble;
-        let fraxCrvSupply;
-        let fraxInContract;
-        let usdcInContract;
-        let usdcWithDrawAble;
-        let usdcSubTotal;
-        let virtualPrice;
-        let decimals;
 
         await frax.addPool(owner.address);
         await frax.poolMint(exchangeAMO.address, toWei("100"));
@@ -302,8 +288,6 @@ contract('ExchangeAMO', async function () {
 
 
     it('test stableFloor', async function () {
-        let fraxCollateralRatio;
-        let functionReturnRatio;
 
         fraxCollateralRatio = await frax.globalCollateralRatio();
         functionReturnRatio = await exchangeAMO.stableFloor();
@@ -314,9 +298,7 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test metapoolDeposit', async function () {
-        let fraxAmount;
-        let collateralAmount;
-        let metaPoolLpReceived;
+
 
         fraxAmount = await frax.balanceOf(owner.address);
         collateralAmount = await usdc.balanceOf(owner.address);
@@ -338,11 +320,7 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test iterate', async function() {
-        let valueMap;
-        let fraxBalance;
-        let crvBalance;
-        let indexI;
-        let factor;
+
 
         valueMap = await exchangeAMO.iterate();
         fraxBalance = valueMap[0];
@@ -357,11 +335,6 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test mintedBalance', async function () {
-        let amoFraxBalance;
-        let ownerFraxBalance;
-        let sureBoolean;
-        let collatDollarBalance;
-        let ethUsdPrice;
 
         amoFraxBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
         expect(parseInt(amoFraxBalance)).to.be.eq(0);
@@ -394,10 +367,6 @@ contract('ExchangeAMO', async function () {
     // });
 
     it('test withdrawCRVRewards', async function () {
-        let ownerFxsBalance;
-        let startFxsBalance;
-        let poolFxsBalance;
-        let initPoolFxsBalance;
 
         ownerFxsBalance = await fxs.balanceOf(owner.address);
         startFxsBalance = ownerFxsBalance;
