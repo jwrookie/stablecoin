@@ -1,4 +1,4 @@
-/** JSON ABI */
+
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
@@ -8,13 +8,13 @@ const PoolRegistry = require('./mock/mockPool/PoolRegistry.json');
 const Factory = require('../test/mock/PancakeFactory.json');
 const Router = require('../test/mock/PancakeRouter.json');
 const WETH = require('../test/mock/WETH9.json');
-/** EXTERNAL MODULE */
+
 const {deployContract} = require('ethereum-waffle');
 const {ethers, artifacts} = require('hardhat');
 const {expect} = require('chai');
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
-/** INTERNAL MODULE */
+
 const GAS = {gasLimit: "9550000"};
 
 contract('ExchangeAMO', async function () {
@@ -275,9 +275,7 @@ contract('ExchangeAMO', async function () {
         lpOwned = await frax.balanceOf(exchangeAMO.address);
         initLpOwned = lpOwned;
         expect(parseInt(lpOwned)).to.be.not.eq(0);
-        lpValueInVault = await exchangeAMO.usdValueInVault();
-        expect(parseInt(lpValueInVault)).to.be.not.eq(0);
-        lpOwned += lpValueInVault;
+
         expect(parseInt(lpOwned)).to.be.not.eq(parseInt(initLpOwned));
 
         fraxCrvSupply = await frax.totalSupply();
@@ -302,20 +300,13 @@ contract('ExchangeAMO', async function () {
         }
     });
 
-    it('test usdValueInVault', async function () {
-        const targetValue = 1e18;
-        let usdValue;
 
-        usdValue = await exchangeAMO.usdValueInVault();
-        expect(parseInt(usdValue)).to.be.eq(targetValue);
-    });
-
-    it('test fraxFloor', async function () {
+    it('test stableFloor', async function () {
         let fraxCollateralRatio;
         let functionReturnRatio;
 
         fraxCollateralRatio = await frax.globalCollateralRatio();
-        functionReturnRatio = await exchangeAMO.fraxFloor();
+        functionReturnRatio = await exchangeAMO.stableFloor();
 
         console.log(parseInt(functionReturnRatio));
 
@@ -363,14 +354,6 @@ contract('ExchangeAMO', async function () {
         console.log("crvBalance:\t" + crvBalance);
         console.log("indexI:\t" + indexI);
         console.log("factor:\t" + factor);
-    });
-
-    it('test usdValueInVault', async function () {
-        const usd = 1e18;
-        let usdValue;
-
-        usdValue = await exchangeAMO.usdValueInVault();
-        expect(parseInt(usdValue)).to.be.eq(parseInt(usd));
     });
 
     it('test mintedBalance', async function () {
