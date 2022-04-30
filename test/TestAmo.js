@@ -386,15 +386,14 @@ contract('AMOMinter', async function () {
         // await frax.poolMint(owner.address, 10000); // Question
     });
 
-    it('test mintFxsForMO and burnStockFromAMO', async function () {
+    it('test mintStockForAMO and burnStockFromAMO', async function () {
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(0);
         await amoMinter.mintStockForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
-        // await exchangeAMO.burnFXS(100);
         //todo buransTock
-        await exchangeAMO.burnStock(0);
-        // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
+        await exchangeAMO.burnStock(1);
+        // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - 100);
         // console.log(await amoMinter.stockMintBalances(owner.address));
     });
 
