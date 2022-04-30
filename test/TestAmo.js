@@ -392,7 +392,7 @@ contract('AMOMinter', async function () {
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
         //todo buransTock
-        await exchangeAMO.burnStock(1);
+        await exchangeAMO.burnStock(0);
         // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - 100);
         // console.log(await amoMinter.stockMintBalances(owner.address));
     });
