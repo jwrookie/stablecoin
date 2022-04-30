@@ -6,29 +6,10 @@ const {BigNumber} = require('ethers');
 const {type} = require('os');
 
 contract('Locker', async () => {
-    let TestERC20;
-    let Locker;
-    let token0;
-    let durationTime;
-    let lock;
-    let lockMap;
-    let firstTokenId;
-    let secondTokenId;
-    let tokenId;
-    let lockBalanceMap;
-    let lockMapTimeStamp;
-    let lockBalanceEnd;
-    let arrayName;
-    let nftCount;
-    let lockBalanceAmount;
-    let latestBlock;
-    let userPointEpoch;
-    let currentBlock;
+
 
     async function getDurationTime(dayNumber) {
-        if (0 >= durationTime || durationTime > 100) {
-            return;
-        }
+
         return parseInt(time.duration.days(dayNumber));
     }
 
@@ -206,20 +187,11 @@ contract('Locker', async () => {
         secondAddress = await lock.ownerOf(2);
         expect(secondAddress).to.be.not.eq(null);
         await lock.addBoosts(secondAddress);
-        assert.equal(await lock.voter(), secondAddress);
+        assert.equal(await lock.boosts(secondAddress), true);
 
         secondVoteBoolean = await lock.connect(seObject).voted(2);
     });
     it('test checkPoint、_checkPoint', async function () {
-        let lastPointBias;
-        let lastPointSlope;
-        let lastPointBlk;
-        let lastPointTs;
-        let t_i;
-        let blockSlope;
-        let latestTs;
-        let currentLockMap;
-
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1);
         firstTokenId = await lock.create_lock(1000, durationTime);
