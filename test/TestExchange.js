@@ -300,7 +300,7 @@ contract('ExchangeAMO', async function () {
         await amoMinter.addAMO(exchangeAMO.address, true);
     });
 
-    it('test ssetAMOMinter', async function () {
+    it('test setAMOMinter', async function () {
         await exchangeAMO.setAMOMinter(amoMinter.address);
     });
 
