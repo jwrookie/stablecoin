@@ -222,6 +222,8 @@ contract('AMOMinter', async function () {
         await token2.approve(pool.address, toWei("10000"));
         await frax.approve(pool.address, toWei("10000"));
         await frax.approve(stableCoinPool.address, toWei("10000")); // Important
+        await fxs.approve(pool.address, toWei("10000"));
+        await fxs.approve(stableCoinPool.address, toWei("10000")); // Important
 
         // Add liquidity
         await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, GAS);
@@ -392,7 +394,7 @@ contract('AMOMinter', async function () {
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
         //todo buransTock
-        await exchangeAMO.burnStock(1);
+        await exchangeAMO.burnStock(0);
         // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - 100);
         // console.log(await amoMinter.stockMintBalances(owner.address));
     });
