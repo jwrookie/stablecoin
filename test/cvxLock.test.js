@@ -27,7 +27,7 @@ contract('Locker', () => {
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         const Locker = await ethers.getContractFactory('Locker');
         let eta = time.duration.days(1);

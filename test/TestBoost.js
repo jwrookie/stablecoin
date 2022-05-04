@@ -79,7 +79,7 @@ contract('test Boost', async function () {
         const Fax = await ethers.getContractFactory("Stock");
         fax = await Fax.deploy(operatable.address, "fxs", "fxs", oracle.address);
         await fax.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fax.address);
+        await frax.setStockAddress(fax.address);
         lpToken = testERC20.address;
 
         // Swap token address

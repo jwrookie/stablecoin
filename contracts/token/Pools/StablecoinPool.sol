@@ -176,7 +176,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
     // 0% collateral-backed
     function mintAlgorithmicFRAX(uint256 fxs_amount_d18, uint256 FRAX_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
         require(FRAX.globalCollateralRatio() == 0, "Collateral ratio must be 0");
 
         (uint256 frax_amount_d18) = PoolLibrary.calcMintAlgorithmicFRAX(
@@ -194,7 +194,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // Will fail if fully collateralized or fully algorithmic
     // > 0% and < 100% collateral-backed
     function mintFractionalFRAX(uint256 collateral_amount, uint256 fxs_amount, uint256 FRAX_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0, "Collateral ratio needs to be between .000001 and .999999");
@@ -245,7 +245,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // Will fail if fully collateralized or algorithmic
     // Redeem FRAX for collateral and FXS. > 0% and < 100% collateral-backed
     function redeemFractionalFRAX(uint256 FRAX_amount, uint256 FXS_out_min, uint256 COLLATERAL_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0, "Collateral ratio needs to be between .000001 and .999999");
@@ -279,7 +279,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
     // Redeem FRAX for FXS. 0% collateral-backed
     function redeemAlgorithmicFRAX(uint256 FRAX_amount, uint256 FXS_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
 
         require(globalCollateralRatio == 0, "Collateral ratio must be 0");
@@ -348,7 +348,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external {
         require(paused() == false, "Recollateralize is paused");
         uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
         uint256 frax_total_supply = FRAX.totalSupply();
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
@@ -375,7 +375,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // This can also happen if the collateral ratio > 1
     function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external {
         require(paused() == false, "Buyback is paused");
-        uint256 fxs_price = FRAX.fxsPrice();
+        uint256 fxs_price = FRAX.stockPrice();
 
         PoolLibrary.BuybackFXS_Params memory input_params = PoolLibrary.BuybackFXS_Params(
             availableExcessCollatDV(),

@@ -83,7 +83,7 @@ contract('ExchangeAMO', async function () {
         timelock = await Timelock.deploy(owner.address, "259200");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
@@ -216,11 +216,11 @@ contract('ExchangeAMO', async function () {
         await usdc_uniswapOracle.update();
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
-        await frax.setFRAXEthOracle(frax_uniswapOracle.address, weth.address);
+        await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
-        await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
+        await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
 

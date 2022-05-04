@@ -42,7 +42,7 @@ contract('FraxBond', () => {
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
         expect(await frax.fxsAddress()).to.be.eq(fxs.address);
@@ -150,11 +150,11 @@ contract('FraxBond', () => {
         await pool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
-        await frax.setFRAXEthOracle(frax_uniswapOracle.address, weth.address);
+        await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
-        await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
+        await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
 
@@ -318,7 +318,7 @@ contract('FraxBond', () => {
     //
     // });
     // it("test globalCollateralValue", async () => {
-    //     expect(await frax.fraxPoolAddressCount()).to.be.eq(2);
+    //     expect(await frax.stablePoolAddressCount()).to.be.eq(2);
     //     await usdc_uniswapOracle.setPeriod(1);
     //     await usdc_uniswapOracle.update();
     //     await frax_uniswapOracle.setPeriod(1);

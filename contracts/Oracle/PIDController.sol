@@ -144,7 +144,7 @@ contract PIDController is Ownable {
                 emit FRAXrecollateralize(new_collateral_ratio);
             }
 
-            FRAX.setFraxStep(delta_collateral_ratio);
+            FRAX.setStableStep(delta_collateral_ratio);
             // Change by the delta
             uint256 cooldown_before = FRAX.refreshCooldown();
             // Note the existing cooldown period
@@ -155,7 +155,7 @@ contract PIDController is Ownable {
             // Refresh CR
 
             // Reset params
-            FRAX.setFraxStep(0);
+            FRAX.setStableStep(0);
             FRAX.setRefreshCooldown(cooldown_before);
             // Set the cooldown period to what it was before, or until next controller refresh
             FRAX.setPriceTarget(1e6);
@@ -192,7 +192,7 @@ contract PIDController is Ownable {
         internal_cooldown = _internal_cooldown;
     }
 
-    function setFraxStep(uint256 _new_step) external onlyByOwnGov {
+    function setStableStep(uint256 _new_step) external onlyByOwnGov {
         frax_step = _new_step;
     }
 

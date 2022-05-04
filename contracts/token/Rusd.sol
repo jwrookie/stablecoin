@@ -126,12 +126,12 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     // Returns X FRAX = 1 USD
-    function fraxPrice() public view returns (uint256) {
+    function stablePrice() public view returns (uint256) {
         return oraclePrice(PriceChoice.FRAX);
     }
 
     // Returns X FXS = 1 USD
-    function fxsPrice() public view returns (uint256) {
+    function stockPrice() public view returns (uint256) {
         return oraclePrice(PriceChoice.FXS);
     }
 
@@ -141,7 +141,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     // This is needed to avoid costly repeat calls to different getter functions
     // It is cheaper gas-wise to just dump everything and only use some of the info
-    function fraxInfo() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function stableInfo() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         return (
         oraclePrice(PriceChoice.FRAX), // frax_price()
         oraclePrice(PriceChoice.FXS), // fxs_price()
@@ -154,7 +154,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         );
     }
 
-    function fraxPoolAddressCount() public view returns (uint256) {
+    function stablePoolAddressCount() public view returns (uint256) {
         return (fraxPoolAddress.length);
     }
 
@@ -177,10 +177,10 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
 
     function refreshCollateralRatio() public whenNotPaused {
-        uint256 frax_price_cur = fraxPrice();
+        uint256 frax_price_cur = stablePrice();
         require(block.timestamp - lastCallTime >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
 
-        // Step increments are 0.25% (upon genesis, changable by setFraxStep()) 
+        // Step increments are 0.25% (upon genesis, changable by setStableStep())
 
         if (frax_price_cur > priceTarget.add(priceBand)) {//decrease collateral ratio
             if (globalCollateralRatio <= fraxStep) {//if within a step of 0, go to 0
@@ -261,7 +261,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit MintingFeeSet(min_fee);
     }
 
-    function setFraxStep(uint256 _new_step) public onlyOwner {
+    function setStableStep(uint256 _new_step) public onlyOwner {
         fraxStep = _new_step;
         emit FraxStepSet(_new_step);
     }
@@ -276,7 +276,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit RefreshCooldownSet(_new_cooldown);
     }
 
-    function setFXSAddress(address _fxs_address) public onlyOwner {
+    function setStockAddress(address _fxs_address) public onlyOwner {
         require(_fxs_address != address(0), "Zero address detected");
         fxsAddress = _fxs_address;
         emit FXSAddressSet(_fxs_address);
@@ -295,8 +295,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit PriceBandSet(_price_band);
     }
 
-    // Sets the FRAX_ETH Uniswap oracle address 
-    function setFRAXEthOracle(address _frax_oracle_addr, address _weth_address) public onlyOwner {
+
+    function setStableEthOracle(address _frax_oracle_addr, address _weth_address) public onlyOwner {
         require((_frax_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
         fraxEthOracleAddress = _frax_oracle_addr;
         fraxEthOracle = UniswapPairOracle(_frax_oracle_addr);
@@ -305,8 +305,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit FRAXETHOracleSet(_frax_oracle_addr, _weth_address);
     }
 
-    // Sets the FXS_ETH Uniswap oracle address 
-    function setFXSEthOracle(address _fxs_oracle_addr, address _weth_address) public onlyOwner {
+
+    function setStockEthOracle(address _fxs_oracle_addr, address _weth_address) public onlyOwner {
         require((_fxs_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
 
         fxsEthOracleAddress = _fxs_oracle_addr;

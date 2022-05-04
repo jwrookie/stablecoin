@@ -29,7 +29,7 @@ contract('Locker', () => {
         frax = await FRAXStablecoin.deploy(checkOper.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
         // let eta = time.duration.days(1460);

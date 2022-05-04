@@ -67,7 +67,7 @@ contract('3metaPool', () => {
         //console.log("lastBlock:" + lastBlock);
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');

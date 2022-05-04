@@ -60,10 +60,10 @@ interface IStablecoin is IERC20 {
     //  function revokeRole(bytes32 role, address account ) external;
     //  function setController(address _controller_address ) external;
     //  function setETHUSDOracle(address _eth_usd_consumer_address ) external;
-    //  function setFRAXEthOracle(address _frax_oracle_addr, address _weth_address ) external;
-    //  function setFXSAddress(address _fxs_address ) external;
-    //  function setFXSEthOracle(address _fxs_oracle_addr, address _weth_address ) external;
-    //  function setFraxStep(uint256 _new_step ) external;
+    //  function setStableEthOracle(address _frax_oracle_addr, address _weth_address ) external;
+    //  function setStockAddress(address _fxs_address ) external;
+    //  function setStockEthOracle(address _fxs_oracle_addr, address _weth_address ) external;
+    //  function setStableStep(uint256 _new_step ) external;
     //  function setMintingFee(uint256 min_fee ) external;
     //  function setOwner(address _owner_address ) external;
     //  function setPriceBand(uint256 _price_band ) external;

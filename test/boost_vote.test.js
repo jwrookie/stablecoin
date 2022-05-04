@@ -89,7 +89,7 @@ contract('Boost', () => {
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
 

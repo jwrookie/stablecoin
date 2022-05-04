@@ -42,7 +42,7 @@ contract('Pool_USDC', () => {
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
         expect(await frax.fxsAddress()).to.be.eq(fxs.address);
@@ -151,11 +151,11 @@ contract('Pool_USDC', () => {
         await pool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
-        await frax.setFRAXEthOracle(frax_uniswapOracle.address, weth.address);
+        await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
-        await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
+        await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
         await fxs.addPool(pool.address);
@@ -209,11 +209,11 @@ contract('Pool_USDC', () => {
         await fxs_uniswapOracle.setPeriod(1);
         await fxs_uniswapOracle.update();
 
-        expect(await frax.fxsPrice()).to.be.eq("100000000");
+        expect(await frax.stockPrice()).to.be.eq("100000000");
         expect(await frax.globalCollateralRatio()).to.be.eq("1000000");
         expect(await frax.fraxStep()).to.be.eq("2500");
 
-        await frax.setFraxStep("2500000");
+        await frax.setStableStep("2500000");
         expect(await frax.fraxStep()).to.be.eq("2500000");
         await frax.refreshCollateralRatio();
 
@@ -246,9 +246,9 @@ contract('Pool_USDC', () => {
         await fxs_uniswapOracle.setPeriod(1);
         await fxs_uniswapOracle.update();
 
-        expect(await frax.fxsPrice()).to.be.eq("100000000");
+        expect(await frax.stockPrice()).to.be.eq("100000000");
         expect(await frax.globalCollateralRatio()).to.be.eq("1000000");
-        await frax.setFraxStep("250000");
+        await frax.setStableStep("250000");
         await frax.refreshCollateralRatio();
         expect(await frax.globalCollateralRatio()).to.be.eq("750000");
         expect(await usdc.balanceOf(owner.address)).to.be.eq(toWei('1000000000000'));
@@ -298,7 +298,7 @@ contract('Pool_USDC', () => {
         await frax.burn(toWei('1999999'));
         expect(await frax.totalSupply()).to.be.eq(toWei('1'));
 
-        await frax.setFraxStep("250000");
+        await frax.setStableStep("250000");
         await frax.refreshCollateralRatio();
         expect(await pool.availableExcessCollatDV()).to.be.eq(0);
 
