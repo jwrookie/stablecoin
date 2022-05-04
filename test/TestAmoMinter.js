@@ -218,11 +218,11 @@ contract('AMOMinter', async function () {
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
         await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
-        expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
+        expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
-        expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
+        expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
@@ -288,7 +288,7 @@ contract('AMOMinter', async function () {
 
         // frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, fxb.address, owner.address, timelock.address);
         // await frax.setStableEthOracle(frax_uniswapOracle.address, fxb.address);
-        // expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
+        // expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
         // console.log("owner_price::\t" + await usdc.balanceOf(owner.address));
     });
 

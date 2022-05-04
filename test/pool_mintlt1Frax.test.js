@@ -45,7 +45,7 @@ contract('Pool_USDC', () => {
         await frax.setStockAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
-        expect(await frax.fxsAddress()).to.be.eq(fxs.address);
+        expect(await frax.stockAddress()).to.be.eq(fxs.address);
 
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
@@ -152,11 +152,11 @@ contract('Pool_USDC', () => {
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
         await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
-        expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
+        expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
-        expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
+        expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
         await fxs.addPool(pool.address);
 

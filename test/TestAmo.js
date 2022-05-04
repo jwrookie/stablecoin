@@ -58,11 +58,11 @@ contract('AMOMinter', async function () {
                 break;
             case frax:
                 await _setFRAXEthOracle(uniswapOracle);
-                expect(await frax.fraxEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                expect(await frax.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             case fxs:
                 await _setFXSEthOracle(uniswapOracle);
-                expect(await frax.fxsEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                expect(await frax.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             default:
                 await console.log("Unknow token!");
