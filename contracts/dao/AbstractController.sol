@@ -15,8 +15,8 @@ import "../interface/IVeToken.sol";
 abstract contract AbstractController is CheckPermission {
     event Attach(address indexed owner, address indexed gauge, uint tokenId);
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
-    event Voted(address indexed voter, uint tokenId, int256 weight);
-    event Abstained(uint tokenId, int256 weight);
+    event Voted(address indexed voter, uint tokenId, uint weight);
+    event Abstained(uint tokenId, uint weight);
 
     //    uint internal immutable duration;
 
@@ -28,8 +28,8 @@ abstract contract AbstractController is CheckPermission {
     address internal immutable base;
     address internal immutable boost;
 
-    mapping(address => int256) public weights; // pool => weight
-    mapping(uint => mapping(address => int256)) public votes; // nft => pool => votes
+    mapping(address => uint) public weights; // pool => weight
+    mapping(uint => mapping(address => uint)) public votes; // nft => pool => votes
     mapping(uint => address[]) public poolVote; // nft => pools
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
 
@@ -53,10 +53,10 @@ abstract contract AbstractController is CheckPermission {
     function _reset(uint _tokenId) internal {
         address[] storage _poolVote = poolVote[_tokenId];
         uint _poolVoteCnt = _poolVote.length;
-        int256 _totalWeight = 0;
+        uint _totalWeight = 0;
         for (uint i = 0; i < _poolVoteCnt; i ++) {
             address _pool = _poolVote[i];
-            int256 _votes = votes[_tokenId][_pool];
+            uint _votes = votes[_tokenId][_pool];
 
             if (_votes != 0) {
                 _updatePoolInfo(_pool);
@@ -75,13 +75,13 @@ abstract contract AbstractController is CheckPermission {
         delete poolVote[_tokenId];
     }
 
-    function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
+    function _vote(uint _tokenId, address[] memory _poolVote, uint[] memory _weights) internal {
         _reset(_tokenId);
         uint _poolCnt = _poolVote.length;
-        int256 _weight = int256(IVeToken(veToken).balanceOfNFT(_tokenId));
-        int256 _totalVoteWeight = 0;
-        int256 _totalWeight = 0;
-        int256 _usedWeight = 0;
+        uint _weight = IVeToken(veToken).balanceOfNFT(_tokenId);
+        uint _totalVoteWeight = 0;
+        uint _totalWeight = 0;
+        uint _usedWeight = 0;
 
         for (uint i = 0; i < _poolCnt; i++) {
             _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
@@ -91,7 +91,7 @@ abstract contract AbstractController is CheckPermission {
             address _pool = _poolVote[i];
 
 
-            int256 _poolWeight = _weights[i] * _weight / _totalVoteWeight;
+            uint _poolWeight = _weights[i] * _weight / _totalVoteWeight;
             require(votes[_tokenId][_pool] == 0, "token pool is 0");
             require(_poolWeight != 0, "weight is 0");
             _updatePoolInfo(_pool);
@@ -139,7 +139,7 @@ abstract contract AbstractController is CheckPermission {
             uint256 _id = IBoost(boost).lpOfPid(poolInfo[pid]);
             IBoost(boost).set(_id, weights[poolInfo[pid]], false);
         }
-        IBoost(IBoost).massUpdatePools();
+        IBoost(boost).massUpdatePools();
 
     }
 
