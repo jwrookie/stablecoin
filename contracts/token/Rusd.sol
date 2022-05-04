@@ -92,7 +92,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         stableStep = 2500;
         // 6 decimals of precision, equal to 0.25%
         globalCollateralRatio = 1000000;
-        // Frax system starts off fully collateralized (6 decimals of precision)
         refreshCooldown = 3600;
         // Refresh cooldown period is set to 1 hour (3600 seconds) at genesis
         priceTarget = 1000000;
@@ -101,24 +100,23 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         // Collateral ratio will not adjust if between $0.995 and $1.005 at genesis
     }
 
-    // Choice = 'FRAX' or 'FXS' for now
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
         // Get the ETH / USD price first, and cut it down to 1e6 precision
-        uint256 __eth_usd_price = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
-        uint256 price_vs_eth = 0;
+        uint256 __ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
+        uint256 priceVSeth = 0;
 
         if (choice == PriceChoice.STABLE) {
-            price_vs_eth = uint256(stableEthOracle.consult(weth, PRICE_PRECISION));
+            priceVSeth = uint256(stableEthOracle.consult(weth, PRICE_PRECISION));
             // How much FRAX if you put in PRICE_PRECISION WETH
         }
         else if (choice == PriceChoice.STOCK) {
-            price_vs_eth = uint256(stockEthOracle.consult(weth, PRICE_PRECISION));
+            priceVSeth = uint256(stockEthOracle.consult(weth, PRICE_PRECISION));
             // How much FXS if you put in PRICE_PRECISION WETH
         }
         else revert("INVALID PRICE CHOICE. Needs to be either 0 (FRAX) or 1 (FXS)");
 
         // Will be in 1e6 format
-        return __eth_usd_price.mul(PRICE_PRECISION).div(price_vs_eth);
+        return __ethusdPrice.mul(PRICE_PRECISION).div(priceVSeth);
     }
 
     // Returns X FRAX = 1 USD
@@ -154,7 +152,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         return (poolAddress.length);
     }
 
-    // Iterate through all frax pools and calculate all value of collateral in all pools globally 
     function globalCollateralValue() public view returns (uint256) {
         uint256 total_collateral_value_d18 = 0;
 
@@ -218,97 +215,97 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     // Adds collateral addresses supported, such as tether and busd, must be ERC20 
-    function addPool(address pool_address) public onlyOwner {
-        require(pool_address != address(0), "Zero address detected");
-        require(isStablePools[pool_address] == false, "Address already exists");
-        isStablePools[pool_address] = true;
-        poolAddress.push(pool_address);
+    function addPool(address _poolAddress) public onlyOwner {
+        require(_poolAddress != address(0), "Zero address detected");
+        require(isStablePools[_poolAddress] == false, "Address already exists");
+        isStablePools[_poolAddress] = true;
+        poolAddress.push(_poolAddress);
 
-        emit PoolAdded(pool_address);
+        emit PoolAdded(_poolAddress);
     }
 
     // Remove a pool 
-    function removePool(address pool_address) public onlyOwner {
-        require(pool_address != address(0), "Zero address detected");
-        require(isStablePools[pool_address] == true, "Address nonexistant");
+    function removePool(address _poolAddress) public onlyOwner {
+        require(_poolAddress != address(0), "Zero address detected");
+        require(isStablePools[_poolAddress] == true, "Address nonexistant");
 
         // Delete from the mapping
-        delete isStablePools[pool_address];
+        delete isStablePools[_poolAddress];
 
         // 'Delete' from the array by setting the address to 0x0
         for (uint i = 0; i < poolAddress.length; i++) {
-            if (poolAddress[i] == pool_address) {
+            if (poolAddress[i] == _poolAddress) {
                 poolAddress[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
-        emit PoolRemoved(pool_address);
+        emit PoolRemoved(_poolAddress);
     }
 
-    function setRedemptionFee(uint256 red_fee) public onlyOwner {
-        redemptionFee = red_fee;
-        emit RedemptionFeeSet(red_fee);
+    function setRedemptionFee(uint256 redFee) public onlyOwner {
+        redemptionFee = redFee;
+        emit RedemptionFeeSet(redFee);
     }
 
-    function setMintingFee(uint256 min_fee) public onlyOwner {
-        mintingFee = min_fee;
-        emit MintingFeeSet(min_fee);
+    function setMintingFee(uint256 minFee) public onlyOwner {
+        mintingFee = minFee;
+        emit MintingFeeSet(minFee);
     }
 
-    function setStableStep(uint256 _new_step) public onlyOwner {
-        stableStep = _new_step;
-        emit StableStepSet(_new_step);
+    function setStableStep(uint256 _step) public onlyOwner {
+        stableStep = _step;
+        emit StableStepSet(_step);
     }
 
-    function setPriceTarget(uint256 _new_price_target) public onlyOwner {
-        priceTarget = _new_price_target;
-        emit PriceTargetSet(_new_price_target);
+    function setPriceTarget(uint256 _priceTarget) public onlyOwner {
+        priceTarget = _priceTarget;
+        emit PriceTargetSet(_priceTarget);
     }
 
-    function setRefreshCooldown(uint256 _new_cooldown) public onlyOwner {
-        refreshCooldown = _new_cooldown;
-        emit RefreshCooldownSet(_new_cooldown);
+    function setRefreshCooldown(uint256 _cooldown) public onlyOwner {
+        refreshCooldown = _cooldown;
+        emit RefreshCooldownSet(_cooldown);
     }
 
-    function setStockAddress(address _fxs_address) public onlyOwner {
-        require(_fxs_address != address(0), "Zero address detected");
-        stockAddress = _fxs_address;
-        emit StockAddressSet(_fxs_address);
+    function setStockAddress(address _stockAddress) public onlyOwner {
+        require(_stockAddress != address(0), "Zero address detected");
+        stockAddress = _stockAddress;
+        emit StockAddressSet(_stockAddress);
     }
 
-    function setETHUSDOracle(address _eth_usd_consumer_address) public onlyOwner {
-        require(_eth_usd_consumer_address != address(0), "Zero address detected");
-        ethUsdConsumerAddress = _eth_usd_consumer_address;
+    function setETHUSDOracle(address _ethusdConsumer) public onlyOwner {
+        require(_ethusdConsumer != address(0), "Zero address detected");
+        ethUsdConsumerAddress = _ethusdConsumer;
         ethUsdPricer = ChainlinkETHUSDPriceConsumer(ethUsdConsumerAddress);
         ethUsdPricerDecimals = ethUsdPricer.getDecimals();
-        emit ETHUSDOracleSet(_eth_usd_consumer_address);
+        emit ETHUSDOracleSet(_ethusdConsumer);
     }
 
-    function setPriceBand(uint256 _price_band) external onlyOwner {
-        priceBand = _price_band;
-        emit PriceBandSet(_price_band);
-    }
-
-
-    function setStableEthOracle(address _frax_oracle_addr, address _weth_address) public onlyOwner {
-        require((_frax_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
-        stableEthOracleAddress = _frax_oracle_addr;
-        stableEthOracle = UniswapPairOracle(_frax_oracle_addr);
-        weth = _weth_address;
-
-        emit StableETHOracleSet(_frax_oracle_addr, _weth_address);
+    function setPriceBand(uint256 _priceBand) external onlyOwner {
+        priceBand = _priceBand;
+        emit PriceBandSet(_priceBand);
     }
 
 
-    function setStockEthOracle(address _fxs_oracle_addr, address _weth_address) public onlyOwner {
-        require((_fxs_oracle_addr != address(0)) && (_weth_address != address(0)), "Zero address detected");
+    function setStableEthOracle(address stableOracle, address _weth) public onlyOwner {
+        require((stableOracle != address(0)) && (_weth != address(0)), "Zero address detected");
+        stableEthOracleAddress = stableOracle;
+        stableEthOracle = UniswapPairOracle(stableOracle);
+        weth = _weth;
 
-        stockEthOracleAddress = _fxs_oracle_addr;
-        stockEthOracle = UniswapPairOracle(_fxs_oracle_addr);
-        weth = _weth_address;
+        emit StableETHOracleSet(stableOracle, _weth);
+    }
 
-        emit StockEthOracleSet(_fxs_oracle_addr, _weth_address);
+
+    function setStockEthOracle(address stockOracle, address _weth) public onlyOwner {
+        require((stockOracle != address(0)) && (_weth != address(0)), "Zero address detected");
+
+        stockEthOracleAddress = stockOracle;
+        stockEthOracle = UniswapPairOracle(stockOracle);
+        weth = _weth;
+
+        emit StockEthOracleSet(stockOracle, _weth);
     }
 
 
