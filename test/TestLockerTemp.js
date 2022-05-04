@@ -4,18 +4,18 @@
  * @data: 2022/04/12 14:21
  */
 /** Introducing external modules */
-const { time, balance } = require('@openzeppelin/test-helpers');
-const { ethers } = require('hardhat');
-const { expect } = require('chai');
-const { toWei } = require('web3-utils');
-const { BigNumber } = require('ethers');
-const { type } = require('os');
+const {time, balance} = require('@openzeppelin/test-helpers');
+const {ethers} = require('hardhat');
+const {expect} = require('chai');
+const {toWei} = require('web3-utils');
+const {BigNumber} = require('ethers');
+const {type} = require('os');
 
 contract('Locker', async () => {
     /**
      * This contract we need two object to which is implement interface ERC721 or ERC165
      */
-    // Introducing constant
+        // Introducing constant
     const TESTERC20 = "TestERC20";
     const LOCKER = "Locker";
     const ERC721_INTERFACE_BYTE = 0x01ffc9a7;
@@ -30,25 +30,25 @@ contract('Locker', async () => {
     let thTestERC20;
     let durationTime;
     let lock;
-    
+
     /**
      * To mint some object
-     * @param {Contract} object 
-     * @param {Address} addressName 
+     * @param {Contract} object
+     * @param {Address} addressName
      * @param {Any} toWei
-     * @returns 
+     * @returns
      */
     async function mintAddress(object, addressName, toWei) {
         return object.mint(addressName, toWei)
-    } 
+    }
 
     /**
      * Get duration time
-     * @param {Number} dayNumber 
-     * @returns 
+     * @param {Number} dayNumber
+     * @returns
      */
     async function getDurationTime(dayNumber) {
-        if(0 >= durationTime || durationTime > 100) {
+        if (0 >= durationTime || durationTime > 100) {
             return
         }
         return parseInt(time.duration.days(dayNumber))
@@ -56,28 +56,28 @@ contract('Locker', async () => {
 
     /**
      * This is a function about check information equal information
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
+     * @param {Any} anyThing
+     * @param {Any} value
+     * @returns
      */
     async function checkInfoEq(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if ("" == anyThing || null == anyThing) {
             return
         }
-        if("" == value || null == value) {
+        if ("" == value || null == value) {
             return
         }
-        if(expect(value).to.be.eq(value)) {
+        if (expect(value).to.be.eq(value)) {
             return true
-        }else{
+        } else {
             return false
         }
     }
 
-    beforeEach(async function() {
+    beforeEach(async function () {
         [owner, seObject] = await ethers.getSigners();
-       const TestERC20 = await ethers.getContractFactory(TESTERC20);
-       const Locker = await ethers.getContractFactory(LOCKER);
+        const TestERC20 = await ethers.getContractFactory(TESTERC20);
+        const Locker = await ethers.getContractFactory(LOCKER);
 
         const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
@@ -93,10 +93,10 @@ contract('Locker', async () => {
 
         // Mint some initial value
         durationTime = getDurationTime(1);
-        lock = await Locker.deploy(operatable.address,firstTestERC20.address, durationTime);
+        lock = await Locker.deploy(operatable.address, firstTestERC20.address, durationTime);
     });
 
-    it('test approve、getApprove、isApprovedOrOwner', async function() {
+    it('test approve、getApprove、isApprovedOrOwner', async function () {
         /**
          * You need to craete lock twice, because this function definition can not empower yourself
          * Focus on the one modifled map ---> idToApproves
@@ -152,7 +152,7 @@ contract('Locker', async () => {
         console.log(checkInfoEq(needBoolean, true))
     });
 
-    it('test function about voter', async function() {
+    it('test function about voter', async function () {
         let firstTokenId
         let secondTokenId
         let initFirstVoteBoolean

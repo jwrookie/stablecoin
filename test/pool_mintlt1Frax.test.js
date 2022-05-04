@@ -33,7 +33,7 @@ contract('Pool_USDC', () => {
         const Timelock = await ethers.getContractFactory('Timelock');
         timelock = await Timelock.deploy(owner.address, "259200");
 
-         Operatable = await ethers.getContractFactory("Operatable");
+        Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
         const FRAXShares = await ethers.getContractFactory('Stock');
@@ -55,7 +55,7 @@ contract('Pool_USDC', () => {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(operatable.address,frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        pool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await pool.USDC_address()).to.be.eq(usdc.address);
 
 
@@ -257,7 +257,7 @@ contract('Pool_USDC', () => {
         expect(await fxs.balanceOf(pool.address)).to.be.eq(0);
         expect(await usdc.balanceOf(pool.address)).to.be.eq(0);
 
-      //  console.log("globalCollateralValue:"+await frax.globalCollateralValue())
+        //  console.log("globalCollateralValue:"+await frax.globalCollateralValue())
         await pool.mintFractionalFRAX("1000", "1000", 0);
         expect(await usdc.balanceOf(owner.address)).to.be.eq("999999999999999999999999999000");
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999999000000000000133333");

@@ -152,7 +152,7 @@ contract('Crypto', () => {
         await weth9.approve(swapRouter.address, toWei('100000'))
         // await token0.approve(pool.address, toWei("10000"))
         // await weth9.approve(pool.address, toWei('100000'))
-        const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        const times = Number((new Date().getTime() + 1000).toFixed(0))
         // await pool.exchange(1, 0, 1000, 0, true, owner.address, { value: 1000 })
         // await swapRouter.swapToken(pool.address, 0, 1, '1000', 0, owner.address, times, { ...gas })
 
@@ -164,7 +164,7 @@ contract('Crypto', () => {
         // expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add("1000"));
         // expect(ethPoolAft).to.be.eq(BigNumber.from(ethPoolBef).sub("897"));
 
-        const times2 = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        const times2 = Number((new Date().getTime() + 1000).toFixed(0))
 
         await swapRouter.swapEthForToken(pool.address, 1, 0, 1000, 0, owner.address, times2, {value: 1000})
 
@@ -179,7 +179,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"))
         await weth9.approve(swapRouter.address, toWei('100000'))
 
-        // const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        // const times = Number((new Date().getTime() + 1000).toFixed(0))
         // await swapRouter.swapToken(pool.address, 0, 1, '1000', 0, owner.address, times, { ...gas })
 
 
@@ -191,7 +191,7 @@ contract('Crypto', () => {
         // expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add("1000"));
         // expect(ethPoolAft).to.be.eq(BigNumber.from(ethPoolBef).sub("897"));
 
-        const times2 = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        const times2 = Number((new Date().getTime() + 1000).toFixed(0))
 
         await swapRouter.swapEthForToken(pool.address, 0, 1, 100000000, 0, owner.address, times2, {value: 0})
 

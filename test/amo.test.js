@@ -178,7 +178,7 @@ contract('AMOMinter', async function () {
         await router.addLiquidity(
             usdc.address,
             weth.address,
-           toWei('1'),
+            toWei('1'),
             toWei('1'),
             0,
             0,
@@ -303,13 +303,13 @@ contract('AMOMinter', async function () {
         const REDEEM_FEE = 10000;
 
         // await mockChainLink.setAnswer(BigNumber.from(1e18));
-      //  await mockChainLink.setAnswer(BigNumber.from("1000000000000000000"));
+        //  await mockChainLink.setAnswer(BigNumber.from("1000000000000000000"));
         // Set period
         await frax_uniswapOracle.setPeriod(1);
-       // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
+        // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // Set oracle
         await frax_uniswapOracle.update();
-      //  console.log("frax_price:\t" + await frax.fraxPrice());
+        //  console.log("frax_price:\t" + await frax.fraxPrice());
 
         // Set redeem fee
         // await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
@@ -418,7 +418,7 @@ contract('AMOMinter', async function () {
         // pairArray[1] = weth.address;
         // // currentTime = await time.latestTime();
         // await frax.setPriceTarget(toWei('1'));
-       // await frax.setPriceBand(1);
+        // await frax.setPriceBand(1);
         // Swap
         // for (let i = 0; i < 10; i++) {
         //     targetArray = await router.swapExactTokensForTokens(
@@ -459,7 +459,7 @@ contract('AMOMinter', async function () {
         // console.log("pool_celling:\t" + await usdcPool.pool_ceiling());
         // console.log("owner_usdc:\t" + await usdc.balanceOf(owner.address));
 
-        console.log("usdc:"+await usdc.balanceOf(owner.address))
+        console.log("usdc:" + await usdc.balanceOf(owner.address))
         await usdcPool.mint1t1FRAX(toWei("0.1"), 0);
         // console.log("usdc_pool_usdc_balance:\t" + await usdc.balanceOf(usdcPool.address));
         // expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));

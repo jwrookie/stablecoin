@@ -355,7 +355,7 @@ contract('ExchangeAMO', async function () {
         collatDollarBalance = await usdcPool.collatDollarBalance();
         console.log("usdcPool collatDollarBalance:\t" + collatDollarBalance);
 
-        globalCollateralValue= await frax.globalCollateralValue();
+        globalCollateralValue = await frax.globalCollateralValue();
         console.log("globalCollateralValue:\t" + globalCollateralValue);
         // await amoMinter.mintStableForAMO(exchangeAMO.address, "1");
         // amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);

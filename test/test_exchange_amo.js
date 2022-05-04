@@ -364,10 +364,10 @@ contract('AMOMinter', async function () {
         console.log("1:\t" + await frax.totalSupply());
 
 
-        console.log("usdc in pool:",(await usdc.balanceOf(usdcPool.address)));
+        console.log("usdc in pool:", (await usdc.balanceOf(usdcPool.address)));
         // todo Stablecoin is automatically generated using the pool
         await usdc.mint(usdcPool.address, toWei('100'));
-        console.log("usdc in pool2:",(await usdc.balanceOf(usdcPool.address)));
+        console.log("usdc in pool2:", (await usdc.balanceOf(usdcPool.address)));
         await usdc.approve(amoMinter.address, toWei('1'));
         await fxs.mint(amoMinter.address, toWei('1'));
         await fxs.approve(amoMinter.address, toWei('1'));

@@ -271,7 +271,7 @@ contract('test Boost', async function () {
         const Gauge = await ethers.getContractFactory("Gauge");
         // Get object
         targetGauge = await Gauge.attach(currentGauge);
-        
+
     });
 
     it('test AbstractBoost getPoolVote', async function () {

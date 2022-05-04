@@ -33,7 +33,7 @@ contract('Locker', () => {
         let eta = time.duration.days(1);
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
 
-        await fxs.approve(lock.address,toWei('100000'));
+        await fxs.approve(lock.address, toWei('100000'));
 
         await fxs.transfer(dev.address, toWei('1000'));
 

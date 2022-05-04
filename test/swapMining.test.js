@@ -188,7 +188,7 @@ contract('SwapMining', () => {
         poolToken0Bef = await pool.balances(0, gas);
         poolToken1Bef = await pool.balances(1, gas);
 
-        const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        const times = Number((new Date().getTime() + 1000).toFixed(0))
         let dx = "1000000"
 
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)
