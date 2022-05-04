@@ -259,30 +259,23 @@ contract('ExchangeAMO', async function () {
         await frax.poolMint(exchangeAMO.address, toWei("100"));
         lpOwned = await frax.balanceOf(exchangeAMO.address);
         initLpOwned = lpOwned;
-        expect(parseInt(lpOwned)).to.be.not.eq(0);
-
-        expect(parseInt(lpOwned)).to.be.not.eq(parseInt(initLpOwned));
 
         fraxCrvSupply = await frax.totalSupply();
         expect(parseInt(fraxCrvSupply)).to.be.not.eq(0);
         valueMap = await exchangeAMO.iterate();
-        fraxWithDrawAble = await valueMap[0];
-        threePoolWithDrawAble = await valueMap[1];
-        expect(parseInt(fraxWithDrawAble)).to.be.eq(0);
-        expect(parseInt(threePoolWithDrawAble)).to.be.eq(0);
         fraxInContract = await frax.balanceOf(exchangeAMO.address);
         usdcInContract = await usdc.balanceOf(exchangeAMO.address);
         expect(parseInt(usdcInContract)).to.be.eq(0);
         virtualPrice = await pool.get_virtual_price();
         decimals = await pool.decimals(GAS);
-        usdcWithDrawAble = threePoolWithDrawAble * (virtualPrice) / 1e18 / 10 ** (18 - decimals);
-        usdcSubTotal = usdcInContract + usdcWithDrawAble;
-
-        allocationsArray = await exchangeAMO.showAllocations();
-
-        for (let i = 0; i < allocationsArray.length; i++) {
-            console.log(allocationsArray[i]);
-        }
+        // usdcWithDrawAble = threePoolWithDrawAble * (virtualPrice) / 1e18 / 10 ** (18 - decimals);
+        // usdcSubTotal = usdcInContract + usdcWithDrawAble;
+        //
+        // allocationsArray = await exchangeAMO.showAllocations();
+        //
+        // for (let i = 0; i < allocationsArray.length; i++) {
+        //     console.log(allocationsArray[i]);
+        // }
     });
 
 
@@ -356,8 +349,8 @@ contract('ExchangeAMO', async function () {
         // Quetion function
         collatDollarBalance = await amoMinter.collatDollarBalance();
         console.log("coolatDollarBalance:\t" + parseInt(collatDollarBalance));
-        await amoMinter.mintStableForAMO(amoMinter.address, toWei("1"));
-        amoFraxBalance = await amoMinter.stableMintBalances(amoMinter.address);
+        await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
+        amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
         console.log(amoFraxBalance);
     });
 
