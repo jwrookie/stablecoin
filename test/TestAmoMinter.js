@@ -447,14 +447,17 @@ contract('AMOMinter', async function () {
         console.log("owner_fxs:\t" + await fxs.balanceOf(owner.address));
         console.log("second_global_collateral_ratio:\t" + globalCollateralRatio);
         // Swap
-        pairArray = new Array(2);
-        pairArray[0] = frax.address;
-        pairArray[1] = weth.address;
-        await usdcPool.mint1t1FRAX(toWei('1'), 0);
-        await usdcPool.mintAlgorithmicFRAX(toWei('1'), 0);
-        await usdcPool.mintFractionalFRAX(toWei('1'), 1, 0);
-        // console.log("owner_fxs:\t" + await usdcPool.FXS_NEEDED());
-        console.log("usdc_value_in_pool:\t" + await usdc.balanceOf(usdcPool.address));
+
+        //todo mintAlgorithmicFRAX
+
+        // pairArray = new Array(2);
+        // pairArray[0] = frax.address;
+        // pairArray[1] = weth.address;
+        // await usdcPool.mint1t1FRAX(toWei('1'), 0);
+        // await usdcPool.mintAlgorithmicFRAX(toWei('1'), 0);
+        // await usdcPool.mintFractionalFRAX(toWei('1'), 1, 0);
+        // // console.log("owner_fxs:\t" + await usdcPool.FXS_NEEDED());
+        // console.log("usdc_value_in_pool:\t" + await usdc.balanceOf(usdcPool.address));
 
         // await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
         // await amoMinter.receiveCollatFromAMO(100);
