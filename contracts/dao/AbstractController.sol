@@ -68,16 +68,10 @@ abstract contract AbstractController is CheckPermission {
     function _vote(uint _tokenId, address _poolVote) internal {
         _reset(_tokenId);
         uint _weight = IVeToken(veToken).balanceOfNFT(_tokenId);
-        uint _totalVoteWeight = _weight;
-        uint _totalWeight = 0;
-        uint _usedWeight = 0;
-
 
         weights[_poolVote] = weights[_poolVote].add(_weight);
-
         emit Voted(msg.sender, _tokenId, _weight);
-
-        if (_weight > 0) IVeToken(veToken).voting(_tokenId);
+        IVeToken(veToken).voting(_tokenId);
         totalWeight += _weight;
         usedWeights[_tokenId] = _weight;
         updatePool();
@@ -93,7 +87,7 @@ abstract contract AbstractController is CheckPermission {
         _vote(tokenId, _poolVote);
     }
 
-    function updatePool() external {
+    function updatePool() public {
         if (block.timestamp < lastUpdate.add(duration)) {
             return;
         }
