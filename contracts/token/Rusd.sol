@@ -16,7 +16,6 @@ import "../tools/AbstractPausable.sol";
 contract RStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
-    /* ========== EVENTS ========== */
 
     // Track FRAX burned
     event FRAXBurned(address indexed from, address indexed to, uint256 amount);

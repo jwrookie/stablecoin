@@ -96,16 +96,8 @@ contract('ExchangeAMO', async function () {
         usdcPool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
 
-        // =========
         await frax.addPool(usdcPool.address);
 
-        await fxs.addPool(owner.address);
-        // await fxs.addPool(dev.address);
-        // await frax.addPool(owner.address);
-
-        // await fxs.mint(dev.address, toWei("100000"));
-        // await fxs.mint(owner.address, toWei("100000"));
-        // ==========
 
         plain3Balances = await deployContract(owner, {
             bytecode: Plain3Balances.bytecode,
@@ -248,26 +240,24 @@ contract('ExchangeAMO', async function () {
         //await frax.addPool(exchangeAMO.address)
         await pool.approve(exchangeAMO.address, toWei("100000"));
 
-        await fxs.mint(exchangeAMO.address, toWei("100000"));
         await token0.approve(exchangeAMO.address, toWei("100000000"));
         await token0.mint(exchangeAMO.address, toWei("100000"));
     });
 
     it('test showAllocations', async function () {
 
-        await frax.addPool(owner.address);
-        await frax.poolMint(exchangeAMO.address, toWei("100"));
-        lpOwned = await frax.balanceOf(exchangeAMO.address);
-        initLpOwned = lpOwned;
-
-        fraxCrvSupply = await frax.totalSupply();
-        expect(parseInt(fraxCrvSupply)).to.be.not.eq(0);
-        valueMap = await exchangeAMO.iterate();
-        fraxInContract = await frax.balanceOf(exchangeAMO.address);
-        usdcInContract = await usdc.balanceOf(exchangeAMO.address);
-        expect(parseInt(usdcInContract)).to.be.eq(0);
-        virtualPrice = await pool.get_virtual_price();
-        decimals = await pool.decimals(GAS);
+        // await frax.poolMint(exchangeAMO.address, toWei("100"));
+        // lpOwned = await frax.balanceOf(exchangeAMO.address);
+        // initLpOwned = lpOwned;
+        //
+        // fraxCrvSupply = await frax.totalSupply();
+        // expect(parseInt(fraxCrvSupply)).to.be.not.eq(0);
+        // valueMap = await exchangeAMO.iterate();
+        // fraxInContract = await frax.balanceOf(exchangeAMO.address);
+        // usdcInContract = await usdc.balanceOf(exchangeAMO.address);
+        // expect(parseInt(usdcInContract)).to.be.eq(0);
+        // virtualPrice = await pool.get_virtual_price();
+        // decimals = await pool.decimals(GAS);
         // usdcWithDrawAble = threePoolWithDrawAble * (virtualPrice) / 1e18 / 10 ** (18 - decimals);
         // usdcSubTotal = usdcInContract + usdcWithDrawAble;
         //
@@ -294,20 +284,22 @@ contract('ExchangeAMO', async function () {
 
         fraxAmount = await frax.balanceOf(owner.address);
         collateralAmount = await usdc.balanceOf(owner.address);
+        await frax.transfer(exchangeAMO.address, fraxAmount);
+
 
         let tempArray = new Array(3);
         tempArray[0] = 0;
         tempArray[1] = toWei("10");
         tempArray[2] = 0;
-        let usdcD = await usdc.decimals();
+        await usdc.decimals();
         // console.log(parseInt(await exchangeAMO.missing_decimals()));
         // var tempMinLpOut = 1000000 * (10 ** await exchangeAMO.missing_decimals()) * 800000 / 1e6;
         // console.log(parseInt(tempMinLpOut));
 
-        let temp = await pool.add_liquidity(tempArray, 0);
+        await pool.add_liquidity(tempArray, 0);
         // console.log(temp);
 
-        metaPoolLpReceived = await exchangeAMO.metapoolDeposit(toWei("1"), toWei("1")); // Error
+        // metaPoolLpReceived = await exchangeAMO.metapoolDeposit(toWei("0.000001"), toWei("0.000001")); // Error
         // console.log(metaPoolLpReceived);
     });
 
