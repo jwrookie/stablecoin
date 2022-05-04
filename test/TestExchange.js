@@ -97,6 +97,7 @@ contract('ExchangeAMO', async function () {
         expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
 
         await frax.addPool(usdcPool.address);
+        await fxs.addPool(usdcPool.address);
 
 
         plain3Balances = await deployContract(owner, {
@@ -160,7 +161,7 @@ contract('ExchangeAMO', async function () {
         const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
         chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(mockChainLink.address);
         await frax.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
-
+        await mockChainLink.setAnswer(toWei('100'));
         await factory.createPair(usdc.address, weth.address);
         pairAddr = await factory.getPair(usdc.address, weth.address);
 
@@ -206,9 +207,13 @@ contract('ExchangeAMO', async function () {
             Math.round(new Date() / 1000 + 1000)
         );
 
+
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
         usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, owner.address, timelock.address);
         await usdcPool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
+
+        await usdc_uniswapOracle.setPeriod(1);
+        await usdc_uniswapOracle.update();
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
         await frax.setFRAXEthOracle(frax_uniswapOracle.address, weth.address);
@@ -217,6 +222,7 @@ contract('ExchangeAMO', async function () {
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
         await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
+
 
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
@@ -237,11 +243,13 @@ contract('ExchangeAMO', async function () {
             pool.address,
             frax.address
         );
-        //await frax.addPool(exchangeAMO.address)
         await pool.approve(exchangeAMO.address, toWei("100000"));
 
         await token0.approve(exchangeAMO.address, toWei("100000000"));
         await token0.mint(exchangeAMO.address, toWei("100000"));
+
+        // await router.swapETHForExactTokens(toWei('0.01'), [weth.address, usdc.address], owner.address, Math.round(new Date() +1000), {value: toWei('0.01')});
+
     });
 
     it('test showAllocations', async function () {
@@ -336,14 +344,18 @@ contract('ExchangeAMO', async function () {
         // expect(parseInt(await exchangeAMO.mintedBalance())).to.be.eq(parseInt(amoFraxBalance));
 
         ethUsdPrice = await frax.ethUsdPrice();
-        console.log("ethUsdPrice:\t" + parseInt(ethUsdPrice));
+        console.log("ethUsdPrice:\t" + ethUsdPrice);
+        eth_collat_price = await usdc_uniswapOracle.consult(weth.address, toWei("1"));
+        console.log("eth_collat_price:\t" + eth_collat_price);
 
-        // Quetion function
         collatDollarBalance = await amoMinter.collatDollarBalance();
-        console.log("coolatDollarBalance:\t" + parseInt(collatDollarBalance));
+        console.log("collatDollarBalance:\t" + collatDollarBalance);
+
+        collatDollarBalance = await usdcPool.collatDollarBalance();
+        console.log("usdcPool collatDollarBalance:\t" + collatDollarBalance);
         await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
-        amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
-        console.log(amoFraxBalance);
+        // amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
+        // console.log(amoFraxBalance);
     });
 
     // it('test three_pool_to_collateral', async function () {
