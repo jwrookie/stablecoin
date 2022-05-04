@@ -35,9 +35,10 @@ abstract contract AbstractController is CheckPermission {
 
     address [] public poolInfo;
 
-    constructor(address _operatorMsg, address __ve)CheckPermission(_operatorMsg) {
+    constructor(address _operatorMsg, address _boost, address __ve)CheckPermission(_operatorMsg) {
         veToken = __ve;
         base = IVeToken(__ve).token();
+        boost = _boost;
     }
 
     function getPoolVote(uint256 tokenId) public view returns (address[] memory){
@@ -84,7 +85,7 @@ abstract contract AbstractController is CheckPermission {
         uint _usedWeight = 0;
 
         for (uint i = 0; i < _poolCnt; i++) {
-            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
+            _totalVoteWeight = _weights[i] > 0 ? _totalVoteWeight + _weights[i] : _totalVoteWeight - _weights[i];
         }
 
         for (uint i = 0; i < _poolCnt; i++) {
@@ -102,7 +103,7 @@ abstract contract AbstractController is CheckPermission {
             votes[_tokenId][_pool] += _poolWeight;
             if (_poolWeight > 0) {
             } else {
-                _poolWeight = - _poolWeight;
+                _poolWeight = _poolWeight - _poolWeight;
             }
             _usedWeight += _poolWeight;
             _totalWeight += _poolWeight;
@@ -117,7 +118,7 @@ abstract contract AbstractController is CheckPermission {
     function poke(uint _tokenId) external {
         address[] memory _poolVote = poolVote[_tokenId];
         uint _poolCnt = _poolVote.length;
-        int256[] memory _weights = new int256[](_poolCnt);
+        uint[] memory _weights = new uint[](_poolCnt);
 
         for (uint i = 0; i < _poolCnt; i ++) {
             _weights[i] = votes[_tokenId][_poolVote[i]];
@@ -127,7 +128,7 @@ abstract contract AbstractController is CheckPermission {
     }
 
 
-    function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
+    function vote(uint tokenId, address[] calldata _poolVote, uint[] calldata _weights) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         require(_poolVote.length == _weights.length);
         _vote(tokenId, _poolVote, _weights);
