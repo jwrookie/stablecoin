@@ -211,10 +211,10 @@ contract('Pool_USDC', () => {
 
         expect(await frax.stockPrice()).to.be.eq("100000000");
         expect(await frax.globalCollateralRatio()).to.be.eq("1000000");
-        expect(await frax.fraxStep()).to.be.eq("2500");
+        expect(await frax.stableStep()).to.be.eq("2500");
 
         await frax.setStableStep("2500000");
-        expect(await frax.fraxStep()).to.be.eq("2500000");
+        expect(await frax.stableStep()).to.be.eq("2500000");
         await frax.refreshCollateralRatio();
 
         expect(await frax.globalCollateralRatio()).to.be.eq(0);

@@ -356,13 +356,13 @@ contract('AMOMinter', async function () {
         for (let i = 0; i < fraxPoolsLength; i++) {
             switch (i) {
                 case 0:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(stableCoinPool.address);
+                    expect(await frax.stablePoolAddress(i)).to.be.eq(stableCoinPool.address);
                     break;
                 case 1:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(amoMinter.address);
+                    expect(await frax.stablePoolAddress(i)).to.be.eq(amoMinter.address);
                     break;
                 case 2:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(exchangeAMO.address);
+                    expect(await frax.stablePoolAddress(i)).to.be.eq(exchangeAMO.address);
                     break;
             }
         }
