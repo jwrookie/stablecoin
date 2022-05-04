@@ -33,7 +33,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     uint256 public totalAllocPoint = 0;
     PoolInfo[] public poolInfo;
     // pid corresponding address
-    mapping(address => uint256) public LpOfPid;
+    mapping(address => uint256) public lpOfPid;
 
 
     uint public constant duration = 7 days; // rewards are released over 7 days
@@ -72,7 +72,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         allocPoint : _allocPoint,
         lastRewardBlock : lastRewardBlock
         }));
-        LpOfPid[address(_pool)] = poolLength() - 1;
+        lpOfPid[address(_pool)] = poolLength() - 1;
 
         address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken, address(swapToken));
         IERC20(address(swapToken)).approve(_gauge, type(uint).max);
@@ -84,7 +84,8 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         return _gauge;
     }
 
-    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public onlyOwner {
+    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public {
+        require(controllers[msg.sender] || msg.sender == operator(), "no auth");
 
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
         poolInfo[_pid].allocPoint = _allocPoint;
@@ -134,7 +135,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     function _updateForGauge(address _gauge) internal {
         address _pool = poolForGauge[_gauge];
-        updatePool(LpOfPid[_pool]);
+        updatePool(lpOfPid[_pool]);
     }
 
     function claimRewards(address[] memory _gauges, address[][] memory _tokens) external {

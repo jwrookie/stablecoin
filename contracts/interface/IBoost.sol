@@ -9,4 +9,11 @@ interface IBoost {
     function votes(uint256 _tokeId, address _pool) external view returns (uint256);
 
     function usedWeights(uint256 _tokeId) external view returns (uint256);
+
+    function lpOfPid(address) external view returns (uint256);
+
+    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external;
+
+    function massUpdatePools() external;
+
 }

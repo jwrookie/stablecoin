@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "../interface/IBoost.sol";
+
 import "../tools/CheckPermission.sol";
 import "../interface/IVeToken.sol";
 
@@ -16,7 +18,7 @@ abstract contract AbstractController is CheckPermission {
     event Voted(address indexed voter, uint tokenId, int256 weight);
     event Abstained(uint tokenId, int256 weight);
 
-//    uint internal immutable duration;
+    //    uint internal immutable duration;
 
 
 
@@ -24,12 +26,14 @@ abstract contract AbstractController is CheckPermission {
 
     address public immutable veToken; // the ve token that governs these contracts
     address internal immutable base;
+    address internal immutable boost;
 
     mapping(address => int256) public weights; // pool => weight
     mapping(uint => mapping(address => int256)) public votes; // nft => pool => votes
     mapping(uint => address[]) public poolVote; // nft => pools
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
 
+    address [] public poolInfo;
 
     constructor(address _operatorMsg, address __ve)CheckPermission(_operatorMsg) {
         veToken = __ve;
@@ -130,6 +134,12 @@ abstract contract AbstractController is CheckPermission {
     }
 
     function _updatePoolInfo(address _pool) internal {
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            uint256 _id = IBoost(boost).lpOfPid(poolInfo[pid]);
+            IBoost(boost).set(_id, weights[poolInfo[pid]], false);
+        }
+        IBoost(IBoost).massUpdatePools();
 
     }
 
