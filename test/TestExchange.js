@@ -292,7 +292,7 @@ contract('ExchangeAMO', async function () {
 
         fraxAmount = await frax.balanceOf(owner.address);
         collateralAmount = await usdc.balanceOf(owner.address);
-        await frax.transfer(exchangeAMO.address, fraxAmount);
+        // await frax.transfer(exchangeAMO.address, fraxAmount);
 
 
         let tempArray = new Array(3);
@@ -328,6 +328,7 @@ contract('ExchangeAMO', async function () {
 
     it('test mintedBalance', async function () {
 
+        await amoMinter.setMinimumCollateralRatio("750000");
         amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
         expect(parseInt(amoFraxBalance)).to.be.eq(0);
 
@@ -353,7 +354,10 @@ contract('ExchangeAMO', async function () {
 
         collatDollarBalance = await usdcPool.collatDollarBalance();
         console.log("usdcPool collatDollarBalance:\t" + collatDollarBalance);
-        await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
+
+        globalCollateralValue= await frax.globalCollateralValue();
+        console.log("globalCollateralValue:\t" + globalCollateralValue);
+        // await amoMinter.mintStableForAMO(exchangeAMO.address, "1");
         // amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
         // console.log(amoFraxBalance);
     });
