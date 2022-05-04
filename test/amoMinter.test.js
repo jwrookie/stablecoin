@@ -385,7 +385,7 @@ contract('AMOMinter', async function () {
     //     let fraxOfExchange;
     //     let fraxMintSum;
     //
-    //     fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+    //     fraxMintBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
     //     expect(parseInt(fraxMintBalance)).to.be.eq(0);
     //     fraxOfExchange = await frax.balanceOf(owner.address);
     //     console.log(parseInt(fraxOfExchange));
@@ -404,7 +404,7 @@ contract('AMOMinter', async function () {
     //
     //     await frax.addPool(amoMinter.address);
     //     await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("100"));
-    //     // fraxMintBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+    //     // fraxMintBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
     //     // console.log(fraxMintBalance);
     //     // fraxMintSum = await amoMinter.frax_mint_sum();
     //     // expect(parseInt(fraxMintSum)).to.be.eq(parseInt(toWei("100")));

@@ -1,4 +1,3 @@
-
 const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
@@ -52,7 +51,7 @@ contract('ExchangeAMO', async function () {
             abi: Router.abi
         }, [factory.address, weth.address]);
 
-         const Operatable = await ethers.getContractFactory("Operatable");
+        const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
         const FRAXShares = await ethers.getContractFactory('Stock');
@@ -94,7 +93,7 @@ contract('ExchangeAMO', async function () {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        usdcPool = await Pool_USDC.deploy(operatable.address,frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        usdcPool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
 
         // =========
@@ -274,7 +273,7 @@ contract('ExchangeAMO', async function () {
         fraxInContract = await frax.balanceOf(exchangeAMO.address);
         usdcInContract = await usdc.balanceOf(exchangeAMO.address);
         expect(parseInt(usdcInContract)).to.be.eq(0);
-        virtualPrice  = await pool.get_virtual_price();
+        virtualPrice = await pool.get_virtual_price();
         decimals = await pool.decimals(GAS);
         usdcWithDrawAble = threePoolWithDrawAble * (virtualPrice) / 1e18 / 10 ** (18 - decimals);
         usdcSubTotal = usdcInContract + usdcWithDrawAble;
@@ -319,7 +318,7 @@ contract('ExchangeAMO', async function () {
         // console.log(metaPoolLpReceived);
     });
 
-    it('test iterate', async function() {
+    it('test iterate', async function () {
 
 
         valueMap = await exchangeAMO.iterate();
@@ -336,7 +335,7 @@ contract('ExchangeAMO', async function () {
 
     it('test mintedBalance', async function () {
 
-        amoFraxBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+        amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
         expect(parseInt(amoFraxBalance)).to.be.eq(0);
 
         ownerFraxBalance = await frax.balanceOf(owner.address);
@@ -347,7 +346,7 @@ contract('ExchangeAMO', async function () {
         await amoMinter.addAMO(exchangeAMO.address, true);
         sureBoolean = await amoMinter.amos(exchangeAMO.address);
         expect(sureBoolean).to.be.eq(true);
-        amoFraxBalance = await amoMinter.frax_mint_balances(exchangeAMO.address);
+        amoFraxBalance = await amoMinter.stableMintBalances(exchangeAMO.address);
         expect(parseInt(amoFraxBalance)).to.be.eq(0);
         // expect(parseInt(await exchangeAMO.mintedBalance())).to.be.eq(parseInt(amoFraxBalance));
 
@@ -358,7 +357,7 @@ contract('ExchangeAMO', async function () {
         collatDollarBalance = await amoMinter.collatDollarBalance();
         console.log("coolatDollarBalance:\t" + parseInt(collatDollarBalance));
         await amoMinter.mintStableForAMO(amoMinter.address, toWei("1"));
-        amoFraxBalance = await amoMinter.frax_mint_balances(amoMinter.address);
+        amoFraxBalance = await amoMinter.stableMintBalances(amoMinter.address);
         console.log(amoFraxBalance);
     });
 
@@ -374,10 +373,7 @@ contract('ExchangeAMO', async function () {
         poolFxsBalance = await fxs.balanceOf(exchangeAMO.address);
         initPoolFxsBalance = poolFxsBalance;
 
-        await exchangeAMO.withdrawCRVRewards();
 
-        poolFxsBalance = await fxs.balanceOf(exchangeAMO.address);
-        expect(parseInt(poolFxsBalance)).to.be.eq(0);
     });
 
     it('test giveCollatBack', async function () {
@@ -403,23 +399,13 @@ contract('ExchangeAMO', async function () {
         // await exchangeAMO.burnStable(toWei("1"));
     });
 
-    it('test setAMOMinter', async function() {
-        let initCustodianAddress;
-        let currentCustodianAddress;
-
-        initCustodianAddress = await amoMinter.custodian_address();
-        await exchangeAMO.setAMOMinter(addr1.address);
-        currentCustodianAddress = await amoMinter.custodian_address();
-        expect(currentCustodianAddress).to.be.not.eq(initCustodianAddress);
-    });
-
     it('test setConvergenceWindow', async function () {
         let initConverGence;
         let currentConverGence;
 
-        initConverGence = await exchangeAMO.convergence_window();
+        initConverGence = await exchangeAMO.convergenceWindow();
         await exchangeAMO.setConvergenceWindow(10000);
-        currentConverGence = await exchangeAMO.convergence_window();
+        currentConverGence = await exchangeAMO.convergenceWindow();
         expect(currentConverGence).to.be.eq(10000);
     });
 
