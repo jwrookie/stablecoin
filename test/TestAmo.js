@@ -240,7 +240,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await frax.approve(router.address, toWei("1000"));
@@ -252,7 +252,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await fxs.approve(router.address, toWei("1000"));
@@ -264,7 +264,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         // About oracle and uniswap
