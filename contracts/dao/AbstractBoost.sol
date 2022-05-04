@@ -108,7 +108,7 @@ abstract contract AbstractBoost is TokenReward {
                 emit Voted(msg.sender, _tokenId, _poolWeight);
             }
         }
-        if (_usedWeight > 0) IVeToken(veToken).voting(_tokenId);
+        IVeToken(veToken).voting(_tokenId);
         totalWeight += uint256(_totalWeight);
         usedWeights[_tokenId] = uint256(_usedWeight);
     }

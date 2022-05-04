@@ -21,11 +21,14 @@ abstract contract AbstractController is CheckPermission {
     event Voted(address indexed voter, uint tokenId, uint weight);
     event Abstained(uint tokenId, uint weight);
 
-    uint public totalWeight; // total voting weight
 
     address public immutable veToken; // the ve token that governs these contracts
-    address internal immutable base;
-    address internal immutable boost;
+    address public immutable base;
+    address public immutable boost;
+
+    uint public duration;
+    uint public totalWeight; // total voting weight
+    uint public lastUpdate;
 
     mapping(address => uint) public weights; // pool => weight
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
@@ -33,16 +36,24 @@ abstract contract AbstractController is CheckPermission {
 
     address [] public poolInfo;
 
-    constructor(address _operatorMsg, address _boost, address __ve)CheckPermission(_operatorMsg) {
+    constructor(
+        address _operatorMsg, address _boost, address __ve, uint _duration
+    )CheckPermission(_operatorMsg) {
         veToken = __ve;
         base = IVeToken(__ve).token();
         boost = _boost;
+        duration = _duration;
+    }
+
+    function setDuration(uint _duration) external onlyOperator {
+        duration = _duration;
     }
 
     function reset(uint _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
+        updatePool();
     }
 
     function _reset(uint _tokenId) internal {
@@ -69,7 +80,7 @@ abstract contract AbstractController is CheckPermission {
         if (_weight > 0) IVeToken(veToken).voting(_tokenId);
         totalWeight += _weight;
         usedWeights[_tokenId] = _weight;
-        //        _updatePoolInfo(_pool);
+        updatePool();
     }
 
     function poke(uint _tokenId) external {
@@ -82,13 +93,18 @@ abstract contract AbstractController is CheckPermission {
         _vote(tokenId, _poolVote);
     }
 
-    function _updatePoolInfo(address _pool) internal {
+    function updatePool() external {
+        if (block.timestamp < lastUpdate.add(duration)) {
+            return;
+        }
+
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
             uint256 _id = IBoost(boost).lpOfPid(poolInfo[pid]);
             IBoost(boost).set(_id, weights[poolInfo[pid]], false);
         }
         IBoost(boost).massUpdatePools();
+        lastUpdate = block.timestamp;
 
     }
 

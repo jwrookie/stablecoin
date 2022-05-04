@@ -15,7 +15,8 @@ import "./AbstractController.sol";
 contract GaugeController is ReentrancyGuard, AbstractController {
     using SafeMath for uint256;
 
-    constructor(address _operatorMsg, address _boost, address __ve)AbstractController(_operatorMsg, _boost, __ve) {
+    constructor(address _operatorMsg, address _boost, address __ve, uint _duration)
+    AbstractController(_operatorMsg, _boost, __ve, _duration) {
 
     }
 
