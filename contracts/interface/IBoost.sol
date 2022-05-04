@@ -10,10 +10,6 @@ interface IBoost {
 
     function usedWeights(uint256 _tokeId) external view returns (uint256);
 
-    function lpOfPid(address) external view returns (uint256);
 
-    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) external;
-
-    function massUpdatePools() external;
 
 }

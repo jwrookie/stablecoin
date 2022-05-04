@@ -41,7 +41,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
 
     address public targetToken;
     // pair corresponding pid
-    mapping(address => uint256) public pairOfPid;
+    mapping(address => uint256) public lpOfPid;
 
     PoolInfo[] public poolInfo;
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
@@ -116,10 +116,10 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _allocPoint,
         address _pool,
         bool _withUpdate
-    ) public onlyOwner {
+    ) public onlyOperator {
         require(_pool != address(0), '_pair is the zero address');
         if (poolLength() > 0) {
-            require((pairOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
+            require((lpOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
 
         }
         if (_withUpdate) {
@@ -136,25 +136,26 @@ contract SwapMining is AbstractBoost, ISwapMining {
         lastRewardBlock : lastRewardBlock
         })
         );
-        pairOfPid[_pool] = poolLength() - 1;
+        lpOfPid[_pool] = poolLength() - 1;
         emit AddPool(_pool, _allocPoint);
     }
 
     // Update the allocPoint of the pool
-    function setPair(
+    function set(
         uint256 _pid,
         uint256 _allocPoint,
         bool _withUpdate
-    ) public onlyOwner {
+    ) public {
+        require(controllers[msg.sender] || msg.sender == operator(), "no auth");
+        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
+        poolInfo[_pid].allocPoint = _allocPoint;
         if (_withUpdate) {
             massUpdatePools();
         }
-        totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
-        poolInfo[_pid].allocPoint = _allocPoint;
         emit SetPool(poolInfo[_pid].pair, _allocPoint);
     }
 
-    function setRouter(address newRouter) public onlyOwner {
+    function setRouter(address newRouter) public onlyOperator {
         require(newRouter != address(0), 'SwapMining: new router is the zero address');
         address oldRouter = router;
         router = newRouter;
@@ -173,7 +174,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         if (poolLength() == 0) {
             return false;
         }
-        uint256 _pid = pairOfPid[pair];
+        uint256 _pid = lpOfPid[pair];
         PoolInfo storage pool = poolInfo[_pid];
         // If it does not exist or the allocPoint is 0 then return
         if (pool.pair != pair || pool.allocPoint <= 0) {
@@ -186,7 +187,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         }
 
         pool.quantity = pool.quantity.add(quantity);
-        UserInfo storage user = userInfo[pairOfPid[pair]][account];
+        UserInfo storage user = userInfo[lpOfPid[pair]][account];
         user.quantity = user.quantity.add(quantity);
         user.blockNumber = block.number;
         emit SwapMining(account, pair, quantity);
@@ -292,11 +293,11 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     function _updatePoolInfo(address _pool) internal override {
-        updatePool(pairOfPid[_pool]);
+        updatePool(lpOfPid[_pool]);
     }
 
     function isGaugeForPool(address _pool) internal override view returns (bool){
-        uint256 _pid = pairOfPid[_pool];
+        uint256 _pid = lpOfPid[_pool];
         PoolInfo memory pool = poolInfo[_pid];
         return pool.pair == _pool;
     }

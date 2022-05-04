@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import "../interface/IBoost.sol";
+import "../interface/IDistribute.sol";
 
 import "../tools/CheckPermission.sol";
 import "../interface/IVeToken.sol";
@@ -24,7 +24,7 @@ abstract contract AbstractController is CheckPermission {
 
     address public immutable veToken; // the ve token that governs these contracts
     address public immutable base;
-    address public immutable boost;
+    address public immutable distribute;
 
     uint public duration;
     uint public totalWeight; // total voting weight
@@ -41,7 +41,7 @@ abstract contract AbstractController is CheckPermission {
     )CheckPermission(_operatorMsg) {
         veToken = __ve;
         base = IVeToken(__ve).token();
-        boost = _boost;
+        distribute = _boost;
         duration = _duration;
     }
 
@@ -60,7 +60,7 @@ abstract contract AbstractController is CheckPermission {
         uint _totalWeight = usedWeights[_tokenId];
         address _pool = userPool[_tokenId];
         emit Abstained(_tokenId, _totalWeight);
-        totalWeight -= uint256(_totalWeight);
+        totalWeight -= _totalWeight;
         usedWeights[_tokenId] = 0;
         delete userPool[_tokenId];
     }
@@ -94,10 +94,10 @@ abstract contract AbstractController is CheckPermission {
 
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
-            uint256 _id = IBoost(boost).lpOfPid(poolInfo[pid]);
-            IBoost(boost).set(_id, weights[poolInfo[pid]], false);
+            uint256 _id = IDistribute(distribute).lpOfPid(poolInfo[pid]);
+            IDistribute(distribute).set(_id, weights[poolInfo[pid]], false);
         }
-        IBoost(boost).massUpdatePools();
+        IDistribute(distribute).massUpdatePools();
         lastUpdate = block.timestamp;
 
     }
