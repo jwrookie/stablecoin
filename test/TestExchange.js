@@ -377,21 +377,19 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test giveCollatBack', async function () {
-        let collatBorrowedBalanceInAmoMinter;
-        let collatBorrowedSum;
 
-        collatBorrowedBalanceInAmoMinter = await amoMinter.collat_borrowed_balances(amoMinter.address);
+        collatBorrowedBalanceInAmoMinter = await amoMinter.collatBorrowedBalances(amoMinter.address);
         expect(parseInt(collatBorrowedBalanceInAmoMinter)).to.be.eq(0);
-        collatBorrowedSum = await amoMinter.collat_borrowed_sum();
+        collatBorrowedSum = await amoMinter.collatBorrowedSum();
         expect(parseInt(collatBorrowedSum)).to.be.eq(0);
 
         await amoMinter.addAMO(amoMinter.address, true);
         expect(await amoMinter.amos(amoMinter.address)).to.be.eq(true);
         // Call the function will modify collatBoorowedBalance and collatBorrowedSum
         // await exchangeAMO.giveCollatBack(toWei("1")); // This function can not through modifier validAMO
-        collatBorrowedBalanceInAmoMinter = await amoMinter.collat_borrowed_balances(amoMinter.address);
+        collatBorrowedBalanceInAmoMinter = await amoMinter.collatBorrowedBalances(amoMinter.address);
         expect(parseInt(collatBorrowedBalanceInAmoMinter)).to.be.eq(0);
-        collatBorrowedSum = await amoMinter.collat_borrowed_sum();
+        collatBorrowedSum = await amoMinter.collatBorrowedSum();
         expect(parseInt(collatBorrowedSum)).to.be.eq(0);
     });
 
@@ -400,10 +398,7 @@ contract('ExchangeAMO', async function () {
     });
 
     it('test setConvergenceWindow', async function () {
-        let initConverGence;
-        let currentConverGence;
-
-        initConverGence = await exchangeAMO.convergenceWindow();
+        await exchangeAMO.convergenceWindow();
         await exchangeAMO.setConvergenceWindow(10000);
         currentConverGence = await exchangeAMO.convergenceWindow();
         expect(currentConverGence).to.be.eq(10000);

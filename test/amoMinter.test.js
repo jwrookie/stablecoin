@@ -367,7 +367,7 @@ contract('AMOMinter', async function () {
     //     let initBorrowedBalance;
     //     let collatAmount;
     //
-    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     collatBorrowedBalance = await amoMinter.collatBorrowedBalances(exchangeAMO.address);
     //     initBorrowedBalance = collatBorrowedBalance;
     //     expect(parseInt(initBorrowedBalance)).to.be.eq(0);
     //
@@ -376,7 +376,7 @@ contract('AMOMinter', async function () {
     //     await amoMinter.poolCollectAndGive(exchangeAMO.address);
     //     collatAmount = await usdcPool.redeemCollateralBalances(amoMinter.address);
     //     expect(parseInt(collatAmount)).to.be.eq(0);
-    //     collatBorrowedBalance = await amoMinter.collat_borrowed_balances(exchangeAMO.address);
+    //     collatBorrowedBalance = await amoMinter.collatBorrowedBalances(exchangeAMO.address);
     //     // expect(parseInt(collatBorrowedBalance)).to.be.eq(1);
     // });
 
