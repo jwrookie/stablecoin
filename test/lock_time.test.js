@@ -19,13 +19,14 @@ contract('Locker', () => {
 
         Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
-
+        CheckOper = await ethers.getContractFactory("CheckPermission");
+        checkOper = await CheckOper.deploy(operatable.address);
 
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkOper.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkOper.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
         await frax.setFXSAddress(fxs.address);
@@ -35,14 +36,14 @@ contract('Locker', () => {
 
         const Locker = await ethers.getContractFactory('Locker');
         // let eta = time.duration.days(1);
-        lock = await Locker.deploy(operatable.address, fxs.address, parseInt("7200"));
+        lock = await Locker.deploy(checkOper.address, fxs.address, parseInt("7200"));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy(operatable.address);
+        gaugeFactory = await GaugeFactory.deploy(checkOper.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            operatable.address,
+            checkOper.address,
             lock.address,
             gaugeFactory.address,
             fxs.address,
@@ -103,25 +104,25 @@ contract('Locker', () => {
         let gasFee = await lock.estimateGas.increase_amount(1, toWei('200'))
         console.log("gasFee:" + gasFee);
 
-        let gasFee1 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-        console.log("gasFee1:" + gasFee1);
-
-
-        await time.increase(time.duration.days("1"));
-
-        await lock.checkpoint();
-        let gasFee3 = await lock.estimateGas.increase_amount(1, toWei('200'))
-        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-
-        console.log("gasFee3:" + gasFee3)
-        //  console.log("gasFee4:" + gasFee4)
-
-
-        await lock.connect(dev).checkpoint();
-        let gasFee4 = await lock.estimateGas.increase_amount(2, toWei('200'))
-        //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-
-        console.log("gasFee4:" + gasFee4)
+        // let gasFee1 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        // console.log("gasFee1:" + gasFee1);
+        //
+        //
+        // await time.increase(time.duration.days("1"));
+        //
+        // await lock.checkpoint();
+        // let gasFee3 = await lock.estimateGas.increase_amount(1, toWei('200'))
+        // //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        //
+        // console.log("gasFee3:" + gasFee3)
+        // //  console.log("gasFee4:" + gasFee4)
+        //
+        //
+        // await lock.connect(dev).checkpoint();
+        // let gasFee4 = await lock.estimateGas.increase_amount(2, toWei('200'))
+        // //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        //
+        // console.log("gasFee4:" + gasFee4)
 
 
         // await time.increase(time.duration.days("1"));
