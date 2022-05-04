@@ -100,7 +100,7 @@ contract('Boost', () => {
         await gauge_usdc.connect(owner).deposit("2000", 2);
 
         await boost.updatePool(0);
-        expect(await gauge_usdc.rewardsListLength()).to.be.eq(1);
+
 
         let point = await gauge_usdc.checkpoints(dev.address, 0)
         console.log("timestamp:" + point[0])
@@ -148,8 +148,6 @@ contract('Boost', () => {
         await boost.updatePool(1);
 
         await gauge_usdc.connect(dev).deposit("1000", 1);
-        expect(await gauge_usdc.rewardsListLength()).to.be.eq(1);
-        expect(await gauge_busd.rewardsListLength()).to.be.eq(1);
 
         expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
         expect(await gauge_busd.isReward(fxs.address)).to.be.eq(true)

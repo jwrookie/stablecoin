@@ -171,7 +171,7 @@ contract('test Boost', async function() {
         let isGaugeMap;
 
         // Get lp pid
-        currentLpPid = await boost.LpOfPid(lpToken);
+        currentLpPid = await boost.lpOfPid(lpToken);
         assert.equal(parseInt(currentLpPid), 0);
 
         // Call the function create gauge
@@ -180,7 +180,7 @@ contract('test Boost', async function() {
         await boost.createGauge(lpToken, 100, true);
         currentLength = await boost.poolLength();
         assert.equal(currentLength, 1);
-        currentLpPid = await boost.LpOfPid(lpToken);
+        currentLpPid = await boost.lpOfPid(lpToken);
         assert.equal(parseInt(currentLpPid), (currentLength - 1));
         currentBlock = await time.latestBlock();
         lastRewardBlock = currentBlock;
@@ -215,7 +215,7 @@ contract('test Boost', async function() {
         let targetAllocPoint;
         
         // Get pid
-        currentLpPid = await boost.LpOfPid(await boost.poolForGauge(lpToken));
+        currentLpPid = await boost.lpOfPid(await boost.poolForGauge(lpToken));
 
         // Get total alloc point
         currentGauge = await boost.createGauge(lpToken, 100, true);
@@ -249,7 +249,7 @@ contract('test Boost', async function() {
 
         gaugeMap = await boost.gauges(lpToken);
         poolForGaugeMap = await boost.poolForGauge(gaugeMap);
-        currentLpPid = await boost.LpOfPid(await boost.poolForGauge(lpToken));
+        currentLpPid = await boost.lpOfPid(await boost.poolForGauge(lpToken));
         // Call the funtion create gauge
         currentGauge = await boost.createGauge(lpToken, 100, true);
         // Get the pool info
