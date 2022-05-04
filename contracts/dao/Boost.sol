@@ -137,9 +137,9 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         updatePool(lpOfPid[_pool]);
     }
 
-    function claimRewards(address[] memory _gauges, address[][] memory _tokens) external {
+    function claimRewards(address[] memory _gauges) external {
         for (uint i = 0; i < _gauges.length; i++) {
-            IGauge(_gauges[i]).getReward(msg.sender, _tokens[i]);
+            IGauge(_gauges[i]).getReward(msg.sender);
         }
     }
 
@@ -155,8 +155,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     function isGaugeForPool(address _pool) internal override view returns (bool){
         return isGauge[gauges[_pool]];
     }
-
-
 
 
 }

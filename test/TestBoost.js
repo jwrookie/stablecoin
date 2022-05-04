@@ -1,90 +1,50 @@
-const { time } = require('@openzeppelin/test-helpers');
+const {time} = require('@openzeppelin/test-helpers');
 // const { deployContract, MockProvider, solidity, Fixture } = require('ethereum-waffle');
-const { ethers } = require("hardhat");
-const { expect } = require("chai");
-const { toWei } = web3.utils;
-const { BigNumber } = require('ethers');
-const { parse } = require('path');
+const {ethers} = require("hardhat");
+const {expect} = require("chai");
+const {toWei} = web3.utils;
+const {BigNumber} = require('ethers');
+const {parse} = require('path');
 
-contract('test Boost', async function() {
-    let testERC20;
-    let veToken;
-    let duration;
-    let oracle;
-    let lpToken;
-    let startBlock;
-    let currentGauge;
-    let currentTotalAllPoint;
-    let poolInfoAllocPoint;
-    let poolForGaugeMap;
-    let gaugeMap;
-    let currentLpPid;
-    let poolInfoMap;
-    let tokenSupply;
-    let gaugeFactory;
-    let checkOper;
-    let boost;
-    let fax;
-    let frax;
-    let length;
-    let currentBlock;
-    let gaugeLpToken;
-    let targetGauge;
-    let weightArray = new Array(1);
+contract('test Boost', async function () {
 
-    /**
-     * Get duration time
-     * @param {Number} dayNumber 
-     * @returns 
-    */
+
     async function getDurationTime(dayNumber) {
-        if(0 >= dayNumber || dayNumber > 100) {
+        if (0 >= dayNumber || dayNumber > 100) {
             return
         }
         return parseInt(time.duration.days(dayNumber))
     }
 
-    /**
-     * This is a function about check information equal information
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
-    */
     async function checkInfoEq(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if ("" == anyThing || null == anyThing) {
             return
         }
-        if("" == value || null == value) {
+        if ("" == value || null == value) {
             return
         }
-        if(expect(anyThing).to.be.eq(value)) {
+        if (expect(anyThing).to.be.eq(value)) {
             return true
-        }else{
+        } else {
             return false
         }
     }
 
-    /**
-     * This is a function about check information greater than information
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
-     */
     async function checkInfoGt(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if ("" == anyThing || null == anyThing) {
             return
         }
-        if("" == value || null == value) {
+        if ("" == value || null == value) {
             return
         }
-        if(expect(anyThing).to.be.gt(parseInt(value))) {
+        if (expect(anyThing).to.be.gt(parseInt(value))) {
             return true
-        }else{
+        } else {
             return false
         }
     }
 
-    beforeEach(async function(){
+    beforeEach(async function () {
         [owner, seObject] = await ethers.getSigners();
         const testOperatable = await ethers.getContractFactory("Operatable");
         operatable = await testOperatable.deploy();
@@ -96,7 +56,7 @@ contract('test Boost', async function() {
         const TestERC20 = await ethers.getContractFactory("TestERC20");
         testERC20 = await TestERC20.deploy();
         duration = getDurationTime(1);
-        veToken = await VeToken.deploy(operatable.address,testERC20.address, duration);
+        veToken = await VeToken.deploy(operatable.address, testERC20.address, duration);
         // Approve
         await testERC20.connect(owner).approve(veToken.address, toWei("1000"));
         await testERC20.connect(seObject).approve(veToken.address, toWei("1000"));
@@ -153,7 +113,7 @@ contract('test Boost', async function() {
         await veToken.addBoosts(boost.address);
     });
 
-    it('test poolLength', async function(){
+    it('test poolLength', async function () {
         length = await boost.poolLength();
         assert.equal(parseInt(length), 0);
 
@@ -163,13 +123,7 @@ contract('test Boost', async function() {
         assert.equal(parseInt(length), 1);
     });
 
-    it('test createGauge', async function() {
-        let lastRewardBlock;
-        let poolInfoLpToken;
-        let poolLastRewardBlock;
-        let currentLength;
-        let isGaugeMap;
-
+    it('test createGauge', async function () {
         // Get lp pid
         currentLpPid = await boost.lpOfPid(lpToken);
         assert.equal(parseInt(currentLpPid), 0);
@@ -211,9 +165,9 @@ contract('test Boost', async function() {
         await time.advanceBlockTo(parseInt(currentBlock) + 10);
     });
 
-    it('test set', async function(){
-        let targetAllocPoint;
-        
+    it('test set', async function () {
+
+
         // Get pid
         currentLpPid = await boost.lpOfPid(await boost.poolForGauge(lpToken));
 
@@ -242,10 +196,8 @@ contract('test Boost', async function() {
         poolInfoAllocPoint = poolInfoMap[1];
         console.log(checkInfoEq(parseInt(poolInfoAllocPoint), 300)); // true
     });
-    it('test distribute', async function(){
-        let poolInfoLastRewardBlock;
-        let mul;
-        let currentTokenReward;
+    it('test distribute', async function () {
+
 
         gaugeMap = await boost.gauges(lpToken);
         poolForGaugeMap = await boost.poolForGauge(gaugeMap);
@@ -286,62 +238,43 @@ contract('test Boost', async function() {
         expect(parseInt(currentBlock)).to.be.eq(parseInt(poolInfoLastRewardBlock));
     });
 
-    it('test claimRewards', async function() {
-    // Parameters array gagues and double array
-    let currentSeGauge;
-    let currentPoolLength;
-    let firstTokenAddress;
-    let secondTokenAddress;
-    let driverBalance;
-    let doubleArray = new Array(2);
-    let gaugeArray = new Array(2);
+    it('test claimRewards', async function () {
+        // Parameters array gagues and double array
 
-    gaugeLpToken = await boost.gauges(lpToken);
-    tokenSupply = await frax.balanceOf(gaugeLpToken);
-    tokenSupply = tokenSupply + 10;
+        gaugeLpToken = await boost.gauges(lpToken);
+        tokenSupply = await frax.balanceOf(gaugeLpToken);
+        tokenSupply = tokenSupply + 10;
 
-    // Get duration
-    duration = getDurationTime(1);
+        // Get duration
+        duration = getDurationTime(1);
 
-    // create token
-    await veToken.create_lock(tokenSupply, duration);
-    await veToken.create_lock_for(tokenSupply, duration, seObject.address);
+        // create token
+        await veToken.create_lock(tokenSupply, duration);
+        await veToken.create_lock_for(tokenSupply, duration, seObject.address);
 
-    // Get two tokens address
-    firstTokenAddress = await veToken.ownerOf(0);
-    secondTokenAddress = await veToken.ownerOf(1);
+        // Get two tokens address
+        firstTokenAddress = await veToken.ownerOf(0);
+        secondTokenAddress = await veToken.ownerOf(1);
 
-    for(let i = 0; i <= currentPoolLength; i++) {
-        doubleArray[i] = new Array();
-        for(let j = 0; j < currentPoolLength; j++) {
-            doubleArray[i][j] = await veToken.ownerOf(j);
-        }
-    }
 
-    doubleArray[0] = new Array();
-    doubleArray[1] = new Array();
-    doubleArray[0][0] = firstTokenAddress;
-    doubleArray[1][0] = secondTokenAddress;
+        await boost.createGauge(lpToken, 100, true);
+        await boost.connect(seObject).createGauge(seLpToken, 100, true);
+        currentGauge = await boost.gauges(lpToken);
+        currentSeGauge = await boost.gauges(seLpToken);
+        let gaugeArray = new Array(2);
+        gaugeArray[0] = currentGauge;
+        gaugeArray[1] = currentSeGauge;
+        currentPoolLength = await boost.poolLength();
+        await boost.claimRewards(gaugeArray);
 
-	await boost.createGauge(lpToken, 100, true);
-	await boost.connect(seObject).createGauge(seLpToken, 100, true);
-	currentGauge = await boost.gauges(lpToken);
-    currentSeGauge = await boost.gauges(seLpToken);
-    gaugeArray[0] = currentGauge;
-    gaugeArray[1] = currentSeGauge;
-    currentPoolLength = await boost.poolLength();
-	await boost.claimRewards(gaugeArray, doubleArray);
-
-    // Get gauge value
-    const Gauge = await ethers.getContractFactory("Gauge");
-    // Get object
-    targetGauge = await Gauge.attach(currentGauge);
-
-    driverBalance = await targetGauge.derivedBalances(currentGauge);
+        // Get gauge value
+        const Gauge = await ethers.getContractFactory("Gauge");
+        // Get object
+        targetGauge = await Gauge.attach(currentGauge);
+        
     });
-    
-    it('test AbstractBoost getPoolVote', async function(){
-        let targetValue;
+
+    it('test AbstractBoost getPoolVote', async function () {
 
         duration = getDurationTime(1);
 
@@ -360,22 +293,21 @@ contract('test Boost', async function() {
 
         await temp.connect(seObject).deposit("1000", 1);
 
-        expect(await temp.balanceOf(seObject.address)).to.be.eq(1000);
+        expect((await temp.userInfo(seObject.address)).amount).to.be.eq(1000);
 
         await temp.connect(seObject).deposit("1000", 1);
 
-        await temp.earned(fax.address, seObject.address);
+        await temp.pending(seObject.address);
 
-        await temp.connect(seObject).getReward(seObject.address, [fax.address]);
+        await temp.connect(seObject).getReward(seObject.address);
 
         await boost.connect(seObject).vote(1, [fax.address], [toWei("1000")]);
 
         targetValue = await boost.getPoolVote(0);
     });
 
-    it('test AbstractBoost poke', async function() {
-        let userWeights;
-        let targetUserWeights;
+    it('test AbstractBoost poke', async function () {
+
 
         await boost.createGauge(lpToken, 100, true);
 
@@ -386,12 +318,12 @@ contract('test Boost', async function() {
         duration = getDurationTime(1);
 
         await veToken.create_lock(tokenSupply, duration);
-        
+
         userWeights = await boost.usedWeights(0);
         targetUserWeights = userWeights;
         expect(parseInt(targetUserWeights)).to.be.eq(0);
 
-        weightArray[0] = parseInt(await boost.weights(await boost.veToken()));
+        await boost.weights(await boost.veToken());
 
         await boost.poke(0);
     });
