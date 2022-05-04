@@ -34,7 +34,6 @@ abstract contract AbstractController is CheckPermission {
     constructor(address _operatorMsg, address __ve)CheckPermission(_operatorMsg) {
         veToken = __ve;
         base = IVeToken(__ve).token();
-
     }
 
     function getPoolVote(uint256 tokenId) public view returns (address[] memory){
@@ -51,7 +50,6 @@ abstract contract AbstractController is CheckPermission {
         address[] storage _poolVote = poolVote[_tokenId];
         uint _poolVoteCnt = _poolVote.length;
         int256 _totalWeight = 0;
-
         for (uint i = 0; i < _poolVoteCnt; i ++) {
             address _pool = _poolVote[i];
             int256 _votes = votes[_tokenId][_pool];

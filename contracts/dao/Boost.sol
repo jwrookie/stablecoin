@@ -19,6 +19,8 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     event NotifyReward(address indexed sender, address indexed reward, uint amount);
     event DistributeReward(address indexed sender, address indexed gauge, uint amount);
+    event ControllerAdded(address _address);
+    event ControllerRemoved(address _address);
 
     // Info of each pool.
     struct PoolInfo {
@@ -40,6 +42,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
     mapping(address => bool) public isGauge;
+    mapping(address => bool) public controllers;
 
     constructor(address _operatorMsg, address __ve, address _gauges,
         IToken _swapToken,
@@ -152,5 +155,19 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     function isGaugeForPool(address _pool) internal override view returns (bool){
         return isGauge[gauges[_pool]];
     }
+
+    function addController(address _address) external onlyOperator {
+        require(_address != address(0), "0 address");
+        require(controllers[_address] == false, "Address already exists");
+        controllers[_address] = true;
+        emit ControllerAdded(_address);
+    }
+
+    function removeController(address _address) external onlyOperator {
+        require(controllers[_address] == true, "Address no exist");
+        delete controllers[_address];
+        emit ControllerRemoved(_address);
+    }
+
 
 }

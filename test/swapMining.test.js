@@ -61,7 +61,7 @@ contract('SwapMining', () => {
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(

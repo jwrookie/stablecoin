@@ -107,7 +107,7 @@ contract('test Boost', async function() {
 
         // GaugeFactory address
         const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
         // Oracle
         const Oracle = await ethers.getContractFactory("TestOracle");

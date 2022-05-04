@@ -38,7 +38,7 @@ contract('Locker', () => {
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt("7200"));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
