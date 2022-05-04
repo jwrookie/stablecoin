@@ -294,12 +294,7 @@ contract('AMOMinter', async function () {
 
 
     it('test poolRedeem', async function () {
-        let redeemPtionFee;
-        let colPriceUsd;
-        let globalCollateralRatio;
-        let latestPrice;
-        let amoMinterBalanceOfFrax;
-        let fxsPrice;
+
         const REDEEM_FEE = 10000;
 
         // await mockChainLink.setAnswer(BigNumber.from(1e18));
@@ -460,7 +455,9 @@ contract('AMOMinter', async function () {
         // console.log("owner_usdc:\t" + await usdc.balanceOf(owner.address));
 
         console.log("usdc:" + await usdc.balanceOf(owner.address))
-        await usdcPool.mint1t1FRAX(toWei("0.1"), 0);
+        //todo mint1t1FRAX
+
+        // await usdcPool.mint1t1FRAX(toWei("0.1"), 0);
         // console.log("usdc_pool_usdc_balance:\t" + await usdc.balanceOf(usdcPool.address));
         // expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());

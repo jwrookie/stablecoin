@@ -290,12 +290,7 @@ contract('AMOMinter', async function () {
     });
 
     it('test poolRedeem', async function () {
-        let redeemPtionFee;
-        let colPriceUsd;
-        let globalCollateralRatio;
-        let latestPrice;
-        let amoMinterBalanceOfFrax;
-        let fxsPrice;
+
         const REDEEM_FEE = 1e4;
 
         // await mockChainLink.setAnswer(BigNumber.from(1e18));
