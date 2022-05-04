@@ -101,30 +101,23 @@ contract('Boost', () => {
 
         await boost.updatePool(0);
 
+        expect(await gauge_usdc.tokenPerBlock()).to.be.eq(toWei('0.5'))
 
-        let point = await gauge_usdc.checkpoints(dev.address, 0)
-        console.log("timestamp:" + point[0])
-        console.log("balanceOf:" + point[1])
-
-        expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_usdc.rewardRate(fxs.address)).to.be.eq(toWei('0.5'))
-        expect(await gauge_usdc.rewards(0)).to.be.eq(fxs.address);
 
         await time.increase(time.duration.days(1));
 
         //  console.log("boost fxs:" + await fxs.balanceOf(boost.address));
         console.log("fxs bef:" + await fxs.balanceOf(dev.address))
 
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let rewardDev = await gauge_usdc.pending(fxs.address)
         console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
         console.log("fxs aft:" + await fxs.balanceOf(dev.address))
 
         console.log("fxs bef:" + await fxs.balanceOf(owner.address))
         await time.increase(time.duration.days(1));
-        let rewardOwner = await gauge_usdc.earned(fxs.address, owner.address)
+        let rewardOwner = await gauge_usdc.pending(owner.address)
         console.log("rewardOwner:" + rewardOwner)
-        await gauge_usdc.connect(owner).getReward(owner.address, [fxs.address])
+        await gauge_usdc.connect(owner).getReward(owner.address);
         console.log("fxs aft:" + await fxs.balanceOf(owner.address))
 
 
@@ -149,23 +142,19 @@ contract('Boost', () => {
 
         await gauge_usdc.connect(dev).deposit("1000", 1);
 
-        expect(await gauge_usdc.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_busd.isReward(fxs.address)).to.be.eq(true)
-        expect(await gauge_usdc.rewards(0)).to.be.eq(fxs.address);
-        expect(await gauge_busd.rewards(0)).to.be.eq(fxs.address);
 
         await time.increase(time.duration.days(1));
 
         console.log("fxs bef:" + await fxs.balanceOf(dev.address))
 
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let rewardDev = await gauge_usdc.pending(dev.address)
         console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
+        await gauge_usdc.connect(dev).getReward(dev.address);
         console.log("fxs aft:" + await fxs.balanceOf(dev.address))
 
-        let rewardDev1 = await gauge_busd.earned(fxs.address, dev.address)
+        let rewardDev1 = await gauge_busd.pending(dev.address)
         console.log("rewardDev1:" + rewardDev1)
-        await gauge_busd.connect(dev).getReward(dev.address, [fxs.address])
+        await gauge_busd.connect(dev).getReward(dev.address)
         console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
 
 
@@ -186,9 +175,9 @@ contract('Boost', () => {
         // await time.increase(time.duration.days(1));
 
         console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-        let rewardDev = await gauge_usdc.earned(fxs.address, dev.address)
+        let rewardDev = await gauge_usdc.pending(dev.address)
         console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address, [fxs.address])
+        await gauge_usdc.connect(dev).getReward(dev.address)
         console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
 
         console.log("-----------------------")
