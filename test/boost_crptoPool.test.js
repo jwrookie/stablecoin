@@ -95,7 +95,7 @@ contract('Boost', async function () {
         timelock = await Timelock.deploy(owner.address, "259200");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
@@ -141,8 +141,9 @@ contract('Boost', async function () {
         const Locker = await ethers.getContractFactory('Locker');
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
 
+
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
         let lockBlock = await time.latestBlock();
 
         Boost = await ethers.getContractFactory("Boost");
@@ -186,7 +187,7 @@ contract('Boost', async function () {
     });
 
     it('test address', async function () {
-        console.log("lp:" + lp.address)
+       console.log("lp:" + lp.address)
 
     });
 
