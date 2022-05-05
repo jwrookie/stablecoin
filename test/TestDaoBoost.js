@@ -33,6 +33,9 @@ contract('Boost', async function () {
         // About boost and locker constructs
         const TestOperatable = await ethers.getContractFactory("Operatable");
         operatable = await TestOperatable.deploy();
+        CheckOper = await ethers.getContractFactory("CheckPermission");
+        checkOper = await CheckOper.deploy(operatable.address);
+
         const TestERC20 = await ethers.getContractFactory("TestERC20");
         testERC20 = await TestERC20.deploy();
         // Mint
@@ -41,15 +44,15 @@ contract('Boost', async function () {
         // Mint
         duration = await getDurationTime();
         const Locker = await ethers.getContractFactory("Locker");
-        locker = await Locker.deploy(operatable.address, testERC20.address, duration);
+        locker = await Locker.deploy(checkOper.address, testERC20.address, duration);
 
         // Swap token
         const TestOracle = await ethers.getContractFactory("TestOracle");
         testOracle = await TestOracle.deploy();
         const Frax = await ethers.getContractFactory("RStablecoin");
-        frax = await Frax.deploy(operatable.address, "frax", "frax");
+        frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
-        fxs = await Fxs.deploy(operatable.address, "fxs", "fxs", testOracle.address);
+        fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
         await fxs.setFraxAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
@@ -59,14 +62,14 @@ contract('Boost', async function () {
         await testERC20.connect(dev).approve(locker.address, toWei("0.2"));
 
         const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
-        gaugeFactory = await GaugeFactory.deploy(operatable.address);
+        gaugeFactory = await GaugeFactory.deploy(checkOper.address);
 
         startBlock = await time.latestBlock();
         initStartBlock = startBlock;
 
         const Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            operatable.address,
+            checkOper.address,
             locker.address,
             gaugeFactory.address,
             frax.address,
@@ -85,14 +88,14 @@ contract('Boost', async function () {
 
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
-            operatable.address,
+            checkOper.address,
             boost.address,
             locker.address,
             boostDurationTime
         );
     });
 
-   // it('test setDuration', async function () {
+    // it('test setDuration', async function () {
     //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
     //     await gaugeController.setDuration(await getDurationTime(3));
     //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
@@ -111,23 +114,25 @@ contract('Boost', async function () {
         lastRewardBlock = await getPoolInfo(0, 2);
         expect(await boost.poolForGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(mockFraxPool.address);
         expect(await boost.isGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(true);
-
-        // Get token id -> parameter value is stake token
+        //
+        // // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
         expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
-
-        // coin = await getPoolInfo(0, 0);
-        // address = await boost.gauges(await getPoolInfo(0, 0));
-        // console.log(await mockFraxPool.balanceOf(address.address));
-
+        //
+        // // coin = await getPoolInfo(0, 0);
+        // // address = await boost.gauges(await getPoolInfo(0, 0));
+        // // console.log(await mockFraxPool.balanceOf(address.address));
+        //
+        await boost.addController(gaugeController.address);
+        await gaugeController.addPool(mockFraxPool.address);
         expect(await gaugeController.totalWeight()).to.be.eq(0);
         await gaugeController.vote(tokenId, mockFraxPool.address);
-        // expect(await gaugeController.userPool(tokenId)).to.be.not.eq(ZERO_ADDRESS);
+        expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
         expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
-        await gaugeController.poolInfo(0);
+        await gaugeController.getPool(0);
     });
 });
