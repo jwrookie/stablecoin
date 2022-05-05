@@ -568,6 +568,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function voting(uint _tokenId) external onlyBoost {
+        require(voted[_tokenId] == false, "tokenId voted");
         voted[_tokenId] = true;
     }
 

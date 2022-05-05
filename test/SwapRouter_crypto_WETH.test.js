@@ -140,35 +140,79 @@ contract('Crypto', () => {
         await swapRouter.setSwapMining(swapMining.address);
         await swapMining.addPair(100, pool.address, true)
 
+          Boost = await ethers.getContractFactory("Boost");
+        boost = await Boost.deploy(
+            operatable.address,
+            lock.address,
+            gaugeFactory.address,
+            fxs.address,
+            toWei('1'),
+            parseInt(lastBlock),
+            "1000"
+        );
+
+        await fxs.addPool(boost.address);
+        await lock.addBoosts(boost.address);
+        await fxs.connect(dev).approve(lock.address, toWei('10000'));
+        await fxs.approve(lock.address, toWei('10000'));
+        await fxs.transfer(dev.address, toWei('10000'));
+
+        await boost.createGauge(pool.address, "100", true);
+
+        gaugeAddr = await boost.gauges(pool.address);
+
+        const Gauge = await ethers.getContractFactory('Gauge');
+        gauge_pool = await Gauge.attach(gaugeAddr);
+        expect(gauge_pool.address).to.be.eq(gaugeAddr);
+
+        expect(await boost.poolLength()).to.be.eq(1);
+
+        expect(await boost.isGauge(gauge_pool.address)).to.be.eq(true);
+        expect(await boost.poolForGauge(gauge_pool.address)).to.be.eq(pool.address);
+
+        await fxs.addPool(swapMining.address);
+        const SwapController = await ethers.getContractFactory('SwapController');
+        swapController = await SwapController.deploy(
+            operatable.address,
+            boost.address,
+            lock.address,
+            "300",
+        );
+        await boost.addController(swapController.address);
+        await lock.addBoosts(swapController.address);
+
+
+
+
+
     });
-
-    it("weth9 router exchange", async () => {
-        let token0Bef = await token0.balanceOf(owner.address);
-        let token0PoolBef = await token0.balanceOf(pool.address);
-        let ethPoolBef = await ethers.provider.getBalance(pool.address);
-        await token0.mint(owner.address, toWei('100000000000'))
-
-        await token0.approve(swapRouter.address, toWei("10000"))
-        await weth9.approve(swapRouter.address, toWei('100000'))
-        // await token0.approve(pool.address, toWei("10000"))
-        // await weth9.approve(pool.address, toWei('100000'))
-        const times = Number((new Date().getTime() + 1000).toFixed(0))
-        // await pool.exchange(1, 0, 1000, 0, true, owner.address, { value: 1000 })
-        // await swapRouter.swapToken(pool.address, 0, 1, '1000', 0, owner.address, times, { ...gas })
-
-        let token0Aft = await token0.balanceOf(owner.address);
-        let token0PoolAft = await token0.balanceOf(pool.address);
-        let ethPoolAft = await ethers.provider.getBalance(pool.address);
-
-        // expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).sub("1000"));
-        // expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add("1000"));
-        // expect(ethPoolAft).to.be.eq(BigNumber.from(ethPoolBef).sub("897"));
-
-        const times2 = Number((new Date().getTime() + 1000).toFixed(0))
-
-        await swapRouter.swapEthForToken(pool.address, 1, 0, 1000, 0, owner.address, times2, {value: 1000})
-
-    });
+    // it("weth9 router exchange", async () => {
+    //     let token0Bef = await token0.balanceOf(owner.address);
+    //     let token0PoolBef = await token0.balanceOf(pool.address);
+    //     let ethPoolBef = await ethers.provider.getBalance(pool.address);
+    //     await token0.mint(owner.address, toWei('100000000000'))
+    //
+    //     await token0.approve(swapRouter.address, toWei("10000"))
+    //     await weth9.approve(swapRouter.address, toWei('100000'))
+    //     // await token0.approve(pool.address, toWei("10000"))
+    //     // await weth9.approve(pool.address, toWei('100000'))
+    //     const times = Number((new Date().getTime() + 1000).toFixed(0))
+    //     // await pool.exchange(1, 0, 1000, 0, true, owner.address, { value: 1000 })
+    //     // await swapRouter.swapToken(pool.address, 0, 1, '1000', 0, owner.address, times, { ...gas })
+    //
+    //     let token0Aft = await token0.balanceOf(owner.address);
+    //     let token0PoolAft = await token0.balanceOf(pool.address);
+    //     let ethPoolAft = await ethers.provider.getBalance(pool.address);
+    //
+    //     // expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).sub("1000"));
+    //     // expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add("1000"));
+    //     // expect(ethPoolAft).to.be.eq(BigNumber.from(ethPoolBef).sub("897"));
+    //
+    //     const times2 = Number((new Date().getTime() + 1000).toFixed(0))
+    //
+    //     await swapRouter.swapEthForToken(pool.address, 1, 0, 1000, 0, owner.address, times2, {value: 1000})
+    //
+    // });
 
 
     it("weth9 router exchange SwapMing", async () => {

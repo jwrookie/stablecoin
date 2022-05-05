@@ -16,7 +16,11 @@ const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 contract('SwapRouter', () => {
-    before(async () => {
+    async function getCurrentBlock() {
+        return parseInt(await time.latestBlock());
+    }
+
+    beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         zeroAddr = "0x0000000000000000000000000000000000000000";
 
@@ -151,7 +155,6 @@ contract('SwapRouter', () => {
         expect(await swapRouter.swapMining()).to.be.eq(swapMining.address);
         await swapMining.addPair(100, pool.address, true)
 
-
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
         gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
@@ -186,6 +189,15 @@ contract('SwapRouter', () => {
         expect(await boost.poolForGauge(gauge_pool.address)).to.be.eq(pool.address);
 
         await fxs.addPool(swapMining.address);
+        // const SwapController = await ethers.getContractFactory('SwapController');
+        // swapController = await SwapController.deploy(
+        //     operatable.address,
+        //     boost.address,
+        //     lock.address,
+        //     "300",
+        // );
+        // await boost.addController(swapController.address);
+        // await lock.addBoosts(swapController.address);
 
 
     });
@@ -203,34 +215,29 @@ contract('SwapRouter', () => {
 
         const times = Number((new Date().getTime() + 1000).toFixed(0));
         let dx = "1000000";
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
 
-        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, toWei('10'), 0, dev.address, times);
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
 
         devToken0Aft = await token0.balanceOf(dev.address);
         devToken1Aft = await token1.balanceOf(dev.address);
         poolToken0aft = await pool.balances(0, gas);
         poolToken1aft = await pool.balances(1, gas);
-
         // expect(devToken0Aft).to.be.eq(BigNumber.from(devToken0Befo).sub(dx));
         // expect(devToken1Aft).to.be.eq(BigNumber.from(devToken1Befo).add("999600"));
         // expect(poolToken0aft).to.be.eq(BigNumber.from(poolToken0Bef).add(dx));
         // expect(poolToken1aft).to.be.eq(BigNumber.from(poolToken1Bef).sub('999799'));
 
-
-        let reword = await swapMining.rewardInfo(dev.address);
-        console.log("reword:" + reword);
-        //   console.log("dev:"+await fxs.balanceOf(dev.address));
-        // await swapMining.connect(dev).getReward(0);
-        // reword = await swapMining.rewardInfo(dev.address);
-        // console.log("reword:"+reword);
-        // console.log("dev:"+await fxs.balanceOf(dev.address));
-        // expect(reword).to.be.eq('157500000000000000')
-
         await fxs.connect(dev).approve(lock.address, toWei('10000000'));
-        let eta = time.duration.days(1);
+        let eta = time.duration.days(7);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.connect(dev).create_lock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        console.log("dev:" + await fxs.balanceOf(dev.address))
+        let reword = await swapMining.rewardInfo(dev.address);
+        console.log("reword:" + reword);
 
         console.log("weights:" + await boost.weights(pool.address))
 
@@ -238,28 +245,52 @@ contract('SwapRouter', () => {
         console.log("weights:" + await boost.weights(pool.address))
 
         let info = await swapMining.poolInfo(0)
-        //       let user = await swapMining.userInfo(0,dev.address)
-        //
-        //
         console.log("pool quantity:" + info[1])
-        //      console.log("allocSwapTokenAmount:"+info[3])
-        //       console.log("user quantity:"+user[0])
-        //
+
         console.log("useVe:" + await lock.balanceOfNFT(1))
         console.log("totalWeight:" + await boost.totalWeight())
         let useVe = await lock.balanceOfNFT(1);
         let totalWeight = await boost.totalWeight()
-        console.log("userSub:" + (info[1] * useVe / totalWeight)* 0.7)
+        console.log("userSub:" + (info[1] * useVe / totalWeight) * 0.7)
+        console.log("-----------------------------------")
 
-        //   await time.increase(time.duration.days(3));
-        //
-        // await swapMining.connect(dev).getReward(0);
-        //
+        await swapMining.connect(dev).getReward(0);
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
+        console.log("dev:" + await fxs.balanceOf(dev.address))
+
+
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         //  let lockBlock = await time.latestBlock();
         // await time.advanceBlockTo(parseInt(lockBlock) + 10);
+        //await time.increase(time.duration.days(3));
 
         reword = await swapMining.rewardInfo(dev.address);
         console.log("reword:" + reword)
+        console.log("weights:" + await boost.weights(pool.address))
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
+        await swapMining.connect(dev).getReward(0);
+        console.log("dev:" + await fxs.balanceOf(dev.address))
+        console.log("-----------------------------------")
+
+
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+        //  let lockBlock = await time.latestBlock();
+        // await time.advanceBlockTo(parseInt(lockBlock) + 10);
+        //await time.increase(time.duration.days(3));
+
+        reword = await swapMining.rewardInfo(dev.address);
+        console.log("reword:" + reword)
+        console.log("weights:" + await boost.weights(pool.address))
+        console.log("get reward befor blocknum:" + await getCurrentBlock());
+        await swapMining.connect(dev).getReward(0);
+        console.log("dev:" + await fxs.balanceOf(dev.address))
+
+
+        // console.log("weights:" + await boost.weights(pool.address))
+        //
+        // await swapController.connect(dev).vote(1, pool.address);
+        // console.log("weights:" + await swapController.weights(pool.address))
+
 
     });
 
