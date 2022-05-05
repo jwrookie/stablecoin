@@ -90,8 +90,8 @@ contract('Boost', () => {
             "300");
 
         await boost.addController(gaugeController.address);
-       await lock.addBoosts(gaugeController.address);
-       expect(await gaugeController.distribute()).to.be.eq(boost.address);
+        await lock.addBoosts(gaugeController.address);
+        expect(await gaugeController.distribute()).to.be.eq(boost.address);
 
 
     });
@@ -133,22 +133,16 @@ contract('Boost', () => {
         // console.log("fxs aft:" + await fxs.balanceOf(owner.address))
         console.log("weights:" + await boost.weights(usdc.address))
 
-        // await boost.connect(dev).vote(1, [usdc.address], [toWei('1')])
+        await boost.connect(dev).vote(1, [usdc.address], [toWei('1')])
 
-        
-        console.log("weights:" + await boost.weights(usdc.address)/10**18)
-
-
+        console.log("weights:" + await boost.weights(usdc.address) / 10 ** 18)
         console.log("weights1:" + await gaugeController.weights(usdc.address))
 
         await gaugeController.connect(dev).vote(1, usdc.address);
-        console.log("weights1:" + await gaugeController.weights(usdc.address)/10**18)
+        console.log("weights1:" + await gaugeController.weights(usdc.address) / 10 ** 18)
 
-           rewardOwner1 = await gauge_usdc.pending(owner.address)
+        rewardOwner1 = await gauge_usdc.pending(owner.address)
         console.log("rewardOwner1:" + rewardOwner1)
-
-
-
 
 
     });
