@@ -23,27 +23,27 @@ contract('AMOMinter', async function () {
     let initCorrectionOffsetsAmos0;
     let initCorrectionOffsetsAmos1;
 
-    async function _getTimeLock() {
+    async function getTimeLock() {
         const Timelock = await ethers.getContractFactory("Timelock");
         timelock = await Timelock.deploy(owner.address, "259200");
         return timelock;
     }
 
-    async function _setCollatETHOracle(setConfig) {
+    async function setCollatETHOracle(setConfig) {
         await stableCoinPool.setCollatETHOracle(setConfig.address, weth.address);
     }
 
-    async function _setFRAXEthOracle(setConfig) {
+    async function setFRAXEthOracle(setConfig) {
         await frax.setFRAXEthOracle(setConfig.address, weth.address);
     }
 
-    async function _setFXSEthOracle(setConfig) {
+    async function setFXSEthOracle(setConfig) {
         await frax.setFXSEthOracle(setConfig.address, weth.address);
     }
 
     async function setUniswapOracle(coinPairs) {
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-        timelock = await _getTimeLock();
+        timelock = await getTimeLock();
         uniswapOracle = await UniswapPairOracle.deploy(
             factory.address,
             coinPairs.address,
@@ -54,14 +54,14 @@ contract('AMOMinter', async function () {
 
         switch (coinPairs) {
             case usdc:
-                await _setCollatETHOracle(uniswapOracle);
+                await setCollatETHOracle(uniswapOracle);
                 break;
             case frax:
-                await _setFRAXEthOracle(uniswapOracle);
+                await setFRAXEthOracle(uniswapOracle);
                 expect(await frax.fraxEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             case fxs:
-                await _setFXSEthOracle(uniswapOracle);
+                await setFXSEthOracle(uniswapOracle);
                 expect(await frax.fxsEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             default:
