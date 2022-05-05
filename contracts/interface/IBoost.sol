@@ -9,4 +9,7 @@ interface IBoost {
     function votes(uint256 _tokeId, address _pool) external view returns (uint256);
 
     function usedWeights(uint256 _tokeId) external view returns (uint256);
+
+
+
 }

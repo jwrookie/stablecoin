@@ -6,7 +6,8 @@
   "scripts": {
     "compile": "hardhat compile",
     "test": "hardhat test",
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "coverage": "RUN_COVERAGE=1 hardhat coverage"
   },
   "keywords": [
     "ethereum",
@@ -52,6 +53,7 @@
     "prb-math": "^2.4.3",
     "require-from-string": "^2.0.2",
     "solc": "0.8.12",
+    "solidity-coverage": "^0.7.21",
     "to-hex": "0.0.17",
     "truffle": "^5.5.2",
     "truffle-contract-size": "^2.0.1",

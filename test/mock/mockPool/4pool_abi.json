@@ -22,7 +22,7 @@
       "name": "Transfer",
       "type": "event"
     },
-     {
+    {
       "inputs": [],
       "name": "n_coins",
       "outputs": [

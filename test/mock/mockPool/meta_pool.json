@@ -44,7 +44,7 @@
       "name": "Approval",
       "type": "event"
     },
-     {
+    {
       "inputs": [],
       "name": "n_coins",
       "outputs": [

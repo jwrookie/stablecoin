@@ -54,14 +54,14 @@ contract('SwapMining', () => {
         //console.log("lastBlock:" + lastBlock);
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
@@ -188,7 +188,7 @@ contract('SwapMining', () => {
         poolToken0Bef = await pool.balances(0, gas);
         poolToken1Bef = await pool.balances(1, gas);
 
-        const times = Number((new Date().getTime() / 1000 + 1000).toFixed(0))
+        const times = Number((new Date().getTime() + 1000).toFixed(0))
         let dx = "1000000"
 
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times)

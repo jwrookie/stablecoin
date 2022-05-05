@@ -51,7 +51,7 @@ async function main() {
     console.log("Locker:" + lock.address)
 
     const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    gaugeFactory = await GaugeFactory.deploy();
+    gaugeFactory = await GaugeFactory.deploy(operatable);
     console.log("gaugeFactory:" + gaugeFactory.address)
 
     Boost = await ethers.getContractFactory("Boost");
