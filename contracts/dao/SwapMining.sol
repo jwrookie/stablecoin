@@ -284,7 +284,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         uint256 _derived = amount * 30 / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
-        if (account == IVeToken(veToken).ownerOf(_tokenId)) {
+        if (account == IVeToken(veToken).ownerOf(_tokenId) && totalWeight > 0) {
             uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
             _adjusted = (pool.quantity * useVe / totalWeight) * 70 / 100;
         }
