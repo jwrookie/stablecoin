@@ -102,7 +102,7 @@ async function main() {
     console.log("frax:" + frax.address);
 
     await fxs.setFraxAddress(frax.address);
-    await frax.setFXSAddress(fxs.address);
+    await frax.setStockAddress(fxs.address);
     //
     //
     const FraxPoolLibrary = await ethers.getContractFactory("FraxPoolLibrary");
@@ -157,9 +157,9 @@ async function main() {
     //
     // await pool.setCollatETHOracle(uniswapOracle.address, weth);
     //
-    // await frax.setFRAXEthOracle(uniswapOracle.address, weth);
+    // await frax.setStableEthOracle(uniswapOracle.address, weth);
     //
-    // await frax.setFXSEthOracle(uniswapOracle.address, weth);
+    // await frax.setStockEthOracle(uniswapOracle.address, weth);
     //
     // await uniswapOracle.setPeriod(1);
     //

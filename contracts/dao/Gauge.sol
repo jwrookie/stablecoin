@@ -9,15 +9,17 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../interface/IVeToken.sol";
 import "../interface/IBoost.sol";
 import '../tools/TransferHelper.sol';
+import "../tools/CheckPermission.sol";
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
-contract Gauge is ReentrancyGuard {
+contract Gauge is ReentrancyGuard, CheckPermission {
     using SafeMath for uint256;
 
     event Deposit(address indexed from, uint tokenId, uint amount);
     event Withdraw(address indexed from, uint tokenId, uint amount);
     event NotifyReward(address indexed from, address indexed reward, uint rewardRate);
     event ClaimRewards(address indexed from, address indexed reward, uint amount);
+
 
     // Info of each user.
     struct UserInfo {
@@ -41,7 +43,8 @@ contract Gauge is ReentrancyGuard {
 
     mapping(address => UserInfo) public userInfo;
 
-    constructor(address _stake, address __ve, address _boost, address _rewardToken) {
+
+    constructor(address _operatorMsg, address _stake, address __ve, address _boost, address _rewardToken)  CheckPermission(_operatorMsg){
         stake = _stake;
         veToken = __ve;
         boost = _boost;
@@ -225,5 +228,6 @@ contract Gauge is ReentrancyGuard {
         }
         emit NotifyReward(msg.sender, token, _rewardRate);
     }
+
 
 }

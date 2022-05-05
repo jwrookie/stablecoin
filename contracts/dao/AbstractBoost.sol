@@ -16,6 +16,10 @@ abstract contract AbstractBoost is TokenReward {
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
     event Voted(address indexed voter, uint tokenId, int256 weight);
     event Abstained(uint tokenId, int256 weight);
+    event ControllerAdded(address _address);
+    event ControllerRemoved(address _address);
+
+    mapping(address => bool) public controllers;
 
     uint public totalWeight; // total voting weight
 
@@ -132,6 +136,18 @@ abstract contract AbstractBoost is TokenReward {
         _vote(tokenId, _poolVote, _weights);
     }
 
+    function addController(address _address) external onlyOperator {
+        require(_address != address(0), "0 address");
+        require(controllers[_address] == false, "Address already exists");
+        controllers[_address] = true;
+        emit ControllerAdded(_address);
+    }
+
+    function removeController(address _address) external onlyOperator {
+        require(controllers[_address] == true, "Address no exist");
+        delete controllers[_address];
+        emit ControllerRemoved(_address);
+    }
 
     function _updatePoolInfo(address _pool) internal virtual;
 

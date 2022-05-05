@@ -24,10 +24,7 @@ contract AMOMinter is CheckPermission {
     address[] public amosArray;
     mapping(address => bool) public amos; // Mapping is also used for faster verification
 
-
-
     uint256 public collatBorrowCap = 10000000e6;
-
 
     uint256 public stableCoinMintCap = 100000000e18;
     uint256 public fxsMintCap = 100000000e18;

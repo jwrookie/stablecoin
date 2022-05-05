@@ -53,7 +53,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
         emit FRAXAddressSet(_address);
     }
 
-    function fraxPoolAddressCount() public view returns (uint256) {
+    function stablePoolAddressCount() public view returns (uint256) {
         return (poolAddress.length);
     }
 
