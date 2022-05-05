@@ -34,11 +34,11 @@ contract('AMOMinter', async function () {
     }
 
     async function _setFRAXEthOracle(setConfig) {
-        await frax.setFRAXEthOracle(setConfig.address, weth.address);
+        await frax.setStableEthOracle(setConfig.address, weth.address);
     }
 
     async function _setFXSEthOracle(setConfig) {
-        await frax.setFXSEthOracle(setConfig.address, weth.address);
+        await frax.setStockEthOracle(setConfig.address, weth.address);
     }
 
     async function setUniswapOracle(coinPairs) {
@@ -58,11 +58,11 @@ contract('AMOMinter', async function () {
                 break;
             case frax:
                 await _setFRAXEthOracle(uniswapOracle);
-                expect(await frax.fraxEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                expect(await frax.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             case fxs:
                 await _setFXSEthOracle(uniswapOracle);
-                expect(await frax.fxsEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                expect(await frax.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             default:
                 await console.log("Unknow token!");
@@ -100,7 +100,7 @@ contract('AMOMinter', async function () {
 
         // Set each other
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
 
         // Mock token Date
@@ -240,7 +240,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await frax.approve(router.address, toWei("1000"));
@@ -252,7 +252,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await fxs.approve(router.address, toWei("1000"));
@@ -264,7 +264,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         // About oracle and uniswap
@@ -351,18 +351,18 @@ contract('AMOMinter', async function () {
         expect(await getBalances(frax, stableCoinPool)).to.be.eq(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
         expect(await amoMinter.amosArray(0)).to.be.eq(exchangeAMO.address);
-        fraxPoolsLength = await frax.fraxPoolAddressCount();
+        fraxPoolsLength = await frax.stablePoolAddressCount();
         // expect(fraxPoolsLength).to.be.eq(3);
         for (let i = 0; i < fraxPoolsLength; i++) {
             switch (i) {
                 case 0:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(stableCoinPool.address);
+                    expect(await frax.poolAddress(i)).to.be.eq(stableCoinPool.address);
                     break;
                 case 1:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(amoMinter.address);
+                    expect(await frax.poolAddress(i)).to.be.eq(amoMinter.address);
                     break;
                 case 2:
-                    expect(await frax.fraxPoolAddress(i)).to.be.eq(exchangeAMO.address);
+                    expect(await frax.poolAddress(i)).to.be.eq(exchangeAMO.address);
                     break;
             }
         }
@@ -381,20 +381,19 @@ contract('AMOMinter', async function () {
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(1000);
         expect(await amoMinter.stableMintSum()).to.be.eq(1000);
 
-        await exchangeAMO.burnFRAX(100);
+        await exchangeAMO.burnStable(100);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(900);
         // await frax.poolMint(owner.address, 10000); // Question
     });
 
-    it('test mintFxsForMO and burnStockFromAMO', async function () {
+    it('test mintStockForAMO and burnStockFromAMO', async function () {
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(0);
         await amoMinter.mintStockForAMO(exchangeAMO.address, 1000);
         expect(await getBalances(fxs, exchangeAMO)).to.be.eq(1000);
         initFxsInOwner = await getBalances(fxs, owner);
-        // await exchangeAMO.burnFXS(100);
         //todo buransTock
         await exchangeAMO.burnStock(0);
-        // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - parseInt(1e3))
+        // expect(await getBalances(fxs, owner)).to.be.eq(initFxsInOwner - 100);
         // console.log(await amoMinter.stockMintBalances(owner.address));
     });
 
@@ -460,9 +459,9 @@ contract('AMOMinter', async function () {
         await amoMinter.mintStableForAMO(exchangeAMO.address, 1000);
         await frax.setPriceTarget(22);
         await frax.setPriceBand(1);
-        // await frax.setFraxStep(1);
+        // await frax.setStableStep(1);
         await frax.refreshCollateralRatio();
-        expect(parseInt(await frax.fraxPrice())).to.be.eq(20);
+        expect(parseInt(await frax.stablePrice())).to.be.eq(20);
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(1000000);
         await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
         // console.log(await usdc.balanceOf(stableCoinPool.address));

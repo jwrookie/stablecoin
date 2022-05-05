@@ -1,6 +1,6 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 
- contract('Operatable', ([owner, secondOwner, thirdOwner]) => {
+contract('Operatable', ([owner, secondOwner, thirdOwner]) => {
     beforeEach(async () => {
         const testOperatable = await ethers.getContractFactory('Operatable');
         operatable = await testOperatable.deploy();
@@ -20,7 +20,7 @@ const {expectRevert, time} = require('@openzeppelin/test-helpers');
         assert.equal(await operatable.owner(), owner);
 
         await operatable.transferOwnership(secondOwner)
-        
+
         // Test transferOwnership function
         assert.equal(await operatable.owner(), secondOwner);
     });
@@ -32,4 +32,4 @@ const {expectRevert, time} = require('@openzeppelin/test-helpers');
         // Use assertions to determine if the result meets expectations
         assert.equal(await operatable.owner(), 0);
     });
- });
+});

@@ -19,30 +19,31 @@ contract('Locker', () => {
 
         Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
-
+        CheckOper = await ethers.getContractFactory("CheckPermission");
+        checkOper = await CheckOper.deploy(operatable.address);
 
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkOper.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkOper.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
         // let eta = time.duration.days(1460);
 
         const Locker = await ethers.getContractFactory('Locker');
         // let eta = time.duration.days(1);
-        lock = await Locker.deploy(operatable.address, fxs.address, parseInt("7200"));
+        lock = await Locker.deploy(checkOper.address, fxs.address, parseInt("7200"));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(checkOper.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            operatable.address,
+            checkOper.address,
             lock.address,
             gaugeFactory.address,
             fxs.address,
@@ -82,14 +83,13 @@ contract('Locker', () => {
 
 
     });
-    it("failure to conduct checkpoint for a long time will lead to too high gas", async () => {
+    it("test increase_amount and increase_unlock_time error", async () => {
         let eta = time.duration.days(1460);
         await lock.create_lock(toWei('1002'), parseInt(eta));
         await lock.connect(dev).create_lock(toWei('1002'), parseInt(eta));
 
         await boost.vote(1, [usdc.address], [toWei('100')]);
         await boost.connect(dev).vote(2, [usdc.address], [toWei('100')]);
-        expect(await lock.tokenId()).to.be.eq(2);
 
         console.log("weights gauge_usdc:" + await boost.weights(usdc.address) / 10 ** 18)
 
@@ -104,42 +104,38 @@ contract('Locker', () => {
         let gasFee = await lock.estimateGas.increase_amount(1, toWei('200'))
         console.log("gasFee:" + gasFee);
 
-        let gasFee1 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-        console.log("gasFee1:" + gasFee1);
-
-
-        await time.increase(time.duration.days("1"));
-
-       await lock.checkpoint();
-        let gasFee2 = await lock.estimateGas.increase_amount(1, toWei('200'))
-
-        console.log("gasFee2:" + gasFee2)
-
-
-       await lock.connect(dev).checkpoint();
-        let gasFee3 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
-
-        console.log("gasFee3:" + gasFee3)
+        // let gasFee1 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        // console.log("gasFee1:" + gasFee1);
+        //
+        //
+        // await time.increase(time.duration.days("1"));
+        //
+        // await lock.checkpoint();
+        // let gasFee3 = await lock.estimateGas.increase_amount(1, toWei('200'))
+        // //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        //
+        // console.log("gasFee3:" + gasFee3)
+        // //  console.log("gasFee4:" + gasFee4)
+        //
+        //
+        // await lock.connect(dev).checkpoint();
+        // let gasFee4 = await lock.estimateGas.increase_amount(2, toWei('200'))
+        // //let gasFee4 = await lock.connect(dev).estimateGas.increase_amount(2, toWei('200'))
+        //
+        // console.log("gasFee4:" + gasFee4)
 
 
         // await time.increase(time.duration.days("1"));
-         await lock.checkpoint();
+        //  await lock.checkpoint();
         //
-        let gasFee4 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
-        let gasFee5 = await lock.connect(dev).estimateGas.increase_unlock_time(2, parseInt(eta));
+        // let gasFee5 = await lock.estimateGas.increase_unlock_time(1, parseInt(eta));
+        // let gasFee6 = await lock.connect(dev).estimateGas.increase_unlock_time(2, parseInt(eta1));
         //
-        console.log("gasFee5:" + gasFee4)
-        console.log("gasFee6:" + gasFee5)
+        // console.log("gasFee5:" + gasFee5)
+        // console.log("gasFee6:" + gasFee6)
 
 
     });
-    it("when the withdrawal gas is too high users are allowed to " +
-        "withdraw cash urgently",async ()=> {
-
-        // await
-
-
-    })
 
 
 });

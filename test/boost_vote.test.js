@@ -76,7 +76,7 @@ contract('Boost', () => {
         frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
 
@@ -85,7 +85,7 @@ contract('Boost', () => {
         lock = await Locker.deploy(operatable.address, fxs.address, parseInt('1800'));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy();
+        gaugeFactory = await GaugeFactory.deploy(operatable.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(

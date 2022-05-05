@@ -1,4 +1,12 @@
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
+// const TestOwnableToken = artifacts.require('TestOwnableToken');
+// // const Timelock = artifacts.require('Timelock');
+// const FRAXShares = artifacts.require('FRAXShares');
+// const FRAXStablecoin = artifacts.require('FRAXStablecoin');
+// const Pool_USDC = artifacts.require('Pool_USDC');
+// const TestERC20 = artifacts.require('TestERC20');
+// const TestOracle = artifacts.require('TestOracle')
+// const FraxPoolLibrary = artifacts.require('FraxPoolLibrary');
 const {toWei} = web3.utils;
 // const Router = require('../test/mock/Timelock.json');
 // const {BigNumber} = require('ethers');
@@ -18,13 +26,14 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-   let fxs = "0x6d2138C3Aa8e20437a541AE287dD047Aed4731De"
-    let frax = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
+    let fxs = "0xAd510519008772007d3458502EF26D831BEDb155"
+    //let frax = "0xB8Bc34A46E19B1f5d006dBf6E360d2c6cBB8FcF1"
 
-   let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
-   let lock = "0xa224485a73f00fe89c8DD73B3e88B5390c7d43ba"
-    let gaugeFactory ="0x3ebFc0bAB8d825DDCF963fC5329a3F995D06c507"
+    let operatable = "0x3724b782b8fec00cCa312a736C60dee9Be12b0aC"
+    // let lock = "0xfB910F65f1F540c0865a0f07b2329Fb93595D254"
+    // let gaugeFactory ="0xf922b7F6e0bfb07cD5e9FE1C78349E30771fAd2A"
 
+    //
 
 
     for (const account of accounts) {
@@ -37,48 +46,29 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-    // const TestOracle = await ethers.getContractFactory("TestOracle");
-    // oracle = await TestOracle.deploy();
-    // console.log("oracle:" + oracle.address);
-    //
-    //  const Operatable = await ethers.getContractFactory('Operatable');
-    //  operatable = await Operatable.deploy();
-    //  console.log("operatable:" + operatable.address)
-    //
-    // const FRAXShares = await ethers.getContractFactory('Stock');
-    // fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
-    // console.log("fxs:" + fxs.address);
-    //
-    // const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-    // frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
-    // console.log("frax:" + frax.address);
-    //
-    // await fxs.setFraxAddress(frax.address);
-    // await frax.setFXSAddress(fxs.address);
-    //
-    // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(operatable,fxs, "1800");
-    // console.log("Locker:" + lock.address)
-    //
-    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    // gaugeFactory = await GaugeFactory.deploy();
-    // console.log("gaugeFactory:" + gaugeFactory.address)
+    const Locker = await ethers.getContractFactory('Locker');
+    lock = await Locker.deploy(fxs, "300");
+    console.log("Locker:" + lock.address)
+
+    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    gaugeFactory = await GaugeFactory.deploy(operatable);
+    console.log("gaugeFactory:" + gaugeFactory.address)
 
     Boost = await ethers.getContractFactory("Boost");
     boost = await Boost.deploy(
         operatable,
-        lock,
-        gaugeFactory,
+        lock.address,
+        gaugeFactory.address,
         fxs,
         toWei('1'),
-        parseInt("18864126"),
-        "2592000"
+        parseInt("10684360"),
+        "1000"
     );
-   console.log("boost:" + boost.address)
+    console.log("boost:" + boost.address)
 
-    // await lock.addBoosts(boost.address)
-    // await fxs.addPool(boost.address);
+    await lock.setVoter(boost.address)
 
+    // await frax.addPool(boost.address);
 
 
 

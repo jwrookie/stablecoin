@@ -83,7 +83,7 @@ contract('AMOMinter', async function () {
         timelock = await Timelock.deploy(owner.address, "259200");
 
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         const FraxPoolLibrary = await ethers.getContractFactory('PoolLibrary')
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
@@ -178,12 +178,12 @@ contract('AMOMinter', async function () {
         await router.addLiquidity(
             usdc.address,
             weth.address,
-           toWei('1'),
+            toWei('1'),
             toWei('1'),
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await frax.approve(router.address, toWei('1000'));
@@ -196,7 +196,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         await fxs.approve(router.address, toWei('1000'));
@@ -208,7 +208,7 @@ contract('AMOMinter', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date().getTime() + 1000)
         );
 
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
@@ -216,12 +216,12 @@ contract('AMOMinter', async function () {
         await usdcPool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
         frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
-        await frax.setFRAXEthOracle(frax_uniswapOracle.address, weth.address);
-        expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
+        await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
+        expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
         fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
-        await frax.setFXSEthOracle(fxs_uniswapOracle.address, weth.address);
-        expect(await frax.fxsEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
+        await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
+        expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
         // const AMOMinter = await ethers.getContractFactory('AMOMinter');
         // amoMinter = await AMOMinter.deploy(
@@ -282,34 +282,29 @@ contract('AMOMinter', async function () {
         //     0,
         //     0,
         //     owner.address,
-        //     Math.round(new Date() / 1000 + 1000)
+        //     Math.round(new Date().getTime() + 1000)
         // )
 
         // frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, fxb.address, owner.address, timelock.address);
-        // await frax.setFRAXEthOracle(frax_uniswapOracle.address, fxb.address);
-        // expect(await frax.fraxEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
+        // await frax.setStableEthOracle(frax_uniswapOracle.address, fxb.address);
+        // expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
         // console.log("owner_price::\t" + await usdc.balanceOf(owner.address));
         // Set period
     });
 
 
     it('test poolRedeem', async function () {
-        let redeemPtionFee;
-        let colPriceUsd;
-        let globalCollateralRatio;
-        let latestPrice;
-        let amoMinterBalanceOfFrax;
-        let fxsPrice;
+
         const REDEEM_FEE = 10000;
 
         // await mockChainLink.setAnswer(BigNumber.from(1e18));
-      //  await mockChainLink.setAnswer(BigNumber.from("1000000000000000000"));
+        //  await mockChainLink.setAnswer(BigNumber.from("1000000000000000000"));
         // Set period
         await frax_uniswapOracle.setPeriod(1);
-       // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
+        // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // Set oracle
         await frax_uniswapOracle.update();
-      //  console.log("frax_price:\t" + await frax.fraxPrice());
+        //  console.log("frax_price:\t" + await frax.stablePrice());
 
         // Set redeem fee
         // await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
@@ -335,7 +330,7 @@ contract('AMOMinter', async function () {
         // // expect(parseInt(colPriceUsd)).to.be.eq(10);
         // console.log("price_target:\t" + await frax.priceTarget());
         // console.log("price_band:\t" + await frax.priceBand());
-        // console.log("frax_price:\t" + await frax.fraxPrice());
+        // console.log("frax_price:\t" + await frax.stablePrice());
         // await frax.refreshCollateralRatio();
         // globalCollateralRatio = await frax.globalCollateralRatio();
         // console.log("global_collateral_ratio:\t" + globalCollateralRatio)
@@ -346,20 +341,20 @@ contract('AMOMinter', async function () {
         // expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(0);
 
         // Usdc pool redeemFractionalFRAX function
-        // fxsPrice = await frax.fxsPrice();
+        // stockPrice = await frax.stockPrice();
         // Set period
         // await fxs_uniswapOracle.setPeriod(1);
         // // Set oracle
         // await fxs_uniswapOracle.update();
-        // fxsPrice = await frax.fxsPrice();
-        // console.log(fxsPrice);
+        // stockPrice = await frax.stockPrice();
+        // console.log(stockPrice);
 
         // Find -> addPool
-        // let count = await frax.fraxPoolAddressCount();
+        // let count = await frax.stablePoolAddressCount();
         // console.log("1\t" + await frax.ethUsdPrice());
         //
         // console.log("usd_price:\t" + await frax.ethUsdPrice());
-        // expect(parseInt(await frax.fraxPoolAddressCount())).to.be.eq(1);
+        // expect(parseInt(await frax.stablePoolAddressCount())).to.be.eq(1);
         // console.log("owner_collat:\t" + await usdc.balanceOf(owner.address));
         // // console.log("2\t" + await usdcPool.collatDollarBalance());
         //
@@ -382,12 +377,12 @@ contract('AMOMinter', async function () {
         // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // // Set oracle
         // await frax_uniswapOracle.update();
-        // console.log("init_frax_price:\t" + await frax.fraxPrice());
+        // console.log("init_frax_price:\t" + await frax.stablePrice());
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
         // Refresh ratio
         // lessVlaue = await frax.priceTarget() - await frax.priceBand();
         // console.log(lessVlaue);
-        // expect(parseInt(await frax.fraxPrice())).to.be.lt(parseInt(lessVlaue));
+        // expect(parseInt(await frax.stablePrice())).to.be.lt(parseInt(lessVlaue));
         // await frax.refreshCollateralRatio();
         // await router.addLiquidity(
         //     frax.address,
@@ -397,14 +392,14 @@ contract('AMOMinter', async function () {
         //     0,
         //     0,
         //     owner.address,
-        //     Math.round(new Date() / 1000 + 1000)
+        //     Math.round(new Date().getTime() + 1000)
         // );
         // // Set period
         // await frax_uniswapOracle.setPeriod(1);
         // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // // Set oracle
         // await frax_uniswapOracle.update();
-        // console.log("frax_price:\t" + await frax.fraxPrice());
+        // console.log("frax_price:\t" + await frax.stablePrice());
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
         // // Refresh ratio
         // lessVlaue = await frax.priceTarget() - await frax.priceBand();
@@ -418,7 +413,7 @@ contract('AMOMinter', async function () {
         // pairArray[1] = weth.address;
         // // currentTime = await time.latestTime();
         // await frax.setPriceTarget(toWei('1'));
-       // await frax.setPriceBand(1);
+        // await frax.setPriceBand(1);
         // Swap
         // for (let i = 0; i < 10; i++) {
         //     targetArray = await router.swapExactTokensForTokens(
@@ -426,7 +421,7 @@ contract('AMOMinter', async function () {
         //         0,
         //         pairArray,
         //         owner.address,
-        //         Math.round(new Date() / 1000 + 1000)
+        //         Math.round(new Date().getTime() + 1000)
         //     );
         // }
         // console.log("price_target:\t" + await frax.priceTarget());
@@ -435,19 +430,19 @@ contract('AMOMinter', async function () {
         // expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // // Set oracle
         // await frax_uniswapOracle.update();
-        // console.log("frax_price:\t" + await frax.fraxPrice());
+        // console.log("frax_price:\t" + await frax.stablePrice());
         // console.log("usd_in_pair_add:\t" + await frax.balanceOf(rusd_weth_Addr));
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
         // await time.advanceBlockTo(parseInt(await time.latestBlock()) + 10);
         // await frax.setRefreshCooldown(1);
         // await setTimeout(()=>{
-        //     // frax.setFraxStep(1);
+        //     // frax.setStableStep(1);
         //     frax.refreshCollateralRatio();
         //     // console.log("current_frax_ratio:\t" + frax.globalCollateralRatio());
         // },2000);
         // Set frax step
 
-        // await frax.setFraxStep(1);
+        // await frax.setStableStep(1);
         // await frax.setRefreshCooldown(1);
         // await frax.refreshCollateralRatio();
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
@@ -459,8 +454,10 @@ contract('AMOMinter', async function () {
         // console.log("pool_celling:\t" + await usdcPool.pool_ceiling());
         // console.log("owner_usdc:\t" + await usdc.balanceOf(owner.address));
 
-        console.log("usdc:"+await usdc.balanceOf(owner.address))
-        await usdcPool.mint1t1FRAX(toWei("0.1"), 0);
+        console.log("usdc:" + await usdc.balanceOf(owner.address))
+        //todo mint1t1FRAX
+
+        // await usdcPool.mint1t1FRAX(toWei("0.1"), 0);
         // console.log("usdc_pool_usdc_balance:\t" + await usdc.balanceOf(usdcPool.address));
         // expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         // console.log("current_frax_ratio:\t" + await frax.globalCollateralRatio());
