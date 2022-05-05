@@ -32,11 +32,6 @@ contract('test Boost', async function() {
     let targetGauge;
     let weightArray = new Array(1);
 
-    /**
-     * Get duration time
-     * @param {Number} dayNumber 
-     * @returns 
-    */
     async function getDurationTime(dayNumber) {
         if(0 >= dayNumber || dayNumber > 100) {
             return
@@ -44,17 +39,11 @@ contract('test Boost', async function() {
         return parseInt(time.duration.days(dayNumber))
     }
 
-    /**
-     * This is a function about check information equal information
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
-    */
     async function checkInfoEq(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if("" === anyThing || null === anyThing) {
             return
         }
-        if("" == value || null == value) {
+        if("" === value || null === value) {
             return
         }
         if(expect(anyThing).to.be.eq(value)) {
@@ -64,17 +53,11 @@ contract('test Boost', async function() {
         }
     }
 
-    /**
-     * This is a function about check information greater than information
-     * @param {Any} anyThing 
-     * @param {Any} value 
-     * @returns 
-     */
     async function checkInfoGt(anyThing, value) {
-        if("" == anyThing || null == anyThing) {
+        if("" === anyThing || null === anyThing) {
             return
         }
-        if("" == value || null == value) {
+        if("" === value || null === value) {
             return
         }
         if(expect(anyThing).to.be.gt(parseInt(value))) {
@@ -311,6 +294,8 @@ contract('test Boost', async function() {
     firstTokenAddress = await veToken.ownerOf(0);
     secondTokenAddress = await veToken.ownerOf(1);
 
+    currentPoolLength = await boost.poolLength();
+
     for(let i = 0; i <= currentPoolLength; i++) {
         doubleArray[i] = new Array();
         for(let j = 0; j < currentPoolLength; j++) {
@@ -329,7 +314,6 @@ contract('test Boost', async function() {
     currentSeGauge = await boost.gauges(seLpToken);
     gaugeArray[0] = currentGauge;
     gaugeArray[1] = currentSeGauge;
-    currentPoolLength = await boost.poolLength();
 	await boost.claimRewards(gaugeArray, doubleArray);
 
     // Get gauge value
