@@ -138,11 +138,13 @@ contract('Boost', () => {
         console.log("weights:" + await boost.weights(usdc.address) / 10 ** 18)
         console.log("weights1:" + await gaugeController.weights(usdc.address))
 
-        await gaugeController.connect(dev).vote(1, usdc.address);
+        await expectRevert(gaugeController.connect(dev).vote(1, usdc.address), "tokenId voted");
         console.log("weights1:" + await gaugeController.weights(usdc.address) / 10 ** 18)
-
+        //
+        totalSupply = await gauge_usdc.totalSupply();
+        console.log("totalSupply:" + totalSupply);
         rewardOwner1 = await gauge_usdc.pending(owner.address)
-        console.log("rewardOwner1:" + rewardOwner1)
+        // console.log("rewardOwner1:" + rewardOwner1)
 
 
     });
