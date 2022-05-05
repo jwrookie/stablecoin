@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+
 import "../interface/IDistribute.sol";
 
 import "../tools/CheckPermission.sol";
@@ -15,6 +16,7 @@ import "../interface/IVeToken.sol";
 abstract contract AbstractController is CheckPermission {
 
     using SafeMath for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     event Attach(address indexed owner, address indexed gauge, uint tokenId);
     event Detach(address indexed owner, address indexed gauge, uint tokenId);
@@ -34,7 +36,7 @@ abstract contract AbstractController is CheckPermission {
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
     mapping(uint => address) public userPool;  // nft => pool voting weight of user
 
-    address [] public poolInfo;
+    EnumerableSet.AddressSet private poolInfo;
 
     constructor(
         address _operatorMsg, address _boost, address __ve, uint _duration
@@ -85,21 +87,44 @@ abstract contract AbstractController is CheckPermission {
     function vote(uint tokenId, address _poolVote) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         _vote(tokenId, _poolVote);
+        userPool[tokenId] = _poolVote;
     }
 
     function updatePool() public {
         if (block.timestamp < lastUpdate.add(duration)) {
             return;
         }
-
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            uint256 _id = IDistribute(distribute).lpOfPid(poolInfo[pid]);
-            IDistribute(distribute).set(_id, weights[poolInfo[pid]], false);
+        for (uint256 pid = 0; pid < getPoolLength(); ++pid) {
+            address pool = EnumerableSet.at(poolInfo, pid);
+            uint256 _id = IDistribute(distribute).lpOfPid(pool);
+            IDistribute(distribute).set(_id, weights[pool], false);
         }
         IDistribute(distribute).massUpdatePools();
         lastUpdate = block.timestamp;
 
+    }
+
+    function addPool(address _address) external onlyOperator {
+        require(_address != address(0), "0 address");
+        EnumerableSet.add(poolInfo, _address);
+
+    }
+
+    function removePool(address _address) external onlyOperator {
+        EnumerableSet.remove(poolInfo, _address);
+    }
+
+    function getPoolLength() public view returns (uint256) {
+        return EnumerableSet.length(poolInfo);
+    }
+
+    function isPool(address _pool) public view returns (bool) {
+        return EnumerableSet.contains(poolInfo, _pool);
+    }
+
+    function getPool(uint256 _index) public view returns (address){
+        require(_index <= getPoolLength() - 1, ": index out of bounds");
+        return EnumerableSet.at(poolInfo, _index);
     }
 
 }
