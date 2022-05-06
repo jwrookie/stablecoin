@@ -24,6 +24,10 @@ abstract contract AbstractController is CheckPermission {
     event Voted(address indexed voter, uint tokenId, uint weight);
     event Abstained(uint tokenId, uint weight);
 
+    struct PoolVote {
+        address pool;
+        uint lastUse;
+    }
 
     address public immutable veToken; // the ve token that governs these contracts
     address public immutable base;
@@ -35,7 +39,7 @@ abstract contract AbstractController is CheckPermission {
 
     mapping(address => uint) public weights; // pool => weight
     mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
-    mapping(uint => address) public userPool;  // nft => pool voting weight of user
+    mapping(uint => PoolVote) public userPool;  // nft => pool voting weight of user
 
     EnumerableSet.AddressSet private poolInfo;
 
@@ -54,14 +58,17 @@ abstract contract AbstractController is CheckPermission {
 
     function reset(uint _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
+        PoolVote storage poolVote = userPool[_tokenId];
+        require(poolVote.lastUse + duration < block.timestamp, "next duration use");
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
+        poolVote.lastUse = block.timestamp;
         updatePool();
     }
 
     function _reset(uint _tokenId) internal {
         uint _totalWeight = usedWeights[_tokenId];
-        address _pool = userPool[_tokenId];
+        address _pool = userPool[_tokenId].pool;
         emit Abstained(_tokenId, _totalWeight);
         totalWeight -= _totalWeight;
         usedWeights[_tokenId] = 0;
@@ -81,14 +88,17 @@ abstract contract AbstractController is CheckPermission {
     }
 
     function poke(uint _tokenId) external {
-        _vote(_tokenId, userPool[_tokenId]);
+        _vote(_tokenId, userPool[_tokenId].pool);
     }
 
 
     function vote(uint tokenId, address _poolVote) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
+        PoolVote storage poolVote = userPool[tokenId];
+        require(poolVote.lastUse + duration < block.timestamp, "next duration use");
         _vote(tokenId, _poolVote);
-        userPool[tokenId] = _poolVote;
+        poolVote.pool = _poolVote;
+        poolVote.lastUse = block.timestamp;
     }
 
     function updatePool() public {
@@ -113,6 +123,11 @@ abstract contract AbstractController is CheckPermission {
 
     function removePool(address _address) external onlyOperator {
         EnumerableSet.remove(poolInfo, _address);
+    }
+
+    function getUserInfo(uint256 tokenId) public view returns (address, uint256) {
+        PoolVote memory poolVote = userPool[tokenId];
+        return (poolVote.pool, poolVote.lastUse);
     }
 
     function getPoolLength() public view returns (uint256) {
