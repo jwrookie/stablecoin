@@ -5,7 +5,6 @@ const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
 contract('Boost', async function () {
-    const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     let initStartBlock;
 
     async function getDurationTime(day = 1) {
@@ -125,14 +124,24 @@ contract('Boost', async function () {
         // address = await boost.gauges(await getPoolInfo(0, 0));
         // console.log(await mockFraxPool.balanceOf(address.address));
 
+        await gaugeController.setDuration(await getDurationTime());
         await boost.addController(gaugeController.address);
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 10);
+        expect(await gaugeController.getPoolLength()).to.be.eq(0);
         await gaugeController.addPool(mockFraxPool.address);
+        expect(await gaugeController.getPoolLength()).to.be.eq(1);
+        expect(await gaugeController.isPool(mockFraxPool.address)).to.be.eq(true);
         expect(await gaugeController.totalWeight()).to.be.eq(0);
+        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(0);
+        expect(await boost.weights(await gaugeController.getPool(0))).to.be.eq(0);
         await gaugeController.vote(tokenId, mockFraxPool.address);
+        gaugeAddress = await gaugeController.getPool(0);
+        pid = await boost.lpOfPid(await gaugeController.getPool(0));
+        expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
+        expect(await boost.weights(gaugeAddress)).to.be.eq(await gaugeController.weights(gaugeAddress));
         expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
         expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
-        await gaugeController.getPool(0);
     });
 });
