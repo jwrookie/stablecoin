@@ -1,4 +1,4 @@
-const {time} = require('@openzeppelin/test-helpers');
+const {time, expectRevert} = require('@openzeppelin/test-helpers');
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
@@ -155,7 +155,8 @@ contract('Boost', async function () {
         expect(await boost.weights(await gaugeController.getPool(0))).to.be.eq(0);
         await gaugeController.vote(tokenId, mockFraxPool.address);
         expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
-        expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
+        result = await gaugeController.getUserInfo(tokenId);
+        expect(result[0]).to.be.eq(mockFraxPool.address);
         expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
@@ -171,7 +172,7 @@ contract('Boost', async function () {
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
 
-        await gaugeController.setDuration(await getDurationTime());
+        await gaugeController.setDuration("10");
         await boost.addController(gaugeController.address);
         await gaugeController.addPool(mockFraxPool.address);
         expect(await gaugeController.getPoolLength()).to.be.eq(1);
@@ -179,16 +180,23 @@ contract('Boost', async function () {
         pid = await boost.lpOfPid(await gaugeController.getPool(0));
         expect(await locker.voted(tokenId)).to.be.eq(false);
         await gaugeController.vote(tokenId, mockFraxPool.address);
-        expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
+        result = await gaugeController.getUserInfo(tokenId);
+        expect(result[0]).to.be.eq(mockFraxPool.address);
         expect(await locker.voted(tokenId)).to.be.eq(true);
         expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
         lockerBalanceOfNFT = await locker.balanceOfNFT(tokenId);
         expect(await gaugeController.totalWeight()).to.be.eq(lockerBalanceOfNFT);
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(lockerBalanceOfNFT);
+
+        await expectRevert(gaugeController.reset(tokenId), "next duration use");
+
+        await time.increase("10");
+
         await gaugeController.reset(tokenId);
         expect(await gaugeController.totalWeight()).to.be.eq(0);
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(0);
-        expect(await gaugeController.userPool(tokenId)).to.be.eq(ZEROADDRESS);
+        result = await gaugeController.getUserInfo(tokenId);
+        expect(result[0]).to.be.eq(ZEROADDRESS);
         expect(await locker.voted(tokenId)).to.be.eq(false);
         expect(await boost.totalAllocPoint()).to.be.eq(await gaugeController.weights(gaugeAddress));
         expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
