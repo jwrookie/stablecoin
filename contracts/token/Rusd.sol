@@ -35,7 +35,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     event StableETHOracleSet(address oracle_addr, address weth_address);
     event StockEthOracleSet(address oracle_addr, address weth_address);
 
-    uint256 public constant GENESIS_SUPPLY = 2000000e18; // 2M FRAX (only for testing, genesis supply will be 5k on Mainnet). This is to help with establishing the Uniswap pools, as they need liquidity
+    uint256 public constant GENESIS_SUPPLY = 2000000e18;
     // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
 
@@ -52,7 +52,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     address public ethUsdConsumerAddress;
 
 
-    // The addresses in this array are added by the oracle and these contracts are able to mint frax
+    // The addresses in this array are added by the oracle and these contracts are able to mint stable
     address[] public poolAddress;
 
     // Mapping is also used for faster verification
@@ -70,15 +70,15 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
     modifier onlyPools() {
-        require(isStablePools[msg.sender] == true, "Only frax pools can call this function");
+        require(isStablePools[msg.sender] == true, "Only stable pools can call this function");
         _;
     }
 
-    modifier onlyByOwnerGovernanceOrPool() {
+    modifier onlyByOperatorOrPool() {
         require(
-            msg.sender == owner()
+            msg.sender == operator()
             || isStablePools[msg.sender] == true,
-            "Not the owner, the governance timelock, or a pool");
+            "Not the owner, the governance  or a pool");
         _;
     }
 
@@ -86,8 +86,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         address _operatorMsg,
         string memory _name,
         string memory _symbol
-
-    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
+    )  ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
         _mint(msg.sender, GENESIS_SUPPLY);
         stableStep = 2500;
         // 6 decimals of precision, equal to 0.25%
@@ -107,24 +106,22 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
         if (choice == PriceChoice.STABLE) {
             priceVSeth = uint256(stableEthOracle.consult(weth, PRICE_PRECISION));
-            // How much FRAX if you put in PRICE_PRECISION WETH
         }
         else if (choice == PriceChoice.STOCK) {
             priceVSeth = uint256(stockEthOracle.consult(weth, PRICE_PRECISION));
-            // How much FXS if you put in PRICE_PRECISION WETH
         }
-        else revert("INVALID PRICE CHOICE. Needs to be either 0 (FRAX) or 1 (FXS)");
+        else revert("INVALID PRICE CHOICE. Needs to be either 0  or 1 ");
 
         // Will be in 1e6 format
         return __ethusdPrice.mul(PRICE_PRECISION).div(priceVSeth);
     }
 
-    // Returns X FRAX = 1 USD
+    // Returns X stable = 1 USD
     function stablePrice() public view returns (uint256) {
         return oraclePrice(PriceChoice.STABLE);
     }
 
-    // Returns X FXS = 1 USD
+    // Returns X stock = 1 USD
     function stockPrice() public view returns (uint256) {
         return oraclePrice(PriceChoice.STOCK);
     }
@@ -137,13 +134,13 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // It is cheaper gas-wise to just dump everything and only use some of the info
     function stableInfo() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
         return (
-        oraclePrice(PriceChoice.STABLE), // frax_price()
-        oraclePrice(PriceChoice.STOCK), // fxs_price()
-        totalSupply(), // totalSupply()
-        globalCollateralRatio, // globalCollateralRatio()
-        globalCollateralValue(), // globalCollateralValue
-        mintingFee, // minting_fee()
-        redemptionFee, // redemption_fee()
+        oraclePrice(PriceChoice.STABLE),
+        oraclePrice(PriceChoice.STOCK),
+        totalSupply(),
+        globalCollateralRatio,
+        globalCollateralValue(),
+        mintingFee,
+        redemptionFee,
         uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals) //eth_usd_price
         );
     }
@@ -165,10 +162,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         return total_collateral_value_d18;
     }
 
-    /* ========== PUBLIC FUNCTIONS ========== */
+
 
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
-
     function refreshCollateralRatio() public whenNotPaused {
         uint256 stablePriceCur = stablePrice();
         require(block.timestamp - lastCallTime >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
@@ -196,7 +192,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit CollateralRatioRefreshed(globalCollateralRatio);
     }
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
 
     // Used by pools when user redeems
     function poolBurnFrom(address _address, uint256 _amount) public onlyPools {
@@ -214,7 +209,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit StableMinted(msg.sender, _address, _amount);
     }
 
-    // Adds collateral addresses supported, such as tether and busd, must be ERC20 
+    // Adds collateral addresses supported, such as tether
     function addPool(address _poolAddress) public onlyOwner {
         require(_poolAddress != address(0), "Zero address detected");
         require(isStablePools[_poolAddress] == false, "Address already exists");
@@ -293,18 +288,15 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         stableEthOracleAddress = stableOracle;
         stableEthOracle = UniswapPairOracle(stableOracle);
         weth = _weth;
-
         emit StableETHOracleSet(stableOracle, _weth);
     }
 
 
     function setStockEthOracle(address stockOracle, address _weth) public onlyOwner {
         require((stockOracle != address(0)) && (_weth != address(0)), "Zero address detected");
-
         stockEthOracleAddress = stockOracle;
         stockEthOracle = UniswapPairOracle(stockOracle);
         weth = _weth;
-
         emit StockEthOracleSet(stockOracle, _weth);
     }
 

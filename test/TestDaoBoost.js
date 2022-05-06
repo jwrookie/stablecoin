@@ -5,7 +5,7 @@ const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
 contract('Boost', async function () {
-    const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
+    const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
     let initStartBlock;
 
     async function getDurationTime(day = 1) {
@@ -15,17 +15,37 @@ contract('Boost', async function () {
         return parseInt(await time.duration.days(day));
     }
 
-    async function getBalances(coin, account) {
-        return await coin.balanceOf(account.address);
-    }
-
-    async function getPoolInfo(poolIndex, structIndex) {
+    async function getPoolInfo(poolIndex = 0, structIndex = 0) {
         let poolInfoLength = await boost.poolLength();
         if (poolInfoLength > 0) {
             poolInfo = await boost.poolInfo(poolIndex);
             return poolInfo[structIndex];
         }
-        return 0;
+        return null;
+    }
+
+    async function getPoolVote() {
+        let poolVoteArray = new Array();
+        let poolVoteLength = await boost.poolLength();
+        if (poolVoteLength > 0) {
+            for (let i = 0; i < poolVoteLength; i++) {
+                poolVoteArray.push(await getPoolInfo(i, 0));
+            }
+        }
+        return poolVoteArray;
+    }
+
+    async function getWeights() {
+        let weightsArray = new Array();
+        let poolVoteLength = await boost.poolLength();
+        if (poolVoteLength > 0) {
+            for (let i = 0; i < poolVoteLength; i++) {
+                poolInfo = await boost.poolInfo(i);
+                weight = await boost.weights(poolInfo[0])
+                weightsArray.push(weight);
+            }
+        }
+        return weightsArray;
     }
 
     beforeEach(async function () {
@@ -95,11 +115,11 @@ contract('Boost', async function () {
         );
     });
 
-    // it('test setDuration', async function () {
-    //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
-    //     await gaugeController.setDuration(await getDurationTime(3));
-    //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
-    // });
+    it('test setDuration', async function () {
+        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
+        await gaugeController.setDuration(await getDurationTime(3));
+        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
+    });
 
     it('test Single user and single pool', async function () {
         // Create gauge
@@ -114,25 +134,85 @@ contract('Boost', async function () {
         lastRewardBlock = await getPoolInfo(0, 2);
         expect(await boost.poolForGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(mockFraxPool.address);
         expect(await boost.isGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(true);
-        //
-        // // Get token id -> parameter value is stake token
+
+        // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
         expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
-        //
-        // // coin = await getPoolInfo(0, 0);
-        // // address = await boost.gauges(await getPoolInfo(0, 0));
-        // // console.log(await mockFraxPool.balanceOf(address.address));
-        //
+
+        await gaugeController.setDuration(await getDurationTime());
+        await boost.addController(gaugeController.address);
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 10);
+        expect(await gaugeController.getPoolLength()).to.be.eq(0);
+        await gaugeController.addPool(mockFraxPool.address);
+        gaugeAddress = await gaugeController.getPool(0);
+        pid = await boost.lpOfPid(await gaugeController.getPool(0));
+        expect(await gaugeController.getPoolLength()).to.be.eq(1);
+        expect(await gaugeController.isPool(mockFraxPool.address)).to.be.eq(true);
+        expect(await gaugeController.totalWeight()).to.be.eq(0);
+        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(0);
+        expect(await boost.weights(await gaugeController.getPool(0))).to.be.eq(0);
+        await gaugeController.vote(tokenId, mockFraxPool.address);
+        expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
+        expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
+        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
+        expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
+        expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
+    });
+
+    it('test Vote and reset and vote', async function () {
+        // Create gauge
+        await boost.createGauge(mockFraxPool.address, 100000, false);
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+
+        await gaugeController.setDuration(await getDurationTime());
         await boost.addController(gaugeController.address);
         await gaugeController.addPool(mockFraxPool.address);
-        expect(await gaugeController.totalWeight()).to.be.eq(0);
+        expect(await gaugeController.getPoolLength()).to.be.eq(1);
+        gaugeAddress = await gaugeController.getPool(0);
+        pid = await boost.lpOfPid(await gaugeController.getPool(0));
+        expect(await locker.voted(tokenId)).to.be.eq(false);
         await gaugeController.vote(tokenId, mockFraxPool.address);
         expect(await gaugeController.userPool(tokenId)).to.be.eq(mockFraxPool.address);
-        expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
-        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
-        expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
-        await gaugeController.getPool(0);
+        expect(await locker.voted(tokenId)).to.be.eq(true);
+        expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
+        lockerBalanceOfNFT = await locker.balanceOfNFT(tokenId);
+        expect(await gaugeController.totalWeight()).to.be.eq(lockerBalanceOfNFT);
+        expect(await gaugeController.usedWeights(tokenId)).to.be.eq(lockerBalanceOfNFT);
+        await gaugeController.reset(tokenId);
+        expect(await gaugeController.totalWeight()).to.be.eq(0);
+        expect(await gaugeController.usedWeights(tokenId)).to.be.eq(0);
+        expect(await gaugeController.userPool(tokenId)).to.be.eq(ZEROADDRESS);
+        expect(await locker.voted(tokenId)).to.be.eq(false);
+        expect(await boost.totalAllocPoint()).to.be.eq(await gaugeController.weights(gaugeAddress));
+        expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
+    });
+
+    it('test Single user vote and reset and vote', async function () {
+        // Create gauge
+        await boost.createGauge(mockFraxPool.address, 100000, false);
+        expect(await boost.poolLength()).to.be.eq(1);
+        pid = await boost.lpOfPid(mockFraxPool.address);
+        expect(pid).to.be.eq(0);
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+
+        expect(await boost.duration()).to.be.eq(await getDurationTime(7));
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        weightsArray = await getWeights();
+        expect(weightsArray).to.be.not.eq([]);
+        // await gaugeController.vote(tokenId, await getPoolInfo());
+        await boost.vote(tokenId, poolVotesArray, weightsArray);
     });
 });
