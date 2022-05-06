@@ -212,7 +212,6 @@ contract('Boost', async function () {
         expect(poolVotesArray).to.be.not.eq([]);
         weightsArray = await getWeights();
         expect(weightsArray).to.be.not.eq([]);
-        // await gaugeController.vote(tokenId, await getPoolInfo());
         await boost.vote(tokenId, poolVotesArray, weightsArray);
     });
 });
