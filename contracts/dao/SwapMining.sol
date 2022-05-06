@@ -234,6 +234,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
                 pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(userReward);
                 user.quantity = 0;
                 user.blockNumber = block.number;
+                userReward = getBoost(pool, msg.sender, userReward);
                 userSub = userSub.add(userReward);
             }
         }

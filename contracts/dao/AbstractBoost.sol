@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
 
@@ -89,6 +90,7 @@ abstract contract AbstractBoost is TokenReward {
         for (uint i = 0; i < _poolCnt; i++) {
             _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
         }
+        require(_totalVoteWeight > 0, "total weight is 0");
 
         for (uint i = 0; i < _poolCnt; i++) {
             address _pool = _poolVote[i];
