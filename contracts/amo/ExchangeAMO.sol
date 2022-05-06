@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import '@openzeppelin/contracts/access/Ownable.sol';
 
 import "../interface/curve/IStableSwap3Pool.sol";
-import "../interface/curve/IMetaImplementationUSD.sol";
 import '../tools/TransferHelper.sol';
 import "../token/Rusd.sol";
 import "../interface/IAMOMinter.sol";
