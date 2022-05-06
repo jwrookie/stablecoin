@@ -237,18 +237,12 @@ contract('SwapRouter', () => {
         await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
         console.log("dev:" + await fxs.balanceOf(dev.address))
         let reword = await swapMining.rewardInfo(dev.address);
-        console.log("reword:" + reword);
-
-        console.log("weights:" + await boost.weights(pool.address))
+        expect(reword).to.be.eq("2640000000000000000");
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')])
-        console.log("weights:" + await boost.weights(pool.address))
 
         let info = await swapMining.poolInfo(0)
-        console.log("pool quantity:" + info[1])
 
-        console.log("useVe:" + await lock.balanceOfNFT(1))
-        console.log("totalWeight:" + await boost.totalWeight())
         let useVe = await lock.balanceOfNFT(1);
         let totalWeight = await boost.totalWeight()
         console.log("userSub:" + (info[1] * useVe / totalWeight) * 0.7)
@@ -264,8 +258,7 @@ contract('SwapRouter', () => {
         // await time.advanceBlockTo(parseInt(lockBlock) + 10);
 
         reword = await swapMining.rewardInfo(dev.address);
-        console.log("reword:" + reword)
-        console.log("weights:" + await boost.weights(pool.address))
+        expect(reword).to.be.eq("240000000000000000");
         console.log("get reward befor blocknum:" + await getCurrentBlock());
         await swapMining.connect(dev).getReward(0);
         console.log("dev:" + await fxs.balanceOf(dev.address))
@@ -278,8 +271,7 @@ contract('SwapRouter', () => {
 
 
         reword = await swapMining.rewardInfo(dev.address);
-        console.log("reword:" + reword)
-        console.log("weights:" + await boost.weights(pool.address))
+        expect(reword).to.be.eq("240000000000000000");
         console.log("get reward befor blocknum:" + await getCurrentBlock());
         await swapMining.connect(dev).getReward(0);
         console.log("dev:" + await fxs.balanceOf(dev.address))
