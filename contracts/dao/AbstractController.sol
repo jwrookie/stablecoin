@@ -87,8 +87,8 @@ abstract contract AbstractController is CheckPermission {
         updatePool();
     }
 
-    function poke(uint _tokenId) external {
-        _vote(_tokenId, userPool[_tokenId].pool);
+    function poke(uint _tokenId, address _pool) external {
+        _vote(_tokenId, _pool);
     }
 
 
