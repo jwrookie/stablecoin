@@ -41,29 +41,29 @@ contract('test Boost', async function() {
 
     async function checkInfoEq(anyThing, value) {
         if("" === anyThing || null === anyThing) {
-            return
+            return;
         }
         if("" === value || null === value) {
-            return
+            return;
         }
         if(expect(anyThing).to.be.eq(value)) {
-            return true
+            return true;
         }else{
-            return false
+            return false;
         }
     }
 
     async function checkInfoGt(anyThing, value) {
         if("" === anyThing || null === anyThing) {
-            return
+            return;
         }
         if("" === value || null === value) {
-            return
+            return;
         }
         if(expect(anyThing).to.be.gt(parseInt(value))) {
-            return true
+            return true;
         }else{
-            return false
+            return false;
         }
     }
 

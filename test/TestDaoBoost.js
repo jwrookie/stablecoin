@@ -95,11 +95,11 @@ contract('Boost', async function () {
         );
     });
 
-    // it('test setDuration', async function () {
-    //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
-    //     await gaugeController.setDuration(await getDurationTime(3));
-    //     expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
-    // });
+    it('test setDuration', async function () {
+        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
+        await gaugeController.setDuration(await getDurationTime(3));
+        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
+    });
 
     it('test Single user and single pool', async function () {
         // Create gauge
@@ -114,17 +114,17 @@ contract('Boost', async function () {
         lastRewardBlock = await getPoolInfo(0, 2);
         expect(await boost.poolForGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(mockFraxPool.address);
         expect(await boost.isGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(true);
-        //
+
         // // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
         expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
-        //
-        // // coin = await getPoolInfo(0, 0);
-        // // address = await boost.gauges(await getPoolInfo(0, 0));
-        // // console.log(await mockFraxPool.balanceOf(address.address));
-        //
+
+        // coin = await getPoolInfo(0, 0);
+        // address = await boost.gauges(await getPoolInfo(0, 0));
+        // console.log(await mockFraxPool.balanceOf(address.address));
+
         await boost.addController(gaugeController.address);
         await gaugeController.addPool(mockFraxPool.address);
         expect(await gaugeController.totalWeight()).to.be.eq(0);
