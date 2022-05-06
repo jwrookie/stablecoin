@@ -93,9 +93,9 @@ contract('Boost', () => {
             lock.address,
             "300");
 
-        //await boost.addController(gaugeController.address);
+        await boost.addController(gaugeController.address);
         // await lock.removeBoosts(boost.address)
-        // await lock.addBoosts(gaugeController.address);
+        await lock.addBoosts(gaugeController.address);
         // expect(await gaugeController.distribute()).to.be.eq(boost.address);
 
 
@@ -139,8 +139,14 @@ contract('Boost', () => {
         // console.log("weights:" + await boost.weights(usdc.address))
         console.log("weights:" + await boost.weights(usdc.address) / 10 ** 18)
 
+
+
+           await boost.connect(dev).vote(1,[usdc.address], [toWei('1')]);
+      // await boost.connect(dev).reset(1)
+         await boost.reset(1)
+
         //
-        await boost.connect(dev).vote(1, [usdc.address], [toWei('1')])
+       // await boost.connect(dev).vote(1, [usdc.address], [toWei('1')])
 
         console.log("weights:" + await boost.weights(usdc.address) / 10 ** 18)
         // console.log("weights1:" + await gaugeController.weights(usdc.address))
@@ -152,6 +158,9 @@ contract('Boost', () => {
         // console.log("totalSupply:" + totalSupply);
         // rewardOwner1 = await gauge_usdc.pending(owner.address)
         // console.log("rewardOwner1:" + rewardOwner1)
+          await gaugeController.connect(dev).vote(1, usdc.address);
+
+
 
 
     });
