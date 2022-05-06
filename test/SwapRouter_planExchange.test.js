@@ -262,7 +262,6 @@ contract('SwapRouter', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         //  let lockBlock = await time.latestBlock();
         // await time.advanceBlockTo(parseInt(lockBlock) + 10);
-        //await time.increase(time.duration.days(3));
 
         reword = await swapMining.rewardInfo(dev.address);
         console.log("reword:" + reword)
@@ -276,7 +275,7 @@ contract('SwapRouter', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         //  let lockBlock = await time.latestBlock();
         // await time.advanceBlockTo(parseInt(lockBlock) + 10);
-        //await time.increase(time.duration.days(3));
+
 
         reword = await swapMining.rewardInfo(dev.address);
         console.log("reword:" + reword)
