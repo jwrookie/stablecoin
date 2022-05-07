@@ -16,7 +16,7 @@ const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 contract('3metaPool', () => {
-    before(async () => {
+    beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
 
 
@@ -37,17 +37,18 @@ contract('3metaPool', () => {
         Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
-        CheckOper = await ethers.getContractFactory("CheckPermission");
-        checkOper = await CheckOper.deploy(operatable.address);
+        const CheckPermission = await ethers.getContractFactory("CheckPermission");
+        checkPermission = await CheckPermission.deploy(operatable.address);
+
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
 
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(checkOper.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(checkOper.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
 
         weth9 = await deployContract(owner, {
@@ -68,17 +69,17 @@ contract('3metaPool', () => {
 
         await fxs.setFraxAddress(frax.address);
         await frax.setStockAddress(fxs.address);
+        await fxs.setFraxAddress(frax.address);
+        await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(checkOper.address, usdc.address, parseInt(eta));
-
+        lock = await Locker.deploy(checkPermission.address, fxs.address, parseInt(eta));
 
         plain3Balances = await deployContract(owner, {
             bytecode: Plain3Balances.bytecode,
             abi: PoolAbi.abi
         })
-
 
         registry = await deployContract(owner, {
             bytecode: Registry.bytecode,
@@ -178,7 +179,7 @@ contract('3metaPool', () => {
         expect(admin).to.be.eq(owner.address);
 
         poolAddress1 = await crvFactory.pool_list(1, gas);
-        console.log("poolAddress1" + poolAddress1);
+        //console.log("poolAddress1" + poolAddress1);
 
         pool1 = await metaPool.attach(poolAddress1);
         expect(poolAddress1).to.be.eq(pool1.address);
@@ -212,7 +213,7 @@ contract('3metaPool', () => {
 
         const SwapMining = await ethers.getContractFactory('SwapMining');
         swapMining = await SwapMining.deploy(
-            checkOper.address,
+            checkPermission.address,
             lock.address,
             fxs.address,
             crvFactory.address,
@@ -223,33 +224,12 @@ contract('3metaPool', () => {
         );
 
         await swapRouter.setSwapMining(swapMining.address);
-
-        await swapMining.addPair(100, pool1.address, true)
+        await swapMining.addPair(100, pool1.address, true);
+        await lock.addBoosts(swapMining.address);
+        await fxs.addPool(swapMining.address);
 
     });
-    // it('metaPool exchange_underlying token3 ->pool[token0,token1,token2]', async () => {
-    //   let token3Bef = await token3.balanceOf(owner.address);
-    //   let token0Bef = await token0.balanceOf(owner.address);
-    //   let token3Pool1Bef = await token3.balanceOf(pool1.address);
-    //   let token0Pool1Bef = await token0.balanceOf(pool.address);
-
-
-    //   //token3-> token0
-    //   await pool1.exchange_underlying(0, 1, "10000000", 0, owner.address, gas);
-
-    //   let token3Aft = await token3.balanceOf(owner.address);
-    //   let token0Aft = await token0.balanceOf(owner.address);
-    //   let token3Pool1Aft = await token3.balanceOf(pool1.address);
-    //   let token0Pool1Aft = await token0.balanceOf(pool.address);
-
-    //   expect(token3Aft).to.be.eq(BigNumber.from(token3Bef).sub("10000000"));
-    //   expect(token0Aft).to.be.eq(BigNumber.from(token0Bef).add("9994002"));
-    //   expect(token3Pool1Aft).to.be.eq(BigNumber.from(token3Pool1Bef).add("10000000"));
-    //   expect(token0Pool1Aft).to.be.eq(BigNumber.from(token0Pool1Bef).sub("9994002"));
-    // });
-
-
-    it('metaPool router exchange_underlying token3 ->pool[token0,token1,token2]', async () => {
+    it('test metaPool swapStable have reward', async () => {
         let token3Bef = await token3.balanceOf(owner.address);
         let token0Bef = await token0.balanceOf(owner.address);
         let token3Pool1Bef = await token3.balanceOf(pool1.address);
@@ -267,7 +247,7 @@ contract('3metaPool', () => {
         const times = Number((new Date().getTime() + 1000).toFixed(0))
         await swapRouter.swapMeta(pool1.address, 0, 3, "10000000", 0, owner.address, times)
         const reword = await swapMining.rewardInfo(owner.address)
-        // expect(reword).to.be.eq('210000000000000000')
+        expect(reword).to.be.eq('210000000000000000')
 
     });
 

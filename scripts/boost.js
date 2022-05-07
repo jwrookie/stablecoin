@@ -22,10 +22,11 @@ async function main() {
     let frax = "0xa0fec666998754149132F2B49DAeEE484B522df7"
     //
     // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
-    let checkPermission ="0x38f25721242a18c138f0675574052f2F80Ba2391"
+    let checkPermission = "0x38f25721242a18c138f0675574052f2F80Ba2391"
     let lock = "0x92fD7F6824BE5D68F287AE9FEAb346258321c678"
     // let gaugeFactory ="0x1BC954908BE0aBF8F1f4b8562CD467541179Ca3c"
-    let boost = "0xde907957FCB48118E042039dEb4C1EA42D4c0D73"
+    let boost = ""
+    let weth9 = "0xABbc0dB80d50e4175CEC6A0efd43994a00c19b5F"
 
     for (const account of accounts) {
         //console.log('Account address' + account.address)
@@ -94,27 +95,46 @@ async function main() {
     // console.log("boost:" + boost.address)
 
 
-      // const GaugeController = await ethers.getContractFactory('GaugeController');
-      //   gaugeController = await GaugeController.deploy(
-      //       checkPermission,
-      //       boost,
-      //       lock,
-      //       "1200");
-      //
-      //   console.log("gaugeController:" + gaugeController.address)
+    // const GaugeController = await ethers.getContractFactory('GaugeController');
+    //   gaugeController = await GaugeController.deploy(
+    //       checkPermission,
+    //       boost,
+    //       lock,
+    //       "1200");
+    //
+    //   console.log("gaugeController:" + gaugeController.address)
+    const SwapRouter = await ethers.getContractFactory('SwapRouter');
+    swapRouter = await SwapRouter.deploy(weth9);
+    console.log("swapRouter:" + swapRouter.address);
 
-     const SwapController = await ethers.getContractFactory('SwapController');
-        swapController = await SwapController.deploy(
-            checkPermission,
-            boost,
-            lock,
-            "1200");
 
-        console.log("swapController:" + swapController.address)
+    const SwapMining = await ethers.getContractFactory('SwapMining');
+    swapMining = await SwapMining.deploy(
+        checkPermission,
+        lock,
+        fxs,
+        deployer.address,
+        swapRouter.address,
+        toWei('1'),
+        "19086113",
+        "259200"
+    );
+    console.log("swapMining:" + swapMining.address);
+    await swapRouter.setSwapMining(swapMining.address);
 
-        // await boost.addController(gaugeController.address);
-        // // await lock.removeBoosts(boost.address)
-        // await lock.addBoosts(gaugeController.address);
+
+    const SwapController = await ethers.getContractFactory('SwapController');
+    swapController = await SwapController.deploy(
+        checkPermission,
+        swapMining.address,
+        lock,
+        "1200");
+
+    console.log("swapController:" + swapController.address)
+
+    // await boost.addController(gaugeController.address);
+    // // await lock.removeBoosts(boost.address)
+    // await lock.addBoosts(gaugeController.address);
 
     // await lock.addBoosts(boost.address)
     // await fxs.addPool(boost.address);
