@@ -35,15 +35,20 @@ contract('Boost', async function () {
         return poolVoteArray;
     }
 
-    async function getWeights(parameterWeight = 0) {
+    async function getWeights() {
         let weightsArray = new Array();
         let poolVoteLength = await boost.poolLength();
         if (poolVoteLength > 0) {
             for (let i = 0; i < poolVoteLength; i++) {
                 poolInfo = await boost.poolInfo(i);
                 weight = await boost.weights(poolInfo[0]);
-                if (parameterWeight != 0) {
-                    weight = parameterWeight;
+                if (arguments.length > 0) {
+                    if (i > arguments.length - 1) {
+                        weight = arguments[arguments.length - 1];
+                        weightsArray.push(weight);
+                        continue;
+                    }
+                    weight = arguments[i];
                 }
                 weightsArray.push(weight);
             }
@@ -288,11 +293,11 @@ contract('Boost', async function () {
         expect(await gaugeController.weights(await gaugeController.getPool(0))).to.be.eq(sum);
         expect(await gaugeController.totalWeight()).to.be.eq(sum);
         expect(await locker.voted(tokenId)).to.be.eq(true);
-        console.log(await boost.totalAllocPoint());
-        console.log(await getPoolInfo(tokenIdPid, 1));
+        // Affected by the first parameter -> function create_lock
+        expect(await boost.totalAllocPoint()).to.be.eq(await getPoolInfo(tokenIdPid, 1));
     });
 
-    it('test Single user vote and reset and vote and mock weight datas', async function () {
+    it('test Single user to vote and reset and vote and mock weight datas', async function () {
         // Create gauge
         await boost.createGauge(mockFraxPool.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(1);
@@ -326,5 +331,125 @@ contract('Boost', async function () {
         // Vote
         await boost.addController(gaugeController.address);
         await gaugeController.vote(tokenId, mockFraxPool.address);
+    });
+
+    it('test Single user to vote and more pools', async function () {
+        // Create gauge
+        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(mockUsdcPool.address, 100000, false);
+        expect(await boost.poolLength()).to.be.eq(2);
+        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
+        expect(mockFraxPoolPid).to.be.eq(0);
+        mockUsdcPoolPid = await boost.lpOfPid(mockUsdcPool.address);
+        expect(mockUsdcPoolPid).to.be.eq(1);
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        await locker.addBoosts(boost.address);
+        expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        weight = await locker.balanceOfNFT(tokenId);
+        weightsArray = await getWeights(weight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.vote(tokenId, poolVotesArray, weightsArray);
+        expect(await locker.voted(tokenId)).to.be.eq(true);
+        expect(await boost.poolVote(tokenId, 0)).to.be.eq(await getPoolInfo());
+        expect(await boost.poolVote(tokenId, 1)).to.be.eq(await getPoolInfo(1, 0));
+        expect(await boost.weights(await getPoolInfo())).to.be.eq(await boost.votes(tokenId, await getPoolInfo()));
+        expect(await boost.weights(await getPoolInfo(1, 0))).to.be.eq(await boost.votes(tokenId, await getPoolInfo(1, 0)));
+        sumWeight = BigNumber.from(await boost.weights(await getPoolInfo())).add(await boost.weights(await getPoolInfo(1, 0)));
+        expect(await boost.usedWeights(tokenId)).to.be.eq(sumWeight);
+        expect(await boost.totalWeight()).to.be.eq(sumWeight);
+    });
+
+    it('test More users to vote and single pool', async function () {
+        let firstTokenId;
+
+        // Create gauge
+        await boost.createGauge(mockFraxPool.address, 100000, false);
+        expect(await boost.poolLength()).to.be.eq(1);
+        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
+        expect(mockFraxPoolPid).to.be.eq(0);
+
+        // Create locker
+        await locker.addBoosts(gaugeController.address);
+        await locker.addBoosts(boost.address);
+        expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
+        expect(await locker.boosts(boost.address)).to.be.eq(true);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+        firstTokenId = tokenId;
+        await locker.create_lock_for(toWei("0.1"), await getDurationTime(), dev.address);
+        tokenId = await locker.tokenId();
+        expect(firstTokenId).to.be.eq(1);
+        expect(tokenId).to.be.eq(2);
+
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        firstWeight = await locker.balanceOfNFT(firstTokenId);
+        weightsArray = await getWeights(firstWeight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.vote(firstTokenId, poolVotesArray, weightsArray);
+        secondWeight = await locker.balanceOfNFT(tokenId);
+        weightsArray = await getWeights(secondWeight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.connect(dev).vote(tokenId, poolVotesArray, weightsArray);
+        expect(await locker.voted(firstTokenId)).to.be.eq(true);
+        expect(await locker.voted(tokenId)).to.be.eq(true);
+        expect(await boost.poolVote(firstTokenId, 0)).to.be.eq(await getPoolInfo());
+        expect(await boost.poolVote(tokenId, 0)).to.be.eq(await getPoolInfo());
+        sumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo())).add(await boost.votes(tokenId, await getPoolInfo()));
+        expect(await boost.weights(await getPoolInfo())).to.be.eq(sumWeight);
+        expect(await boost.totalWeight()).to.be.eq(sumWeight);
+    });
+
+    it('test More users to vote more pools', async function () {
+        let firstTokenId;
+
+        // Create gauge
+        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(mockUsdcPool.address, 100000, false);
+        expect(await boost.poolLength()).to.be.eq(2);
+        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
+        expect(mockFraxPoolPid).to.be.eq(0);
+        mockUsdcPoolPid = await boost.lpOfPid(mockUsdcPool.address);
+        expect(mockUsdcPoolPid).to.be.eq(1);
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        await locker.addBoosts(boost.address);
+        expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
+        expect(await locker.boosts(boost.address)).to.be.eq(true);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+        firstTokenId = tokenId;
+        await locker.create_lock_for(toWei("0.2"), await getDurationTime(), dev.address);
+        tokenId = await locker.tokenId();
+        expect(firstTokenId).to.be.eq(1);
+        expect(tokenId).to.be.eq(2);
+
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        firstWeight = await locker.balanceOfNFT(firstTokenId);
+        secondWeight = await locker.balanceOfNFT(tokenId);
+        weightsArray = await getWeights(firstWeight, secondWeight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.vote(firstTokenId, poolVotesArray, weightsArray);
+        await boost.connect(dev).vote(tokenId, poolVotesArray, weightsArray);
+        expect(await locker.voted(firstTokenId)).to.be.eq(true);
+        expect(await locker.voted(tokenId)).to.be.eq(true);
+        expect(await boost.poolVote(firstTokenId, 0)).to.be.eq(await getPoolInfo());
+        expect(await boost.poolVote(firstTokenId, 1)).to.be.eq(await getPoolInfo(1, 0));
+        expect(await boost.poolVote(tokenId, 0)).to.be.eq(await getPoolInfo());
+        expect(await boost.poolVote(tokenId, 1)).to.be.eq(await getPoolInfo(1, 0));
+        mockFraxPoolSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo())).add(await boost.votes(tokenId, await getPoolInfo()));
+        mockUsdcPoolSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo(1, 0))).add(await boost.votes(tokenId, await getPoolInfo(1, 0)));
+        expect(await boost.weights(await getPoolInfo())).to.be.eq(mockFraxPoolSumWeight);
+        expect(await boost.weights(await getPoolInfo(1, 0))).to.be.eq(mockUsdcPoolSumWeight);
+        expect(await boost.totalWeight()).to.be.eq(BigNumber.from(mockFraxPoolSumWeight).add(mockUsdcPoolSumWeight));
     });
 });
