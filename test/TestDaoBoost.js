@@ -163,7 +163,7 @@ contract('Boost', async function () {
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
     });
 
-    it('test Vote and reset and vote', async function () {
+    it('test Single user vote and reset and vote', async function () {
         // Create gauge
         await boost.createGauge(mockFraxPool.address, 100000, false);
 
@@ -217,7 +217,7 @@ contract('Boost', async function () {
         await expectRevert(boost.vote(tokenId, poolVotesArray, weightsArray), "total weight is 0");
     });
 
-    it('test Single user and two pools', async function () {
+    it('test Single user and more pools to vote will fail', async function () {
         // Create gauges
         await boost.createGauge(mockFraxPool.address, 100000, false);
         await boost.createGauge(mockUsdcPool.address, 100000, false);
