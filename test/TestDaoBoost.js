@@ -123,12 +123,6 @@ contract('Boost', async function () {
         );
     });
 
-    it('test setDuration', async function () {
-        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(7));
-        await gaugeController.setDuration(await getDurationTime(3));
-        expect(parseInt(await gaugeController.duration())).to.be.eq(await getDurationTime(3));
-    });
-
     it('test Single user and single pool', async function () {
         // Create gauge
         expect(await boost.totalAllocPoint()).to.be.eq(0);
