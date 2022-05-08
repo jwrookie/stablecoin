@@ -95,7 +95,7 @@ contract('ExchangeAMO', async function () {
 
         // Set each other
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         // Mock token Date
         const MockToken = await ethers.getContractFactory("MockToken");
