@@ -337,4 +337,5 @@ contract('ExchangeAMO', async function () {
     //     await amoMinter.recoverERC20(frax.address, toWei("1"));
     //     expect(await getBalances(frax, exchangeAMO)).to.be.eq(initFraxBalanceOfOwner - toWei("1"));
     // });
+
 })
