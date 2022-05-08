@@ -148,10 +148,10 @@ contract('Gauge', async function () {
         const Gauge = await ethers.getContractFactory("Gauge");
         gauge = await Gauge.attach(gaugeAddress);
 
-        await usdc.connect(owner).approve(gauge.address, toWei("1"));
-        await usdc.connect(dev).approve(gauge.address, toWei("1"));
-        await stake.connect(owner).approve(gauge.address, toWei("1"));
-        await stake.connect(dev).approve(gauge.address, toWei("1"));
+        // await usdc.connect(owner).approve(gauge.address, toWei("1"));
+        // await usdc.connect(dev).approve(gauge.address, toWei("1"));
+        // await stake.connect(owner).approve(gauge.address, toWei("1"));
+        // await stake.connect(dev).approve(gauge.address, toWei("1"));
     });
 
     it('test Single user deposit and get reward', async function () {
@@ -172,11 +172,11 @@ contract('Gauge', async function () {
         // About gauge
         expect(await getUserInfo(owner, 0)).to.be.eq(0);
         expect(await getUserInfo(owner, 1)).to.be.eq(0);
-        await gauge.deposit(toWei("0.000001"), tokenId);
-        expect(await getUserInfo(owner, 0)).to.be.eq(toWei("0.000001"));
-        expect(await gauge.totalSupply()).to.be.eq(toWei("0.000001"));
-        expect(await gauge.tokenIds(owner.address)).to.be.eq(tokenId);
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
+        // await gauge.deposit(toWei("0.000001"), tokenId);
+        // expect(await getUserInfo(owner, 0)).to.be.eq(toWei("0.000001"));
+        // expect(await gauge.totalSupply()).to.be.eq(toWei("0.000001"));
+        // expect(await gauge.tokenIds(owner.address)).to.be.eq(tokenId);
+        // expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
 
         // Vote
         weight = await locker.balanceOfNFT(tokenId);
