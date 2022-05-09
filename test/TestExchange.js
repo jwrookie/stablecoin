@@ -30,7 +30,7 @@ contract('ExchangeAMO', async function () {
     }
 
     async function _setFRAXEthOracle(setConfig) {
-        await frax.setFRAXEthOracle(setConfig.address, weth.address);
+        await frax.setStockAddress(setConfig.address, weth.address);
     }
 
     async function _setFXSEthOracle(setConfig) {

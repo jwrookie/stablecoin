@@ -159,22 +159,34 @@ contract('Crypto', () => {
 
 
     });
-
-    it("test crypto pool swapEthForToken have reward", async () => {
-        let token0Bef = await token0.balanceOf(owner.address);
-        let token0PoolBef = await token0.balanceOf(pool.address);
-        let ethPoolBef = await ethers.provider.getBalance(pool.address);
-
+     it('test crypto pool swapEthForToken have reward', async () => {
         await token0.approve(swapRouter.address, toWei("10000"))
         await weth9.approve(swapRouter.address, toWei('100000'))
 
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = "1000000";
 
-        let times2 = Number((new Date().getTime() + 1000).toFixed(0))
+        //token0 -> weth
+        await swapRouter.swapEthForToken(pool.address, 0, 1, dx, 0, owner.address, times);
+        let reword = await swapMining.rewardInfo(owner.address);
+        let bef = await fxs.balanceOf(owner.address);
 
-        await swapRouter.swapEthForToken(pool.address, 0, 1, "100000000", 0, owner.address, times2, {value: 0})
+        await swapMining.getReward(0);
+        let aft = await fxs.balanceOf(owner.address);
 
-        let reword = await swapMining.rewardInfo(owner.address)
-        expect(reword).to.be.eq('577500000000000000')
+        let diff = aft.sub(bef)
+        expect(diff).to.be.eq(reword.add("52500000000000000"));
+
+        //weth -> token0
+        await swapRouter.swapEthForToken(pool.address, 1, 0, dx, 0, owner.address, times,{value:"1000000"});
+
+        reword = await swapMining.rewardInfo(owner.address);
+        await swapMining.getReward(0);
+
+        let aft1 = await fxs.balanceOf(owner.address);
+        let diff1 = aft1.sub(aft);
+        expect(diff1).to.be.eq(reword.mul(2));
+
 
     });
 

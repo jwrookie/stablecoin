@@ -197,6 +197,7 @@ contract('3metaPool', () => {
         coins2 = await pool1.coins(1, gas);
         expect(coins2).to.be.eq(pool.address);
 
+
         await token0.mint(dev.address, toWei('100'));
         await token1.mint(dev.address, toWei('100'));
         await token2.mint(dev.address, toWei('100'));
@@ -229,25 +230,61 @@ contract('3metaPool', () => {
         await fxs.addPool(swapMining.address);
 
     });
-    it('test metaPool swapStable have reward', async () => {
-        let token3Bef = await token3.balanceOf(owner.address);
-        let token0Bef = await token0.balanceOf(owner.address);
-        let token3Pool1Bef = await token3.balanceOf(pool1.address);
-        let token0Pool1Bef = await token0.balanceOf(pool.address);
+    it('test metaPool swapMeta have reward', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+        await token3.approve(swapRouter.address, toWei("10000"));
+        await pool.approve(swapRouter.address, toWei('100000'));
+
+        let times = Number((new Date().getTime() + 1000).toFixed(0));
+        await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times);
+        let reword = await swapMining.rewardInfo(owner.address);
+
+        let bef = await fxs.balanceOf(owner.address);
+
+        await swapMining.getReward(0);
+        let aft = await fxs.balanceOf(owner.address);
+
+        let diff = aft.sub(bef);
+        expect(diff).to.be.eq(reword.add("52500000000000000"));
+
+        await swapRouter.swapMeta(pool1.address, 1, 0, "10000000", 0, owner.address, times);
+
+        reword = await swapMining.rewardInfo(owner.address);
+        await swapMining.getReward(0);
+
+        let aft1 = await fxs.balanceOf(owner.address);
+        let diff1 = aft1.sub(aft);
+        expect(diff1).to.be.eq(reword.mul(2));
 
 
-        await token3.approve(swapRouter.address, toWei("10000"))
-        // await token2.approve(swapRouter.address, toWei("10000"))
-        // await token1.approve(swapRouter.address, toWei("10000"))
-        // await token0.approve(swapRouter.address, toWei("10000"))
-        // await pool.approve(swapRouter.address, toWei('100000'))
+    });
+    it('test metaPool can swapMeta', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token3.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+        await pool.approve(swapRouter.address, toWei('100000'));
 
-        //token3-> token0
-        // await pool1.exchange_underlying(0, 3, "10000000", 0, owner.address, gas);
-        const times = Number((new Date().getTime() + 1000).toFixed(0))
-        await swapRouter.swapMeta(pool1.address, 0, 3, "10000000", 0, owner.address, times)
-        const reword = await swapMining.rewardInfo(owner.address)
-        expect(reword).to.be.eq('210000000000000000')
+        let times = Number((new Date().getTime() + 1000).toFixed(0));
+        await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 0, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 0, 3, "10000000", 0, owner.address, times);
+
+
+        await swapRouter.swapMeta(pool1.address, 1, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 1, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 1, 3, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapMeta(pool1.address, 2, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 2, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 2, 3, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapMeta(pool1.address, 3, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 3, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapMeta(pool1.address, 3, 2, "10000000", 0, owner.address, times);
+
 
     });
 

@@ -15,7 +15,7 @@ const {toWei} = web3.utils;
 const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
-contract('SwapRouter', () => {
+contract('plainPool', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         zeroAddr = "0x0000000000000000000000000000000000000000";
@@ -152,38 +152,57 @@ contract('SwapRouter', () => {
         await lock.addBoosts(swapController.address);
 
 
-    })
-
+    });
     it('test swapStable have reward', async () => {
-
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
-        // await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
 
-        expect(await pool.coins(0, gas)).to.be.eq(token0.address);
-        expect(await pool.coins(1, gas)).to.be.eq(token1.address);
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
 
-        devToken0Befo = await token0.balanceOf(dev.address);
-        devToken1Befo = await token1.balanceOf(dev.address);
-        poolToken0Bef = await pool.balances(0, gas);
-        poolToken1Bef = await pool.balances(1, gas);
-
-        let times = Number((new Date().getTime() / 1000 + 1000).toFixed(0));
         let dx = "1000000";
 
+        //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-
-        // devToken0Aft = await token0.balanceOf(dev.address);
-        // devToken1Aft = await token1.balanceOf(dev.address);
-        // poolToken0aft = await pool.balances(0, gas);
-        // poolToken1aft = await pool.balances(1, gas);
-        //
-        // expect(devToken0Aft).to.be.eq(BigNumber.from(devToken0Befo).sub(dx));
-        // expect(devToken1Aft).to.be.eq(BigNumber.from(devToken1Befo).add("999600"));
-        // expect(poolToken0aft).to.be.eq(BigNumber.from(poolToken0Bef).add(dx));
-        // expect(poolToken1aft).to.be.eq(BigNumber.from(poolToken1Bef).sub('999799'));
         let reword = await swapMining.rewardInfo(dev.address);
-        expect(reword).to.be.eq('525000000000000000');
-    })
+        let bef = await fxs.balanceOf(dev.address);
+
+        await swapMining.connect(dev).getReward(0);
+        let aft = await fxs.balanceOf(dev.address);
+
+        let diff = aft.sub(bef)
+        expect(diff).to.be.eq(reword.add("52500000000000000"));
+
+        //token1 -> token0
+        await swapRouter.connect(dev).swapStable(pool.address, 1, 0, dx, 0, dev.address, times);
+
+        reword = await swapMining.rewardInfo(dev.address);
+        await swapMining.connect(dev).getReward(0);
+
+        let aft1 = await fxs.balanceOf(dev.address);
+        let diff1 = aft1.sub(aft);
+        expect(diff1).to.be.eq(reword.mul(2));
+
+
+    });
+    it('test plain3Pool can swapStable', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+
+
+        let times = Number((new Date().getTime() + 1000).toFixed(0));
+        await swapRouter.swapStable(pool.address, 0, 1, "10000000", 0, dev.address, times);
+        await swapRouter.swapStable(pool.address, 0, 2, "10000000", 0, dev.address, times);
+
+        await swapRouter.swapStable(pool.address, 1, 0, "10000000", 0, dev.address, times);
+        await swapRouter.swapStable(pool.address, 1, 2, "10000000", 0, dev.address, times);
+
+        await swapRouter.swapStable(pool.address, 2, 0, "10000000", 0, dev.address, times);
+        await swapRouter.swapStable(pool.address, 2, 1, "10000000", 0, dev.address, times);
+
+
+
+    });
 
 
 });
