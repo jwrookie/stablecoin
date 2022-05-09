@@ -19,10 +19,10 @@ async function main() {
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0x6d2138C3Aa8e20437a541AE287dD047Aed4731De"
-    let frax = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
-   let pool = "0x35a9d3b93A68a81A98896019ac446937dACe28b1"
-    let lock = "0x259d2BFda49012C37BE371D0b267DfF1d47997b8"
+    let fxs = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
+    let frax = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
+   let pool = "0x618b5142Ca5804ABa43882c4Ae7a51D7AF5a9864"
+    let lock = "0x88c423Bd21C8ee88BDF09854A93c653128B25190"
 
 
 
@@ -36,15 +36,15 @@ async function main() {
     // We get the contract to deploy
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
-    //  const MintTool = await ethers.getContractFactory('MintTool', {
-    //     libraries: {
-    //         PoolLibrary: "0xb9ea32450022104Cd79e258d88E662833962C8f3",
-    //     },
-    // });
-    //
-    //  mintTool = await MintTool.deploy(pool,frax, fxs,usdc);
-    //
-    // console.log("mintTool:" + mintTool.address)
+     const MintTool = await ethers.getContractFactory('MintTool', {
+        libraries: {
+            PoolLibrary: "0x6b60Ba3E76CaAD657D4A01dEd8Ee2c315ccF281A",
+        },
+    });
+
+     mintTool = await MintTool.deploy(pool,frax, fxs,usdc);
+
+    console.log("mintTool:" + mintTool.address)
 
 
      const LockerTool = await ethers.getContractFactory('LockerTool');

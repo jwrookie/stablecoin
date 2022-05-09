@@ -113,6 +113,7 @@ contract('Boost', () => {
         let rewardDev = await gauge_usdc.pending(dev.address)
         console.log("rewardDev:" + rewardDev)
         await gauge_usdc.connect(dev).getReward(dev.address)
+        console.log(gauge_usdc)
         console.log("fxs aft:" + await fxs.balanceOf(dev.address))
 
         console.log("fxs bef:" + await fxs.balanceOf(owner.address))
