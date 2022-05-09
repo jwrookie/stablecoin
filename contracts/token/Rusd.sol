@@ -34,6 +34,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     event PriceBandSet(uint256 price_band);
     event StableETHOracleSet(address oracle_addr, address weth_address);
     event StockEthOracleSet(address oracle_addr, address weth_address);
+    event SetK(uint256 kDuration, uint256 k);
 
     uint256 public constant GENESIS_SUPPLY = 2000000e18;
     // Constants for various precisions
@@ -68,6 +69,11 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public priceBand; // The bound above and below the price target at which the refreshCollateralRatio() will not change the collateral ratio
 
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
+
+    uint256 public K = 1e3;// 1=1e6
+    uint256 public minOtherCR = 1e16;
+    uint256 public lastQX;
+    uint256 public kDuration = 1e7 * 1e18;
 
     modifier onlyPools() {
         require(isStablePools[msg.sender] == true, "Only stable pools can call this function");
@@ -162,13 +168,37 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         return total_collateral_value_d18;
     }
 
+    function refreshOtherCR() private {
+        uint qx = totalSupply();
+        uint256 diff;
+        bool isIncrease;
+        if (qx > lastQX) {
+            diff = qx.sub(lastQX);
+        } else {
+            isIncrease = true;
+            diff = lastQX.sub(qx);
+            uint period = diff.div(kDuration);
+        }
+        uint period = diff.div(kDuration);
+        for (uint256 i = 0; i < period; i++) {
+            if (isIncrease) {
+                minOtherCR = minOtherCR.div(1e6 - K);
+            } else {
+                minOtherCR = minOtherCR.mul(1e6 - K);
+            }
 
+        }
+        lastQX = qx;
+
+
+    }
 
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
     function refreshCollateralRatio() public whenNotPaused {
         uint256 stablePriceCur = stablePrice();
         require(block.timestamp - lastCallTime >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
 
+        refreshOtherCR();
         // Step increments are 0.25% (upon genesis, changable by setStableStep())
 
         if (stablePriceCur > priceTarget.add(priceBand)) {//decrease collateral ratio
@@ -184,6 +214,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             } else {
                 globalCollateralRatio = globalCollateralRatio.add(stableStep);
             }
+        }
+        if (globalCollateralRatio > 1e6 - minOtherCR) {
+            globalCollateralRatio = 1e6 - minOtherCR;
         }
 
         lastCallTime = block.timestamp;
@@ -210,7 +243,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     // Adds collateral addresses supported, such as tether
-    function addPool(address _poolAddress) public onlyOwner {
+    function addPool(address _poolAddress) public onlyOperator {
         require(_poolAddress != address(0), "Zero address detected");
         require(isStablePools[_poolAddress] == false, "Address already exists");
         isStablePools[_poolAddress] = true;
@@ -219,8 +252,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit PoolAdded(_poolAddress);
     }
 
-    // Remove a pool 
-    function removePool(address _poolAddress) public onlyOwner {
+    // Remove a pool
+    function removePool(address _poolAddress) public onlyOperator {
         require(_poolAddress != address(0), "Zero address detected");
         require(isStablePools[_poolAddress] == true, "Address nonexistant");
 
@@ -238,38 +271,38 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit PoolRemoved(_poolAddress);
     }
 
-    function setRedemptionFee(uint256 redFee) public onlyOwner {
+    function setRedemptionFee(uint256 redFee) public onlyOperator {
         redemptionFee = redFee;
         emit RedemptionFeeSet(redFee);
     }
 
-    function setMintingFee(uint256 minFee) public onlyOwner {
+    function setMintingFee(uint256 minFee) public onlyOperator {
         mintingFee = minFee;
         emit MintingFeeSet(minFee);
     }
 
-    function setStableStep(uint256 _step) public onlyOwner {
+    function setStableStep(uint256 _step) public onlyOperator {
         stableStep = _step;
         emit StableStepSet(_step);
     }
 
-    function setPriceTarget(uint256 _priceTarget) public onlyOwner {
+    function setPriceTarget(uint256 _priceTarget) public onlyOperator {
         priceTarget = _priceTarget;
         emit PriceTargetSet(_priceTarget);
     }
 
-    function setRefreshCooldown(uint256 _cooldown) public onlyOwner {
+    function setRefreshCooldown(uint256 _cooldown) public onlyOperator {
         refreshCooldown = _cooldown;
         emit RefreshCooldownSet(_cooldown);
     }
 
-    function setStockAddress(address _stockAddress) public onlyOwner {
+    function setStockAddress(address _stockAddress) public onlyOperator {
         require(_stockAddress != address(0), "Zero address detected");
         stockAddress = _stockAddress;
         emit StockAddressSet(_stockAddress);
     }
 
-    function setETHUSDOracle(address _ethusdConsumer) public onlyOwner {
+    function setETHUSDOracle(address _ethusdConsumer) public onlyOperator {
         require(_ethusdConsumer != address(0), "Zero address detected");
         ethUsdConsumerAddress = _ethusdConsumer;
         ethUsdPricer = ChainlinkETHUSDPriceConsumer(ethUsdConsumerAddress);
@@ -277,13 +310,13 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit ETHUSDOracleSet(_ethusdConsumer);
     }
 
-    function setPriceBand(uint256 _priceBand) external onlyOwner {
+    function setPriceBand(uint256 _priceBand) external onlyOperator {
         priceBand = _priceBand;
         emit PriceBandSet(_priceBand);
     }
 
 
-    function setStableEthOracle(address stableOracle, address _weth) public onlyOwner {
+    function setStableEthOracle(address stableOracle, address _weth) public onlyOperator {
         require((stableOracle != address(0)) && (_weth != address(0)), "Zero address detected");
         stableEthOracleAddress = stableOracle;
         stableEthOracle = UniswapPairOracle(stableOracle);
@@ -292,7 +325,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
 
-    function setStockEthOracle(address stockOracle, address _weth) public onlyOwner {
+    function setStockEthOracle(address stockOracle, address _weth) public onlyOperator {
         require((stockOracle != address(0)) && (_weth != address(0)), "Zero address detected");
         stockEthOracleAddress = stockOracle;
         stockEthOracle = UniswapPairOracle(stockOracle);
@@ -300,5 +333,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit StockEthOracleSet(stockOracle, _weth);
     }
 
-
+    function setKAndKDuration(uint256 _k, uint256 _kDuration) public onlyOperator {
+        K = _k;
+        kDuration = _kDuration;
+        emit SetK(kDuration, K);
+    }
 }
