@@ -225,6 +225,7 @@ contract('SwapRouter', () => {
             "300");
 
         await boost.addController(gaugeController.address);
+        await gaugeController.addPool(pool.address);
         await lock.addBoosts(gaugeController.address);
 
 

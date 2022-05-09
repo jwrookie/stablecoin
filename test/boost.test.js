@@ -108,19 +108,21 @@ contract('Boost', () => {
 
         await time.increase(time.duration.days(1));
 
+        await boost.vote
+
         //  console.log("boost fxs:" + await fxs.balanceOf(boost.address));
         // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
         //
-        let rewardDev = await gauge_usdc.pending(dev.address)
-        // console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address)
-        // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-        //
-        // console.log("fxs bef:" + await fxs.balanceOf(owner.address))
-        await time.increase(time.duration.days(1));
-        let rewardOwner = await gauge_usdc.pending(owner.address)
-        // console.log("rewardOwner:" + rewardOwner)
-        await gauge_usdc.connect(owner).getReward(owner.address)
+        // let rewardDev = await gauge_usdc.pending(dev.address)
+        // // console.log("rewardDev:" + rewardDev)
+        // await gauge_usdc.connect(dev).getReward(dev.address)
+        // // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+        // //
+        // // console.log("fxs bef:" + await fxs.balanceOf(owner.address))
+        // await time.increase(time.duration.days(1));
+        // let rewardOwner = await gauge_usdc.pending(owner.address)
+        // // console.log("rewardOwner:" + rewardOwner)
+        // await gauge_usdc.connect(owner).getReward(owner.address)
         // console.log("fxs aft:" + await fxs.balanceOf(owner.address))
 
 
