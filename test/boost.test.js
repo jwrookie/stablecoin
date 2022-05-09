@@ -92,8 +92,8 @@ contract('Boost', () => {
         let eta = time.duration.days(1);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.connect(dev).create_lock("1000", parseInt(eta));
-        await lock.create_lock("2000", parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10000'), parseInt(eta));
+        await lock.create_lock(toWei('10'), parseInt(eta));
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
         await usdc.approve(gauge_usdc.address, toWei('10000000'))
@@ -105,25 +105,22 @@ contract('Boost', () => {
         await boost.updatePool(0);
         expect(await boost.poolLength()).to.be.eq(2);
 
-
         await time.increase(time.duration.days(1));
 
-        await boost.vote
+         console.log("boost fxs:" + await fxs.balanceOf(boost.address));
+        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
 
-        //  console.log("boost fxs:" + await fxs.balanceOf(boost.address));
-        // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-        //
-        // let rewardDev = await gauge_usdc.pending(dev.address)
-        // // console.log("rewardDev:" + rewardDev)
-        // await gauge_usdc.connect(dev).getReward(dev.address)
-        // // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-        // //
-        // // console.log("fxs bef:" + await fxs.balanceOf(owner.address))
-        // await time.increase(time.duration.days(1));
-        // let rewardOwner = await gauge_usdc.pending(owner.address)
-        // // console.log("rewardOwner:" + rewardOwner)
-        // await gauge_usdc.connect(owner).getReward(owner.address)
-        // console.log("fxs aft:" + await fxs.balanceOf(owner.address))
+        let rewardDev = await gauge_usdc.pending(dev.address)
+        console.log("rewardDev:" + rewardDev)
+        await gauge_usdc.connect(dev).getReward(dev.address)
+        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+
+        console.log("fxs bef:" + await fxs.balanceOf(owner.address))
+        await time.increase(time.duration.days(1));
+        let rewardOwner = await gauge_usdc.pending(owner.address)
+        console.log("rewardOwner:" + rewardOwner)
+        await gauge_usdc.connect(owner).getReward(owner.address)
+        console.log("fxs aft:" + await fxs.balanceOf(owner.address))
 
 
     });
@@ -158,9 +155,9 @@ contract('Boost', () => {
     //     // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
     //
     //     let rewardDev1 = await gauge_busd.pending(dev.address)
-    //     //console.log("rewardDev1:" + rewardDev1)
+    //     console.log("rewardDev1:" + rewardDev1)
     //     await gauge_busd.connect(dev).getReward(dev.address)
-    //     // console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+    //     console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
     //
     //
     // });
