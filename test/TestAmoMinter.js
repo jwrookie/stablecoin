@@ -626,4 +626,5 @@ contract('AMOMinter', async function () {
     //     await token0.mint(amoMinter.address, toWei("1"));
     //     await amoMinter.recoverERC20(token0.address, toWei("1"));
     // });
+
 });
