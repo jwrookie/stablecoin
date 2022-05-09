@@ -19,27 +19,27 @@ contract('ExchangeAMO', async function () {
     const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
     const POOL_CELLING = toWei('10000000000');
 
-    async function _getTimeLock() {
+    async function getTimeLock() {
         const Timelock = await ethers.getContractFactory("Timelock");
         timelock = await Timelock.deploy(owner.address, "259200");
         return timelock;
     }
 
-    async function _setCollatETHOracle(setConfig) {
+    async function setCollatETHOracle(setConfig) {
         await stableCoinPool.setCollatETHOracle(setConfig.address, weth.address);
     }
 
-    async function _setFRAXEthOracle(setConfig) {
-        await frax.setFRAXEthOracle(setConfig.address, weth.address);
+    async function setStableEthOracle(setConfig) {
+        await frax.setStableEthOracle(setConfig.address, weth.address);
     }
 
-    async function _setFXSEthOracle(setConfig) {
-        await frax.setFXSEthOracle(setConfig.address, weth.address);
+    async function setStockEthOracle(setConfig) {
+        await frax.setStockEthOracle(setConfig.address, weth.address);
     }
 
     async function setUniswapOracle(coinPairs) {
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-        timelock = await _getTimeLock();
+        timelock = await getTimeLock();
         uniswapOracle = await UniswapPairOracle.deploy(
             factory.address,
             coinPairs.address,
@@ -50,15 +50,15 @@ contract('ExchangeAMO', async function () {
 
         switch (coinPairs) {
             case usdc:
-                await _setCollatETHOracle(uniswapOracle);
+                await setCollatETHOracle(uniswapOracle);
                 break;
             case frax:
-                await _setFRAXEthOracle(uniswapOracle);
-                expect(await frax.fraxEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                await setStableEthOracle(uniswapOracle);
+                expect(await frax.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             case fxs:
-                await _setFXSEthOracle(uniswapOracle);
-                expect(await frax.fxsEthOracleAddress()).to.be.eq(uniswapOracle.address);
+                await setStockEthOracle(uniswapOracle);
+                expect(await frax.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             default:
                 await console.log("Unknow token!");
@@ -95,7 +95,7 @@ contract('ExchangeAMO', async function () {
 
         // Set each other
         await fxs.setFraxAddress(frax.address);
-        await frax.setFXSAddress(fxs.address);
+        await frax.setStockAddress(fxs.address);
 
         // Mock token Date
         const MockToken = await ethers.getContractFactory("MockToken");
@@ -236,7 +236,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date() / 1000 + 2600000)
         );
 
         await frax.approve(router.address, toWei("1000"));
@@ -248,7 +248,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date() / 1000 + 2600000)
         );
 
         await fxs.approve(router.address, toWei("1000"));
@@ -260,7 +260,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 1000)
+            Math.round(new Date() / 1000 + 2600000)
         );
 
         // About oracle and uniswap

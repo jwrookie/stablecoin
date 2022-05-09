@@ -6,18 +6,16 @@ const {BigNumber} = require('ethers');
 const {type} = require('os');
 
 contract('Locker', async () => {
-
-
     async function getDurationTime(dayNumber) {
 
         return parseInt(time.duration.days(dayNumber));
     }
 
     async function checkInfoEq(anyThing, value) {
-        if ("" == anyThing || null == anyThing) {
+        if ("" === anyThing || null === anyThing) {
             return;
         }
-        if ("" == value || null == value) {
+        if ("" === value || null === value) {
             return;
         }
         if (expect(value).to.be.eq(value)) {
