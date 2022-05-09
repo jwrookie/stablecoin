@@ -42,7 +42,6 @@ contract('SwapRouter5Coins', () => {
             abi: WETH.abi,
         });
 
-
         // mint
         await token0.mint(owner.address, toWei("1000"));
         await token1.mint(owner.address, toWei("1000"));
@@ -56,7 +55,7 @@ contract('SwapRouter5Coins', () => {
         expect(await btc.balanceOf(owner.address)).to.be.eq(toWei("1000"));
         expect(await weth.balanceOf(owner.address)).to.be.eq(toWei("1000"));
 
-        // // deploy plain3pool
+        // deploy plain3pool
         plain3Balances = await deployContract(owner, {
             bytecode: Plain3Balances.bytecode,
             abi: Plain3BalancesAbi.abi,
@@ -215,14 +214,15 @@ contract('SwapRouter5Coins', () => {
         await swapMining.addPair(100, depositZap.address, true);
         await lock.addBoosts(swapMining.address);
         await fxs.addPool(swapMining.address);
+
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+        await btc.approve(swapRouter.address, toWei("10000"));
+        await weth.approve(swapRouter.address, toWei("10000"));
     });
 
-    it('test zap', async () => {
-        console.log(fromWei(toBN(await token0.balanceOf(owner.address, {gasLimit: "19500000"}))))
-        console.log(fromWei(toBN(await depositZap.calc_token_amount([toWei("1"), toWei("1"), toWei("1"), toWei("1"), toWei("1")], true, {gasLimit: "19500000"}))))
-    });
-
-    it('test exchange_underlying', async () => {
+    it('test zap exchange_underlying', async () => {
         let token0OwnerBef = await token0.balanceOf(owner.address);
         let token0PoolBef = await token0.balanceOf(pool3.address);
 
@@ -244,35 +244,56 @@ contract('SwapRouter5Coins', () => {
     });
 
     it('test swap mining', async () => {
-
-        let token0OwnerBef = await token0.balanceOf(owner.address);
-        let token0PoolBef = await token0.balanceOf(pool3.address);
-        let wethOwnerBef = await weth.balanceOf(owner.address);
-        let wethPoolBef = await weth.balanceOf(metaPool.address);
-
-        console.log("token0OwnerBef: " + token0OwnerBef);
-        console.log("token0PoolBef: " + token0PoolBef);
-        console.log("wethOwnerBef: " + wethOwnerBef);
-        console.log("wethPoolBef: " + wethPoolBef);
-
-        await token0.approve(swapRouter.address, toWei("10000"))
-        await token1.approve(swapRouter.address, toWei("10000"))
-        await token2.approve(swapRouter.address, toWei("10000"))
-        await btc.approve(swapRouter.address, toWei("10000"))
-        await weth.approve(swapRouter.address, toWei("10000"))
-        await curveToken.approve(swapRouter.address, toWei("10000"))
-
-        await pool3.approve(swapRouter.address, toWei("10000"))
-        await pool3.approve(depositZap.address, toWei("10000"))
-
         let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
-        console.log(data)
         expect(data).to.be.eq(token0.address)
-        // console.log(await depositZap.underlying_coins(0))
 
         const times = Number((new Date().getTime() + 1000).toFixed(0))
         await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times)
-        const reword = await swapMining.rewardInfo(owner.address);
-        console.log("reword: " + reword);
+        let reword = await swapMining.rewardInfo(owner.address);
+
+        let fxsBef = await fxs.balanceOf(owner.address);
+        await swapMining.getReward(0);
+        let fxsAft = await fxs.balanceOf(owner.address);
+
+        let diff = fxsAft.sub(fxsBef);
+        expect(diff).to.be.eq(reword.add("52500000000000000"));
+
+        await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
+
+        reword = await swapMining.rewardInfo(owner.address);
+        await swapMining.getReward(0);
+
+        let fxsAft1 = await fxs.balanceOf(owner.address);
+        let diff1 = fxsAft1.sub(fxsAft);
+        expect(diff1).to.be.eq(reword.mul(2));
+    });
+
+    it('test metaPool can swapCryptoToken', async () => {
+
+        let times = Number((new Date().getTime() + 1000).toFixed(0));
+        await swapRouter.swapCryptoToken(depositZap.address, 0, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 0, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 0, 3, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 1, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 1, 3, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 1, 4, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapCryptoToken(depositZap.address, 2, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 2, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 2, 3, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 2, 4, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapCryptoToken(depositZap.address, 3, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 3, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 3, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 3, 4, "10000000", 0, owner.address, times);
+
+        await swapRouter.swapCryptoToken(depositZap.address, 4, 0, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 4, 1, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 4, 2, "10000000", 0, owner.address, times);
+        await swapRouter.swapCryptoToken(depositZap.address, 4, 3, "10000000", 0, owner.address, times);
     });
 });
