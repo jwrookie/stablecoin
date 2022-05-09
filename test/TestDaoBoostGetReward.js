@@ -248,6 +248,7 @@ contract('Gauge', async function () {
         weight = await locker.balanceOfNFT(tokenId);
         await gaugeController.vote(tokenId, await gaugeController.getPool(0));
 
+
         // // Get reward
         // await time.advanceBlockTo(parseInt(await time.latestBlock()) + 100);
         // expect(await getUserInfo(owner, 0)).to.be.gt(0);
