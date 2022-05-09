@@ -218,17 +218,19 @@ contract SwapRouter is Ownable {
     ) external ensure(deadline) {
 //        int128 fromInt = int128(uint128(from));
 //        int128 toInt = int128(uint128(to));
-//        address fromToken = IZapDepositor4pool(pool).underlying_coins(from);
+        address fromToken = IZapDepositor4pool(pool).underlying_coins(from);
 //        address toToken = IZapDepositor4pool(pool).underlying_coins(to);
 //        if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
 //            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
 //        }
-//        TransferHelper.safeTransferFrom(
-//            fromToken,
-//            msg.sender,
-//            address(this),
-//            _from_amount
-//        );
+
+        TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
+        TransferHelper.safeTransferFrom(
+            fromToken,
+            msg.sender,
+            address(this),
+            _from_amount
+        );
         IZapDepositor4pool(pool).exchange_underlying(
             from,
             to,

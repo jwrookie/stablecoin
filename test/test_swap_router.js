@@ -42,6 +42,7 @@ contract('SwapRouter5Coins', () => {
             abi: WETH.abi,
         });
 
+
         // mint
         await token0.mint(owner.address, toWei("1000"));
         await token1.mint(owner.address, toWei("1000"));
@@ -263,6 +264,11 @@ contract('SwapRouter5Coins', () => {
 
         await pool3.approve(swapRouter.address, toWei("10000"))
         await pool3.approve(depositZap.address, toWei("10000"))
+
+        let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
+        console.log(data)
+        expect(data).to.be.eq(token0.address)
+        // console.log(await depositZap.underlying_coins(0))
 
         const times = Number((new Date().getTime() + 1000).toFixed(0))
         await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times)
