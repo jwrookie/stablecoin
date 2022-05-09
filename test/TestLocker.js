@@ -50,19 +50,6 @@ contract('Locker', async () => {
 
     it('test get_last_user_slope', async function () {
         let lockSlop;
-        let lockMapBlcok;
-        let currentTime;
-
-        lockMap = await lock.point_history(0);
-        lockMapTimeStamp = lockMap[2];
-        lockMapBlcok = lockMap[3];
-        currentBlock = await time.latestBlock();
-        currentTime = await time.latest();
-
-        console.log("PointTs::\t" + lockMapTimeStamp);
-        console.log("CurrentT::\t" + currentTime);
-        console.log("PointBlk::\t" + lockMapBlcok);
-        console.log("CurrentBlk::\t" + currentBlock);
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = getDurationTime(1); // Lock one day
