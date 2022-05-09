@@ -125,43 +125,43 @@ contract('Boost', () => {
 
 
     });
-    it('should two pools, single user getReward correct', async () => {
-        await busd.connect(dev).approve(lock.address, toWei('10000000'));
-        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
-        let eta = time.duration.days(1);
-        // console.log("eta:" + parseInt(eta));
-
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
-
-        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-        await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'))
-
-
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        await gauge_busd.connect(dev).deposit("1000", 1);
-
-        await boost.updatePool(0);
-        await boost.updatePool(1);
-
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-
-
-        await time.increase(time.duration.days(1));
-
-        // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-
-        //let rewardDev = await gauge_usdc.pending(dev.address)
-        // console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address)
-        // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-
-        let rewardDev1 = await gauge_busd.pending(dev.address)
-        //console.log("rewardDev1:" + rewardDev1)
-        await gauge_busd.connect(dev).getReward(dev.address)
-        // console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
-
-
-    });
+    // it('should two pools, single user getReward correct', async () => {
+    //     await busd.connect(dev).approve(lock.address, toWei('10000000'));
+    //     await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+    //     let eta = time.duration.days(1);
+    //     // console.log("eta:" + parseInt(eta));
+    //
+    //     await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+    //
+    //     await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
+    //     await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'))
+    //
+    //
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //     await gauge_busd.connect(dev).deposit("1000", 1);
+    //
+    //     await boost.updatePool(0);
+    //     await boost.updatePool(1);
+    //
+    //     await gauge_usdc.connect(dev).deposit("1000", 1);
+    //
+    //
+    //     await time.increase(time.duration.days(1));
+    //
+    //     // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+    //
+    //     //let rewardDev = await gauge_usdc.pending(dev.address)
+    //     // console.log("rewardDev:" + rewardDev)
+    //     await gauge_usdc.connect(dev).getReward(dev.address)
+    //     // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+    //
+    //     let rewardDev1 = await gauge_busd.pending(dev.address)
+    //     //console.log("rewardDev1:" + rewardDev1)
+    //     await gauge_busd.connect(dev).getReward(dev.address)
+    //     // console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
+    //
+    //
+    // });
 
 
 });

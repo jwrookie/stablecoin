@@ -312,12 +312,10 @@ contract('AMOMinter', async function () {
         expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // Set oracle
         await frax_uniswapOracle.update();
-        console.log("frax_price:\t" + await frax.stablePrice());
 
         // Set redeem fee
         await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
         redeemPtionFee = await usdcPool.redemption_fee();
-        console.log("redeem_fee:\t" + redeemPtionFee);
         // latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
         // expect(parseInt(latestPrice)).to.be.eq(1);
 
@@ -348,7 +346,6 @@ contract('AMOMinter', async function () {
         // Set oracle
         await fxs_uniswapOracle.update();
         stockPrice = await frax.stockPrice();
-        console.log(stockPrice);
         await expect(amoMinter.poolCollectAndGive(exchangeAMO.address)).to.be.revertedWith("aeo or whitelist");
         await operatable.addContract(amoMinter.address);
 
