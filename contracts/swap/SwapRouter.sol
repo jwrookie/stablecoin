@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 import "../tools/TransferHelper.sol";
 import "../interface/IStablePool.sol";
+import "../interface/curve/IZapDepositor4pool.sol";
 import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";
 
@@ -84,6 +85,21 @@ contract SwapRouter is Ownable {
                 amounts[i] = amount;
                 quantity = ICryptoPool(pair).calc_token_amount(amounts);
             }
+            ISwapMining(swapMining).swap(account, pair, quantity);
+        }
+    }
+
+    function callCryptoSwapMining2(
+        address account,
+        address pair,
+        uint256 i,
+        uint256 amount
+    ) private {
+        if (swapMining != address(0)) {
+            uint256 quantity;
+            uint256[5] memory amounts;
+            amounts[i] = amount;
+            quantity = IZapDepositor4pool(pair).calc_token_amount(amounts, true);
             ISwapMining(swapMining).swap(account, pair, quantity);
         }
     }
@@ -189,6 +205,38 @@ contract SwapRouter is Ownable {
             receiver
         );
         callCryptoSwapMining(receiver, pool, from, _from_amount);
+    }
+
+    function swapCryptoToken(
+        address pool,
+        uint256 from,
+        uint256 to,
+        uint256 _from_amount,
+        uint256 _min_to_amount,
+        address receiver,
+        uint256 deadline
+    ) external ensure(deadline) {
+//        int128 fromInt = int128(uint128(from));
+//        int128 toInt = int128(uint128(to));
+//        address fromToken = IZapDepositor4pool(pool).underlying_coins(from);
+//        address toToken = IZapDepositor4pool(pool).underlying_coins(to);
+//        if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
+//            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
+//        }
+//        TransferHelper.safeTransferFrom(
+//            fromToken,
+//            msg.sender,
+//            address(this),
+//            _from_amount
+//        );
+        IZapDepositor4pool(pool).exchange_underlying(
+            from,
+            to,
+            _from_amount,
+            _min_to_amount,
+            receiver
+        );
+        callCryptoSwapMining2(receiver, pool, from, _from_amount);
     }
 
     function swapEthForToken(
