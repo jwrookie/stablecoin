@@ -124,13 +124,9 @@ contract('Gauge', async function () {
 
         const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
-        stake = await MockToken.deploy("stake", "stake", 18, toWei("1"));
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
-        await stake.mint(owner.address, toWei("1"));
-        await stake.mint(dev.address, toWei("1"));
         mockUsdcPool = usdc;
-        stakeToken = stake;
 
         boostDurationTime = await boost.duration();
 
@@ -148,10 +144,9 @@ contract('Gauge', async function () {
         const Gauge = await ethers.getContractFactory("Gauge");
         gauge = await Gauge.attach(gaugeAddress);
 
-        // await usdc.connect(owner).approve(gauge.address, toWei("1"));
-        // await usdc.connect(dev).approve(gauge.address, toWei("1"));
-        // await stake.connect(owner).approve(gauge.address, toWei("1"));
-        // await stake.connect(dev).approve(gauge.address, toWei("1"));
+        await usdc.connect(owner).approve(gauge.address, toWei("1"));
+        await usdc.connect(dev).approve(gauge.address, toWei("1"));
+        // await mockUsdcPool.approve(gauge.address, toWei("1"));
     });
 
     it('test Single user deposit and get reward', async function () {
