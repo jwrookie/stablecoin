@@ -507,4 +507,5 @@ contract('AMOMinter', async function () {
         fraxValE18 = dollarBalancesMap[0];
         expect(BigNumber.from(fraxValE18)).to.be.eq(initFraxDollarBalanceStored);
     });
+
 })

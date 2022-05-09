@@ -6,8 +6,6 @@ const {BigNumber} = require('ethers');
 const {type} = require('os');
 
 contract('Locker', async () => {
-
-
     async function getDurationTime(dayNumber) {
 
         return parseInt(time.duration.days(dayNumber));
