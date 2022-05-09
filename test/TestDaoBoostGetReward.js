@@ -83,74 +83,6 @@ contract('Gauge', async function () {
     }
 
     beforeEach(async function () {
-        // [owner, dev] = await ethers.getSigners();
-        // // About boost and locker constructs
-        // const TestOperatable = await ethers.getContractFactory("Operatable");
-        // operatable = await TestOperatable.deploy();
-        // CheckOper = await ethers.getContractFactory("CheckPermission");
-        // checkOper = await CheckOper.deploy(operatable.address);
-        //
-        // const TestERC20 = await ethers.getContractFactory("TestERC20");
-        // testERC20 = await TestERC20.deploy();
-        // // Mint
-        // await testERC20.mint(owner.address, toWei("1"));
-        // await testERC20.mint(dev.address, toWei("1"));
-        // // Mint
-        // duration = await getDurationTime();
-        // const Locker = await ethers.getContractFactory("Locker");
-        // locker = await Locker.deploy(checkOper.address, testERC20.address, duration);
-        //
-        // // Swap token
-        // const TestOracle = await ethers.getContractFactory("TestOracle");
-        // testOracle = await TestOracle.deploy();
-        // const Frax = await ethers.getContractFactory("RStablecoin");
-        // frax = await Frax.deploy(checkOper.address, "frax", "frax");
-        // const Fxs = await ethers.getContractFactory("Stock");
-        // fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
-        // await fxs.setFraxAddress(frax.address);
-        // await frax.setStockAddress(fxs.address);
-        // await frax.transfer(dev.address, toWei("0.5"));
-        // await fxs.transfer(dev.address, toWei("0.5"));
-        // mockFraxPool = frax;
-        // await testERC20.connect(owner).approve(locker.address, toWei("0.5"));
-        // await testERC20.connect(dev).approve(locker.address, toWei("0.5"));
-        //
-        // const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
-        // gaugeFactory = await GaugeFactory.deploy(checkOper.address);
-        //
-        // startBlock = await time.latestBlock();
-        // initStartBlock = startBlock;
-        //
-        // const Boost = await ethers.getContractFactory("Boost");
-        // boost = await Boost.deploy(
-        //     checkOper.address,
-        //     locker.address,
-        //     gaugeFactory.address,
-        //     frax.address,
-        //     10000,
-        //     parseInt(initStartBlock),
-        //     10
-        // );
-        //
-        // const MockToken = await ethers.getContractFactory("MockToken");
-        // usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
-        // await usdc.mint(owner.address, toWei("1"));
-        // await usdc.mint(dev.address, toWei("1"));
-        // mockUsdcPool = usdc;
-        //
-        // boostDurationTime = await boost.duration();
-        //
-        // const GaugeController = await ethers.getContractFactory("GaugeController");
-        // gaugeController = await GaugeController.deploy(
-        //     checkOper.address,
-        //     boost.address,
-        //     locker.address,
-        //     boostDurationTime
-        // );
-
-        // await usdc.connect(owner).approve(gauge.address, toWei("1"));
-        // await usdc.connect(dev).approve(gauge.address, toWei("1"));
-
         [owner, dev] = await ethers.getSigners();
         // About boost and locker constructs
         const TestOperatable = await ethers.getContractFactory("Operatable");
@@ -215,6 +147,9 @@ contract('Gauge', async function () {
             locker.address,
             boostDurationTime
         );
+
+        // await usdc.connect(owner).approve(gauge.address, toWei("1"));
+        // await usdc.connect(dev).approve(gauge.address, toWei("1"));
     });
 
     it('test Single user deposit and get reward', async function () {
