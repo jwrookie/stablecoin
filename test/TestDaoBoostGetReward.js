@@ -6,7 +6,7 @@ const {BigNumber} = require('ethers');
 
 contract('Gauge', async function () {
     const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
-    let stakeToken;
+    let gaugeArrays = new Array();
 
     async function getDurationTime(day = 1) {
         if (undefined === typeof day || 0 === day) {
@@ -40,9 +40,18 @@ contract('Gauge', async function () {
         return userInfoMap[structIndex];
     }
 
+    async function getGauges(poolAddress, approveNumber) {
+        const Gauge = await ethers.getContractFactory("Gauge");
+        gaugeAddress = await boost.gauges(poolAddress.address);
+        gauge = await Gauge.attach(gaugeAddress);
+        await poolAddress.approve(gauge.address, toWei(approveNumber));
+        return gauge;
+    }
+
     async function getPoolVote() {
         let poolVoteArray = new Array();
         let poolVoteLength = await boost.poolLength();
+
         if (poolVoteLength > 0) {
             for (let i = 0; i < poolVoteLength; i++) {
                 poolVoteArray.push(await getPoolInfo(i, 0));
@@ -54,6 +63,7 @@ contract('Gauge', async function () {
     async function getWeights() {
         let weightsArray = new Array();
         let poolVoteLength = await boost.poolLength();
+
         if (poolVoteLength > 0) {
             for (let i = 0; i < poolVoteLength; i++) {
                 poolInfo = await boost.poolInfo(i);
@@ -73,6 +83,74 @@ contract('Gauge', async function () {
     }
 
     beforeEach(async function () {
+        // [owner, dev] = await ethers.getSigners();
+        // // About boost and locker constructs
+        // const TestOperatable = await ethers.getContractFactory("Operatable");
+        // operatable = await TestOperatable.deploy();
+        // CheckOper = await ethers.getContractFactory("CheckPermission");
+        // checkOper = await CheckOper.deploy(operatable.address);
+        //
+        // const TestERC20 = await ethers.getContractFactory("TestERC20");
+        // testERC20 = await TestERC20.deploy();
+        // // Mint
+        // await testERC20.mint(owner.address, toWei("1"));
+        // await testERC20.mint(dev.address, toWei("1"));
+        // // Mint
+        // duration = await getDurationTime();
+        // const Locker = await ethers.getContractFactory("Locker");
+        // locker = await Locker.deploy(checkOper.address, testERC20.address, duration);
+        //
+        // // Swap token
+        // const TestOracle = await ethers.getContractFactory("TestOracle");
+        // testOracle = await TestOracle.deploy();
+        // const Frax = await ethers.getContractFactory("RStablecoin");
+        // frax = await Frax.deploy(checkOper.address, "frax", "frax");
+        // const Fxs = await ethers.getContractFactory("Stock");
+        // fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
+        // await fxs.setFraxAddress(frax.address);
+        // await frax.setStockAddress(fxs.address);
+        // await frax.transfer(dev.address, toWei("0.5"));
+        // await fxs.transfer(dev.address, toWei("0.5"));
+        // mockFraxPool = frax;
+        // await testERC20.connect(owner).approve(locker.address, toWei("0.5"));
+        // await testERC20.connect(dev).approve(locker.address, toWei("0.5"));
+        //
+        // const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
+        // gaugeFactory = await GaugeFactory.deploy(checkOper.address);
+        //
+        // startBlock = await time.latestBlock();
+        // initStartBlock = startBlock;
+        //
+        // const Boost = await ethers.getContractFactory("Boost");
+        // boost = await Boost.deploy(
+        //     checkOper.address,
+        //     locker.address,
+        //     gaugeFactory.address,
+        //     frax.address,
+        //     10000,
+        //     parseInt(initStartBlock),
+        //     10
+        // );
+        //
+        // const MockToken = await ethers.getContractFactory("MockToken");
+        // usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
+        // await usdc.mint(owner.address, toWei("1"));
+        // await usdc.mint(dev.address, toWei("1"));
+        // mockUsdcPool = usdc;
+        //
+        // boostDurationTime = await boost.duration();
+        //
+        // const GaugeController = await ethers.getContractFactory("GaugeController");
+        // gaugeController = await GaugeController.deploy(
+        //     checkOper.address,
+        //     boost.address,
+        //     locker.address,
+        //     boostDurationTime
+        // );
+
+        // await usdc.connect(owner).approve(gauge.address, toWei("1"));
+        // await usdc.connect(dev).approve(gauge.address, toWei("1"));
+
         [owner, dev] = await ethers.getSigners();
         // About boost and locker constructs
         const TestOperatable = await ethers.getContractFactory("Operatable");
@@ -137,20 +215,13 @@ contract('Gauge', async function () {
             locker.address,
             boostDurationTime
         );
-
-        // Create a pool
-        await boost.createGauge(mockFraxPool.address, 100000, false);
-        gaugeAddress = await boost.gauges(mockFraxPool.address);
-        const Gauge = await ethers.getContractFactory("Gauge");
-        gauge = await Gauge.attach(gaugeAddress);
-
-        await usdc.connect(owner).approve(gauge.address, toWei("1"));
-        await usdc.connect(dev).approve(gauge.address, toWei("1"));
-        // await mockUsdcPool.approve(gauge.address, toWei("1"));
     });
 
     it('test Single user deposit and get reward', async function () {
+        // Create a pool
+        await boost.createGauge(mockFraxPool.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
+        gauge = await getGauges(mockFraxPool, "1");
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -167,11 +238,11 @@ contract('Gauge', async function () {
         // About gauge
         expect(await getUserInfo(owner, 0)).to.be.eq(0);
         expect(await getUserInfo(owner, 1)).to.be.eq(0);
-        // await gauge.deposit(toWei("0.000001"), tokenId);
-        // expect(await getUserInfo(owner, 0)).to.be.eq(toWei("0.000001"));
-        // expect(await gauge.totalSupply()).to.be.eq(toWei("0.000001"));
-        // expect(await gauge.tokenIds(owner.address)).to.be.eq(tokenId);
-        // expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
+        await gauge.deposit(toWei("0.000001"), tokenId);
+        expect(await getUserInfo(owner, 0)).to.be.eq(toWei("0.000001"));
+        expect(await gauge.totalSupply()).to.be.eq(toWei("0.000001"));
+        expect(await gauge.tokenIds(owner.address)).to.be.eq(tokenId);
+        expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
 
         // Vote
         weight = await locker.balanceOfNFT(tokenId);
