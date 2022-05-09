@@ -89,7 +89,7 @@ contract SwapRouter is Ownable {
         }
     }
 
-    function callCryptoTokenSwapMining(
+    function callCryptoSwapMining2(
         address account,
         address pair,
         uint256 i,
@@ -99,7 +99,7 @@ contract SwapRouter is Ownable {
             uint256 quantity;
             uint256[5] memory amounts;
             amounts[i] = amount;
-            quantity = IZapDepositor4pool(pair).calc_token_amount(amounts, false);
+            quantity = IZapDepositor4pool(pair).calc_token_amount(amounts, true);
             ISwapMining(swapMining).swap(account, pair, quantity);
         }
     }
@@ -216,10 +216,15 @@ contract SwapRouter is Ownable {
         address receiver,
         uint256 deadline
     ) external ensure(deadline) {
+//        int128 fromInt = int128(uint128(from));
+//        int128 toInt = int128(uint128(to));
         address fromToken = IZapDepositor4pool(pool).underlying_coins(from);
-        if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
-            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
-        }
+//        address toToken = IZapDepositor4pool(pool).underlying_coins(to);
+//        if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
+//            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
+//        }
+
+        TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         TransferHelper.safeTransferFrom(
             fromToken,
             msg.sender,
@@ -233,7 +238,7 @@ contract SwapRouter is Ownable {
             _min_to_amount,
             receiver
         );
-        callCryptoTokenSwapMining(receiver, pool, from, _from_amount);
+        callCryptoSwapMining2(receiver, pool, from, _from_amount);
     }
 
     function swapEthForToken(
