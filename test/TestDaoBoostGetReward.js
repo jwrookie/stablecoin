@@ -301,6 +301,7 @@ contract('Gauge', async function () {
         await gaugeController.addPool(frax.address);
 
         await gauge.deposit(toWei("0.000001"), tokenId);
+        expect(await gauge.tokenPerBlock()).to.be.eq(0);
 
         // Vote
         poolVotesArray = await getPoolVote();
@@ -310,11 +311,19 @@ contract('Gauge', async function () {
         expect(weightsArray).to.be.not.eq([]);
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
         await boost.vote(tokenId, poolVotesArray, weightsArray);
+        expect(await gauge.tokenPerBlock()).to.be.eq(await boost.minTokenReward());
 
         // Get reward
+        initFxsBalanceOfOwner = await fxs.balanceOf(owner.address);
+        await gauge.getReward(owner.address);
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
+        expect(await gauge.tokenPerBlock()).to.be.eq(await boost.minTokenReward());
     });
 
-    it('test Single user and more gauges to vote and get reward', async function () {
+    it('test Single user and more gauges to vote and get reward will fail', async function () {
+        let fraxGauge;
+        let usdcGauge;
+
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.createGauge(usdc.address, 100000, false);
@@ -346,6 +355,9 @@ contract('Gauge', async function () {
         expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
 
         // Vote
-
+        expect(await getUserInfo(fraxGauge, owner, 1)).to.be.eq(0);
+        expect(await getUserInfo(usdcGauge, owner, 1)).to.be.eq(0);
+        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+        await expectRevert(gaugeController.vote(tokenId, await gaugeController.getPool(1)), "next duration use");
     });
 });
