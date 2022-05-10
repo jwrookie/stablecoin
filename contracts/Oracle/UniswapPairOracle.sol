@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.6.11;
+pragma solidity 0.8.10;
 
 import '@openzeppelin/contracts/access/Ownable.sol';
 import './Uniswap/Interfaces/IUniswapV2Factory.sol';

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.6.11;
+pragma solidity 0.8.10;
 
 interface IStock {
   function DEFAULT_ADMIN_ROLE() external view returns(bytes32);
