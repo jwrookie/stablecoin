@@ -369,8 +369,6 @@ contract('SwapRouter', () => {
         //
         //
         // expect(info[2]).to.be.eq(weight1);
-
-
     });
 
 
