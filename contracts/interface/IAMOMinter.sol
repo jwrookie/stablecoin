@@ -3,7 +3,6 @@ pragma solidity 0.8.10;
 
 // MAY need to be updated
 interface IAMOMinter {
-
     function stableMintBalances(address) external view returns (int256);
 
     function burnStockFromAMO(uint256) external;

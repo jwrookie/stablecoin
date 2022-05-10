@@ -5,21 +5,20 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import '../tools/TransferHelper.sol';
-import '../interface/IAMO.sol';
+import "../tools/TransferHelper.sol";
+import "../interface/IAMO.sol";
 import "../tools/CheckPermission.sol";
 import "../interface/IStablecoinPool.sol";
 import "../interface/IStablecoin.sol";
 import "../interface/IStock.sol";
 
 contract AMOMinter is CheckPermission {
-
     uint256 private constant PRICE_PRECISION = 1e6;
 
     IStablecoin public immutable stablecoin;
     IStock public immutable stock;
     ERC20 public immutable collateralToken;
-    IStablecoinPool public  pool;
+    IStablecoinPool public pool;
 
     address[] public amosArray;
     mapping(address => bool) public amos; // Mapping is also used for faster verification
@@ -42,7 +41,6 @@ contract AMOMinter is CheckPermission {
     mapping(address => uint256) public collatBorrowedBalances; // Amount of collateral the contract borrowed, by AMO
     uint256 public collatBorrowedSum = 0; // Across all AMOs
 
-
     uint256 public stableDollarBalanceStored = 0;
 
     // Collateral balance related
@@ -52,8 +50,7 @@ contract AMOMinter is CheckPermission {
     // AMO balance corrections
     mapping(address => uint256[2]) public correctionOffsetsAmos;
 
-
-    constructor (
+    constructor(
         address _operatorMsg,
         address _custodian_address,
         address _stableAddress,
@@ -61,12 +58,11 @@ contract AMOMinter is CheckPermission {
         address _collateral_address,
         address _pool_address
     ) CheckPermission(_operatorMsg) {
-
         stablecoin = IStablecoin(_stableAddress);
         stock = IStock(_stockAddress);
         pool = IStablecoinPool(_pool_address);
         collateralToken = ERC20(_collateral_address);
-        missingDecimals = uint(18) - collateralToken.decimals();
+        missingDecimals = uint256(18) - collateralToken.decimals();
     }
 
     modifier validAMO(address amo_address) {
@@ -89,21 +85,23 @@ contract AMOMinter is CheckPermission {
     }
 
     function stableTrackedGlobal() external view returns (uint256) {
-        return stableDollarBalanceStored - stableMintSum - (collatBorrowedSum * (10 ** missingDecimals));
+        return stableDollarBalanceStored - stableMintSum - (collatBorrowedSum * (10**missingDecimals));
     }
 
     function stableTrackedAMO(address amo_address) external view returns (uint256) {
-        (uint256 fraxValE18,) = IAMO(amo_address).dollarBalances();
+        (uint256 fraxValE18, ) = IAMO(amo_address).dollarBalances();
         uint256 stableValE18Corrected = fraxValE18 + correctionOffsetsAmos[amo_address][0];
-        return stableValE18Corrected - stableMintBalances[amo_address] - ((collatBorrowedBalances[amo_address]) * (10 ** missingDecimals));
+        return
+            stableValE18Corrected -
+            stableMintBalances[amo_address] -
+            ((collatBorrowedBalances[amo_address]) * (10**missingDecimals));
     }
-
 
     // Callable by anyone willing to pay the gas
     function syncDollarBalances() public {
         uint256 totalStableValueD18 = 0;
         uint256 totalCollateralValueD18 = 0;
-        for (uint i = 0; i < amosArray.length; i++) {
+        for (uint256 i = 0; i < amosArray.length; i++) {
             // Exclude null addresses
             address amo_address = amosArray[i];
             if (amo_address != address(0)) {
@@ -122,7 +120,7 @@ contract AMOMinter is CheckPermission {
 
         uint256 globalCollateralRatio = stablecoin.globalCollateralRatio();
 
-        uint256 redeemAmountE6 = ((_amount * (uint256(1e6) - redemptionFee)) / 1e6) / (10 ** missingDecimals);
+        uint256 redeemAmountE6 = ((_amount * (uint256(1e6) - redemptionFee)) / 1e6) / (10**missingDecimals);
         uint256 expectedCollatAmount = (redeemAmountE6 * globalCollateralRatio) / 1e6;
         expectedCollatAmount = (expectedCollatAmount * 1e6) / colPriceUsd;
 
@@ -156,7 +154,11 @@ contract AMOMinter is CheckPermission {
 
     // This contract is essentially marked as a 'pool' so it can call OnlyPools functions like poolMint and poolBurnFrom
     // on the main stable contract
-    function mintStableForAMO(address destinationAmo, uint256 stableAmount) external onlyOperator validAMO(destinationAmo) {
+    function mintStableForAMO(address destinationAmo, uint256 stableAmount)
+        external
+        onlyOperator
+        validAMO(destinationAmo)
+    {
         // Make sure you aren't minting more than the mint cap
         require((stableMintSum + stableAmount) <= stableCoinMintCap, "Mint cap reached");
         stableMintBalances[destinationAmo] += stableAmount;
@@ -190,7 +192,6 @@ contract AMOMinter is CheckPermission {
     }
 
     function mintStockForAMO(address destinationAmo, uint256 _amount) external onlyOperator validAMO(destinationAmo) {
-
         // Make sure you aren't minting more than the mint cap
         require((stockMintSum + _amount) <= fxsMintCap, "Mint cap reached");
         stockMintBalances[destinationAmo] += _amount;
@@ -204,7 +205,6 @@ contract AMOMinter is CheckPermission {
     }
 
     function burnStockFromAMO(uint256 _amount) external validAMO(msg.sender) {
-
         // Burn first
         stock.poolBurnFrom(msg.sender, _amount);
 
@@ -220,11 +220,7 @@ contract AMOMinter is CheckPermission {
     // --------------------------- Collateral ---------------------------
     // ------------------------------------------------------------------
 
-    function giveCollatToAMO(
-        address destinationAmo,
-        uint256 _amount
-    ) external onlyOperator validAMO(destinationAmo) {
-
+    function giveCollatToAMO(address destinationAmo, uint256 _amount) external onlyOperator validAMO(destinationAmo) {
         require((collatBorrowedSum + _amount) <= collatBorrowCap, "Borrow cap");
         collatBorrowedBalances[destinationAmo] += _amount;
         collatBorrowedSum += _amount;
@@ -240,7 +236,6 @@ contract AMOMinter is CheckPermission {
     }
 
     function receiveCollatFromAMO(uint256 _amount) external validAMO(msg.sender) {
-
         // Give back first
         TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(pool), _amount);
 
@@ -252,7 +247,7 @@ contract AMOMinter is CheckPermission {
         syncDollarBalances();
     }
 
-    // Adds an AMO 
+    // Adds an AMO
     function addAMO(address amoAddress, bool _sync) public onlyOperator {
         require(amoAddress != address(0), "Zero address detected");
 
@@ -286,7 +281,7 @@ contract AMOMinter is CheckPermission {
         delete amos[amoAddress];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < amosArray.length; i++) {
+        for (uint256 i = 0; i < amosArray.length; i++) {
             if (amosArray[i] == amoAddress) {
                 amosArray[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
@@ -315,7 +310,11 @@ contract AMOMinter is CheckPermission {
         minCR = _minCR;
     }
 
-    function setAMOCorrectionOffsets(address amoAddress, uint256 fraxE18Correction, uint256 collatE18Correction) external onlyOperator {
+    function setAMOCorrectionOffsets(
+        address amoAddress,
+        uint256 fraxE18Correction,
+        uint256 collatE18Correction
+    ) external onlyOperator {
         correctionOffsetsAmos[amoAddress][0] = fraxE18Correction;
         correctionOffsetsAmos[amoAddress][1] = collatE18Correction;
 
@@ -335,7 +334,7 @@ contract AMOMinter is CheckPermission {
         uint256 _value,
         bytes calldata _data
     ) external onlyOperator returns (bool, bytes memory) {
-        (bool success, bytes memory result) = _to.call{value : _value}(_data);
+        (bool success, bytes memory result) = _to.call{value: _value}(_data);
         return (success, result);
     }
 

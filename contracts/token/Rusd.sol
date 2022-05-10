@@ -40,7 +40,10 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
 
-    enum PriceChoice {STABLE, STOCK}
+    enum PriceChoice {
+        STABLE,
+        STOCK
+    }
     ChainlinkETHUSDPriceConsumer private ethUsdPricer;
     uint8 private ethUsdPricerDecimals;
     UniswapPairOracle private stableEthOracle;
@@ -52,13 +55,11 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     address public weth;
     address public ethUsdConsumerAddress;
 
-
     // The addresses in this array are added by the oracle and these contracts are able to mint stable
     address[] public poolAddress;
 
     // Mapping is also used for faster verification
     mapping(address => bool) public isStablePools;
-
 
     uint256 public globalCollateralRatio; // 6 decimals of precision, e.g. 924102 = 0.924102
     uint256 public redemptionFee; // 6 decimals of precision, divide by 1000000 in calculations for fee
@@ -70,7 +71,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
-    uint256 public K = 1e3;// 1=1e6
+    uint256 public K = 1e3; // 1=1e6
     uint256 public maxCR = 1e16;
     uint256 public lastQX;
     uint256 public kDuration = 1e7 * 1e18;
@@ -82,17 +83,17 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     modifier onlyByOperatorOrPool() {
         require(
-            msg.sender == operator()
-            || isStablePools[msg.sender] == true,
-            "Not the owner, the governance  or a pool");
+            msg.sender == operator() || isStablePools[msg.sender] == true,
+            "Not the owner, the governance  or a pool"
+        );
         _;
     }
 
-    constructor (
+    constructor(
         address _operatorMsg,
         string memory _name,
         string memory _symbol
-    )  ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
+    ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg) {
         _mint(msg.sender, GENESIS_SUPPLY);
         stableStep = 2500;
         // 6 decimals of precision, equal to 0.25%
@@ -108,16 +109,16 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
         // Get the ETH / USD price first, and cut it down to 1e6 precision
-        uint256 __ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
+        uint256 __ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(
+            uint256(10)**ethUsdPricerDecimals
+        );
         uint256 priceVSeth = 0;
 
         if (choice == PriceChoice.STABLE) {
             priceVSeth = uint256(stableEthOracle.consult(weth, PRICE_PRECISION));
-        }
-        else if (choice == PriceChoice.STOCK) {
+        } else if (choice == PriceChoice.STOCK) {
             priceVSeth = uint256(stockEthOracle.consult(weth, PRICE_PRECISION));
-        }
-        else revert("INVALID PRICE CHOICE. Needs to be either 0  or 1 ");
+        } else revert("INVALID PRICE CHOICE. Needs to be either 0  or 1 ");
 
         // Will be in 1e6 format
         return __ethusdPrice.mul(PRICE_PRECISION).div(priceVSeth);
@@ -134,21 +135,34 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function ethUsdPrice() public view returns (uint256) {
-        return uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
+        return uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10)**ethUsdPricerDecimals);
     }
 
     // This is needed to avoid costly repeat calls to different getter functions
     // It is cheaper gas-wise to just dump everything and only use some of the info
-    function stableInfo() public view returns (uint256, uint256, uint256, uint256, uint256, uint256, uint256, uint256) {
+    function stableInfo()
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256
+        )
+    {
         return (
-        oraclePrice(PriceChoice.STABLE),
-        oraclePrice(PriceChoice.STOCK),
-        totalSupply(),
-        globalCollateralRatio,
-        globalCollateralValue(),
-        mintingFee,
-        redemptionFee,
-        uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals) //eth_usd_price
+            oraclePrice(PriceChoice.STABLE),
+            oraclePrice(PriceChoice.STOCK),
+            totalSupply(),
+            globalCollateralRatio,
+            globalCollateralValue(),
+            mintingFee,
+            redemptionFee,
+            uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10)**ethUsdPricerDecimals) //eth_usd_price
         );
     }
 
@@ -159,18 +173,19 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     function globalCollateralValue() public view returns (uint256) {
         uint256 total_collateral_value_d18 = 0;
 
-        for (uint i = 0; i < poolAddress.length; i++) {
+        for (uint256 i = 0; i < poolAddress.length; i++) {
             // Exclude null addresses
             if (poolAddress[i] != address(0)) {
-                total_collateral_value_d18 = total_collateral_value_d18.add(StablecoinPool(poolAddress[i]).collatDollarBalance());
+                total_collateral_value_d18 = total_collateral_value_d18.add(
+                    StablecoinPool(poolAddress[i]).collatDollarBalance()
+                );
             }
-
         }
         return total_collateral_value_d18;
     }
 
     function refreshOtherCR() private {
-        uint qx = totalSupply();
+        uint256 qx = totalSupply();
         uint256 diff;
         bool isReduce;
         if (qx > lastQX) {
@@ -179,7 +194,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         } else {
             diff = lastQX.sub(qx);
         }
-        uint period = diff.div(kDuration);
+        uint256 period = diff.div(kDuration);
         for (uint256 i = 0; i < period; i++) {
             if (isReduce) {
                 maxCR = maxCR.mul(1e6 - K);
@@ -196,18 +211,24 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
     function refreshCollateralRatio() public whenNotPaused {
         uint256 stablePriceCur = stablePrice();
-        require(block.timestamp - lastCallTime >= refreshCooldown, "Must wait for the refresh cooldown since last refresh");
+        require(
+            block.timestamp - lastCallTime >= refreshCooldown,
+            "Must wait for the refresh cooldown since last refresh"
+        );
 
         refreshOtherCR();
         // Step increments are 0.25% (upon genesis, changable by setStableStep())
 
-        if (stablePriceCur > priceTarget.add(priceBand)) {//decrease collateral ratio
-            if (globalCollateralRatio <= stableStep) {//if within a step of 0, go to 0
+        if (stablePriceCur > priceTarget.add(priceBand)) {
+            //decrease collateral ratio
+            if (globalCollateralRatio <= stableStep) {
+                //if within a step of 0, go to 0
                 globalCollateralRatio = 0;
             } else {
                 globalCollateralRatio = globalCollateralRatio.sub(stableStep);
             }
-        } else if (stablePriceCur < priceTarget.sub(priceBand)) {//increase collateral ratio
+        } else if (stablePriceCur < priceTarget.sub(priceBand)) {
+            //increase collateral ratio
             if (globalCollateralRatio.add(stableStep) >= 1000000) {
                 globalCollateralRatio = 1000000;
                 // cap collateral ratio at 1.000000
@@ -219,13 +240,11 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             globalCollateralRatio = maxCR;
         }
 
-
         lastCallTime = block.timestamp;
         // Set the time of the last expansion
 
         emit CollateralRatioRefreshed(globalCollateralRatio);
     }
-
 
     // Used by pools when user redeems
     function poolBurnFrom(address _address, uint256 _amount) public onlyPools {
@@ -262,7 +281,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         delete isStablePools[_poolAddress];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < poolAddress.length; i++) {
+        for (uint256 i = 0; i < poolAddress.length; i++) {
             if (poolAddress[i] == _poolAddress) {
                 poolAddress[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
@@ -316,7 +335,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         emit PriceBandSet(_priceBand);
     }
 
-
     function setStableEthOracle(address stableOracle, address _weth) public onlyOperator {
         require((stableOracle != address(0)) && (_weth != address(0)), "Zero address detected");
         stableEthOracleAddress = stableOracle;
@@ -324,7 +342,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         weth = _weth;
         emit StableETHOracleSet(stableOracle, _weth);
     }
-
 
     function setStockEthOracle(address stockOracle, address _weth) public onlyOperator {
         require((stockOracle != address(0)) && (_weth != address(0)), "Zero address detected");

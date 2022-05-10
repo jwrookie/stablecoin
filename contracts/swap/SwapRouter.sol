@@ -12,10 +12,7 @@ import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";
 
 contract SwapRouter is Ownable {
-    event ChangeSwapMining(
-        address indexed oldSwapMining,
-        address indexed newSwapMining
-    );
+    event ChangeSwapMining(address indexed oldSwapMining, address indexed newSwapMining);
 
     address public WETH;
 
@@ -120,19 +117,8 @@ contract SwapRouter is Ownable {
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
-        TransferHelper.safeTransferFrom(
-            fromToken,
-            msg.sender,
-            address(this),
-            _from_amount
-        );
-        IStablePool(pool).exchange(
-            fromInt,
-            toInt,
-            _from_amount,
-            _min_to_amount,
-            receiver
-        );
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
+        IStablePool(pool).exchange(fromInt, toInt, _from_amount, _min_to_amount, receiver);
         callStableSwapMining(receiver, pool, from, _from_amount);
     }
 
@@ -160,19 +146,8 @@ contract SwapRouter is Ownable {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
 
-        TransferHelper.safeTransferFrom(
-            fromToken,
-            msg.sender,
-            address(this),
-            _from_amount
-        );
-        IStablePool(pool).exchange_underlying(
-            fromInt,
-            toInt,
-            _from_amount,
-            _min_to_amount,
-            receiver
-        );
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
+        IStablePool(pool).exchange_underlying(fromInt, toInt, _from_amount, _min_to_amount, receiver);
         callStableSwapMining(receiver, pool, callStable, _from_amount);
     }
 
@@ -190,20 +165,8 @@ contract SwapRouter is Ownable {
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
-        TransferHelper.safeTransferFrom(
-            fromToken,
-            msg.sender,
-            address(this),
-            _from_amount
-        );
-        ICryptoPool(pool).exchange(
-            from,
-            to,
-            _from_amount,
-            _min_to_amount,
-            false,
-            receiver
-        );
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
+        ICryptoPool(pool).exchange(from, to, _from_amount, _min_to_amount, false, receiver);
         callCryptoSwapMining(receiver, pool, from, _from_amount);
     }
 
@@ -220,19 +183,8 @@ contract SwapRouter is Ownable {
         if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
-        TransferHelper.safeTransferFrom(
-            fromToken,
-            msg.sender,
-            address(this),
-            _from_amount
-        );
-        IZapDepositor4pool(pool).exchange_underlying(
-            from,
-            to,
-            _from_amount,
-            _min_to_amount,
-            receiver
-        );
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
+        IZapDepositor4pool(pool).exchange_underlying(from, to, _from_amount, _min_to_amount, receiver);
         callCryptoTokenSwapMining(receiver, pool, from, _from_amount);
     }
 
@@ -248,35 +200,18 @@ contract SwapRouter is Ownable {
         uint256 bal = msg.value;
         address fromToken = IStablePool(pool).coins(from);
         if (fromToken != WETH) {
-            if (
-                IERC20(fromToken).allowance(address(this), pool) < _from_amount
-            ) {
+            if (IERC20(fromToken).allowance(address(this), pool) < _from_amount) {
                 TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
             }
 
-            TransferHelper.safeTransferFrom(
-                fromToken,
-                msg.sender,
-                address(this),
-                _from_amount
-            );
+            TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
         }
 
-        ICryptoPool(pool).exchange{value : bal}(
-            from,
-            to,
-            _from_amount,
-            _min_to_amount,
-            true,
-            receiver
-        );
+        ICryptoPool(pool).exchange{value: bal}(from, to, _from_amount, _min_to_amount, true, receiver);
         callCryptoSwapMining(receiver, pool, from, _from_amount);
     }
 
-    function recoverERC20(address _tokenAddress, uint256 _tokenAmount)
-    external
-    onlyOwner
-    {
+    function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
         TransferHelper.safeTransfer(_tokenAddress, owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
     }

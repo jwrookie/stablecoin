@@ -9,7 +9,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "../../tools/AbstractPausable.sol";
 import "../Rusd.sol";
 
-
 contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
@@ -26,13 +25,12 @@ contract Stock is ERC20Burnable, AbstractPausable {
         _;
     }
 
-    constructor (
+    constructor(
         address _operatorMsg,
         string memory _name,
         string memory _symbol,
         address _oracle
-
-    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
+    ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg) {
         require((_oracle != address(0)), "Zero address detected");
         oracle = _oracle;
         _mint(msg.sender, GENESIS_SUPPLY);
@@ -76,7 +74,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
         delete isPools[pool_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < poolAddress.length; i++) {
+        for (uint256 i = 0; i < poolAddress.length; i++) {
             if (poolAddress[i] == pool_address) {
                 poolAddress[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
@@ -86,18 +84,18 @@ contract Stock is ERC20Burnable, AbstractPausable {
         emit PoolRemoved(pool_address);
     }
 
-    function mint(address to, uint256 amount) public onlyPools returns (bool){
+    function mint(address to, uint256 amount) public onlyPools returns (bool) {
         _mint(to, amount);
         return true;
     }
 
-    // This function is what other frax pools will call to mint new FXS (similar to the FRAX mint) 
+    // This function is what other frax pools will call to mint new FXS (similar to the FRAX mint)
     function poolMint(address to, uint256 amount) external onlyPools {
         super._mint(to, amount);
         emit FXSMinted(address(this), to, amount);
     }
 
-    // This function is what other frax pools will call to burn FXS 
+    // This function is what other frax pools will call to burn FXS
     function poolBurnFrom(address _address, uint256 _amount) external onlyPools {
         super.burnFrom(_address, _amount);
         emit FXSBurned(_address, address(this), _amount);

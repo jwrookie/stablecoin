@@ -24,7 +24,6 @@ contract Bond is ERC20Burnable, AbstractPausable {
     // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
 
-
     /* ========== MODIFIERS ========== */
 
     modifier onlyIssuers() {
@@ -34,15 +33,11 @@ contract Bond is ERC20Burnable, AbstractPausable {
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor (
+    constructor(
         address _operatorMsg,
         string memory _name,
         string memory _symbol
-
-    ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg){
-
-    }
-
+    ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg) {}
 
     // Used by issuers when user mints
     function issuer_mint(address m_address, uint256 m_amount) external onlyIssuers {
@@ -63,7 +58,7 @@ contract Bond is ERC20Burnable, AbstractPausable {
         bond_issuers_array.push(issuer_address);
     }
 
-    // Removes an issuer 
+    // Removes an issuer
     function removeIssuer(address issuer_address) external onlyOwner {
         require(bond_issuers[issuer_address] == true, "Address nonexistant");
 
@@ -71,7 +66,7 @@ contract Bond is ERC20Burnable, AbstractPausable {
         delete bond_issuers[issuer_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint i = 0; i < bond_issuers_array.length; i++) {
+        for (uint256 i = 0; i < bond_issuers_array.length; i++) {
             if (bond_issuers_array[i] == issuer_address) {
                 bond_issuers_array[i] = address(0);
                 // This will leave a null in the array and keep the indices the same

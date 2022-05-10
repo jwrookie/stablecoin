@@ -1,64 +1,64 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
-
 import "@openzeppelin/contracts/utils/math/Math.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-import './TokenReward.sol';
-import '../tools/TransferHelper.sol';
+import "./TokenReward.sol";
+import "../tools/TransferHelper.sol";
 import "../interface/IVeToken.sol";
 
 abstract contract AbstractBoost is TokenReward {
     using SafeMath for uint256;
 
-    event Attach(address indexed owner, address indexed gauge, uint tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint tokenId);
-    event Voted(address indexed voter, uint tokenId, int256 weight);
-    event Abstained(uint tokenId, int256 weight);
+    event Attach(address indexed owner, address indexed gauge, uint256 tokenId);
+    event Detach(address indexed owner, address indexed gauge, uint256 tokenId);
+    event Voted(address indexed voter, uint256 tokenId, int256 weight);
+    event Abstained(uint256 tokenId, int256 weight);
     event ControllerAdded(address _address);
     event ControllerRemoved(address _address);
 
     mapping(address => bool) public controllers;
 
-    uint public totalWeight; // total voting weight
+    uint256 public totalWeight; // total voting weight
 
     address public immutable veToken; // the ve token that governs these contracts
     address internal immutable base;
 
     mapping(address => int256) public weights; // pool => weight
-    mapping(uint => mapping(address => int256)) public votes; // nft => pool => votes
-    mapping(uint => address[]) public poolVote; // nft => pools
-    mapping(uint => uint) public usedWeights;  // nft => total voting weight of user
+    mapping(uint256 => mapping(address => int256)) public votes; // nft => pool => votes
+    mapping(uint256 => address[]) public poolVote; // nft => pools
+    mapping(uint256 => uint256) public usedWeights; // nft => total voting weight of user
 
-
-    constructor(address _operatorMsg, address __ve,
+    constructor(
+        address _operatorMsg,
+        address __ve,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
-        uint256 _period)TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
+        uint256 _period
+    ) TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         veToken = __ve;
         base = IVeToken(__ve).token();
-
     }
 
-    function getPoolVote(uint256 tokenId) public view returns (address[] memory){
+    function getPoolVote(uint256 tokenId) public view returns (address[] memory) {
         return poolVote[tokenId];
     }
 
-    function reset(uint _tokenId) external {
+    function reset(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
     }
 
-    function _reset(uint _tokenId) internal {
+    function _reset(uint256 _tokenId) internal {
         address[] storage _poolVote = poolVote[_tokenId];
-        uint _poolVoteCnt = _poolVote.length;
+        uint256 _poolVoteCnt = _poolVote.length;
         int256 _totalWeight = 0;
 
-        for (uint i = 0; i < _poolVoteCnt; i ++) {
+        for (uint256 i = 0; i < _poolVoteCnt; i++) {
             address _pool = _poolVote[i];
             int256 _votes = votes[_tokenId][_pool];
 
@@ -79,24 +79,28 @@ abstract contract AbstractBoost is TokenReward {
         delete poolVote[_tokenId];
     }
 
-    function _vote(uint _tokenId, address[] memory _poolVote, int256[] memory _weights) internal {
+    function _vote(
+        uint256 _tokenId,
+        address[] memory _poolVote,
+        int256[] memory _weights
+    ) internal {
         _reset(_tokenId);
-        uint _poolCnt = _poolVote.length;
+        uint256 _poolCnt = _poolVote.length;
         int256 _weight = int256(IVeToken(veToken).balanceOfNFT(_tokenId));
         int256 _totalVoteWeight = 0;
         int256 _totalWeight = 0;
         int256 _usedWeight = 0;
 
-        for (uint i = 0; i < _poolCnt; i++) {
-            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
+        for (uint256 i = 0; i < _poolCnt; i++) {
+            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : -_weights[i];
         }
         require(_totalVoteWeight > 0, "total weight is 0");
 
-        for (uint i = 0; i < _poolCnt; i++) {
+        for (uint256 i = 0; i < _poolCnt; i++) {
             address _pool = _poolVote[i];
 
             if (isGaugeForPool(_pool)) {
-                int256 _poolWeight = _weights[i] * _weight / _totalVoteWeight;
+                int256 _poolWeight = (_weights[i] * _weight) / _totalVoteWeight;
                 require(votes[_tokenId][_pool] == 0, "token pool is 0");
                 require(_poolWeight != 0, "weight is 0");
                 _updatePoolInfo(_pool);
@@ -105,9 +109,8 @@ abstract contract AbstractBoost is TokenReward {
 
                 weights[_pool] += _poolWeight;
                 votes[_tokenId][_pool] += _poolWeight;
-                if (_poolWeight > 0) {
-                } else {
-                    _poolWeight = - _poolWeight;
+                if (_poolWeight > 0) {} else {
+                    _poolWeight = -_poolWeight;
                 }
                 _usedWeight += _poolWeight;
                 _totalWeight += _poolWeight;
@@ -119,20 +122,23 @@ abstract contract AbstractBoost is TokenReward {
         usedWeights[_tokenId] = uint256(_usedWeight);
     }
 
-    function poke(uint _tokenId) external {
+    function poke(uint256 _tokenId) external {
         address[] memory _poolVote = poolVote[_tokenId];
-        uint _poolCnt = _poolVote.length;
+        uint256 _poolCnt = _poolVote.length;
         int256[] memory _weights = new int256[](_poolCnt);
 
-        for (uint i = 0; i < _poolCnt; i ++) {
+        for (uint256 i = 0; i < _poolCnt; i++) {
             _weights[i] = votes[_tokenId][_poolVote[i]];
         }
 
         _vote(_tokenId, _poolVote, _weights);
     }
 
-
-    function vote(uint tokenId, address[] calldata _poolVote, int256[] calldata _weights) external {
+    function vote(
+        uint256 tokenId,
+        address[] calldata _poolVote,
+        int256[] calldata _weights
+    ) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         require(_poolVote.length == _weights.length);
         _vote(tokenId, _poolVote, _weights);
@@ -153,5 +159,5 @@ abstract contract AbstractBoost is TokenReward {
 
     function _updatePoolInfo(address _pool) internal virtual;
 
-    function isGaugeForPool(address _pool) internal virtual view returns (bool);
+    function isGaugeForPool(address _pool) internal view virtual returns (bool);
 }

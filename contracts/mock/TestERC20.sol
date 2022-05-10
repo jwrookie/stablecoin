@@ -12,6 +12,6 @@ contract TestERC20 is ERC20, ERC20Burnable, Ownable {
     constructor() ERC20("TestERC20", "TestERC20") {}
 
     function mint(address to, uint256 amount) external onlyOwner {
-      _mint(to, amount);
+        _mint(to, amount);
     }
 }
