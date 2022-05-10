@@ -1,21 +1,15 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.10;
 
-
 //import './lib/OracleLibrary.sol';
-import './AbstractBoost.sol';
+import "./AbstractBoost.sol";
 import "../interface/ISwapMining.sol";
-
 
 contract SwapMining is AbstractBoost, ISwapMining {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    event SwapMining(
-        address indexed account,
-        address indexed pair,
-        uint256 quantity
-    );
+    event SwapMining(address indexed account, address indexed pair, uint256 quantity);
 
     event ChangeRouter(address indexed oldRouter, address indexed newRouter);
 
@@ -46,7 +40,8 @@ contract SwapMining is AbstractBoost, ISwapMining {
     PoolInfo[] public poolInfo;
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 
-    constructor(address _operatorMsg,
+    constructor(
+        address _operatorMsg,
         address __ve,
         IToken _swapToken,
         address _factory,
@@ -63,13 +58,13 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     modifier onlyRouter() {
-        require(msg.sender == router, 'SwapMining: caller is not the router');
+        require(msg.sender == router, "SwapMining: caller is not the router");
         _;
     }
 
     // Get rewards from users in the current pool
     function pending(uint256 _pid, address _user) public view returns (uint256, uint256) {
-        require(_pid < poolInfo.length, 'SwapMining: Not find this pool');
+        require(_pid < poolInfo.length, "SwapMining: Not find this pool");
         uint256 userSub;
         PoolInfo memory pool = poolInfo[_pid];
         UserInfo memory user = userInfo[_pid][_user];
@@ -84,17 +79,17 @@ contract SwapMining is AbstractBoost, ISwapMining {
 
     // Get details of the pool
     function getPoolInfo(uint256 _pid)
-    public
-    view
-    returns (
-        address,
-        address,
-        uint256,
-        uint256,
-        uint256
-    )
+        public
+        view
+        returns (
+            address,
+            address,
+            uint256,
+            uint256,
+            uint256
+        )
     {
-        require(_pid <= poolInfo.length - 1, 'SwapMining: Not find this pool');
+        require(_pid <= poolInfo.length - 1, "SwapMining: Not find this pool");
         PoolInfo memory pool = poolInfo[_pid];
         //todo token get form pool
         address token0;
@@ -116,10 +111,9 @@ contract SwapMining is AbstractBoost, ISwapMining {
         address _pool,
         bool _withUpdate
     ) public onlyOperator {
-        require(_pool != address(0), '_pair is the zero address');
+        require(_pool != address(0), "_pair is the zero address");
         if (poolLength() > 0) {
             require((lpOfPid[_pool] == 0) && (address(poolInfo[0].pair) != _pool), "only one pair");
-
         }
         if (_withUpdate) {
             massUpdatePools();
@@ -128,12 +122,12 @@ contract SwapMining is AbstractBoost, ISwapMining {
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(
             PoolInfo({
-        pair : _pool,
-        quantity : 0,
-        allocPoint : _allocPoint,
-        allocSwapTokenAmount : 0,
-        lastRewardBlock : lastRewardBlock
-        })
+                pair: _pool,
+                quantity: 0,
+                allocPoint: _allocPoint,
+                allocSwapTokenAmount: 0,
+                lastRewardBlock: lastRewardBlock
+            })
         );
         lpOfPid[_pool] = poolLength() - 1;
         emit AddPool(_pool, _allocPoint);
@@ -155,7 +149,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     function setRouter(address newRouter) public onlyOperator {
-        require(newRouter != address(0), 'SwapMining: new router is the zero address');
+        require(newRouter != address(0), "SwapMining: new router is the zero address");
         address oldRouter = router;
         router = newRouter;
         emit ChangeRouter(oldRouter, router);
@@ -167,8 +161,8 @@ contract SwapMining is AbstractBoost, ISwapMining {
         address pair,
         uint256 quantity
     ) public override onlyRouter returns (bool) {
-        require(account != address(0), 'SwapMining: taker swap account is the zero address');
-        require(pair != address(0), 'SwapMining: taker swap pair is the zero address');
+        require(account != address(0), "SwapMining: taker swap account is the zero address");
+        require(pair != address(0), "SwapMining: taker swap pair is the zero address");
 
         if (poolLength() == 0) {
             return false;
@@ -219,7 +213,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     // The user withdraws all the transaction rewards of the pool
-    function getRewardAll() override public {
+    function getRewardAll() public override {
         uint256 userSub;
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
@@ -280,26 +274,28 @@ contract SwapMining is AbstractBoost, ISwapMining {
         _safeTokenTransfer(msg.sender, userSub);
     }
 
-    function getBoost(PoolInfo memory pool, address account, uint256 amount) public view returns (uint256){
-        uint256 _derived = amount * 30 / 100;
+    function getBoost(
+        PoolInfo memory pool,
+        address account,
+        uint256 amount
+    ) public view returns (uint256) {
+        uint256 _derived = (amount * 30) / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && totalWeight > 0) {
-            uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
-            _adjusted = (pool.quantity * useVe / totalWeight) * 70 / 100;
+            uint256 useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
+            _adjusted = (((pool.quantity * useVe) / totalWeight) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), amount);
-
     }
 
     function _updatePoolInfo(address _pool) internal override {
         updatePool(lpOfPid[_pool]);
     }
 
-    function isGaugeForPool(address _pool) internal override view returns (bool){
+    function isGaugeForPool(address _pool) internal view override returns (bool) {
         uint256 _pid = lpOfPid[_pool];
         PoolInfo memory pool = poolInfo[_pid];
         return pool.pair == _pool;
     }
-
 }

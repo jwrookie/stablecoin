@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity =0.8.10;
 
-import '@openzeppelin/contracts/access/Ownable.sol';
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 // seperate owner and operator, operator is for daily devops, only owner can update operator
 contract Operatable is Ownable {
@@ -11,22 +11,23 @@ contract Operatable is Ownable {
 
     mapping(address => bool) public contractWhiteList;
 
-    constructor(){
+    constructor() {
         operator = msg.sender;
         emit SetOperator(address(0), operator);
     }
 
     modifier onlyOperator() {
-        require(msg.sender == operator, 'not operator');
+        require(msg.sender == operator, "not operator");
         _;
     }
 
     function setOperator(address newOperator) public onlyOwner {
-        require(newOperator != address(0), 'bad new operator');
+        require(newOperator != address(0), "bad new operator");
         address oldOperator = operator;
         operator = newOperator;
         emit SetOperator(oldOperator, newOperator);
     }
+
     // File: @openzeppelin/contracts/utils/Address.sol
     function isContract(address account) public view returns (bool) {
         // This method relies in extcodesize, which returns 0 for contracts in
@@ -39,15 +40,17 @@ contract Operatable is Ownable {
         bytes32 codehash;
         bytes32 accountHash = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
         // solhint-disable-next-line no-inline-assembly
-        assembly {codehash := extcodehash(account)}
+        assembly {
+            codehash := extcodehash(account)
+        }
         return (codehash != 0x0 && codehash != accountHash);
     }
 
-    function addContract(address _target) onlyOperator public {
+    function addContract(address _target) public onlyOperator {
         contractWhiteList[_target] = true;
     }
 
-    function removeContract(address _target) onlyOperator public {
+    function removeContract(address _target) public onlyOperator {
         contractWhiteList[_target] = false;
     }
 

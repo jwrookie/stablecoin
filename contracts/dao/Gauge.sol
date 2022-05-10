@@ -8,52 +8,54 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../interface/IVeToken.sol";
 import "../interface/IBoost.sol";
-import '../tools/TransferHelper.sol';
+import "../tools/TransferHelper.sol";
 import "../tools/CheckPermission.sol";
 
 // Gauges are used to incentivize pools, they emit reward tokens over 7 days for staked LP tokens
 contract Gauge is ReentrancyGuard, CheckPermission {
     using SafeMath for uint256;
 
-    event Deposit(address indexed from, uint tokenId, uint amount);
-    event Withdraw(address indexed from, uint tokenId, uint amount);
-    event NotifyReward(address indexed from, address indexed reward, uint rewardRate);
-    event ClaimRewards(address indexed from, address indexed reward, uint amount);
-
+    event Deposit(address indexed from, uint256 tokenId, uint256 amount);
+    event Withdraw(address indexed from, uint256 tokenId, uint256 amount);
+    event NotifyReward(address indexed from, address indexed reward, uint256 rewardRate);
+    event ClaimRewards(address indexed from, address indexed reward, uint256 amount);
 
     // Info of each user.
     struct UserInfo {
-        uint256 amount;     // How many LP tokens the user has provided.
+        uint256 amount; // How many LP tokens the user has provided.
         uint256 rewardDebt; // Reward debt.
-
     }
 
     address public immutable stake; // the LP token that needs to be staked for rewards
     address public immutable veToken; // the ve token used for gauges
     address public immutable boost;
     address public immutable rewardToken;
-    uint internal constant PRECISION = 10 ** 18;
-    mapping(address => uint) public tokenIds;
+    uint256 internal constant PRECISION = 10**18;
+    mapping(address => uint256) public tokenIds;
 
     uint256 public tokenPerBlock;
     uint256 public accTokenPerShare; // Accumulated swap token per share, times 1e12.
-    uint256 public lastRewardBlock;  // Last block number that swap token distribution occurs
+    uint256 public lastRewardBlock; // Last block number that swap token distribution occurs
 
-    uint public totalSupply;
+    uint256 public totalSupply;
 
     mapping(address => UserInfo) public userInfo;
 
-
-    constructor(address _operatorMsg, address _stake, address __ve, address _boost, address _rewardToken)  CheckPermission(_operatorMsg){
+    constructor(
+        address _operatorMsg,
+        address _stake,
+        address __ve,
+        address _boost,
+        address _rewardToken
+    ) CheckPermission(_operatorMsg) {
         stake = _stake;
         veToken = __ve;
         boost = _boost;
         rewardToken = _rewardToken;
     }
 
-
     modifier onlyBoost() {
-        require(msg.sender == boost, 'only boost');
+        require(msg.sender == boost, "only boost");
         _;
     }
 
@@ -64,7 +66,11 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         }
     }
 
-    function _safeTokenTransfer(address token, address account, uint256 _amount) internal {
+    function _safeTokenTransfer(
+        address token,
+        address account,
+        uint256 _amount
+    ) internal {
         _safeTransferFromToken(token, _amount);
         uint256 bal = IERC20(token).balanceOf(address(this));
         if (_amount > bal) {
@@ -87,26 +93,25 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         IBoost(boost).distribute(address(this));
     }
 
-    function derivedBalance(address account, uint _balance) public view returns (uint) {
-        uint _tokenId = tokenIds[account];
-        uint _derived = _balance * 30 / 100;
-        uint _adjusted = 0;
-        uint _supply = IBoost(boost).weights(stake);
-        uint usedWeight = IBoost(boost).usedWeights(_tokenId);
+    function derivedBalance(address account, uint256 _balance) public view returns (uint256) {
+        uint256 _tokenId = tokenIds[account];
+        uint256 _derived = (_balance * 30) / 100;
+        uint256 _adjusted = 0;
+        uint256 _supply = IBoost(boost).weights(stake);
+        uint256 usedWeight = IBoost(boost).usedWeights(_tokenId);
         if (account == IVeToken(veToken).ownerOf(_tokenId) && _supply > 0 && usedWeight > 0) {
-            uint useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
+            uint256 useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
             _adjusted = IBoost(boost).votes(_tokenId, stake).mul(1e12).mul(useVe).div(usedWeight);
-            _adjusted = (totalSupply * _adjusted / _supply) * 70 / 100;
+            _adjusted = (((totalSupply * _adjusted) / _supply) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
     }
 
-
-    function depositAll(uint tokenId) external {
+    function depositAll(uint256 tokenId) external {
         deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
     }
 
-    function deposit(uint amount, uint tokenId) public nonReentrant {
+    function deposit(uint256 amount, uint256 tokenId) public nonReentrant {
         require(amount > 0, "amount is 0");
         updatePool();
         UserInfo storage user = userInfo[msg.sender];
@@ -138,15 +143,15 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         withdraw(userInfo[msg.sender].amount);
     }
 
-    function withdraw(uint amount) public {
-        uint tokenId = 0;
+    function withdraw(uint256 amount) public {
+        uint256 tokenId = 0;
         if (amount == userInfo[msg.sender].amount) {
             tokenId = tokenIds[msg.sender];
         }
         withdrawToken(amount, tokenId);
     }
 
-    function withdrawToken(uint _amount, uint tokenId) public nonReentrant {
+    function withdrawToken(uint256 _amount, uint256 tokenId) public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdrawSwap: not good");
         updatePool();
@@ -190,9 +195,8 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         lastRewardBlock = block.number;
     }
 
-
     // View function to see pending swap token on frontend.
-    function pendingMax(address _user) public view returns (uint256){
+    function pendingMax(address _user) public view returns (uint256) {
         UserInfo storage user = userInfo[_user];
         uint256 _accTokenPerShare = accTokenPerShare;
         if (user.amount > 0) {
@@ -209,13 +213,12 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         return 0;
     }
 
-    function pending(address _user) public view returns (uint256){
+    function pending(address _user) public view returns (uint256) {
         uint256 amount = pendingMax(_user);
         return derivedBalance(_user, amount);
     }
 
-
-    function notifyRewardAmount(address token, uint _rewardRate) external onlyBoost {
+    function notifyRewardAmount(address token, uint256 _rewardRate) external onlyBoost {
         require(token != stake, "no stake");
         if (block.number <= lastRewardBlock) {
             return;
@@ -228,6 +231,4 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         }
         emit NotifyReward(msg.sender, token, _rewardRate);
     }
-
-
 }

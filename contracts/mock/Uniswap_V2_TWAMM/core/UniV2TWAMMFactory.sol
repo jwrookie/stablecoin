@@ -25,8 +25,8 @@ pragma solidity ^0.8.0;
 // Travis Moore: https://github.com/FortisFortuna
 // Sam Kazemian: https://github.com/samkazemian
 
-import './interfaces/IUniswapV2FactoryV5.sol';
-import './UniV2TWAMMPair.sol';
+import "./interfaces/IUniswapV2FactoryV5.sol";
+import "./UniV2TWAMMPair.sol";
 
 contract UniV2TWAMMFactory is IUniswapV2FactoryV5 {
     address public override feeTo;
@@ -47,7 +47,7 @@ contract UniV2TWAMMFactory is IUniswapV2FactoryV5 {
         _;
     }
 
-    function allPairsLength() external override view returns (uint) {
+    function allPairsLength() external view override returns (uint256) {
         return allPairs.length;
     }
 
@@ -86,7 +86,7 @@ contract UniV2TWAMMFactory is IUniswapV2FactoryV5 {
         feeToSetter = _feeToSetter;
     }
 
-    function getFactorySettings() public view  returns (address, bool){
+    function getFactorySettings() public view returns (address, bool) {
         return (feeTo, twammWhitelistDisabled);
     }
 }

@@ -21,13 +21,9 @@ interface ICryptoPool {
         uint256 min_mint_amount
     ) external;
 
-    function remove_liquidity_imbalance(
-        uint256[4] calldata amounts,
-        uint256 max_burn_amount
-    ) external;
+    function remove_liquidity_imbalance(uint256[4] calldata amounts, uint256 max_burn_amount) external;
 
-    function remove_liquidity(uint256 _amount, uint256[4] calldata amounts)
-        external;
+    function remove_liquidity(uint256 _amount, uint256[4] calldata amounts) external;
 
     function exchange(
         uint256 from,
@@ -38,15 +34,9 @@ interface ICryptoPool {
         address receiver
     ) external payable returns (uint256);
 
-    function calc_token_amount(uint256[2] calldata amounts)
-        external
-        returns (uint256);
+    function calc_token_amount(uint256[2] calldata amounts) external returns (uint256);
 
-    function calc_token_amount(uint256[3] calldata amounts)
-        external
-        returns (uint256);
+    function calc_token_amount(uint256[3] calldata amounts) external returns (uint256);
 
-    function calc_token_amount(uint256[4] calldata amounts)
-        external
-        returns (uint256);
+    function calc_token_amount(uint256[4] calldata amounts) external returns (uint256);
 }
