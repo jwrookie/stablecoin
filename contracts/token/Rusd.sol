@@ -103,6 +103,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         // Collateral ratio will adjust according to the $1 price target at genesis
         priceBand = 5000;
         // Collateral ratio will not adjust if between $0.995 and $1.005 at genesis
+        lastQX=GENESIS_SUPPLY;
     }
 
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
@@ -188,6 +189,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             }
 
         }
+        if(minOtherCR>PRICE_PRECISION){
+            minOtherCR=PRICE_PRECISION;
+        }
         lastQX = qx;
 
 
@@ -216,8 +220,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             }
         }
         if (globalCollateralRatio > 1e6 - minOtherCR) {
-            globalCollateralRatio = 1e6 - minOtherCR;
+            globalCollateralRatio = 1e6 - minOtherCR+1;
         }
+
 
         lastCallTime = block.timestamp;
         // Set the time of the last expansion
