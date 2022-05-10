@@ -15,7 +15,7 @@ const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 const GAS = {gasLimit: "9550000"};
 
-contract('AMOMinter', async function () {
+contract('amo minter test', async function () {
     beforeEach(async function () {
         [owner, dev, addr1] = await ethers.getSigners();
         zeroAddr = "0x0000000000000000000000000000000000000000";

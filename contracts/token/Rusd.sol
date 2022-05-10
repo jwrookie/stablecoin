@@ -71,7 +71,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
     uint256 public K = 1e3;// 1=1e6
-    uint256 public minOtherCR = 1e16;
+    uint256 public maxCR = 1e16;
     uint256 public lastQX;
     uint256 public kDuration = 1e7 * 1e18;
 
@@ -103,7 +103,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         // Collateral ratio will adjust according to the $1 price target at genesis
         priceBand = 5000;
         // Collateral ratio will not adjust if between $0.995 and $1.005 at genesis
-        lastQX=GENESIS_SUPPLY;
+        lastQX = GENESIS_SUPPLY;
     }
 
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
@@ -172,29 +172,26 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     function refreshOtherCR() private {
         uint qx = totalSupply();
         uint256 diff;
-        bool isIncrease;
+        bool isReduce;
         if (qx > lastQX) {
+            isReduce = true;
             diff = qx.sub(lastQX);
         } else {
-            isIncrease = true;
             diff = lastQX.sub(qx);
             uint period = diff.div(kDuration);
         }
         uint period = diff.div(kDuration);
         for (uint256 i = 0; i < period; i++) {
-            if (isIncrease) {
-                minOtherCR = minOtherCR.div(1e6 - K);
+            if (isReduce) {
+                maxCR = maxCR.mul(1e6 - K);
             } else {
-                minOtherCR = minOtherCR.mul(1e6 - K);
+                maxCR = maxCR.div(1e6 - K);
             }
-
         }
-        if(minOtherCR>PRICE_PRECISION){
-            minOtherCR=PRICE_PRECISION;
+        if (maxCR > PRICE_PRECISION) {
+            maxCR = PRICE_PRECISION;
         }
         lastQX = qx;
-
-
     }
 
     // There needs to be a time interval that this can be called. Otherwise it can be called multiple times per expansion.
@@ -219,8 +216,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
                 globalCollateralRatio = globalCollateralRatio.add(stableStep);
             }
         }
-        if (globalCollateralRatio > 1e6 - minOtherCR) {
-            globalCollateralRatio = 1e6 - minOtherCR+1;
+        if (globalCollateralRatio > maxCR) {
+            globalCollateralRatio = maxCR;
         }
 
 
