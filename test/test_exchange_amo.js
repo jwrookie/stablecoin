@@ -14,7 +14,7 @@ const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 const GAS = {gasLimit: "9550000"};
 
-contract('AMOMinter', async function () {
+contract('test exchange amo', async function () {
     async function getUint8Array(len) {
         let buffer = new ArrayBuffer(len);
         let bufferArray = new Uint8Array(buffer);
@@ -366,13 +366,13 @@ contract('AMOMinter', async function () {
         await usdc.approve(amoMinter.address, toWei('1'));
         await fxs.mint(amoMinter.address, toWei('1'));
         await fxs.approve(amoMinter.address, toWei('1'));
-
+        //
         expect(parseInt(await fxs.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
         console.log("2");
         // await amoMinter.addAMO(owner.address, true);
         await usdc.mint(amoMinter.address, toWei('1'));
         expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
-        await amoMinter.giveCollatToAMO(exchangeAMO.address, 1);
+        await amoMinter.giveCollatToAMO(exchangeAMO.address, "10");
 
     });
 
