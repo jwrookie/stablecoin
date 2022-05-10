@@ -354,7 +354,7 @@ contract('SwapController', () => {
         expect(usedWeightsOwner).to.be.eq(weightOwner)
 
         // console.log("info[2]:" + info[2])
-        let sum = weightDev.add(weightOwner);
+        //let sum = weightDev.add(weightOwner);
 
         // aaa = sum.sub(sum1)
 
@@ -367,11 +367,28 @@ contract('SwapController', () => {
         //
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
-        let weight = await lock.balanceOfNFT(1);
-        let weight1 = await lock.balanceOfNFT(2);
+        // let weight = await lock.balanceOfNFT(1);
+        // let weight1 = await lock.balanceOfNFT(2);
         info = await swapMining.poolInfo(0);
-        let diff = weightDev.sub(weight)
-        let diff1 = weightOwner.sub(weight1)
+        // let diff = weightDev.sub(weight)
+        // let diff1 = weightOwner.sub(weight1)
+        console.log("-----------------------")
+
+        weightDev = await lock.balanceOfNFT(1);
+         usedWeightsDev = await lock.balanceOfNFT(1);
+         weightOwner = await lock.balanceOfNFT(2);
+         usedWeightsOwner = await lock.balanceOfNFT(2);
+           expect(usedWeightsDev).to.be.eq(weightDev)
+        expect(usedWeightsOwner).to.be.eq(weightOwner)
+        console.log("weightDev:" + weightDev)
+        console.log("weightOwner:" + weightOwner)
+
+        console.log("usedWeightsDev:" + usedWeightsDev)
+        console.log("usedWeightsOwner:" + usedWeightsOwner)
+
+        expect(usedWeightsDev).to.be.eq(weightDev)
+        expect(usedWeightsOwner).to.be.eq(weightOwner)
+        console.log("info[2]:"+info[2])
 
         // console.log("diff:"+diff)
         //    console.log("diff1:"+diff1)

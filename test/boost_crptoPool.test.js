@@ -185,9 +185,9 @@ contract('Boost', async function () {
 
     });
 
-    it('if crypto Pool is the pool address, an error will be reported', async function () {
-        await boost.createGauge(busd.address, "100", true);
-        await boost.createGauge(token0.address, "100", true);
+    it('if crypto pool is the pool address, an error will be reported', async function () {
+       await boost.createGauge(token0.address, "100", true);
+
 
 
     });
