@@ -203,27 +203,50 @@ contract('Locker operation', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.addBoosts(boost.address);
         tokenId = await locker.tokenId();
 
         await gaugeController.addPool(frax.address);
         expect(await getPoolForGauge(0)).to.be.eq(await gaugeController.getPool(0));
 
         // Vote
-        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        weight = await locker.balanceOfNFT(tokenId);
+        weightsArray = await getWeights(weight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.vote(tokenId, poolVotesArray, weightsArray);
 
         // Transfer -> dev do not have a token id
-        await expectRevert(await gauge.deposit(toWei("0.000001"), tokenId), "");
+        await expectRevert(locker.transferFrom(owner.address, dev.address, tokenId), "attached");
     });
 
     it('test User lock there tokens can not withdraw', async function () {
+        // Get token id
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.addBoosts(boost.address);
+        tokenId = await locker.tokenId();
 
-    });
+        await gaugeController.addPool(frax.address);
+        expect(await getPoolForGauge(0)).to.be.eq(await gaugeController.getPool(0));
 
-    it('test User lock there tokens can not merge', async function () {
+        // Vote
+        poolVotesArray = await getPoolVote();
+        expect(poolVotesArray).to.be.not.eq([]);
+        weight = await locker.balanceOfNFT(tokenId);
+        weightsArray = await getWeights(weight);
+        expect(weightsArray).to.be.not.eq([]);
+        await boost.vote(tokenId, poolVotesArray, weightsArray);
 
+        // Transfer -> dev do not have a token id
+        await expectRevert(locker.withdraw(tokenId), "attached");
     });
 
     it('test Merge lock balance will lock shipping space', async function () {
-
+        // Get token id
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await expectRevert(locker.create_lock(toWei("0.1"), await getDurationTime()), "less than 1 nft");
     });
 });
