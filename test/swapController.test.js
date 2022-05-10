@@ -15,7 +15,7 @@ const {toWei} = web3.utils;
 const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
-contract('SwapRouter', () => {
+contract('SwapController', () => {
     async function getCurrentBlock() {
         return parseInt(await time.latestBlock());
     }
@@ -165,7 +165,7 @@ contract('SwapRouter', () => {
         await swapMining.addPair(100, pool.address, true)
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy(operatable.address);
+        gaugeFactory = await GaugeFactory.deploy(checkPermission.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
@@ -227,7 +227,6 @@ contract('SwapRouter', () => {
         await boost.addController(gaugeController.address);
         await gaugeController.addPool(pool.address);
         await lock.addBoosts(gaugeController.address);
-
 
 
     });
@@ -342,11 +341,21 @@ contract('SwapRouter', () => {
         await swapController.vote(2, pool.address);
         info = await swapMining.poolInfo(0);
         let weightDev = await lock.balanceOfNFT(1);
+        let usedWeightsDev = await lock.balanceOfNFT(1);
         let weightOwner = await lock.balanceOfNFT(2);
-        // console.log("weightDev:" + weightDev)
-        // console.log("weightOwner:" + weightOwner)
+        let usedWeightsOwner = await lock.balanceOfNFT(2);
+        console.log("weightDev:" + weightDev)
+        console.log("weightOwner:" + weightOwner)
+
+        console.log("usedWeightsDev:" + usedWeightsDev)
+        console.log("usedWeightsOwner:" + usedWeightsOwner)
+
+        expect(usedWeightsDev).to.be.eq(weightDev)
+        expect(usedWeightsOwner).to.be.eq(weightOwner)
+
         // console.log("info[2]:" + info[2])
         let sum = weightDev.add(weightOwner);
+
         // aaa = sum.sub(sum1)
 
         expect(info[2]).to.be.not.eq("100");
@@ -361,14 +370,22 @@ contract('SwapRouter', () => {
         let weight = await lock.balanceOfNFT(1);
         let weight1 = await lock.balanceOfNFT(2);
         info = await swapMining.poolInfo(0);
+        let diff = weightDev.sub(weight)
+        let diff1 = weightOwner.sub(weight1)
+
+        // console.log("diff:"+diff)
+        //    console.log("diff1:"+diff1)
 
 
         // let sum1 = weight.add(weight1)
+        //  let diff = sum1-sum
         //
         // let totalWeight = await gaugeController.totalWeight()
         //
         //
-        // expect(info[2]).to.be.eq(weight1);
+        // expect(info[2]).to.be.eq(diff1);
+
+
     });
 
 

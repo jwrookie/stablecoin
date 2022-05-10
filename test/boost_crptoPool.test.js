@@ -161,33 +161,34 @@ contract('Boost', async function () {
         await lock.addBoosts(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
 
-        await boost.createGauge(lp.address, "100", true);
+        await boost.createGauge(pool.address, "100", true);
 
-        gaugeAddr = await boost.gauges(lp.address);
+        gaugeAddr = await boost.gauges(pool.address);
 
         const Gauge = await ethers.getContractFactory('Gauge');
-        gauge_lp = await Gauge.attach(gaugeAddr);
-        expect(gauge_lp.address).to.be.eq(gaugeAddr);
+        gauge_pool = await Gauge.attach(gaugeAddr);
+        expect(gauge_pool.address).to.be.eq(gaugeAddr);
 
         expect(await boost.poolLength()).to.be.eq(1);
 
-        expect(await boost.isGauge(gauge_lp.address)).to.be.eq(true);
-        expect(await boost.poolForGauge(gauge_lp.address)).to.be.eq(lp.address);
+        expect(await boost.isGauge(gauge_pool.address)).to.be.eq(true);
+        expect(await boost.poolForGauge(gauge_pool.address)).to.be.eq(pool.address);
         await busd.mint(dev.address, toWei('100'));
 
-        await boost.createGauge(busd.address, "100", true);
+        // gaugeAddr1 = await boost.gauges(busd.address);
+        //
+        // gauge_busd = await Gauge.attach(gaugeAddr1);
+        // expect(gauge_busd.address).to.be.eq(gaugeAddr1);
+        // expect(await boost.poolLength()).to.be.eq(2);
 
-        gaugeAddr1 = await boost.gauges(busd.address);
 
-        gauge_busd = await Gauge.attach(gaugeAddr1);
-        expect(gauge_busd.address).to.be.eq(gaugeAddr1);
-        expect(await boost.poolLength()).to.be.eq(2);
 
 
     });
 
-    it('test address', async function () {
-       console.log("lp:" + lp.address)
+    it('if crypto Pool is the pool address, an error will be reported', async function () {
+         await boost.createGauge(busd.address, "100", true);
+
 
     });
 
