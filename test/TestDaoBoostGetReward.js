@@ -195,6 +195,11 @@ contract('Gauge', async function () {
         initFxsBalanceOfOwner = await fxs.balanceOf(owner.address);
         initGaugeTokenPerBlock = await gauge.tokenPerBlock();
         console.log(gauge.address);
+        console.log(await gauge.lastRewardBlock());
+        console.log(await time.latestBlock());
+        await gaugeController.setDuration(await getDurationTime());
+        await time.increase(time.duration.days(1));
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + await gauge.lastRewardBlock());
         await gauge.getReward(owner.address);
         expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
         expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);
