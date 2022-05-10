@@ -17,6 +17,7 @@ contract('Boost', async function () {
 
     async function getPoolInfo(poolIndex = 0, structIndex = 0) {
         let poolInfoLength = await boost.poolLength();
+
         if (poolInfoLength > 0) {
             poolInfo = await boost.poolInfo(poolIndex);
             return poolInfo[structIndex];
@@ -35,6 +36,7 @@ contract('Boost', async function () {
     async function getPoolVote() {
         let poolVoteArray = new Array();
         let poolVoteLength = await boost.poolLength();
+
         if (poolVoteLength > 0) {
             for (let i = 0; i < poolVoteLength; i++) {
                 poolVoteArray.push(await getPoolInfo(i, 0));
@@ -46,6 +48,7 @@ contract('Boost', async function () {
     async function getWeights() {
         let weightsArray = new Array();
         let poolVoteLength = await boost.poolLength();
+
         if (poolVoteLength > 0) {
             for (let i = 0; i < poolVoteLength; i++) {
                 poolInfo = await boost.poolInfo(i);
@@ -72,16 +75,6 @@ contract('Boost', async function () {
         CheckOper = await ethers.getContractFactory("CheckPermission");
         checkOper = await CheckOper.deploy(operatable.address);
 
-        const TestERC20 = await ethers.getContractFactory("TestERC20");
-        testERC20 = await TestERC20.deploy();
-        // Mint
-        await testERC20.mint(owner.address, toWei("1"));
-        await testERC20.mint(dev.address, toWei("1"));
-        // Mint
-        duration = await getDurationTime();
-        const Locker = await ethers.getContractFactory("Locker");
-        locker = await Locker.deploy(checkOper.address, testERC20.address, duration);
-
         // Swap token
         const TestOracle = await ethers.getContractFactory("TestOracle");
         testOracle = await TestOracle.deploy();
@@ -93,9 +86,13 @@ contract('Boost', async function () {
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
         await fxs.transfer(dev.address, toWei("0.5"));
-        mockFraxPool = frax;
-        await testERC20.connect(owner).approve(locker.address, toWei("0.5"));
-        await testERC20.connect(dev).approve(locker.address, toWei("0.5"));
+
+        // Mint
+        duration = await getDurationTime();
+        const Locker = await ethers.getContractFactory("Locker");
+        locker = await Locker.deploy(checkOper.address, fxs.address, duration);
+        await fxs.connect(owner).approve(locker.address, toWei("0.5"));
+        await fxs.connect(dev).approve(locker.address, toWei("0.5"));
 
         const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
         gaugeFactory = await GaugeFactory.deploy(checkOper.address);
@@ -108,7 +105,7 @@ contract('Boost', async function () {
             checkOper.address,
             locker.address,
             gaugeFactory.address,
-            frax.address,
+            fxs.address,
             10000,
             parseInt(initStartBlock),
             10
@@ -118,7 +115,6 @@ contract('Boost', async function () {
         usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
-        mockUsdcPool = usdc;
 
         boostDurationTime = await boost.duration();
 
@@ -136,14 +132,14 @@ contract('Boost', async function () {
         expect(await boost.totalAllocPoint()).to.be.eq(0);
         expect(await boost.poolLength()).to.be.eq(0);
         // Create a pool
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
         expect(await boost.totalAllocPoint()).to.be.eq(100000);
         expect(await boost.poolLength()).to.be.eq(1);
-        expect(await getPoolInfo(0, 0)).to.be.eq(mockFraxPool.address);
+        expect(await getPoolInfo(0, 0)).to.be.eq(frax.address);
         expect(await getPoolInfo(0, 1)).to.be.eq(100000);
         lastRewardBlock = await getPoolInfo(0, 2);
-        expect(await boost.poolForGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(mockFraxPool.address);
-        expect(await boost.isGauge(await boost.gauges(mockFraxPool.address))).to.be.eq(true);
+        expect(await boost.poolForGauge(await boost.gauges(frax.address))).to.be.eq(frax.address);
+        expect(await boost.isGauge(await boost.gauges(frax.address))).to.be.eq(true);
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -155,25 +151,25 @@ contract('Boost', async function () {
         await boost.addController(gaugeController.address);
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 10);
         expect(await gaugeController.getPoolLength()).to.be.eq(0);
-        await gaugeController.addPool(mockFraxPool.address);
+        await gaugeController.addPool(frax.address);
         gaugeAddress = await gaugeController.getPool(0);
         pid = await boost.lpOfPid(await gaugeController.getPool(0));
         expect(await gaugeController.getPoolLength()).to.be.eq(1);
-        expect(await gaugeController.isPool(mockFraxPool.address)).to.be.eq(true);
+        expect(await gaugeController.isPool(frax.address)).to.be.eq(true);
         expect(await gaugeController.totalWeight()).to.be.eq(0);
-        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(0);
+        expect(await gaugeController.weights(frax.address)).to.be.eq(0);
         expect(await boost.weights(await gaugeController.getPool(0))).to.be.eq(0);
-        await gaugeController.vote(tokenId, mockFraxPool.address);
+        await gaugeController.vote(tokenId, frax.address);
         expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(mockFraxPool.address);
-        expect(await gaugeController.weights(mockFraxPool.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
+        expect(await getPoolVoteInfo(tokenId)).to.be.eq(frax.address);
+        expect(await gaugeController.weights(frax.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
         expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
     });
 
     it('test Single user vote and reset and vote', async function () {
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -183,13 +179,13 @@ contract('Boost', async function () {
 
         await gaugeController.setDuration(await getDurationTime());
         await boost.addController(gaugeController.address);
-        await gaugeController.addPool(mockFraxPool.address);
+        await gaugeController.addPool(frax.address);
         expect(await gaugeController.getPoolLength()).to.be.eq(1);
         gaugeAddress = await gaugeController.getPool(0);
         pid = await boost.lpOfPid(await gaugeController.getPool(0));
         expect(await locker.voted(tokenId)).to.be.eq(false);
-        await gaugeController.vote(tokenId, mockFraxPool.address);
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(mockFraxPool.address);
+        await gaugeController.vote(tokenId, frax.address);
+        expect(await getPoolVoteInfo(tokenId)).to.be.eq(frax.address);
         expect(await locker.voted(tokenId)).to.be.eq(true);
         expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
         lockerBalanceOfNFT = await locker.balanceOfNFT(tokenId);
@@ -208,9 +204,9 @@ contract('Boost', async function () {
 
     it('test Single user vote and reset and vote and weight = 0', async function () {
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(1);
-        pid = await boost.lpOfPid(mockFraxPool.address);
+        pid = await boost.lpOfPid(frax.address);
         expect(pid).to.be.eq(0);
 
         // Get token id -> parameter value is stake token
@@ -229,15 +225,15 @@ contract('Boost', async function () {
 
     it('test Single user and more pools to vote will fail', async function () {
         // Create gauges
-        await boost.createGauge(mockFraxPool.address, 100000, false);
-        await boost.createGauge(mockUsdcPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.createGauge(usdc.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(2);
         expect(await boost.totalAllocPoint()).to.be.eq(200000);
-        expect(await getPoolInfo()).to.be.eq(mockFraxPool.address);
+        expect(await getPoolInfo()).to.be.eq(frax.address);
         expect(await getPoolInfo(0, 1)).to.be.eq(100000);
         expect(await boost.lpOfPid(await getPoolInfo())).to.be.eq(0);
         expect(await boost.isGauge(await boost.gauges(await getPoolInfo(0, 0)))).to.be.eq(true);
-        expect(await getPoolInfo(1, 0)).to.be.eq(mockUsdcPool.address);
+        expect(await getPoolInfo(1, 0)).to.be.eq(usdc.address);
         expect(await getPoolInfo(1, 1)).to.be.eq(100000);
         expect(await boost.lpOfPid(await getPoolInfo(1, 0))).to.be.eq(1);
         expect(await boost.isGauge(await boost.gauges(await getPoolInfo(1, 0)))).to.be.eq(true);
@@ -259,12 +255,12 @@ contract('Boost', async function () {
         let firstTokenId;
 
         // Create gauges
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(1);
         expect(await getPoolInfo(0, 1)).to.be.eq(100000);
         expect(await boost.totalAllocPoint()).to.be.eq(100000);
         await boost.addController(gaugeController.address);
-        await gaugeController.addPool(mockFraxPool.address);
+        await gaugeController.addPool(frax.address);
 
         // Create locker
         await locker.addBoosts(gaugeController.address);
@@ -306,9 +302,9 @@ contract('Boost', async function () {
 
     it('test Single user to vote and reset and vote and mock weight datas', async function () {
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(1);
-        pid = await boost.lpOfPid(mockFraxPool.address);
+        pid = await boost.lpOfPid(frax.address);
         expect(pid).to.be.eq(0);
 
         // Get token id -> parameter value is stake token
@@ -337,18 +333,18 @@ contract('Boost', async function () {
         expect(await boost.usedWeights(tokenId)).to.be.eq(0);
         // Vote
         await boost.addController(gaugeController.address);
-        await gaugeController.vote(tokenId, mockFraxPool.address);
+        await gaugeController.vote(tokenId, frax.address);
     });
 
     it('test Single user to vote and more pools', async function () {
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
-        await boost.createGauge(mockUsdcPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.createGauge(usdc.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(2);
-        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
-        expect(mockFraxPoolPid).to.be.eq(0);
-        mockUsdcPoolPid = await boost.lpOfPid(mockUsdcPool.address);
-        expect(mockUsdcPoolPid).to.be.eq(1);
+        fraxPid = await boost.lpOfPid(frax.address);
+        expect(fraxPid).to.be.eq(0);
+        usdcPid = await boost.lpOfPid(usdc.address);
+        expect(usdcPid).to.be.eq(1);
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -377,10 +373,10 @@ contract('Boost', async function () {
         let firstTokenId;
 
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(1);
-        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
-        expect(mockFraxPoolPid).to.be.eq(0);
+        fraxPid = await boost.lpOfPid(frax.address);
+        expect(fraxPid).to.be.eq(0);
 
         // Create locker
         await locker.addBoosts(gaugeController.address);
@@ -418,13 +414,13 @@ contract('Boost', async function () {
         let firstTokenId;
 
         // Create gauge
-        await boost.createGauge(mockFraxPool.address, 100000, false);
-        await boost.createGauge(mockUsdcPool.address, 100000, false);
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.createGauge(usdc.address, 100000, false);
         expect(await boost.poolLength()).to.be.eq(2);
-        mockFraxPoolPid = await boost.lpOfPid(mockFraxPool.address);
-        expect(mockFraxPoolPid).to.be.eq(0);
-        mockUsdcPoolPid = await boost.lpOfPid(mockUsdcPool.address);
-        expect(mockUsdcPoolPid).to.be.eq(1);
+        fraxPid = await boost.lpOfPid(frax.address);
+        expect(fraxPid).to.be.eq(0);
+        usdcPid = await boost.lpOfPid(usdc.address);
+        expect(usdcPid).to.be.eq(1);
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -453,10 +449,10 @@ contract('Boost', async function () {
         expect(await boost.poolVote(firstTokenId, 1)).to.be.eq(await getPoolInfo(1, 0));
         expect(await boost.poolVote(tokenId, 0)).to.be.eq(await getPoolInfo());
         expect(await boost.poolVote(tokenId, 1)).to.be.eq(await getPoolInfo(1, 0));
-        mockFraxPoolSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo())).add(await boost.votes(tokenId, await getPoolInfo()));
-        mockUsdcPoolSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo(1, 0))).add(await boost.votes(tokenId, await getPoolInfo(1, 0)));
-        expect(await boost.weights(await getPoolInfo())).to.be.eq(mockFraxPoolSumWeight);
-        expect(await boost.weights(await getPoolInfo(1, 0))).to.be.eq(mockUsdcPoolSumWeight);
-        expect(await boost.totalWeight()).to.be.eq(BigNumber.from(mockFraxPoolSumWeight).add(mockUsdcPoolSumWeight));
+        fraxSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo())).add(await boost.votes(tokenId, await getPoolInfo()));
+        usdcSumWeight = BigNumber.from(await boost.votes(firstTokenId, await getPoolInfo(1, 0))).add(await boost.votes(tokenId, await getPoolInfo(1, 0)));
+        expect(await boost.weights(await getPoolInfo())).to.be.eq(fraxSumWeight);
+        expect(await boost.weights(await getPoolInfo(1, 0))).to.be.eq(usdcSumWeight);
+        expect(await boost.totalWeight()).to.be.eq(BigNumber.from(fraxSumWeight).add(usdcSumWeight));
     });
 });
