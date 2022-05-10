@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-pragma solidity >=0.6.11;
+pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/utils/Context.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -178,7 +178,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             diff = qx.sub(lastQX);
         } else {
             diff = lastQX.sub(qx);
-            uint period = diff.div(kDuration);
         }
         uint period = diff.div(kDuration);
         for (uint256 i = 0; i < period; i++) {

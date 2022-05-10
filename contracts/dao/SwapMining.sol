@@ -46,8 +46,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     PoolInfo[] public poolInfo;
     mapping(uint256 => mapping(address => UserInfo)) public userInfo;
 
-    constructor(
-        address _operatorMsg,
+    constructor(address _operatorMsg,
         address __ve,
         IToken _swapToken,
         address _factory,
