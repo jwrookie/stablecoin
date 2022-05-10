@@ -7,7 +7,10 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "tsc": "tsc",
-    "coverage": "RUN_COVERAGE=1 hardhat coverage"
+    "coverage": "RUN_COVERAGE=1 hardhat coverage",
+    "lint:sol": "solhint 'contracts/**/*.sol' && prettier -c 'contracts/**/*.sol'",
+    "lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
+    "test:inheritance": "node scripts/inheritanceOrdering artifacts/build-info/*"
   },
   "keywords": [
     "ethereum",
@@ -79,6 +82,12 @@
     "ethers": "^5.5.4",
     "hardhat": "^2.9.0",
     "hardhat-deploy": "^0.10.5",
-    "web3": "^1.7.0"
+    "web3": "^1.7.0",
+    "solhint": "^3.3.6",
+    "prettier": "^2.3.0",
+    "prettier-plugin-solidity": "^1.0.0-beta.16",
+    "graphlib": "^2.1.8",
+    "solidity-ast": "^0.4.25",
+    "yargs": "^17.0.0"
   }
 }

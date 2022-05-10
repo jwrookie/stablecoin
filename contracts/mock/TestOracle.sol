@@ -7,17 +7,18 @@ interface IOracle {
 
 contract TestOracle is IOracle {
     address admin;
-    uint256 price=10**18;
+    uint256 price = 10**18;
 
     constructor() {
         admin = msg.sender;
     }
 
-    function getPrice() override external view returns (uint256) {
+    function getPrice() external view override returns (uint256) {
         return price;
     }
+
     function setPrice(uint256 _price) external {
-        require(admin==msg.sender,"Only admin");
+        require(admin == msg.sender, "Only admin");
         price = _price;
     }
 }

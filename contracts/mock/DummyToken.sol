@@ -12,6 +12,6 @@ contract DummyToken is ERC20, ERC20Burnable, Ownable {
     constructor() ERC20("DummyToken", "DUM") {}
 
     function mint(address to, uint256 amount) external onlyOwner {
-      _mint(to, amount);
+        _mint(to, amount);
     }
 }

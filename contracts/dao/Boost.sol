@@ -9,17 +9,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "../interface/IGauge.sol";
 import "../interface/IGaugeFactory.sol";
 
-import './AbstractBoost.sol';
-
+import "./AbstractBoost.sol";
 
 contract Boost is ReentrancyGuard, AbstractBoost {
     using SafeMath for uint256;
 
     event GaugeCreated(address indexed gauge, address creator, address indexed pool);
 
-    event NotifyReward(address indexed sender, address indexed reward, uint amount);
-    event DistributeReward(address indexed sender, address indexed gauge, uint amount);
-
+    event NotifyReward(address indexed sender, address indexed reward, uint256 amount);
+    event DistributeReward(address indexed sender, address indexed gauge, uint256 amount);
 
     // Info of each pool.
     struct PoolInfo {
@@ -34,30 +32,34 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     // pid corresponding address
     mapping(address => uint256) public lpOfPid;
 
-
-    uint public constant duration = 7 days; // rewards are released over 7 days
+    uint256 public constant duration = 7 days; // rewards are released over 7 days
 
     address[] public pools; // all pools viable for incentives
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
     mapping(address => bool) public isGauge;
 
-
-    constructor(address _operatorMsg, address __ve, address _gauges,
+    constructor(
+        address _operatorMsg,
+        address __ve,
+        address _gauges,
         IToken _swapToken,
         uint256 _tokenPerBlock,
         uint256 _startBlock,
-        uint256 _period)AbstractBoost(_operatorMsg, __ve, _swapToken, _tokenPerBlock, _startBlock, _period) {
-
+        uint256 _period
+    ) AbstractBoost(_operatorMsg, __ve, _swapToken, _tokenPerBlock, _startBlock, _period) {
         gaugeFactory = _gauges;
-
     }
 
     function poolLength() public view returns (uint256) {
         return poolInfo.length;
     }
 
-    function createGauge(address _pool, uint256 _allocPoint, bool _withUpdate) external returns (address) {
+    function createGauge(
+        address _pool,
+        uint256 _allocPoint,
+        bool _withUpdate
+    ) external returns (address) {
         require(gauges[_pool] == address(0x0), "exists");
 
         require(address(_pool) != address(0), "_lpToken is the zero address");
@@ -67,15 +69,11 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
-        poolInfo.push(PoolInfo({
-        lpToken : _pool,
-        allocPoint : _allocPoint,
-        lastRewardBlock : lastRewardBlock
-        }));
+        poolInfo.push(PoolInfo({lpToken: _pool, allocPoint: _allocPoint, lastRewardBlock: lastRewardBlock}));
         lpOfPid[address(_pool)] = poolLength() - 1;
 
         address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken, address(swapToken));
-        IERC20(address(swapToken)).approve(_gauge, type(uint).max);
+        IERC20(address(swapToken)).approve(_gauge, type(uint256).max);
         gauges[_pool] = _gauge;
         poolForGauge[_gauge] = _pool;
         isGauge[_gauge] = true;
@@ -84,7 +82,11 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         return _gauge;
     }
 
-    function set(uint256 _pid, uint256 _allocPoint, bool _withUpdate) public {
+    function set(
+        uint256 _pid,
+        uint256 _allocPoint,
+        bool _withUpdate
+    ) public {
         require(controllers[msg.sender] || msg.sender == operator(), "no auth");
 
         totalAllocPoint = totalAllocPoint.sub(poolInfo[_pid].allocPoint).add(_allocPoint);
@@ -120,14 +122,16 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         //todo duration
         bool minRet = swapToken.mint(address(this), tokenReward.mul(duration));
         if (minRet) {
-            IGauge(gauges[pool.lpToken]).notifyRewardAmount(address(swapToken), tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint));
+            IGauge(gauges[pool.lpToken]).notifyRewardAmount(
+                address(swapToken),
+                tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint)
+            );
         }
         pool.lastRewardBlock = block.number;
     }
 
-
     function updateAll() external {
-        for (uint i = 0; i < poolLength(); i++) {
+        for (uint256 i = 0; i < poolLength(); i++) {
             PoolInfo memory pool = poolInfo[i];
             _updateForGauge(gauges[pool.lpToken]);
         }
@@ -139,23 +143,20 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     }
 
     function claimRewards(address[] memory _gauges) external {
-        for (uint i = 0; i < _gauges.length; i++) {
+        for (uint256 i = 0; i < _gauges.length; i++) {
             IGauge(_gauges[i]).getReward(msg.sender);
         }
     }
 
     function distribute(address _gauge) public {
         _updateForGauge(_gauge);
-
     }
 
     function _updatePoolInfo(address _pool) internal override {
         _updateForGauge(gauges[_pool]);
     }
 
-    function isGaugeForPool(address _pool) internal override view returns (bool){
+    function isGaugeForPool(address _pool) internal view override returns (bool) {
         return isGauge[gauges[_pool]];
     }
-
-
 }
