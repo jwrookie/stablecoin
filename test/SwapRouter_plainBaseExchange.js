@@ -238,7 +238,8 @@ contract('SwapRouter5Coins', () => {
 
         await fxs.addPool(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
-        await boost.createGauge(depositZap.address, "100", true);
+        //todo pool is token
+        // await boost.createGauge(depositZap.address, "100", true);
 
 
     });

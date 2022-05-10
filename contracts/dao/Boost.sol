@@ -61,6 +61,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         require(gauges[_pool] == address(0x0), "exists");
 
         require(address(_pool) != address(0), "_lpToken is the zero address");
+        require(IERC20(_pool).totalSupply() > 0, "is erc20");
         if (_withUpdate) {
             massUpdatePools();
         }
