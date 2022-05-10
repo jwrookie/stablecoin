@@ -18,29 +18,28 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    //  let fxs = "0x9903C08A1Ec72AF241AB29BA4B83326E7B4c68c6"
-    //let frax = "0x73dE6f92421FF0e3B1bE48EFDA2BF6d2e395cAfE"
-    let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
-    //let fxb = "0x0830b7Bb803965D47a2c5Dcfcd819d7BC4B69Ebf"
-
-
-    // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
-    // let fxb = "0x4858585fbD412c1Eb942e1E39Ebb1e2298A4BE27"
-     let fxs = "0x6d2138C3Aa8e20437a541AE287dD047Aed4731De"
-    // // const TestERC20 = await ethers.getContractFactory("TestERC20");
-    // // let usdc = await TestERC20.attach(usdcAddr);
-    // let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
-    // let tokenA = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
-    // let weth = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
+    let fxs = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
+    let frax = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
+    //  let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
+    //  //let fxb = "0x0830b7Bb803965D47a2c5Dcfcd819d7BC4B69Ebf"
     //
-    // // let fraxAddr = "0x19cdB8EFB4Df6AAB7A6c0EABeD8Fe6cfE5351159"
-    // // let poolAddr ="0x5ca013872bB0729134725EBa04dF3caB8d256a58"
-    // let oracle = "0x821Ce313D3F015C4290D1035a3d0Df1153D556c3"
-    // let fraxPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
-    let frax = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
-   let fxb  = "0xF74721BF71912D8e56A9347f56afd7f2d4C533Ee"
-
-
+    //
+    //  // let pool = "0x255B2A455f94957562915784fFf3dd872DFd92F2"
+    //  // let fxb = "0x4858585fbD412c1Eb942e1E39Ebb1e2298A4BE27"
+    //   let fxs = "0x6d2138C3Aa8e20437a541AE287dD047Aed4731De"
+    //  // // const TestERC20 = await ethers.getContractFactory("TestERC20");
+    //  // // let usdc = await TestERC20.attach(usdcAddr);
+    //  // let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
+    //  // let tokenA = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    //  // let weth = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
+    //  //
+    //  // // let fraxAddr = "0x19cdB8EFB4Df6AAB7A6c0EABeD8Fe6cfE5351159"
+    //  // // let poolAddr ="0x5ca013872bB0729134725EBa04dF3caB8d256a58"
+    //  // let oracle = "0x821Ce313D3F015C4290D1035a3d0Df1153D556c3"
+    //  // let fraxPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
+    //  let frax = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
+    let fxb = "0x093f34d559cE672C701372528FacE67f91f967d5"
+    let checkPermission = "0xDd3325440F70F590B8011b8C557c26242595E34F"
 
 
     for (const account of accounts) {
@@ -103,7 +102,7 @@ async function main() {
     //         PoolLibrary: poolLibrary.address,
     //     },
     // });
-    // pool = await Pool_USDC.deploy(operatable, frax, fxs, usdc, toWei('10000000000'));
+    // pool = await Pool_USDC.deploy(checkPermission, frax, fxs, usdc, toWei('10000000000'));
     // console.log("pool:" + pool.address)
     //
     // const MockChainLink = await ethers.getContractFactory("MockChainLink");
@@ -151,11 +150,11 @@ async function main() {
     //  operatable = await Operatable.deploy();
     //  console.log("operatable:" + operatable.address)
     // const FraxBond = await ethers.getContractFactory("Bond");
-    // fxb = await FraxBond.deploy(operatable,"fxb", "fxb");
+    // fxb = await FraxBond.deploy(checkPermission,"fxb", "fxb");
     // console.log("fxb:" + fxb.address)
 
     const FraxBondIssuer = await ethers.getContractFactory('BondIssuer');
-    fraxBondIssuer = await FraxBondIssuer.deploy(operatable, frax, fxb);
+    fraxBondIssuer = await FraxBondIssuer.deploy(checkPermission, frax, fxb);
     console.log("fraxBondIssuer:" + fraxBondIssuer.address)
 
     // //  const Locker = await ethers.getContractFactory('Locker');
@@ -164,7 +163,7 @@ async function main() {
 
 
     // await fxb.addIssuer(deployer.address);
-   // await fxb.addIssuer(fraxBondIssuer.address);
+    // await fxb.addIssuer(fraxBondIssuer.address);
     // await fxb.issuer_mint(fraxBondIssuer.address, toWei('100000'))
     // await fxb.issuer_mint(deployer.address, toWei('100000'))
 

@@ -30,8 +30,8 @@ async function main() {
 
      let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let frax = '0x5AF694EC26FFD0141ff385e4793fbFF89e915B57'
-    let fxs = '0x6d2138C3Aa8e20437a541AE287dD047Aed4731De'
+    let frax = '0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d'
+    let fxs = '0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31'
 
 
 
