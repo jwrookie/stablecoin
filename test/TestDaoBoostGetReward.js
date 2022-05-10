@@ -6,9 +6,11 @@ const {BigNumber} = require('ethers');
 
 contract('Gauge', async function () {
     const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
+    const PERIOD = 10;
+    let initStartBlock;
 
     async function getDurationTime(day = 1) {
-        if (undefined === typeof day || 0 === day) {
+        if (undefined === typeof day || 0 >= day) {
             return;
         }
         return parseInt(await time.duration.days(day));
@@ -16,6 +18,7 @@ contract('Gauge', async function () {
 
     async function getPoolInfo(poolIndex = 0, structIndex = 0) {
         let poolInfoLength = await boost.poolLength();
+
         if (poolInfoLength > 0) {
             poolInfo = await boost.poolInfo(poolIndex);
             return poolInfo[structIndex];
@@ -123,7 +126,7 @@ contract('Gauge', async function () {
         gaugeFactory = await GaugeFactory.deploy(checkOper.address);
 
         startBlock = await time.latestBlock();
-        initStartBlock = startBlock;
+        initStartBlock = parseInt(startBlock);
 
         const Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
@@ -194,20 +197,93 @@ contract('Gauge', async function () {
         expect(pendingAmount).to.be.gt(0);
         initFxsBalanceOfOwner = await fxs.balanceOf(owner.address);
         initGaugeTokenPerBlock = await gauge.tokenPerBlock();
-        // console.log(gauge.address);
-        // console.log(await gauge.lastRewardBlock());
-        // console.log(await time.latestBlock());
-        // await gaugeController.setDuration(await getDurationTime());
-        // await time.increase(time.duration.days(1));
-        // await time.advanceBlockTo(parseInt(await time.latestBlock()) + await gauge.lastRewardBlock());
-        // await gauge.getReward(owner.address);
-        // expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
-        // expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);
-        // rewardRate = BigNumber.from(await getPoolInfo(await getBoostLpOfPid(gauge), 1)).mul(10000).div(await boost.totalAllocPoint());
-        // expect(await gauge.tokenPerBlock()).to.be.eq(rewardRate);
+        beforeGetRewardTokenPerBlock = await gauge.tokenPerBlock();
+        await gauge.getReward(owner.address);
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
+        expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);
+        expect(await gauge.tokenPerBlock()).to.be.eq(beforeGetRewardTokenPerBlock);
+    });
+
+    it('test Single user deposit and vote and get reward and reduce block', async function () {
+        let gauge;
+        let currentBlock;
+
+        // Create a pool
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.addController(gaugeController.address); // Vote
+        gauge = await getGauges(frax, "1");
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+        expect(tokenId).to.be.eq(1);
+
+        // About gaugeController
+        await gaugeController.setDuration(await getDurationTime());
+        await gaugeController.addPool(frax.address);
+
+        expect(await gauge.tokenPerBlock()).to.be.eq(0);
+        await gauge.deposit(toWei("0.000001"), tokenId);
+        expect(await getUserInfo(gauge, owner, 0)).to.be.eq(toWei("0.000001"));
+
+        // Set reduce config
+        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + PERIOD);
+        // Waiting block
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
+        currentBlock = parseInt(await time.latestBlock());
+        expect(currentBlock).to.be.gt(initStartBlock);
+        expect(currentBlock).to.be.gt(parseInt(await boost.periodEndBlock()));
+
+        // Vote
+        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+        expect(await gauge.tokenPerBlock()).to.be.gt(0);
+
+        // Get reward
+        await gauge.getReward(owner.address);
+        expect(await gauge.tokenPerBlock()).to.be.eq(await boost.minTokenReward());
+    });
+
+    it('test Single user deposit and vote and get reward and than tokenperblock change to eighty percent', async function () {
+        let gauge;
+        let currentBlock;
+
+        // Create a pool
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.addController(gaugeController.address); // Vote
+        gauge = await getGauges(frax, "1");
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+        expect(tokenId).to.be.eq(1);
+
+        // About gaugeController
+        await gaugeController.setDuration(await getDurationTime());
+        await gaugeController.addPool(frax.address);
+
+        expect(await gauge.tokenPerBlock()).to.be.eq(0);
+        await gauge.deposit(toWei("0.000001"), tokenId);
+        expect(await getUserInfo(gauge, owner, 0)).to.be.eq(toWei("0.000001"));
+
+        // Set reduce config
+        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + PERIOD);
+        // Waiting block
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
+        currentBlock = parseInt(await time.latestBlock());
+        expect(currentBlock).to.be.gt(initStartBlock);
+        expect(currentBlock).to.be.gt(parseInt(await boost.periodEndBlock()));
+
+        // About reduce
+        await boost.setMinTokenReward(5000);
+        await gauge.getReward(owner.address);
+        expect(await gauge.tokenPerBlock()).to.be.eq(10000 * 0.8);
     });
 
     it('test Single user deposit and vote and get reward', async function () {
+        let gauge;
+
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
@@ -232,6 +308,7 @@ contract('Gauge', async function () {
         weight = await locker.balanceOfNFT(tokenId);
         weightsArray = await getWeights(weight);
         expect(weightsArray).to.be.not.eq([]);
+        expect(await gauge.tokenPerBlock()).to.be.eq(0);
         await boost.vote(tokenId, poolVotesArray, weightsArray);
 
         // Get reward

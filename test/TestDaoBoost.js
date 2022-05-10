@@ -9,7 +9,7 @@ contract('Boost', async function () {
     let initStartBlock;
 
     async function getDurationTime(day = 1) {
-        if (undefined === typeof day || 0 === day) {
+        if (undefined === typeof day || 0 >= day) {
             return;
         }
         return parseInt(await time.duration.days(day));
