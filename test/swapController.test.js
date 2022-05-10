@@ -15,7 +15,7 @@ const {toWei} = web3.utils;
 const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
-contract('SwapRouter', () => {
+contract('SwapController', () => {
     async function getCurrentBlock() {
         return parseInt(await time.latestBlock());
     }
@@ -347,6 +347,7 @@ contract('SwapRouter', () => {
         // console.log("weightOwner:" + weightOwner)
         // console.log("info[2]:" + info[2])
         let sum = weightDev.add(weightOwner);
+
         // aaa = sum.sub(sum1)
 
         expect(info[2]).to.be.not.eq("100");
@@ -361,14 +362,23 @@ contract('SwapRouter', () => {
         let weight = await lock.balanceOfNFT(1);
         let weight1 = await lock.balanceOfNFT(2);
         info = await swapMining.poolInfo(0);
+        let diff = weightDev.sub(weight)
+         let diff1 = weightOwner.sub(weight1)
+
+       console.log("diff:"+diff)
+          console.log("diff1:"+diff1)
+
 
 
         // let sum1 = weight.add(weight1)
+        //  let diff = sum1-sum
         //
         // let totalWeight = await gaugeController.totalWeight()
         //
         //
-        expect(info[2]).to.be.eq(weight1);
+        expect(info[2]).to.be.eq(diff1);
+
+
 
 
     });
