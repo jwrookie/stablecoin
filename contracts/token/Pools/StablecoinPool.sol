@@ -160,7 +160,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(FRAX.globalCollateralRatio() >= COLLATERAL_RATIO_MAX, "Collateral ratio must be >= 1");
         require((collateral_token.balanceOf(address(this))).sub(unclaimedPoolCollateral).add(collateral_amount) <= pool_ceiling, "[Pool's Closed]: Ceiling reached");
 
-        (uint256 frax_amount_d18) = PoolLibrary.calcMint1t1FRAX(
+        (uint256 frax_amount_d18) = PoolLibrary.calcMint1t1Stable(
             getCollateralPrice(),
             collateral_amount_d18
         );
@@ -179,7 +179,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 fxs_price = FRAX.stockPrice();
         require(FRAX.globalCollateralRatio() == 0, "Collateral ratio must be 0");
 
-        (uint256 frax_amount_d18) = PoolLibrary.calcMintAlgorithmicFRAX(
+        (uint256 frax_amount_d18) = PoolLibrary.calcMintAlgorithmicStable(
             fxs_price, // X FXS / 1 USD
             fxs_amount_d18
         );
@@ -209,7 +209,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
             globalCollateralRatio
         );
 
-        (uint256 mint_amount, uint256 fxs_needed) = PoolLibrary.calcMintFractionalFRAX(input_params);
+        (uint256 mint_amount, uint256 fxs_needed) = PoolLibrary.calcMintFractionalStable(input_params);
 
         mint_amount = (mint_amount.mul(uint(1e6).sub(minting_fee))).div(1e6);
         require(FRAX_out_min <= mint_amount, "Slippage limit reached");
@@ -226,7 +226,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         // Need to adjust for decimals of collateral
         uint256 FRAX_amount_precision = FRAX_amount.div(10 ** missing_decimals);
-        (uint256 collateral_needed) = PoolLibrary.calcRedeem1t1FRAX(
+        (uint256 collateral_needed) = PoolLibrary.calcRedeem1t1Stable(
             getCollateralPrice(),
             FRAX_amount_precision
         );
@@ -353,7 +353,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
         uint256 global_collat_value = FRAX.globalCollateralValue();
 
-        (uint256 collateral_units, uint256 amount_to_recollat) = PoolLibrary.calcRecollateralizeFRAXInner(
+        (uint256 collateral_units, uint256 amount_to_recollat) = PoolLibrary.calcRecollateralizeStableInner(
             collateral_amount_d18,
             getCollateralPrice(),
             global_collat_value,
@@ -377,14 +377,14 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(paused() == false, "Buyback is paused");
         uint256 fxs_price = FRAX.stockPrice();
 
-        PoolLibrary.BuybackFXS_Params memory input_params = PoolLibrary.BuybackFXS_Params(
+        PoolLibrary.BuybackStock_Params memory input_params = PoolLibrary.BuybackStock_Params(
             availableExcessCollatDV(),
             fxs_price,
             getCollateralPrice(),
             FXS_amount
         );
 
-        (uint256 collateral_equivalent_d18) = (PoolLibrary.calcBuyBackFXS(input_params)).mul(uint(1e6).sub(buyback_fee)).div(1e6);
+        (uint256 collateral_equivalent_d18) = (PoolLibrary.calcBuyBackStock(input_params)).mul(uint(1e6).sub(buyback_fee)).div(1e6);
         uint256 collateral_precision = collateral_equivalent_d18.div(10 ** missing_decimals);
 
         require(COLLATERAL_out_min <= collateral_precision, "Slippage limit reached");
