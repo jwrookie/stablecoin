@@ -165,7 +165,7 @@ contract('SwapController', () => {
         await swapMining.addPair(100, pool.address, true)
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy(operatable.address);
+        gaugeFactory = await GaugeFactory.deploy(checkPermission.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
@@ -227,7 +227,6 @@ contract('SwapController', () => {
         await boost.addController(gaugeController.address);
         await gaugeController.addPool(pool.address);
         await lock.addBoosts(gaugeController.address);
-
 
 
     });
@@ -342,9 +341,18 @@ contract('SwapController', () => {
         await swapController.vote(2, pool.address);
         info = await swapMining.poolInfo(0);
         let weightDev = await lock.balanceOfNFT(1);
+        let usedWeightsDev = await lock.balanceOfNFT(1);
         let weightOwner = await lock.balanceOfNFT(2);
-        // console.log("weightDev:" + weightDev)
-        // console.log("weightOwner:" + weightOwner)
+        let usedWeightsOwner = await lock.balanceOfNFT(2);
+        console.log("weightDev:" + weightDev)
+        console.log("weightOwner:" + weightOwner)
+
+        console.log("usedWeightsDev:" + usedWeightsDev)
+        console.log("usedWeightsOwner:" + usedWeightsOwner)
+
+        expect(usedWeightsDev).to.be.eq(weightDev)
+        expect(usedWeightsOwner).to.be.eq(weightOwner)
+
         // console.log("info[2]:" + info[2])
         let sum = weightDev.add(weightOwner);
 
@@ -363,11 +371,10 @@ contract('SwapController', () => {
         let weight1 = await lock.balanceOfNFT(2);
         info = await swapMining.poolInfo(0);
         let diff = weightDev.sub(weight)
-         let diff1 = weightOwner.sub(weight1)
+        let diff1 = weightOwner.sub(weight1)
 
-       console.log("diff:"+diff)
-          console.log("diff1:"+diff1)
-
+        // console.log("diff:"+diff)
+        //    console.log("diff1:"+diff1)
 
 
         // let sum1 = weight.add(weight1)
@@ -376,9 +383,7 @@ contract('SwapController', () => {
         // let totalWeight = await gaugeController.totalWeight()
         //
         //
-        expect(info[2]).to.be.eq(diff1);
-
-
+        // expect(info[2]).to.be.eq(diff1);
 
 
     });
