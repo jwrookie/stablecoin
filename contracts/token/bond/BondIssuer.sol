@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../../tools/AbstractPausable.sol";
-import '../../math/Math.sol';
+import "../../math/Math.sol";
 import "../Rusd.sol";
 import "./Bond.sol";
 
@@ -28,23 +28,21 @@ contract BondIssuer is AbstractPausable {
 
     uint256 public maxBondOutstanding = 1000000e18;
 
-
     // Set fees, E6
     uint256 public issueFee = 100; // 0.01% initially
     uint256 public redemptionFee = 100; // 0.01% initially
     uint256 public fee;
-
 
     // Virtual balances
     uint256 public vBalStable;
 
     /* ========== CONSTRUCTOR ========== */
 
-    constructor (
+    constructor(
         address _operatorMsg,
         address _frax_contract_address,
         address _fxb_contract_address
-    ) AbstractPausable(_operatorMsg){
+    ) AbstractPausable(_operatorMsg) {
         stableCoin = RStablecoin(_frax_contract_address);
         bond = Bond(_fxb_contract_address);
         minInterestRate = 1e16;
@@ -53,10 +51,9 @@ contract BondIssuer is AbstractPausable {
         exchangeRate = 1e18;
         TransferHelper.safeApprove(address(stableCoin), address(this), type(uint256).max);
         TransferHelper.safeApprove(address(bond), address(bond), type(uint256).max);
-
     }
 
-    function currentInterestRate() public view returns (uint256){
+    function currentInterestRate() public view returns (uint256) {
         uint256 totalSupply = IERC20(bond).totalSupply();
         if (totalSupply <= maxBondOutstanding) {
             return interestRate;
@@ -67,7 +64,6 @@ contract BondIssuer is AbstractPausable {
 
     function collatDollarBalance() external pure returns (uint256) {
         return uint256(1e18);
-
     }
 
     function calInterest() public {
@@ -86,7 +82,7 @@ contract BondIssuer is AbstractPausable {
         fraxFee = fraxIn.mul(issueFee).div(PRICE_PRECISION);
         fee = fee.add(fraxFee);
 
-        uint amount = fraxIn.sub(fraxFee);
+        uint256 amount = fraxIn.sub(fraxFee);
         stableCoin.poolBurn(msg.sender, amount);
 
         fxbOut = fraxIn.mul(1e18).div(exchangeRate);
@@ -136,13 +132,9 @@ contract BondIssuer is AbstractPausable {
         emit Recovered(token, msg.sender, amount);
     }
 
-
     event Recovered(address token, address to, uint256 amount);
 
     // Track bond redeeming
     event BondRedeemed(address indexed from, uint256 fxb_amount, uint256 frax_out, uint256 fee);
     event BondMint(address indexed from, uint256 frax_amount, uint256 fxb_out, uint256 fee);
-
 }
-
-
