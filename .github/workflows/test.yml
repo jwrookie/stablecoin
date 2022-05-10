@@ -19,10 +19,11 @@ jobs:
       - name: Install yarn
         run: npm install -g yarn
 
-      - name: Install project dependencies
-        if: steps.yarn-cache.outputs.cache-hit != 'true' # Over here!
+      - uses: c-hive/gha-yarn-cache@v1
+
+      - name: Install JS dependencies
         run: yarn
-      - run: yarn lint:sol
+#      - run: yarn lint:sol
       - run: yarn test
         env:
           FORCE_COLOR: 1
