@@ -228,107 +228,106 @@ contract('SwapController', () => {
         await gaugeController.addPool(pool.address);
         await lock.addBoosts(gaugeController.address);
 
+    });
+    it('liquidity mining and transaction mining acceleration will fail', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await gauge_pool.connect(dev).deposit("1000", 1);
+
+        await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
+
+        await expect(swapMining.connect(dev).vote(1, [pool.address], [toWei('1')])).to
+            .be.revertedWith("tokenId voted");
+
 
     });
-    // it('liquidity mining and transaction mining acceleration will fail', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //     await gauge_pool.connect(dev).deposit("1000", 1);
-    //
-    //     await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
-    //
-    //     await expect(swapMining.connect(dev).vote(1, [pool.address], [toWei('1')])).to
-    //         .be.revertedWith("tokenId voted");
-    //
-    //
-    // });
-    // it('transaction mining acceleration and voting will fail', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //
-    //     await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
-    //
-    //     await expect(swapController.connect(dev).vote(1, pool.address)).to
-    //         .be.revertedWith("tokenId voted");
-    //
-    //
-    // });
-    // it('liquidity acceleration and voting will fail', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //
-    //     await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
-    //
-    //     await expect(gaugeController.connect(dev).vote(1, pool.address)).to
-    //         .be.revertedWith("tokenId voted");
-    //
-    //
-    // });
-    //
-    // it('trading mining voting and liquidity voting will fail', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //     await gauge_pool.connect(dev).deposit("1000", 1);
-    //
-    //     await gaugeController.connect(dev).vote(1, pool.address);
-    //
-    //     await expect(swapController.connect(dev).vote(1, pool.address)).to
-    //         .be.revertedWith("tokenId voted");
-    //
-    // });
-    // it('transaction mining users can accelerate, reset and vote again', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //
-    //     let info = await swapMining.poolInfo(0);
-    //     expect(info[2]).to.be.eq("100");
-    //
-    //     await swapController.connect(dev).vote(1, pool.address);
-    //     info = await swapMining.poolInfo(0);
-    //     let weight = await lock.balanceOfNFT(1);
-    //     expect(info[2]).to.be.not.eq("100");
-    //
-    //     expect(info[2]).to.be.eq(weight);
-    //     await time.increase(time.duration.days(1));
-    //     await swapController.connect(dev).reset(1);
-    //
-    //     info = await swapMining.poolInfo(0);
-    //
-    //     expect(info[2]).to.be.eq(weight);
-    //     await time.increase(time.duration.days(1));
-    //     await swapController.connect(dev).vote(1, pool.address);
-    //
-    //
-    // });
-    // it('users cannot vote again before the cycle', async () => {
-    //     let eta = time.duration.days(7);
-    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-    //
-    //     let info = await swapMining.poolInfo(0);
-    //     expect(info[2]).to.be.eq("100");
-    //
-    //     await swapController.connect(dev).vote(1, pool.address);
-    //     info = await swapMining.poolInfo(0);
-    //     let weight = await lock.balanceOfNFT(1);
-    //
-    //     expect(info[2]).to.be.not.eq("100");
-    //     expect(info[2]).to.be.eq(weight);
-    //
-    //     await expect(swapController.connect(dev).vote(1, pool.address)).to
-    //         .be.revertedWith("next duration use");
-    //     await time.increase(time.duration.days(1));
-    //     await swapController.connect(dev).reset(1)
-    //
-    //     await time.increase(time.duration.days(1));
-    //     await swapController.connect(dev).vote(1, pool.address);
-    //     let weight1 = await lock.balanceOfNFT(1);
-    //     info = await swapMining.poolInfo(0);
-    //
-    //     expect(weight1).to.be.not.eq(weight);
-    //     expect(info[2]).to.be.eq(BigNumber.from(weight1).add(weight));
-    //
-    //
-    // });
+    it('transaction mining acceleration and voting will fail', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
+
+        await expect(swapController.connect(dev).vote(1, pool.address)).to
+            .be.revertedWith("tokenId voted");
+
+
+    });
+    it('liquidity acceleration and voting will fail', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
+
+        await expect(gaugeController.connect(dev).vote(1, pool.address)).to
+            .be.revertedWith("tokenId voted");
+
+
+    });
+
+    it('trading mining voting and liquidity voting will fail', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await gauge_pool.connect(dev).deposit("1000", 1);
+
+        await gaugeController.connect(dev).vote(1, pool.address);
+
+        await expect(swapController.connect(dev).vote(1, pool.address)).to
+            .be.revertedWith("tokenId voted");
+
+    });
+    it('transaction mining users can accelerate, reset and vote again', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        let info = await swapMining.poolInfo(0);
+        expect(info[2]).to.be.eq("100");
+
+        await swapController.connect(dev).vote(1, pool.address);
+        info = await swapMining.poolInfo(0);
+        let weight = await lock.balanceOfNFT(1);
+        expect(info[2]).to.be.not.eq("100");
+
+        expect(info[2]).to.be.eq(weight);
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).reset(1);
+
+        info = await swapMining.poolInfo(0);
+
+        expect(info[2]).to.be.eq(weight);
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).vote(1, pool.address);
+
+
+    });
+    it('users cannot vote again before the cycle', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        let info = await swapMining.poolInfo(0);
+        expect(info[2]).to.be.eq("100");
+
+        await swapController.connect(dev).vote(1, pool.address);
+        info = await swapMining.poolInfo(0);
+        let weight = await lock.balanceOfNFT(1);
+
+        expect(info[2]).to.be.not.eq("100");
+        expect(info[2]).to.be.eq(weight);
+
+        await expect(swapController.connect(dev).vote(1, pool.address)).to
+            .be.revertedWith("next duration use");
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).reset(1)
+
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).vote(1, pool.address);
+        let weight1 = await lock.balanceOfNFT(1);
+        info = await swapMining.poolInfo(0);
+
+        expect(weight1).to.be.not.eq(weight);
+        expect(info[2]).to.be.eq(BigNumber.from(weight1).add(weight));
+
+
+    });
     it('transaction mining multi-user single pool voting', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
@@ -340,67 +339,21 @@ contract('SwapController', () => {
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
         info = await swapMining.poolInfo(0);
-        let weightDev = await lock.balanceOfNFT(1);
-        let usedWeightsDev = await lock.balanceOfNFT(1);
-        let weightOwner = await lock.balanceOfNFT(2);
-        let usedWeightsOwner = await lock.balanceOfNFT(2);
-        console.log("weightDev:" + weightDev)
-        console.log("weightOwner:" + weightOwner)
-
-        console.log("usedWeightsDev:" + usedWeightsDev)
-        console.log("usedWeightsOwner:" + usedWeightsOwner)
-
-        expect(usedWeightsDev).to.be.eq(weightDev)
-        expect(usedWeightsOwner).to.be.eq(weightOwner)
-
-        // console.log("info[2]:" + info[2])
-        //let sum = weightDev.add(weightOwner);
-
-        // aaa = sum.sub(sum1)
-
         expect(info[2]).to.be.not.eq("100");
 
         await time.increase(time.duration.days(1));
         await swapController.connect(dev).reset(1);
         await swapController.reset(2)
         await time.increase(time.duration.days(1));
-        //
+
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
-        // let weight = await lock.balanceOfNFT(1);
-        // let weight1 = await lock.balanceOfNFT(2);
-        info = await swapMining.poolInfo(0);
-        // let diff = weightDev.sub(weight)
-        // let diff1 = weightOwner.sub(weight1)
-        console.log("-----------------------")
 
-        weightDev = await lock.balanceOfNFT(1);
-         usedWeightsDev = await lock.balanceOfNFT(1);
-         weightOwner = await lock.balanceOfNFT(2);
-         usedWeightsOwner = await lock.balanceOfNFT(2);
-           expect(usedWeightsDev).to.be.eq(weightDev)
-        expect(usedWeightsOwner).to.be.eq(weightOwner)
-        console.log("weightDev:" + weightDev)
-        console.log("weightOwner:" + weightOwner)
+        let  usedWeightsDev = await swapController.usedWeights(1);
+        let  usedWeightsOwner = await swapController.usedWeights(2);
 
-        console.log("usedWeightsDev:" + usedWeightsDev)
-        console.log("usedWeightsOwner:" + usedWeightsOwner)
-
-        expect(usedWeightsDev).to.be.eq(weightDev)
-        expect(usedWeightsOwner).to.be.eq(weightOwner)
-        console.log("info[2]:"+info[2])
-
-        // console.log("diff:"+diff)
-        //    console.log("diff1:"+diff1)
-
-
-        // let sum1 = weight.add(weight1)
-        //  let diff = sum1-sum
-        //
-        // let totalWeight = await gaugeController.totalWeight()
-        //
-        //
-        // expect(info[2]).to.be.eq(diff1);
+        let totalWeight = await swapController.totalWeight();
+        expect(totalWeight).to.be.eq(usedWeightsDev.add(usedWeightsOwner));
 
 
     });

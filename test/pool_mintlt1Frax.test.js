@@ -35,12 +35,14 @@ contract('Pool_USDC', () => {
 
         Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
+        const CheckPermission = await ethers.getContractFactory("CheckPermission");
+        checkPermission = await CheckPermission.deploy(operatable.address);
 
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
         await fxs.setFraxAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
@@ -55,7 +57,7 @@ contract('Pool_USDC', () => {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        pool = await Pool_USDC.deploy(checkPermission.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await pool.USDC_address()).to.be.eq(usdc.address);
 
 
@@ -170,12 +172,6 @@ contract('Pool_USDC', () => {
         await usdc_uniswapOracle.setPeriod(1);
         await usdc_uniswapOracle.update();
 
-        console.log("globalCollateralRatio:" + await frax.globalCollateralRatio())
-        let consults = await usdc_uniswapOracle.consult(weth.address, toWei('100000'));
-        console.log("consults:" + consults);
-
-        console.log("price0Average:" + await usdc_uniswapOracle.price0Average());
-        console.log("price1Average:" + await usdc_uniswapOracle.price1Average());
         expect(await pool.getCollateralPrice()).to.be.eq("100000000");
 
         expect(await usdc.balanceOf(owner.address)).to.be.eq(toWei('1000000000000'));

@@ -87,6 +87,7 @@ contract('Boost', () => {
 
     });
     it('should two users getReward correct', async () => {
+        console.log("accTokenPerShare:"+await gauge_usdc.accTokenPerShare())
         await fxs.approve(lock.address, toWei('10000000'));
         await fxs.connect(dev).approve(lock.address, toWei('10000000'));
         let eta = time.duration.days(1);
@@ -99,29 +100,55 @@ contract('Boost', () => {
         await usdc.approve(gauge_usdc.address, toWei('10000000'))
         await fxs.approve(gauge_usdc.address, toWei('10000000'))
 
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        await gauge_usdc.connect(owner).deposit("2000", 2);
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_usdc.connect(owner).deposit(toWei('2'), 2);
 
-        await boost.updatePool(0);
+       await boost.updatePool(0);
         expect(await boost.poolLength()).to.be.eq(2);
+        console.log("tokenPerBlock:"+ await gauge_usdc.tokenPerBlock())
+         console.log("accTokenPerShare:"+await gauge_usdc.accTokenPerShare())
 
-        await time.increase(time.duration.days(1));
+        // await time.increase(time.duration.days(1));
+        let lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
+        console.log("lastBlock:" + lastBlock)
 
-         console.log("boost fxs:" + await fxs.balanceOf(boost.address));
-        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('99989990'));
 
         let rewardDev = await gauge_usdc.pending(dev.address)
         console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address)
-        console.log(gauge_usdc)
-        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+          let pendingMax = await gauge_usdc.pendingMax(dev.address)
+        console.log("pendingMax:" + rewardDev)
+        // expect(rewardDev).to.be.eq("149999999999999999")
 
-        console.log("fxs bef:" + await fxs.balanceOf(owner.address))
-        await time.increase(time.duration.days(1));
-        let rewardOwner = await gauge_usdc.pending(owner.address)
-        console.log("rewardOwner:" + rewardOwner)
-        await gauge_usdc.connect(owner).getReward(owner.address)
-        console.log("fxs aft:" + await fxs.balanceOf(owner.address))
+        let tokenPerBlock1 = await gauge_usdc.tokenPerBlock()
+        let tokenPerBlock2 = tokenPerBlock1.mul(2)
+        let accTokenPerShare1 = await gauge_usdc.accTokenPerShare()
+        console.log("accTokenPerShare1:"+accTokenPerShare1)
+
+        let totalSupply = await gauge_usdc.totalSupply()
+
+        // console.log("totalSupply1:"+totalSupply1)
+        let accTokenPerShare2 = BigNumber.from(tokenPerBlock2).mul(1e12).div(totalSupply)
+        let total = accTokenPerShare1.add(accTokenPerShare2)
+        console.log("total:" + total)
+          console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+
+        await gauge_usdc.connect(dev).getReward(dev.address)
+        lastBlock = await time.latestBlock();
+        console.log("lastBlock:" + lastBlock)
+        //expect(await fxs.balanceOf(dev.address)).to.be.eq(total.mul(3))
+        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+        let aft = await  fxs.balanceOf(dev.address);
+       // expect(BigNumber.from(aft)).to.be.eq(toWei('0.2'))
+
+        // console.log("fxs bef:" + await fxs.balanceOf(owner.address))
+        // await time.increase(time.duration.days(1));
+        // let rewardOwner = await gauge_usdc.pending(owner.address)
+        // console.log("rewardOwner:" + rewardOwner)
+        // await gauge_usdc.connect(owner).getReward(owner.address)
+        // console.log("fxs aft:" + await fxs.balanceOf(owner.address))
 
 
     });
