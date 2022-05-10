@@ -254,26 +254,26 @@ contract('Pool_USDC', () => {
         await frax.refreshCollateralRatio();
         expect(await pool.availableExcessCollatDV()).to.be.eq(0);
 
-        await pool.mintFractionalFRAX(toWei('1000'), toWei('10000000'), 0);
-        expect(await frax.globalCollateralValue()).to.be.eq(toWei('1000000000'));
+        await pool.mintFractionalFRAX(toWei('1'), toWei('10000000000'), 0);
+        expect(await frax.globalCollateralValue()).to.be.eq("100000000000000000000");
         expect(await pool.availableExcessCollatDV()).to.be.eq(0);
-        expect(await frax.totalSupply()).to.be.eq("1333333334333333333333333333");
+        expect(await frax.totalSupply()).to.be.eq("100000001000000000000000000");
 
-        expect(await usdc.balanceOf(pool.address)).to.be.eq("10000000000000000000000000");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("96666665666666666666666667");
+        expect(await usdc.balanceOf(pool.address)).to.be.eq("1000000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("99000000000000000000000000");
 
-        await pool.recollateralizeFRAX(toWei('1000'), "100");
+        await pool.recollateralizeFRAX(toWei('1'), "100");
 
-        expect(await frax.globalCollateralRatio()).to.be.eq("750000");
-        expect(await frax.globalCollateralValue()).to.be.eq("1000001333333334333333333300");
+        expect(await frax.globalCollateralRatio()).to.be.eq("1");
+        expect(await frax.globalCollateralValue()).to.be.eq("200000000000000000000");
 
-        expect(await pool.availableExcessCollatDV()).to.be.eq("1332583334333333333301");
+        expect(await pool.availableExcessCollatDV()).to.be.eq("99999999000000000000");
 
-        expect(await usdc.balanceOf(pool.address)).to.be.eq("10000013333333343333333333");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("96666679100000010075000000");
+        expect(await usdc.balanceOf(pool.address)).to.be.eq("2000000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("99000001007500000000000000");
 
-        await pool.buyBackFXS(toWei('1'), 0);
-        expect(await usdc.balanceOf(owner.address)).to.be.eq("999989999987666666656666666667");
+        await pool.buyBackFXS(toWei('0.1'), 0);
+        expect(await usdc.balanceOf(owner.address)).to.be.eq("999999999998100000000000000000");
 
 
     });
