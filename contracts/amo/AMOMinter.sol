@@ -249,7 +249,7 @@ contract AMOMinter is CheckPermission {
 
     // Adds an AMO
     function addAMO(address amoAddress, bool _sync) public onlyOperator {
-        require(amoAddress != address(0), "Zero address detected");
+        require(amoAddress != address(0), "0 address");
 
         (uint256 stableValE18, uint256 collatValE18) = IAMO(amoAddress).dollarBalances();
         require(stableValE18 >= 0 && collatValE18 >= 0, "Invalid AMO");
@@ -274,7 +274,7 @@ contract AMOMinter is CheckPermission {
 
     // Removes an AMO
     function removeAMO(address amoAddress, bool _sync) public onlyOperator {
-        require(amoAddress != address(0), "Zero address detected");
+        require(amoAddress != address(0), "0 address");
         require(amos[amoAddress] == true, "Address no exist");
 
         // Delete from the mapping

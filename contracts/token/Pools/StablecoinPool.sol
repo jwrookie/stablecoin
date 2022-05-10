@@ -71,7 +71,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
             (_frax_contract_address != address(0)) &&
                 (_fxs_contract_address != address(0)) &&
                 (_collateral_address != address(0)),
-            "Zero address detected"
+            "0 address"
         );
         FRAX = RStablecoin(_frax_contract_address);
         FXS = Stock(_fxs_contract_address);
@@ -88,7 +88,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
     // Add an AMO Minter
     function addAMOMinter(address amo_minter_addr) external onlyOwner {
-        require(amo_minter_addr != address(0), "Zero address detected");
+        require(amo_minter_addr != address(0), "0 address");
 
         // Make sure the AMO Minter has collatDollarBalance()
         uint256 collat_val_e18 = IAMOMinter(amo_minter_addr).collatDollarBalance();

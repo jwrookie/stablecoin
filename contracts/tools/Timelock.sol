@@ -42,7 +42,7 @@ contract Timelock {
     address public admin;
     address public pendingAdmin;
     uint256 public delay;
-    bool public admin_initialized;
+    bool public adminInitialized;
 
     mapping(bytes32 => bool) public queuedTransactions;
 
@@ -50,7 +50,7 @@ contract Timelock {
         require(delay_ <= MAXIMUM_DELAY, "Timelock::constructor: Delay must not exceed maximum delay.");
         admin = admin_;
         delay = delay_;
-        admin_initialized = false;
+        adminInitialized = false;
     }
 
     // XXX: function() external payable { }
@@ -75,11 +75,11 @@ contract Timelock {
 
     function setPendingAdmin(address pendingAdmin_) public {
         // allows one time setting of admin for deployment purposes
-        if (admin_initialized) {
+        if (adminInitialized) {
             require(msg.sender == address(this), "Timelock::setPendingAdmin: Call must come from Timelock.");
         } else {
             require(msg.sender == admin, "Timelock::setPendingAdmin: First call must come from admin.");
-            admin_initialized = true;
+            adminInitialized = true;
         }
         pendingAdmin = pendingAdmin_;
 
@@ -95,7 +95,7 @@ contract Timelock {
     ) public returns (bytes32) {
         require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
         require(
-            eta >= getBlockTimestamp().add(delay),
+            eta >= block.timestamp.add(delay),
             "Timelock::queueTransaction: Estimated execution block must satisfy delay."
         );
 
@@ -132,8 +132,8 @@ contract Timelock {
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         require(queuedTransactions[txHash], "Timelock::executeTransaction: Transaction hasn't been queued.");
-        require(getBlockTimestamp() >= eta, "Timelock::executeTransaction: Transaction hasn't surpassed time lock.");
-        require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "Timelock::executeTransaction: Transaction is stale.");
+        require(block.timestamp >= eta, "Timelock::executeTransaction: Transaction hasn't surpassed time lock.");
+        require(block.timestamp <= eta.add(GRACE_PERIOD), "Timelock::executeTransaction: Transaction is stale.");
 
         queuedTransactions[txHash] = false;
 
@@ -146,7 +146,7 @@ contract Timelock {
         }
 
         // solium-disable-next-line security/no-call-value
-        (bool success, bytes memory returnData) = target.call{value: value}(callData);
+        (bool success, bytes memory returnData) = target.call{value : value}(callData);
         require(success, "Timelock::executeTransaction: Transaction execution reverted.");
 
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
@@ -154,8 +154,4 @@ contract Timelock {
         return returnData;
     }
 
-    function getBlockTimestamp() internal view returns (uint256) {
-        // solium-disable-next-line security/no-block-members
-        return block.timestamp;
-    }
 }

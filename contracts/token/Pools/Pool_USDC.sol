@@ -16,7 +16,7 @@ contract Pool_USDC is StablecoinPool {
         public
         StablecoinPool(_operatorMsg, _frax_contract_address, _fxs_contract_address, _collateral_address, _pool_ceiling)
     {
-        require(_collateral_address != address(0), "Zero address detected");
+        require(_collateral_address != address(0), "0 address");
         USDC_address = _collateral_address;
     }
 }

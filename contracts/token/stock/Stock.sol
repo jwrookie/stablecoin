@@ -12,13 +12,14 @@ import "../Rusd.sol";
 contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
+    uint256 public constant GENESIS_SUPPLY = 100000000e18; // 100M is printed upon genesis
+
     address[] public poolAddress;
     mapping(address => bool) public isPools;
+    address public stableAdd;
 
-    address public FRAXStablecoinAdd;
-    uint256 public constant GENESIS_SUPPLY = 100000000e18; // 100M is printed upon genesis
     address public oracle;
-    RStablecoin private frax;
+    RStablecoin private _stable;
 
     modifier onlyPools() {
         require(isPools[msg.sender] == true, "Only pools can call this function");
@@ -31,22 +32,21 @@ contract Stock is ERC20Burnable, AbstractPausable {
         string memory _symbol,
         address _oracle
     ) public ERC20(_name, _symbol) AbstractPausable(_operatorMsg) {
-        require((_oracle != address(0)), "Zero address detected");
+        require((_oracle != address(0)), "0 address");
         oracle = _oracle;
         _mint(msg.sender, GENESIS_SUPPLY);
     }
 
-    /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function setOracle(address new_oracle) external onlyOwner {
-        require(new_oracle != address(0), "Zero address detected");
-        oracle = new_oracle;
+    function setOracle(address _oracle) external onlyOwner {
+        require(_oracle != address(0), "0 address");
+        oracle = _oracle;
     }
 
     function setFraxAddress(address _address) external onlyOwner {
-        require(_address != address(0), "Zero address detected");
+        require(_address != address(0), "0 address");
 
-        frax = RStablecoin(_address);
+        _stable = RStablecoin(_address);
 
         emit FRAXAddressSet(_address);
     }
@@ -56,32 +56,32 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     // Adds collateral addresses supported, such as tether and busd, must be ERC20
-    function addPool(address pool_address) public onlyOwner {
-        require(pool_address != address(0), "Zero address detected");
-        require(isPools[pool_address] == false, "Address already exists");
-        isPools[pool_address] = true;
-        poolAddress.push(pool_address);
+    function addPool(address _pool) public onlyOwner {
+        require(_pool != address(0), "0 address");
+        require(isPools[_pool] == false, "Address already exists");
+        isPools[_pool] = true;
+        poolAddress.push(_pool);
 
-        emit PoolAdded(pool_address);
+        emit PoolAdded(_pool);
     }
 
     // Remove a pool
-    function removePool(address pool_address) public onlyOwner {
-        require(pool_address != address(0), "Zero address detected");
-        require(isPools[pool_address] == true, "Address nonexistant");
+    function removePool(address _pool) public onlyOwner {
+        require(_pool != address(0), "0 address");
+        require(isPools[_pool] == true, "Address nonexistant");
 
         // Delete from the mapping
-        delete isPools[pool_address];
+        delete isPools[_pool];
 
         // 'Delete' from the array by setting the address to 0x0
         for (uint256 i = 0; i < poolAddress.length; i++) {
-            if (poolAddress[i] == pool_address) {
+            if (poolAddress[i] == _pool) {
                 poolAddress[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
-        emit PoolRemoved(pool_address);
+        emit PoolRemoved(_pool);
     }
 
     function mint(address to, uint256 amount) public onlyPools returns (bool) {
@@ -111,7 +111,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
 
     event FRAXAddressSet(address addr);
 
-    event PoolAdded(address pool_address);
+    event PoolAdded(address pool);
 
-    event PoolRemoved(address pool_address);
+    event PoolRemoved(address pool);
 }

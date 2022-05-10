@@ -20,34 +20,35 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     event StableMinted(address indexed from, address indexed to, uint256 amount);
 
     event CollateralRatioRefreshed(uint256 globalCollateralRatio);
-    event PoolAdded(address pool_address);
-    event PoolRemoved(address pool_address);
-    event RedemptionFeeSet(uint256 red_fee);
-    event MintingFeeSet(uint256 min_fee);
-    event StableStepSet(uint256 new_step);
-    event PriceTargetSet(uint256 new_price_target);
-    event RefreshCooldownSet(uint256 new_cooldown);
-    event StockAddressSet(address _fxs_address);
-    event ETHUSDOracleSet(address eth_usd_consumer_address);
-    event TimelockSet(address new_timelock);
-    event ControllerSet(address controller_address);
-    event PriceBandSet(uint256 price_band);
-    event StableETHOracleSet(address oracle_addr, address weth_address);
-    event StockEthOracleSet(address oracle_addr, address weth_address);
+    event PoolAdded(address pool);
+    event PoolRemoved(address pool);
+    event RedemptionFeeSet(uint256 redFee);
+    event MintingFeeSet(uint256 minFee);
+    event StableStepSet(uint256 newStep);
+    event PriceTargetSet(uint256 priceTarget);
+    event RefreshCooldownSet(uint256 cooldown);
+    event StockAddressSet(address _address);
+    event ETHUSDOracleSet(address ethusdConsumer);
+    event TimelockSet(address timelock);
+    event ControllerSet(address controller);
+    event PriceBandSet(uint256 priceBand);
+    event StableETHOracleSet(address oracle, address weth);
+    event StockEthOracleSet(address oracle, address weth);
     event SetK(uint256 kDuration, uint256 k);
 
     uint256 public constant GENESIS_SUPPLY = 2000000e18;
     // Constants for various precisions
-    uint256 private constant PRICE_PRECISION = 1e6;
+    uint256 public constant PRICE_PRECISION = 1e6;
+
 
     enum PriceChoice {
         STABLE,
         STOCK
     }
-    ChainlinkETHUSDPriceConsumer private ethUsdPricer;
-    uint8 private ethUsdPricerDecimals;
-    UniswapPairOracle private stableEthOracle;
-    UniswapPairOracle private stockEthOracle;
+    ChainlinkETHUSDPriceConsumer public ethUsdPricer;
+    uint8 public ethUsdPricerDecimals;
+    UniswapPairOracle public stableEthOracle;
+    UniswapPairOracle public stockEthOracle;
 
     address public stockAddress;
     address public stableEthOracleAddress;
@@ -110,7 +111,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     function oraclePrice(PriceChoice choice) internal view returns (uint256) {
         // Get the ETH / USD price first, and cut it down to 1e6 precision
         uint256 __ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(
-            uint256(10)**ethUsdPricerDecimals
+            uint256(10) ** ethUsdPricerDecimals
         );
         uint256 priceVSeth = 0;
 
@@ -135,34 +136,34 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function ethUsdPrice() public view returns (uint256) {
-        return uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10)**ethUsdPricerDecimals);
+        return uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals);
     }
 
     // This is needed to avoid costly repeat calls to different getter functions
     // It is cheaper gas-wise to just dump everything and only use some of the info
     function stableInfo()
-        public
-        view
-        returns (
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256,
-            uint256
-        )
+    public
+    view
+    returns (
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        uint256,
+        uint256
+    )
     {
         return (
-            oraclePrice(PriceChoice.STABLE),
-            oraclePrice(PriceChoice.STOCK),
-            totalSupply(),
-            globalCollateralRatio,
-            globalCollateralValue(),
-            mintingFee,
-            redemptionFee,
-            uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10)**ethUsdPricerDecimals) //eth_usd_price
+        oraclePrice(PriceChoice.STABLE),
+        oraclePrice(PriceChoice.STOCK),
+        totalSupply(),
+        globalCollateralRatio,
+        globalCollateralValue(),
+        mintingFee,
+        redemptionFee,
+        uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(uint256(10) ** ethUsdPricerDecimals) //eth_usd_price
         );
     }
 
@@ -264,7 +265,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     // Adds collateral addresses supported, such as tether
     function addPool(address _poolAddress) public onlyOperator {
-        require(_poolAddress != address(0), "Zero address detected");
+        require(_poolAddress != address(0), "0 address");
         require(isStablePools[_poolAddress] == false, "Address already exists");
         isStablePools[_poolAddress] = true;
         poolAddress.push(_poolAddress);
@@ -274,7 +275,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     // Remove a pool
     function removePool(address _poolAddress) public onlyOperator {
-        require(_poolAddress != address(0), "Zero address detected");
+        require(_poolAddress != address(0), "0 address");
         require(isStablePools[_poolAddress] == true, "Address nonexistant");
 
         // Delete from the mapping
@@ -317,13 +318,13 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function setStockAddress(address _stockAddress) public onlyOperator {
-        require(_stockAddress != address(0), "Zero address detected");
+        require(_stockAddress != address(0), "0 address");
         stockAddress = _stockAddress;
         emit StockAddressSet(_stockAddress);
     }
 
     function setETHUSDOracle(address _ethusdConsumer) public onlyOperator {
-        require(_ethusdConsumer != address(0), "Zero address detected");
+        require(_ethusdConsumer != address(0), "0 address");
         ethUsdConsumerAddress = _ethusdConsumer;
         ethUsdPricer = ChainlinkETHUSDPriceConsumer(ethUsdConsumerAddress);
         ethUsdPricerDecimals = ethUsdPricer.getDecimals();
@@ -336,7 +337,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function setStableEthOracle(address stableOracle, address _weth) public onlyOperator {
-        require((stableOracle != address(0)) && (_weth != address(0)), "Zero address detected");
+        require((stableOracle != address(0)) && (_weth != address(0)), "0 address");
         stableEthOracleAddress = stableOracle;
         stableEthOracle = UniswapPairOracle(stableOracle);
         weth = _weth;
@@ -344,7 +345,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function setStockEthOracle(address stockOracle, address _weth) public onlyOperator {
-        require((stockOracle != address(0)) && (_weth != address(0)), "Zero address detected");
+        require((stockOracle != address(0)) && (_weth != address(0)), "0 address");
         stockEthOracleAddress = stockOracle;
         stockEthOracle = UniswapPairOracle(stockOracle);
         weth = _weth;
