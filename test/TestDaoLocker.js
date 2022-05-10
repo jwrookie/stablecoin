@@ -89,6 +89,9 @@ contract('Locker operation', async function () {
         }
 
         if (0 <= index) {
+            if (!poolForGaugeArray[index]) {
+                return Error("Unknow pool address!");
+            }
             return poolForGaugeArray[index];
         }
         return poolForGaugeArray;
@@ -203,7 +206,13 @@ contract('Locker operation', async function () {
         tokenId = await locker.tokenId();
 
         await gaugeController.addPool(frax.address);
-        expect(await getPoolForGauge(0)).to.be.eq(frax.address);
+        expect(await getPoolForGauge(0)).to.be.eq(await gaugeController.getPool(0));
+
+        // Vote
+        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+
+        // Transfer -> dev do not have a token id
+        await expectRevert(await gauge.deposit(toWei("0.000001"), tokenId), "");
     });
 
     it('test User lock there tokens can not withdraw', async function () {
