@@ -11,27 +11,17 @@ import "../../tools/AbstractPausable.sol";
 contract Bond is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
-    /* ========== STATE VARIABLES ========== */
-
-    uint256 public constant genesis_supply = 100e18; // 2M FRAX (only for testing, genesis supply will be 5k on Mainnet). This is to help with establishing the Uniswap pools, as they need liquidity
-
-    // The addresses in this array are added by the oracle and these contracts are able to mint frax
-    address[] public bond_issuers_array;
-
-    // Mapping is also used for faster verification
-    mapping(address => bool) public bond_issuers;
-
-    // Constants for various precisions
+    // genesis supply will be 5k on Mainnet
+    uint256 public constant GENESIS_SUPPLY = 5000e18;
     uint256 private constant PRICE_PRECISION = 1e6;
 
-    /* ========== MODIFIERS ========== */
+    address[] public bondIssuers;
+    mapping(address => bool) public isBondIssuers;
 
     modifier onlyIssuers() {
-        require(bond_issuers[msg.sender] == true, "Only bond issuers can call this function");
+        require(isBondIssuers[msg.sender] == true, "Only bond issuers can call this function");
         _;
     }
-
-    /* ========== CONSTRUCTOR ========== */
 
     constructor(
         address _operatorMsg,
@@ -39,45 +29,46 @@ contract Bond is ERC20Burnable, AbstractPausable {
         string memory _symbol
     ) ERC20(_name, _symbol) AbstractPausable(_operatorMsg) {}
 
-    // Used by issuers when user mints
-    function issuer_mint(address m_address, uint256 m_amount) external onlyIssuers {
-        super._mint(m_address, m_amount);
-        emit FXBMinted(msg.sender, m_address, m_amount);
+
+    function issuerMint(address _address, uint256 _amount) external onlyIssuers {
+        super._mint(_address, _amount);
+        emit BondMinted(msg.sender, _address, _amount);
     }
 
-    // Used by issuers when user redeems
-    function issuer_burn_from(address b_address, uint256 b_amount) external onlyIssuers {
-        super._burn(b_address, b_amount);
-        emit FXBBurned(b_address, msg.sender, b_amount);
+    function issuerBurnFrom(address _address, uint256 _amount) external onlyIssuers {
+        super._burn(_address, _amount);
+        emit BondBurned(_address, msg.sender, _amount);
     }
 
-    // Adds an issuer
-    function addIssuer(address issuer_address) external onlyOwner {
-        require(bond_issuers[issuer_address] == false, "Address already exists");
-        bond_issuers[issuer_address] = true;
-        bond_issuers_array.push(issuer_address);
+    function addIssuer(address _address) external onlyOwner {
+        require(isBondIssuers[_address] == false, "already exists");
+        isBondIssuers[_address] = true;
+        bondIssuers.push(_address);
     }
 
-    // Removes an issuer
-    function removeIssuer(address issuer_address) external onlyOwner {
-        require(bond_issuers[issuer_address] == true, "Address nonexistant");
+    function removeIssuer(address _address) external onlyOwner {
+        require(isBondIssuers[_address] == true, "non existant");
 
         // Delete from the mapping
-        delete bond_issuers[issuer_address];
+        delete isBondIssuers[_address];
 
         // 'Delete' from the array by setting the address to 0x0
-        for (uint256 i = 0; i < bond_issuers_array.length; i++) {
-            if (bond_issuers_array[i] == issuer_address) {
-                bond_issuers_array[i] = address(0);
+        for (uint256 i = 0; i < bondIssuers.length; i++) {
+            if (bondIssuers[i] == _address) {
+                bondIssuers[i] = address(0);
                 // This will leave a null in the array and keep the indices the same
                 break;
             }
         }
     }
 
-    // Track FXB burned
-    event FXBBurned(address indexed from, address indexed to, uint256 amount);
+    function recoverToken(address token, uint256 amount) external onlyOperator {
+        ERC20(token).transfer(msg.sender, amount);
+        emit Recovered(token, msg.sender, amount);
+    }
 
-    // Track FXB minted
-    event FXBMinted(address indexed from, address indexed to, uint256 amount);
+    event Recovered(address token, address to, uint256 amount);
+
+    event BondBurned(address indexed from, address indexed to, uint256 amount);
+    event BondMinted(address indexed from, address indexed to, uint256 amount);
 }

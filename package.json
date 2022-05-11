@@ -1,7 +1,7 @@
 {
-  "name": "frax-contracts-dev",
+  "name": "rusd-contracts-dev",
   "version": "1.0.0",
-  "description": "Frax Finance smart contracts and testing",
+  "description": "rusd Finance smart contracts and testing",
   "main": "src/index.js",
   "scripts": {
     "compile": "hardhat compile",
@@ -14,11 +14,10 @@
   },
   "keywords": [
     "ethereum",
-    "frax",
+    "rusd",
     "stablecoin",
     "defi"
   ],
-  "author": "Travis Moore (github.com/FortisFortuna) & Jason Huan <sino@ucla.edu> (github.com/jasonhuan)",
   "license": "ISC",
   "dependencies": {
     "@chainlink/contracts": "0.4.0",

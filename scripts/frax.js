@@ -164,8 +164,8 @@ async function main() {
 
     // await fxb.addIssuer(deployer.address);
     // await fxb.addIssuer(fraxBondIssuer.address);
-    // await fxb.issuer_mint(fraxBondIssuer.address, toWei('100000'))
-    // await fxb.issuer_mint(deployer.address, toWei('100000'))
+    // await fxb.issuerMint(fraxBondIssuer.address, toWei('100000'))
+    // await fxb.issuerMint(deployer.address, toWei('100000'))
 
     // await frax.approve(fraxBondIssuer.address, toWei('1000'))
     // await fxb.approve(fraxBondIssuer.address, toWei('1000'))

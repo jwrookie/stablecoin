@@ -89,28 +89,19 @@ contract Stock is ERC20Burnable, AbstractPausable {
         return true;
     }
 
-    // This function is what other frax pools will call to mint new FXS (similar to the FRAX mint)
     function poolMint(address to, uint256 amount) external onlyPools {
         super._mint(to, amount);
-        emit FXSMinted(address(this), to, amount);
+        emit StockMinted(address(this), to, amount);
     }
 
-    // This function is what other frax pools will call to burn FXS
     function poolBurnFrom(address _address, uint256 _amount) external onlyPools {
         super.burnFrom(_address, _amount);
-        emit FXSBurned(_address, address(this), _amount);
+        emit StockBurned(_address, address(this), _amount);
     }
 
-    /* ========== EVENTS ========== */
-
-    // Track FXS burned
-    event FXSBurned(address indexed from, address indexed to, uint256 amount);
-
-    // Track FXS minted
-    event FXSMinted(address indexed from, address indexed to, uint256 amount);
-
+    event StockBurned(address indexed from, address indexed to, uint256 amount);
+    event StockMinted(address indexed from, address indexed to, uint256 amount);
     event FRAXAddressSet(address addr);
-
     event PoolAdded(address pool);
 
     event PoolRemoved(address pool);
