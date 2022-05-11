@@ -274,7 +274,7 @@ contract('FraxBond', () => {
         expect(fxbAft).to.be.eq(fxbBef.add(fxbOut));
 
         let amountBef = await frax.balanceOf(owner.address)
-        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("10");
+        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("100000");
         expect(await fraxBondIssuer.vBalStable()).to.be.eq("100000");
 
         await fraxBondIssuer.claimFee();
@@ -289,7 +289,7 @@ contract('FraxBond', () => {
         await fraxBondIssuer.redeemBond("95000");
 
         rate = await fraxBondIssuer.exchangeRate();
-        let fraxOut = BigNumber.from("95000").mul(rate).div(toWei('1'))
+        let fraxOut = BigNumber.from("95000").mul(rate).div("1000000")
         console.log("fxb:" + await fxb.balanceOf(owner.address))
 
         await fraxBondIssuer.claimFee();
