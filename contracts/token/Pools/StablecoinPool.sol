@@ -22,7 +22,6 @@ contract StablecoinPool is AbstractPausable, Multicall {
     RStablecoin public stable;
 
     UniswapPairOracle public collatEthOracle;
-    address public collatEthOracle;
     address public weth;
 
     uint256 public minting_fee;
@@ -161,10 +160,9 @@ contract StablecoinPool is AbstractPausable, Multicall {
         }
     }
 
-    function setCollatETHOracle(address _collateral_weth_oracle_address, address _weth_address) external onlyOwner {
-        collatEthOracle = _collateral_weth_oracle_address;
-        collatEthOracle = UniswapPairOracle(_collateral_weth_oracle_address);
-        weth = _weth_address;
+    function setCollatETHOracle(address _collateralEthOracleAddress, address _weth) external onlyOwner {
+        collatEthOracle = UniswapPairOracle(_collateralEthOracleAddress);
+        weth = _weth;
     }
 
     // We separate out the 1t1, fractional and algorithmic minting functions for gas efficiency
