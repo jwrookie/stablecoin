@@ -50,6 +50,21 @@ contract('Gauge', async function () {
         return gauge;
     }
 
+    async function getBoostLpOfPid(poolAddress) {
+        if (null === poolAddress || undefined === typeof poolAddress) {
+            return -1;
+        }
+
+        gauge = await boost.gauges(poolAddress.address);
+
+        if (gauge === ZEROADDRESS) {
+            return Error("Unknow gauge for pool!");
+        }
+
+        pool = await boost.poolForGauge(gauge);
+        return await boost.lpOfPid(pool);
+    }
+
     async function getPoolVote() {
         let poolVoteArray = new Array();
         let poolVoteLength = await boost.poolLength();
@@ -216,7 +231,7 @@ contract('Gauge', async function () {
         // Get reward
         beforeGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);
         getBlock = parseInt(await time.latestBlock());
-        await boost.updatePool(0);
+        await boost.updatePool(await getBoostLpOfPid(frax));
         await gauge.getReward(owner.address);
         afterGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);
         updateBlock = parseInt(await time.latestBlock()) - getBlock;

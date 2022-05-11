@@ -65,7 +65,7 @@ contract('AMOMinter', async function () {
                 expect(await frax.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
                 break;
             default:
-                await console.log("Unknow token!");
+                return Error("Unknow token!");
         }
         return uniswapOracle;
     }
@@ -508,4 +508,4 @@ contract('AMOMinter', async function () {
         expect(BigNumber.from(fraxValE18)).to.be.eq(initFraxDollarBalanceStored);
     });
 
-})
+});
