@@ -18,12 +18,12 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
     ERC20 public collateralToken;
 
-    Stock public FXS;
-    RStablecoin public FRAX;
+    Stock public stock;
+    RStablecoin public stable;
 
     UniswapPairOracle public collatEthOracle;
-    address public collat_eth_oracle_address;
-    address public weth_address;
+    address public collatEthOracle;
+    address public weth;
 
     uint256 public minting_fee;
     uint256 public redemption_fee;
@@ -66,12 +66,12 @@ contract StablecoinPool is AbstractPausable, Multicall {
     ) public AbstractPausable(_operatorMsg) {
         require(
             (_frax_contract_address != address(0)) &&
-                (_fxs_contract_address != address(0)) &&
-                (_collateral_address != address(0)),
+            (_fxs_contract_address != address(0)) &&
+            (_collateral_address != address(0)),
             "0 address"
         );
-        FRAX = RStablecoin(_frax_contract_address);
-        FXS = Stock(_fxs_contract_address);
+        stable = RStablecoin(_frax_contract_address);
+        stock = Stock(_fxs_contract_address);
         collateralToken = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
         missing_decimals = uint256(18).sub(collateralToken.decimals());
@@ -108,32 +108,32 @@ contract StablecoinPool is AbstractPausable, Multicall {
     function collatDollarBalance() public view returns (uint256) {
         if (paused() == true) {
             return
-                (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
-                    .mul(10**missing_decimals)
-                    .mul(pausedPrice)
-                    .div(PRICE_PRECISION);
+            (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
+            .mul(10 ** missing_decimals)
+            .mul(pausedPrice)
+            .div(PRICE_PRECISION);
         } else {
-            uint256 eth_usd_price = FRAX.ethUsdPrice();
+            uint256 eth_usd_price = stable.ethUsdPrice();
             uint256 eth_collat_price = collatEthOracle.consult(
-                weth_address,
-                (PRICE_PRECISION * (10**missing_decimals))
+                weth,
+                (PRICE_PRECISION * (10 ** missing_decimals))
             );
 
             uint256 collat_usd_price = eth_usd_price.mul(PRICE_PRECISION).div(eth_collat_price);
             return
-                (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
-                    .mul(10**missing_decimals)
-                    .mul(collat_usd_price)
-                    .div(PRICE_PRECISION);
+            (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
+            .mul(10 ** missing_decimals)
+            .mul(collat_usd_price)
+            .div(PRICE_PRECISION);
             //.mul(getCollateralPrice()).div(1e6);
         }
     }
 
     // Returns the value of excess collateral held in this Frax pool, compared to what is needed to maintain the global collateral ratio
     function availableExcessCollatDV() public view returns (uint256) {
-        uint256 total_supply = FRAX.totalSupply();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
-        uint256 global_collat_value = FRAX.globalCollateralValue();
+        uint256 total_supply = stable.totalSupply();
+        uint256 globalCollateralRatio = stable.globalCollateralRatio();
+        uint256 global_collat_value = stable.globalCollateralValue();
 
         if (globalCollateralRatio > COLLATERAL_RATIO_PRECISION) globalCollateralRatio = COLLATERAL_RATIO_PRECISION;
         // Handles an overcollateralized contract with CR > 1
@@ -153,28 +153,28 @@ contract StablecoinPool is AbstractPausable, Multicall {
         if (paused() == true) {
             return pausedPrice;
         } else {
-            uint256 eth_usd_price = FRAX.ethUsdPrice();
+            uint256 eth_usd_price = stable.ethUsdPrice();
             return
-                eth_usd_price.mul(PRICE_PRECISION).div(
-                    collatEthOracle.consult(weth_address, PRICE_PRECISION * (10**missing_decimals))
-                );
+            eth_usd_price.mul(PRICE_PRECISION).div(
+                collatEthOracle.consult(weth, PRICE_PRECISION * (10 ** missing_decimals))
+            );
         }
     }
 
     function setCollatETHOracle(address _collateral_weth_oracle_address, address _weth_address) external onlyOwner {
-        collat_eth_oracle_address = _collateral_weth_oracle_address;
+        collatEthOracle = _collateral_weth_oracle_address;
         collatEthOracle = UniswapPairOracle(_collateral_weth_oracle_address);
-        weth_address = _weth_address;
+        weth = _weth_address;
     }
 
     // We separate out the 1t1, fractional and algorithmic minting functions for gas efficiency
     function mint1t1FRAX(uint256 collateral_amount, uint256 FRAX_out_min) external whenNotPaused {
-        uint256 collateral_amount_d18 = collateral_amount * (10**missing_decimals);
+        uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
 
-        require(FRAX.globalCollateralRatio() >= COLLATERAL_RATIO_MAX, "Collateral ratio must be >= 1");
+        require(stable.globalCollateralRatio() >= COLLATERAL_RATIO_MAX, "Collateral ratio must be >= 1");
         require(
             (collateralToken.balanceOf(address(this))).sub(unclaimedPoolCollateral).add(collateral_amount) <=
-                pool_ceiling,
+            pool_ceiling,
             "[Pool's Closed]: Ceiling reached"
         );
 
@@ -186,13 +186,13 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
         TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(this), collateral_amount);
-        FRAX.poolMint(msg.sender, frax_amount_d18);
+        stable.poolMint(msg.sender, frax_amount_d18);
     }
 
     // 0% collateral-backed
     function mintAlgorithmicFRAX(uint256 fxs_amount_d18, uint256 FRAX_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.stockPrice();
-        require(FRAX.globalCollateralRatio() == 0, "Collateral ratio must be 0");
+        uint256 fxs_price = stable.stockPrice();
+        require(stable.globalCollateralRatio() == 0, "Collateral ratio must be 0");
 
         uint256 frax_amount_d18 = PoolLibrary.calcMintAlgorithmicStable(
             fxs_price, // X FXS / 1 USD
@@ -202,8 +202,8 @@ contract StablecoinPool is AbstractPausable, Multicall {
         frax_amount_d18 = (frax_amount_d18.mul(uint256(1e6).sub(minting_fee))).div(1e6);
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
-        FXS.poolBurnFrom(msg.sender, fxs_amount_d18);
-        FRAX.poolMint(msg.sender, frax_amount_d18);
+        stock.poolBurnFrom(msg.sender, fxs_amount_d18);
+        stable.poolMint(msg.sender, frax_amount_d18);
     }
 
     // Will fail if fully collateralized or fully algorithmic
@@ -213,8 +213,8 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 fxs_amount,
         uint256 FRAX_out_min
     ) external whenNotPaused {
-        uint256 fxs_price = FRAX.stockPrice();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
+        uint256 fxs_price = stable.stockPrice();
+        uint256 globalCollateralRatio = stable.globalCollateralRatio();
 
         require(
             globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0,
@@ -222,11 +222,11 @@ contract StablecoinPool is AbstractPausable, Multicall {
         );
         require(
             collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral).add(collateral_amount) <=
-                pool_ceiling,
+            pool_ceiling,
             "Pool ceiling reached, no more FRAX can be minted with this collateral"
         );
 
-        uint256 collateral_amount_d18 = collateral_amount * (10**missing_decimals);
+        uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
         PoolLibrary.MintFF_Params memory input_params = PoolLibrary.MintFF_Params(
             fxs_price,
             getCollateralPrice(),
@@ -241,17 +241,17 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(FRAX_out_min <= mint_amount, "Slippage limit reached");
         require(fxs_needed <= fxs_amount, "Not enough FXS inputted");
 
-        FXS.poolBurnFrom(msg.sender, fxs_needed);
+        stock.poolBurnFrom(msg.sender, fxs_needed);
         TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(this), collateral_amount);
-        FRAX.poolMint(msg.sender, mint_amount);
+        stable.poolMint(msg.sender, mint_amount);
     }
 
     // Redeem collateral. 100% collateral-backed
     function redeem1t1FRAX(uint256 FRAX_amount, uint256 COLLATERAL_out_min) external whenNotPaused {
-        require(FRAX.globalCollateralRatio() == COLLATERAL_RATIO_MAX, "Collateral ratio must be == 1");
+        require(stable.globalCollateralRatio() == COLLATERAL_RATIO_MAX, "Collateral ratio must be == 1");
 
         // Need to adjust for decimals of collateral
-        uint256 FRAX_amount_precision = FRAX_amount.div(10**missing_decimals);
+        uint256 FRAX_amount_precision = FRAX_amount.div(10 ** missing_decimals);
         uint256 collateral_needed = PoolLibrary.calcRedeem1t1Stable(getCollateralPrice(), FRAX_amount_precision);
 
         collateral_needed = (collateral_needed.mul(uint256(1e6).sub(redemption_fee))).div(1e6);
@@ -265,7 +265,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         unclaimedPoolCollateral = unclaimedPoolCollateral.add(collateral_needed);
 
         // Move all external functions to the end
-        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
+        stable.poolBurnFrom(msg.sender, FRAX_amount);
     }
 
     // Will fail if fully collateralized or algorithmic
@@ -275,8 +275,8 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 FXS_out_min,
         uint256 COLLATERAL_out_min
     ) external whenNotPaused {
-        uint256 fxs_price = FRAX.stockPrice();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
+        uint256 fxs_price = stable.stockPrice();
+        uint256 globalCollateralRatio = stable.globalCollateralRatio();
 
         require(
             globalCollateralRatio < COLLATERAL_RATIO_MAX && globalCollateralRatio > 0,
@@ -292,7 +292,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 fxs_amount = fxs_dollar_value_d18.mul(PRICE_PRECISION).div(fxs_price);
 
         // Need to adjust for decimals of collateral
-        uint256 FRAX_amount_precision = FRAX_amount_post_fee.div(10**missing_decimals);
+        uint256 FRAX_amount_precision = FRAX_amount_post_fee.div(10 ** missing_decimals);
         uint256 collateral_dollar_value = FRAX_amount_precision.mul(globalCollateralRatio).div(PRICE_PRECISION);
         uint256 collateral_amount = collateral_dollar_value.mul(PRICE_PRECISION).div(col_price_usd);
 
@@ -310,14 +310,14 @@ contract StablecoinPool is AbstractPausable, Multicall {
         unclaimedPoolFXS = unclaimedPoolFXS.add(fxs_amount);
 
         // Move all external functions to the end
-        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
-        FXS.poolMint(address(this), fxs_amount);
+        stable.poolBurnFrom(msg.sender, FRAX_amount);
+        stock.poolMint(address(this), fxs_amount);
     }
 
     // Redeem FRAX for FXS. 0% collateral-backed
     function redeemAlgorithmicFRAX(uint256 FRAX_amount, uint256 FXS_out_min) external whenNotPaused {
-        uint256 fxs_price = FRAX.stockPrice();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
+        uint256 fxs_price = stable.stockPrice();
+        uint256 globalCollateralRatio = stable.globalCollateralRatio();
 
         require(globalCollateralRatio == 0, "Collateral ratio must be 0");
         uint256 fxs_dollar_value_d18 = FRAX_amount;
@@ -332,8 +332,8 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         require(FXS_out_min <= fxs_amount, "Slippage limit reached");
         // Move all external functions to the end
-        FRAX.poolBurnFrom(msg.sender, FRAX_amount);
-        FXS.poolMint(address(this), fxs_amount);
+        stable.poolBurnFrom(msg.sender, FRAX_amount);
+        stock.poolMint(address(this), fxs_amount);
     }
 
     // After a redemption happens, transfer the newly minted FXS and owed collateral from this pool
@@ -364,7 +364,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         }
 
         if (sendFXS) {
-            TransferHelper.safeTransfer(address(FXS), msg.sender, FXSAmount);
+            TransferHelper.safeTransfer(address(stock), msg.sender, FXSAmount);
         }
         if (sendCollateral) {
             TransferHelper.safeTransfer(address(collateralToken), msg.sender, CollateralAmount);
@@ -383,11 +383,11 @@ contract StablecoinPool is AbstractPausable, Multicall {
     // Anyone can call this function to recollateralize the protocol and take the extra FXS value from the bonus rate as an arb opportunity
     function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external {
         require(paused() == false, "Recollateralize is paused");
-        uint256 collateral_amount_d18 = collateral_amount * (10**missing_decimals);
-        uint256 fxs_price = FRAX.stockPrice();
-        uint256 frax_total_supply = FRAX.totalSupply();
-        uint256 globalCollateralRatio = FRAX.globalCollateralRatio();
-        uint256 global_collat_value = FRAX.globalCollateralValue();
+        uint256 collateral_amount_d18 = collateral_amount * (10 ** missing_decimals);
+        uint256 fxs_price = stable.stockPrice();
+        uint256 frax_total_supply = stable.totalSupply();
+        uint256 globalCollateralRatio = stable.globalCollateralRatio();
+        uint256 global_collat_value = stable.globalCollateralValue();
 
         (uint256 collateral_units, uint256 amount_to_recollat) = PoolLibrary.calcRecollateralizeStableInner(
             collateral_amount_d18,
@@ -397,7 +397,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
             globalCollateralRatio
         );
 
-        uint256 collateral_units_precision = collateral_units.div(10**missing_decimals);
+        uint256 collateral_units_precision = collateral_units.div(10 ** missing_decimals);
 
         uint256 fxs_paid_back = amount_to_recollat.mul(uint256(1e6).add(bonus_rate).sub(recollat_fee)).div(fxs_price);
 
@@ -408,14 +408,14 @@ contract StablecoinPool is AbstractPausable, Multicall {
             address(this),
             collateral_units_precision
         );
-        FXS.poolMint(msg.sender, fxs_paid_back);
+        stock.poolMint(msg.sender, fxs_paid_back);
     }
 
     // Function can be called by an FXS holder to have the protocol buy back FXS with excess collateral value from a desired collateral pool
     // This can also happen if the collateral ratio > 1
     function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external {
         require(paused() == false, "Buyback is paused");
-        uint256 fxs_price = FRAX.stockPrice();
+        uint256 fxs_price = stable.stockPrice();
 
         PoolLibrary.BuybackStock_Params memory input_params = PoolLibrary.BuybackStock_Params(
             availableExcessCollatDV(),
@@ -425,13 +425,13 @@ contract StablecoinPool is AbstractPausable, Multicall {
         );
 
         uint256 collateral_equivalent_d18 = (PoolLibrary.calcBuyBackStock(input_params))
-            .mul(uint256(1e6).sub(buyback_fee))
-            .div(1e6);
-        uint256 collateral_precision = collateral_equivalent_d18.div(10**missing_decimals);
+        .mul(uint256(1e6).sub(buyback_fee))
+        .div(1e6);
+        uint256 collateral_precision = collateral_equivalent_d18.div(10 ** missing_decimals);
 
         require(COLLATERAL_out_min <= collateral_precision, "Slippage limit reached");
         // Give the sender their desired collateral and burn the FXS
-        FXS.poolBurnFrom(msg.sender, FXS_amount);
+        stock.poolBurnFrom(msg.sender, FXS_amount);
         TransferHelper.safeTransfer(address(collateralToken), msg.sender, collateral_precision);
     }
 
