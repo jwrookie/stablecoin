@@ -62,6 +62,13 @@ contract Bond is ERC20Burnable, AbstractPausable {
         }
     }
 
+    function recoverToken(address token, uint256 amount) external onlyOperator {
+        ERC20(token).transfer(msg.sender, amount);
+        emit Recovered(token, msg.sender, amount);
+    }
+
+    event Recovered(address token, address to, uint256 amount);
+
     event BondBurned(address indexed from, address indexed to, uint256 amount);
     event BondMinted(address indexed from, address indexed to, uint256 amount);
 }
