@@ -86,7 +86,7 @@ contract BondIssuer is AbstractPausable {
         stableCoin.poolBurn(msg.sender, amount);
 
         bondOut = stableIn.mul(1e18).div(exchangeRate);
-        bond.issuer_mint(msg.sender, bondOut);
+        bond.issuerMint(msg.sender, bondOut);
         vBalStable = vBalStable.add(stableIn);
         emit BondMint(msg.sender, stableIn, bondOut, stableFee);
     }

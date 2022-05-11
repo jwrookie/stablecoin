@@ -178,12 +178,12 @@ contract('FraxBond', () => {
     //     expect(await fxb.bond_issuers(owner.address)).to.be.eq(true);
     //     expect(await fxb.balanceOf(fraxBondIssuer.address), 0);
     //
-    //     await fxb.issuer_mint(fraxBondIssuer.address, "200000");
-    //     await fxb.issuer_mint(owner.address, "100000");
+    //     await fxb.issuerMint(fraxBondIssuer.address, "200000");
+    //     await fxb.issuerMint(owner.address, "100000");
     //     expect(await fxb.balanceOf(fraxBondIssuer.address)).to.be.eq("200000");
     //     expect(await fxb.balanceOf(owner.address)).to.be.eq("100000");
     //
-    //     await fxb.issuer_burn_from(fraxBondIssuer.address, "100000");
+    //     await fxb.issuerBurnFrom(fraxBondIssuer.address, "100000");
     //     expect(await fxb.balanceOf(fraxBondIssuer.address), "100000");
     //
     //     await fxb.removeIssuer(owner.address);
@@ -255,7 +255,7 @@ contract('FraxBond', () => {
         await frax.approve(fraxBondIssuer.address, toWei('10000'));
         await fxb.approve(fraxBondIssuer.address, toWei('10000'));
 
-        await fxb.issuer_mint(owner.address, toWei('10'));
+        await fxb.issuerMint(owner.address, toWei('10'));
         expect(await fxb.balanceOf(owner.address)).to.be.eq(toWei('10'));
         expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('1999999'));
         expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("0");

@@ -270,7 +270,7 @@ contract('test exchange amo', async function () {
         await factory.createPair(fxs.address, fxb.address);
 
         await fxb.addIssuer(owner.address);
-        await fxb.issuer_mint(owner.address, toWei("1000"));
+        await fxb.issuerMint(owner.address, toWei("1000"));
 
         // Approve
         await fxb.approve(router.address, toWei('1000'));
