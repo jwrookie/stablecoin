@@ -23,6 +23,7 @@ async function main() {
     let frax = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
     let pool = "0x618b5142Ca5804ABa43882c4Ae7a51D7AF5a9864"
     let lock = "0x85a549bd0Cca5B0ab930D62BAcb7a1aa3c3BF2aa"
+    let swapMining = "0x27D801020b531154003ba9f31598FbBf3C0A1d01"
 
 
     for (const account of accounts) {
@@ -65,6 +66,11 @@ async function main() {
         lock,
         "1800");
     console.log("calcTool:" + calcTool.address)
+
+    // const CalcMiningReward = await ethers.getContractFactory('CalcMiningReward');
+    //
+    // calcMiningReward = await CalcMiningReward.deploy(swapMining);
+    // console.log("calcMiningReward:"+calcMiningReward.address)
 
 }
 
