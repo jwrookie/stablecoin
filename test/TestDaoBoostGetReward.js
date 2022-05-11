@@ -68,11 +68,7 @@ contract('Gauge', async function () {
     }
 
     async function getBoostLpOfPid(poolAddress) {
-        if (null === poolAddress || undefined === typeof poolAddress) {
-            return -1;
-        }
-
-        if (poolAddress === ZEROADDRESS) {
+        if (null === poolAddress || undefined === typeof poolAddress || poolAddress === ZEROADDRESS) {
             return Error("Unknow gauge for pool!");
         }
 
