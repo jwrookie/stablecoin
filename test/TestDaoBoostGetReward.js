@@ -50,19 +50,42 @@ contract('Gauge', async function () {
         return gauge;
     }
 
+    async function getGaugesInfo() {
+        let gaugeArray = new Array();
+        let poolInfoLength = await boost.poolLength();
+
+        if (poolInfoLength === 0) {
+            return Error("First need to create a gauge!");
+        }
+
+        for (let i = 0; i < poolInfoLength; i++) {
+            poolAddress = await boost.poolInfo(i);
+            gaugesInfo = await boost.gauges(poolAddress[0]);
+            gaugeArray.push(gaugesInfo);
+        }
+
+        return gaugeArray;
+    }
+
     async function getBoostLpOfPid(poolAddress) {
         if (null === poolAddress || undefined === typeof poolAddress) {
             return -1;
         }
 
-        gauge = await boost.gauges(poolAddress.address);
-
-        if (gauge === ZEROADDRESS) {
+        if (poolAddress === ZEROADDRESS) {
             return Error("Unknow gauge for pool!");
         }
 
-        pool = await boost.poolForGauge(gauge);
-        return await boost.lpOfPid(pool);
+        gauge = await getGaugesInfo();
+
+        for (let i = 0; i < gauge.length; i++) {
+            pool = await boost.poolForGauge(gauge[i]);
+            if (pool === poolAddress.address) {
+                return await boost.lpOfPid(pool)
+            }
+        }
+
+        return Error("The address of the pool was not added to struct of poolInfo!");
     }
 
     async function getPoolVote() {
