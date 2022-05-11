@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.10;
 
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "../../tools/AbstractPausable.sol";
 
+import "../../tools/AbstractPausable.sol";
+import "../../tools/TransferHelper.sol";
 
 contract Reserve is AbstractPausable {
 
@@ -14,8 +16,8 @@ contract Reserve is AbstractPausable {
     }
 
 
-    function recoverToken(address token, uint256 amount) external onlyOperator {
-        ERC20(token).transfer(msg.sender, amount);
+    function fetchToken(address token, uint256 amount) external onlyOperator {
+        TransferHelper.safeTransfer(token, msg.sender, amount);
         emit Recovered(token, msg.sender, amount);
     }
 

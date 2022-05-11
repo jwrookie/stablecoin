@@ -23,8 +23,10 @@ contract BondIssuer is AbstractPausable {
     uint256 public lastInterestTime;
     uint256 public exchangeRate;
     uint256 public interestRate;
-    uint256 public minInterestRate;
-    uint256 public maxInterestRate;
+    uint256 public minInterestRate;//1e6
+    uint256 public maxInterestRate;//1e6
+    uint256 public reserveAmount;
+    address public reserveAddress;
 
     uint256 public maxBondOutstanding = 1000000e18;
 
@@ -33,7 +35,6 @@ contract BondIssuer is AbstractPausable {
     uint256 public redemptionFee = 100; // 0.01% initially
     uint256 public fee;
 
-    // Virtual balances
     uint256 public vBalStable;
 
     /* ========== CONSTRUCTOR ========== */
@@ -45,10 +46,10 @@ contract BondIssuer is AbstractPausable {
     ) AbstractPausable(_operatorMsg) {
         stableCoin = RStablecoin(_stableAddress);
         bond = Bond(_BondAddress);
-        minInterestRate = 1e16;
-        maxInterestRate = 3e16;
-        interestRate = 1e16;
-        exchangeRate = 1e18;
+        minInterestRate = 1e4;
+        maxInterestRate = 1e5;
+        interestRate = 1e4;
+        exchangeRate = PRICE_PRECISION;
         TransferHelper.safeApprove(address(stableCoin), address(this), type(uint256).max);
         TransferHelper.safeApprove(address(bond), address(bond), type(uint256).max);
     }
@@ -60,10 +61,6 @@ contract BondIssuer is AbstractPausable {
         } else {
             return interestRate.mul(maxBondOutstanding).div(totalSupply);
         }
-    }
-
-    function collatDollarBalance() external pure returns (uint256) {
-        return uint256(1e18);
     }
 
     function calInterest() public {
@@ -83,9 +80,9 @@ contract BondIssuer is AbstractPausable {
         fee = fee.add(stableFee);
 
         uint256 amount = stableIn.sub(stableFee);
-        stableCoin.poolBurn(msg.sender, amount);
+        reserveAmount = reserveAmount.add(amount);
 
-        bondOut = stableIn.mul(1e18).div(exchangeRate);
+        bondOut = stableIn.mul(PRICE_PRECISION).div(exchangeRate);
         bond.issuerMint(msg.sender, bondOut);
         vBalStable = vBalStable.add(stableIn);
         emit BondMint(msg.sender, stableIn, bondOut, stableFee);
@@ -94,7 +91,7 @@ contract BondIssuer is AbstractPausable {
     function redeemBond(uint256 bondIn) external whenNotPaused returns (uint256 stableOut, uint256 stableFee) {
         calInterest();
         bond.burnFrom(msg.sender, bondIn);
-        stableOut = bondIn.mul(exchangeRate).div(1e18);
+        stableOut = bondIn.mul(exchangeRate).div(PRICE_PRECISION);
         stableFee = stableOut.mul(redemptionFee).div(PRICE_PRECISION);
         fee = fee.add(stableFee);
         stableCoin.poolMint(address(this), stableOut);
@@ -105,6 +102,17 @@ contract BondIssuer is AbstractPausable {
 
     function setMaxBondOutstanding(uint256 _max) external onlyOperator {
         maxBondOutstanding = _max;
+    }
+
+
+    function fetchReserve() external onlyOperator {
+        require(reserveAddress != address(0), "0 address");
+        TransferHelper.safeTransfer(address(stableCoin), reserveAddress, reserveAmount);
+        reserveAmount = 0;
+    }
+
+    function setReserveAddress(address _address) external onlyOperator {
+        reserveAddress = _address;
     }
 
     function setRangeInterestRate(uint256 min, uint256 max) external onlyOperator {
@@ -128,7 +136,7 @@ contract BondIssuer is AbstractPausable {
     }
 
     function recoverToken(address token, uint256 amount) external onlyOperator {
-        ERC20(token).transfer(msg.sender, amount);
+        TransferHelper.safeTransfer(token, msg.sender, amount);
         emit Recovered(token, msg.sender, amount);
     }
 

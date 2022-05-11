@@ -265,7 +265,8 @@ contract('FraxBond', () => {
 
         await fraxBondIssuer.connect(owner).mintBond("100000");
         let rate = await fraxBondIssuer.exchangeRate();
-        let fxbOut = BigNumber.from("100000").mul(toWei('1')).div(rate)
+        console.log("rate:" + rate);
+        let fxbOut = BigNumber.from("100000").mul("1000000").div(rate)
 
         let fxbAft = await fxb.balanceOf(owner.address)
 
