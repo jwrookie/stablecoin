@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 library PoolLibrary {
     using SafeMath for uint256;
 
-    // Constants for various precisions
     uint256 private constant PRICE_PRECISION = 1e6;
 
     struct MintFF_Params {

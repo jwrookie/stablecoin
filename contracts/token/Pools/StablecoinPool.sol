@@ -16,17 +16,14 @@ import "../stock/Stock.sol";
 contract StablecoinPool is AbstractPausable, Multicall {
     using SafeMath for uint256;
 
-    /* ========== STATE VARIABLES ========== */
+    ERC20 public collateralToken;
 
-    ERC20 private collateral_token;
-    address private collateralAddress;
+    Stock public FXS;
+    RStablecoin public FRAX;
 
-    Stock private FXS;
-    RStablecoin private FRAX;
-
-    UniswapPairOracle private collatEthOracle;
+    UniswapPairOracle public collatEthOracle;
     address public collat_eth_oracle_address;
-    address private weth_address;
+    address public weth_address;
 
     uint256 public minting_fee;
     uint256 public redemption_fee;
@@ -75,10 +72,9 @@ contract StablecoinPool is AbstractPausable, Multicall {
         );
         FRAX = RStablecoin(_frax_contract_address);
         FXS = Stock(_fxs_contract_address);
-        collateralAddress = _collateral_address;
-        collateral_token = ERC20(_collateral_address);
+        collateralToken = ERC20(_collateral_address);
         pool_ceiling = _pool_ceiling;
-        missing_decimals = uint256(18).sub(collateral_token.decimals());
+        missing_decimals = uint256(18).sub(collateralToken.decimals());
     }
 
     modifier onlyAMOMinters() {
@@ -112,7 +108,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
     function collatDollarBalance() public view returns (uint256) {
         if (paused() == true) {
             return
-                (collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral))
+                (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
                     .mul(10**missing_decimals)
                     .mul(pausedPrice)
                     .div(PRICE_PRECISION);
@@ -125,7 +121,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
             uint256 collat_usd_price = eth_usd_price.mul(PRICE_PRECISION).div(eth_collat_price);
             return
-                (collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral))
+                (collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral))
                     .mul(10**missing_decimals)
                     .mul(collat_usd_price)
                     .div(PRICE_PRECISION);
@@ -177,7 +173,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         require(FRAX.globalCollateralRatio() >= COLLATERAL_RATIO_MAX, "Collateral ratio must be >= 1");
         require(
-            (collateral_token.balanceOf(address(this))).sub(unclaimedPoolCollateral).add(collateral_amount) <=
+            (collateralToken.balanceOf(address(this))).sub(unclaimedPoolCollateral).add(collateral_amount) <=
                 pool_ceiling,
             "[Pool's Closed]: Ceiling reached"
         );
@@ -189,7 +185,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         //remove precision at the end
         require(FRAX_out_min <= frax_amount_d18, "Slippage limit reached");
 
-        TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_amount);
+        TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(this), collateral_amount);
         FRAX.poolMint(msg.sender, frax_amount_d18);
     }
 
@@ -225,7 +221,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
             "Collateral ratio needs to be between .000001 and .999999"
         );
         require(
-            collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral).add(collateral_amount) <=
+            collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral).add(collateral_amount) <=
                 pool_ceiling,
             "Pool ceiling reached, no more FRAX can be minted with this collateral"
         );
@@ -246,7 +242,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(fxs_needed <= fxs_amount, "Not enough FXS inputted");
 
         FXS.poolBurnFrom(msg.sender, fxs_needed);
-        TransferHelper.safeTransferFrom(address(collateral_token), msg.sender, address(this), collateral_amount);
+        TransferHelper.safeTransferFrom(address(collateralToken), msg.sender, address(this), collateral_amount);
         FRAX.poolMint(msg.sender, mint_amount);
     }
 
@@ -260,7 +256,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         collateral_needed = (collateral_needed.mul(uint256(1e6).sub(redemption_fee))).div(1e6);
         require(
-            collateral_needed <= collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral),
+            collateral_needed <= collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral),
             "Not enough collateral in pool"
         );
         require(COLLATERAL_out_min <= collateral_needed, "Slippage limit reached");
@@ -301,7 +297,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         uint256 collateral_amount = collateral_dollar_value.mul(PRICE_PRECISION).div(col_price_usd);
 
         require(
-            collateral_amount <= collateral_token.balanceOf(address(this)).sub(unclaimedPoolCollateral),
+            collateral_amount <= collateralToken.balanceOf(address(this)).sub(unclaimedPoolCollateral),
             "Not enough collateral in pool"
         );
         require(COLLATERAL_out_min <= collateral_amount, "Slippage limit reached [collateral]");
@@ -371,14 +367,14 @@ contract StablecoinPool is AbstractPausable, Multicall {
             TransferHelper.safeTransfer(address(FXS), msg.sender, FXSAmount);
         }
         if (sendCollateral) {
-            TransferHelper.safeTransfer(address(collateral_token), msg.sender, CollateralAmount);
+            TransferHelper.safeTransfer(address(collateralToken), msg.sender, CollateralAmount);
         }
     }
 
     // Bypasses the gassy mint->redeem cycle for AMOs to borrow collateral
     function amoMinterBorrow(uint256 collateral_amount) external whenNotPaused onlyAMOMinters {
         // Transfer
-        TransferHelper.safeTransfer(collateralAddress, msg.sender, collateral_amount);
+        TransferHelper.safeTransfer(address(collateralToken), msg.sender, collateral_amount);
     }
 
     // When the protocol is recollateralizing, we need to give a discount of FXS to hit the new CR target
@@ -407,7 +403,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
         require(FXS_out_min <= fxs_paid_back, "Slippage limit reached");
         TransferHelper.safeTransferFrom(
-            address(collateral_token),
+            address(collateralToken),
             msg.sender,
             address(this),
             collateral_units_precision
@@ -436,7 +432,7 @@ contract StablecoinPool is AbstractPausable, Multicall {
         require(COLLATERAL_out_min <= collateral_precision, "Slippage limit reached");
         // Give the sender their desired collateral and burn the FXS
         FXS.poolBurnFrom(msg.sender, FXS_amount);
-        TransferHelper.safeTransfer(address(collateral_token), msg.sender, collateral_precision);
+        TransferHelper.safeTransfer(address(collateralToken), msg.sender, collateral_precision);
     }
 
     // Combined into one function due to 24KiB contract memory limit
