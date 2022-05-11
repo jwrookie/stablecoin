@@ -40,11 +40,11 @@ contract BondIssuer is AbstractPausable {
 
     constructor(
         address _operatorMsg,
-        address _frax_contract_address,
-        address _fxb_contract_address
+        address _stableAddress,
+        address _BondAddress
     ) AbstractPausable(_operatorMsg) {
-        stableCoin = RStablecoin(_frax_contract_address);
-        bond = Bond(_fxb_contract_address);
+        stableCoin = RStablecoin(_stableAddress);
+        bond = Bond(_BondAddress);
         minInterestRate = 1e16;
         maxInterestRate = 3e16;
         interestRate = 1e16;
@@ -75,59 +75,59 @@ contract BondIssuer is AbstractPausable {
         }
     }
 
-    function mintBond(uint256 fraxIn) external whenNotPaused returns (uint256 fxbOut, uint256 fraxFee) {
+    function mintBond(uint256 stableIn) external whenNotPaused returns (uint256 bondOut, uint256 stableFee) {
         calInterest();
-        TransferHelper.safeTransferFrom(address(stableCoin), msg.sender, address(this), fraxIn);
+        TransferHelper.safeTransferFrom(address(stableCoin), msg.sender, address(this), stableIn);
 
-        fraxFee = fraxIn.mul(issueFee).div(PRICE_PRECISION);
-        fee = fee.add(fraxFee);
+        stableFee = stableIn.mul(issueFee).div(PRICE_PRECISION);
+        fee = fee.add(stableFee);
 
-        uint256 amount = fraxIn.sub(fraxFee);
+        uint256 amount = stableIn.sub(stableFee);
         stableCoin.poolBurn(msg.sender, amount);
 
-        fxbOut = fraxIn.mul(1e18).div(exchangeRate);
-        bond.issuer_mint(msg.sender, fxbOut);
-        vBalStable = vBalStable.add(fraxIn);
-        emit BondMint(msg.sender, fraxIn, fxbOut, fraxFee);
+        bondOut = stableIn.mul(1e18).div(exchangeRate);
+        bond.issuer_mint(msg.sender, bondOut);
+        vBalStable = vBalStable.add(stableIn);
+        emit BondMint(msg.sender, stableIn, bondOut, stableFee);
     }
 
-    function redeemBond(uint256 fxbIn) external whenNotPaused returns (uint256 fraxOut, uint256 fraxFee) {
+    function redeemBond(uint256 bondIn) external whenNotPaused returns (uint256 stableOut, uint256 stableFee) {
         calInterest();
-        bond.burnFrom(msg.sender, fxbIn);
-        fraxOut = fxbIn.mul(exchangeRate).div(1e18);
-        fraxFee = fraxOut.mul(redemptionFee).div(PRICE_PRECISION);
-        fee = fee.add(fraxFee);
-        stableCoin.poolMint(address(this), fraxOut);
-        TransferHelper.safeTransfer(address(stableCoin), msg.sender, fraxOut.sub(fraxFee));
-        vBalStable = vBalStable.sub(fraxOut);
-        emit BondRedeemed(msg.sender, fxbIn, fraxOut, fraxFee);
+        bond.burnFrom(msg.sender, bondIn);
+        stableOut = bondIn.mul(exchangeRate).div(1e18);
+        stableFee = stableOut.mul(redemptionFee).div(PRICE_PRECISION);
+        fee = fee.add(stableFee);
+        stableCoin.poolMint(address(this), stableOut);
+        TransferHelper.safeTransfer(address(stableCoin), msg.sender, stableOut.sub(stableFee));
+        vBalStable = vBalStable.sub(stableOut);
+        emit BondRedeemed(msg.sender, bondIn, stableOut, stableFee);
     }
 
-    function setMaxBondOutstanding(uint256 _max) external onlyOwner {
+    function setMaxBondOutstanding(uint256 _max) external onlyOperator {
         maxBondOutstanding = _max;
     }
 
-    function setRangeInterestRate(uint256 min, uint256 max) external onlyOwner {
+    function setRangeInterestRate(uint256 min, uint256 max) external onlyOperator {
         minInterestRate = min;
         maxInterestRate = max;
     }
 
-    function setInterestRate(uint256 _interestRate) external onlyOwner {
+    function setInterestRate(uint256 _interestRate) external onlyOperator {
         require(maxInterestRate >= _interestRate && _interestRate >= minInterestRate, "rate  in range");
         interestRate = _interestRate;
     }
 
-    function setFees(uint256 _issue_fee, uint256 _redemption_fee) external onlyOwner {
+    function setFees(uint256 _issue_fee, uint256 _redemption_fee) external onlyOperator {
         issueFee = _issue_fee;
         redemptionFee = _redemption_fee;
     }
 
-    function claimFee() external onlyOwner {
+    function claimFee() external onlyOperator {
         TransferHelper.safeTransfer(address(stableCoin), msg.sender, fee);
         fee = 0;
     }
 
-    function recoverToken(address token, uint256 amount) external onlyOwner {
+    function recoverToken(address token, uint256 amount) external onlyOperator {
         ERC20(token).transfer(msg.sender, amount);
         emit Recovered(token, msg.sender, amount);
     }
@@ -135,6 +135,6 @@ contract BondIssuer is AbstractPausable {
     event Recovered(address token, address to, uint256 amount);
 
     // Track bond redeeming
-    event BondRedeemed(address indexed from, uint256 fxb_amount, uint256 frax_out, uint256 fee);
-    event BondMint(address indexed from, uint256 frax_amount, uint256 fxb_out, uint256 fee);
+    event BondRedeemed(address indexed from, uint256 bondAmount, uint256 stableOut, uint256 fee);
+    event BondMint(address indexed from, uint256 stableAmount, uint256 bondOut, uint256 fee);
 }
