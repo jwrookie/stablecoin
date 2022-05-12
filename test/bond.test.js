@@ -162,169 +162,271 @@ contract('BondIssuer', () => {
 
 
         const Bond = await ethers.getContractFactory("Bond");
-        fxb = await Bond.deploy(checkPermission.address, "fxb", "fxb");
+        bond = await Bond.deploy(checkPermission.address, "Bond", "Bond");
 
         const BondIssuer = await ethers.getContractFactory('BondIssuer');
-        fraxBondIssuer = await BondIssuer.deploy(checkPermission.address, frax.address, fxb.address);
+        bondIssuer = await BondIssuer.deploy(checkPermission.address, frax.address, bond.address);
 
-        expect(await fraxBondIssuer.stableCoin()).to.be.eq(frax.address);
-        expect(await fraxBondIssuer.bond()).to.be.eq(fxb.address);
+        expect(await bondIssuer.stableCoin()).to.be.eq(frax.address);
+        expect(await bondIssuer.bond()).to.be.eq(bond.address);
         await frax.addPool(pool.address);
-        await frax.addPool(fraxBondIssuer.address);
+        await frax.addPool(bondIssuer.address);
+        await fxs.addPool(bondIssuer.address);
 
-        await fxb.addIssuer(fraxBondIssuer.address);
+        await bond.addIssuer(bondIssuer.address);
 
         const Reserve = await ethers.getContractFactory('Reserve');
         reserve = await Reserve.deploy(checkPermission.address);
 
-        await fraxBondIssuer.setReserveAddress(reserve.address);
-        expect(await fraxBondIssuer.reserveAddress()).to.be.eq(reserve.address);
-        await frax.approve(reserve.address, toWei('10000'));
+        await bondIssuer.setReserveAddress(reserve.address);
+        expect(await bondIssuer.reserveAddress()).to.be.eq(reserve.address);
+        await frax.approve(bondIssuer.address, toWei('10000'));
+        await bond.approve(bondIssuer.address, toWei('10000'));
 
 
     });
-
     // it('test addIssuer and removeIssuer  ', async () => {
-    //     expect(await fxb.isBondIssuers(owner.address)).to.be.eq(false);
-    //     await fxb.addIssuer(owner.address);
-    //     expect(await fxb.isBondIssuers(owner.address)).to.be.eq(true);
-    //     expect(await fxb.balanceOf(fraxBondIssuer.address), 0);
+    //     expect(await bond.isBondIssuers(owner.address)).to.be.eq(false);
+    //     await bond.addIssuer(owner.address);
+    //     expect(await bond.isBondIssuers(owner.address)).to.be.eq(true);
+    //     expect(await bond.balanceOf(bondIssuer.address), 0);
     //
-    //     await fxb.issuerMint(fraxBondIssuer.address, "200000");
-    //     await fxb.issuerMint(owner.address, "100000");
-    //     expect(await fxb.balanceOf(fraxBondIssuer.address)).to.be.eq("200000");
-    //     expect(await fxb.balanceOf(owner.address)).to.be.eq("100000");
+    //     await bond.issuerMint(bondIssuer.address, "200000");
+    //     await bond.issuerMint(owner.address, "100000");
+    //     expect(await bond.balanceOf(bondIssuer.address)).to.be.eq("200000");
+    //     expect(await bond.balanceOf(owner.address)).to.be.eq("100000");
     //
-    //     await fxb.issuerBurnFrom(fraxBondIssuer.address, "100000");
-    //     expect(await fxb.balanceOf(fraxBondIssuer.address), "100000");
+    //     await bond.issuerBurnFrom(bondIssuer.address, "100000");
+    //     expect(await bond.balanceOf(bondIssuer.address), "100000");
     //
-    //     await fxb.removeIssuer(owner.address);
-    //     expect(await fxb.isBondIssuers(owner.address)).to.be.eq(false);
+    //     await bond.removeIssuer(owner.address);
+    //     expect(await bond.isBondIssuers(owner.address)).to.be.eq(false);
     //
     // });
-    it('test mintBond and redeemBond', async () => {
-        await frax.approve(fraxBondIssuer.address, toWei('10000'));
-        await fxb.approve(fraxBondIssuer.address, toWei('10000'));
-        let bef = await frax.balanceOf(owner.address);
-
-        expect(await fxb.balanceOf(owner.address)).to.be.eq(0);
-        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq(0);
-        expect(await fraxBondIssuer.vBalStable(), 0);
-        expect(await fraxBondIssuer.fee()).to.be.eq(0);
-
-        await fraxBondIssuer.connect(owner).mintBond("100000");
-        expect(await fraxBondIssuer.fee()).to.be.eq("10");
-
-        expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("100000");
-
-        let aft = await frax.balanceOf(owner.address);
-        expect(aft).to.be.eq(bef.sub("100000"))
-        expect(await fraxBondIssuer.vBalStable()).to.be.eq("100000");
-
-        let rewardBef = await frax.balanceOf(owner.address);
-        await fraxBondIssuer.claimFee();
-
-        let rewardAft = await frax.balanceOf(owner.address);
-        let diff = rewardAft.sub(rewardBef);
-
-        expect(diff).to.be.eq("10");
-        await fraxBondIssuer.redeemBond("65600");
-        let rewardAft1 = await frax.balanceOf(owner.address);
-
-        await fraxBondIssuer.claimFee();
-        let rewardAft2 = await frax.balanceOf(owner.address);
-        let diff1 = rewardAft2.sub(rewardAft1);
-        expect(diff1).to.be.eq("9");
-
-
-    });
-    // it('1/10 interestRate', async () => {
-    //     await fxb.addIssuer(fraxBondIssuer.address);
-    //     await fxb.addIssuer(owner.address);
-    //     await fraxBondIssuer.setMaxBondOutstanding(toWei('1'));
+    // it('test mintBond and redeemBond', async () => {
+    //     let bef = await frax.balanceOf(owner.address);
+    //     let amount = "100000";
     //
-    //     await frax.approve(fraxBondIssuer.address, toWei('10000'));
-    //     await fxb.approve(fraxBondIssuer.address, toWei('10000'));
+    //     expect(await bond.balanceOf(owner.address)).to.be.eq(0);
+    //     expect(await frax.balanceOf(bondIssuer.address)).to.be.eq(0);
+    //     expect(await bondIssuer.vBalStable(), 0);
+    //     expect(await bondIssuer.fee()).to.be.eq(0);
     //
-    //     await fxb.issuerMint(owner.address, toWei('10'));
-    //     expect(await fxb.balanceOf(owner.address)).to.be.eq(toWei('10'));
-    //     expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('1999999'));
-    //     expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("0");
-    //     expect(await fraxBondIssuer.vBalStable()).to.be.eq("0");
+    //     await bondIssuer.connect(owner).mintBond(amount);
+    //     expect(await bondIssuer.fee()).to.be.eq("10");
     //
-    //     let fxbBef = await fxb.balanceOf(owner.address);
+    //     expect(await frax.balanceOf(bondIssuer.address)).to.be.eq(amount);
     //
-    //     await fraxBondIssuer.connect(owner).mintBond("100000");
-    //     let rate = await fraxBondIssuer.exchangeRate();
-    //     let fxbOut = BigNumber.from("100000").mul(toWei('1')).div(rate);
-    //     let fxbAft = await fxb.balanceOf(owner.address);
+    //     let aft = await frax.balanceOf(owner.address);
+    //     expect(aft).to.be.eq(bef.sub(amount))
+    //     expect(await bondIssuer.vBalStable()).to.be.eq(amount);
     //
-    //     expect(fxbAft).to.be.eq(fxbBef.add(fxbOut));
+    //     let rewardBef = await frax.balanceOf(owner.address);
+    //     await bondIssuer.claimFee();
     //
-    //     let amountBef = await frax.balanceOf(owner.address)
-    //     expect(await frax.balanceOf(fraxBondIssuer.address)).to.be.eq("10");
-    //     expect(await fraxBondIssuer.vBalStable()).to.be.eq("100000");
+    //     let rewardAft = await frax.balanceOf(owner.address);
+    //     let diff = rewardAft.sub(rewardBef);
     //
-    //     await fraxBondIssuer.claimFee();
-    //     let amountAft = await frax.balanceOf(owner.address);
+    //     expect(diff).to.be.eq("10");
+    //     await bondIssuer.redeemBond("65600");
+    //     let rewardAft1 = await frax.balanceOf(owner.address);
     //
-    //     let diff = BigNumber.from(amountAft).sub(amountBef);
-    //     expect(diff).to.be.eq("10")
+    //     await bondIssuer.claimFee();
+    //     let rewardAft2 = await frax.balanceOf(owner.address);
+    //     let diff1 = rewardAft2.sub(rewardAft1);
+    //     expect(diff1).to.be.eq("9");
     //
+    //
+    // });
+    // it("two users mintBond and redeemBond", async () => {
+    //     await frax.transfer(dev.address, toWei('100'));
+    //     await frax.connect(dev).approve(bondIssuer.address, toWei('10000'));
+    //     await bond.connect(dev).approve(bondIssuer.address, toWei('10000'));
+    //
+    //     expect(await bond.balanceOf(owner.address)).to.be.eq(0);
+    //     expect(await bond.balanceOf(dev.address)).to.be.eq(0);
+    //     let amount = "100000";
+    //
+    //     await bondIssuer.connect(owner).mintBond(amount);
+    //     await bondIssuer.connect(dev).mintBond(amount);
+    //     let befOwner = await frax.balanceOf(owner.address);
+    //     let befDev = await frax.balanceOf(dev.address);
+    //     let exchangeRate = await bondIssuer.exchangeRate();
+    //     let bondOut = BigNumber.from(amount).mul(1e6).div(exchangeRate);
+    //     let fees = await bondIssuer.fee();
+    //
+    //     expect(await bond.balanceOf(owner.address)).to.be.eq(bondOut);
+    //     expect(await bond.balanceOf(dev.address)).to.be.eq(bondOut);
+    //
+    //     await bondIssuer.redeemBond(bondOut);
+    //     await bondIssuer.connect(dev).redeemBond(bondOut);
+    //     exchangeRate = await bondIssuer.exchangeRate();
+    //
+    //     let stableOut = bondOut.mul(exchangeRate).div(1e6);
+    //     let stableFee = stableOut.mul(100).div(1e6);
+    //
+    //
+    //     let AftOwner = await frax.balanceOf(owner.address);
+    //     let AftDev = await frax.balanceOf(dev.address);
+    //
+    //     let redeemBondFee = BigNumber.from(fees).sub(stableFee);
+    //
+    //     expect(AftOwner).to.be.eq(befOwner.add(amount).sub(redeemBondFee));
+    //     expect(AftDev).to.be.eq(befDev.add(amount).sub(redeemBondFee));
+    //
+    //
+    // });
+    // it("exceeding maxinterestrate will fail", async () => {
+    //     expect(await bondIssuer.interestRate()).to.be.eq(1e4);
+    //     expect(await bondIssuer.minInterestRate()).to.be.eq(1e4);
+    //     expect(await bondIssuer.maxInterestRate()).to.be.eq(1e5);
+    //     await expect(bondIssuer.setInterestRate(1e6)).to.be.revertedWith("rate  in range");
+    //
+    //     await expect(bondIssuer.connect(dev).setRangeInterestRate(1e5, 1e10)).to.be.revertedWith("not operator");
+    //     await bondIssuer.setRangeInterestRate(1e5, 1e10);
+    //     await bondIssuer.setInterestRate(1e6);
+    //     expect(await bondIssuer.interestRate()).to.be.eq(1e6);
+    //     expect(await bondIssuer.minInterestRate()).to.be.eq(1e5);
+    //     expect(await bondIssuer.maxInterestRate()).to.be.eq(1e10);
+    //
+    // });
+    // it('bond token totalSupply > maxBondOutstanding', async () => {
+    //     expect(await bondIssuer.currentInterestRate()).to.be.eq(1e4);
+    //     let amount = toWei('1');
+    //     await bondIssuer.mintBond(amount);
+    //
+    //     expect(await bondIssuer.currentInterestRate()).to.be.eq(1e4);
+    //     await bondIssuer.setMaxBondOutstanding(toWei('1'));
+    //     await bondIssuer.mintBond(amount);
+    //     let maxBondOutstanding = await bondIssuer.maxBondOutstanding();
+    //     let totalSupply = await bond.totalSupply();
+    //
+    //     let currentInterestRate = BigNumber.from(1e4).mul(maxBondOutstanding).div(totalSupply)
+    //
+    //     expect(await bondIssuer.currentInterestRate()).to.be.eq(currentInterestRate);
+    //
+    //     let exchangeRate = await bondIssuer.exchangeRate();
+    //     let vBalStableBef = await bondIssuer.vBalStable();
+    //     expect(vBalStableBef).to.be.eq(BigNumber.from(amount).mul(2));
+    //
+    //     //1.3123755703912323
+    //     let bondOut = BigNumber.from(vBalStableBef).mul(1e6).div(exchangeRate);
     //     let fraxBef = await frax.balanceOf(owner.address);
     //
-    //     await fraxBondIssuer.redeemBond("95000");
+    //     await bondIssuer.redeemBond(toWei('1.3'));
+    //     exchangeRate = await bondIssuer.exchangeRate();
     //
-    //     rate = await fraxBondIssuer.exchangeRate();
-    //     let fraxOut = BigNumber.from("95000").mul(rate).div(toWei('1'));
-    //     await fraxBondIssuer.claimFee();
+    //     let stableOut = BigNumber.from(toWei('1.3')).mul(exchangeRate).div(1e6);
+    //     let vBalStableAft = await bondIssuer.vBalStable();
+    //     expect(vBalStableAft).to.be.eq(vBalStableBef.sub(stableOut));
     //
     //     let fraxAft = await frax.balanceOf(owner.address);
-    //     expect(fraxAft).to.be.eq(fraxBef.add(fraxOut));
+    //     expect(fraxAft).to.be.gt(fraxBef);
+    //
+    // });
+    // it("issueFee and redemptionFee is 500", async () => {
+    //     expect(await bondIssuer.issueFee()).to.be.eq(100);
+    //     expect(await bondIssuer.redemptionFee()).to.be.eq(100);
+    //
+    //     await bondIssuer.setFees(500, 500);
+    //     expect(await bondIssuer.issueFee()).to.be.eq(500);
+    //     expect(await bondIssuer.redemptionFee()).to.be.eq(500);
+    //     let amount = "100000";
+    //
+    //     await bondIssuer.mintBond(amount);
+    //     let mintfee = await bondIssuer.issueFee();
+    //     let stableFee = BigNumber.from(amount).mul(mintfee).div(1e6);
+    //     let exchangeRate = await bondIssuer.exchangeRate();
+    //     let fees = await bondIssuer.fee()
+    //     expect(fees).to.be.eq(stableFee)
+    //
+    //     let bondOut = BigNumber.from(amount).mul(1e6).div(exchangeRate);
+    //     await bondIssuer.redeemBond(bondOut);
+    //     exchangeRate = await bondIssuer.exchangeRate();
+    //     let stableOut = BigNumber.from(bondOut).mul(exchangeRate).div(1e6);
+    //     let stableFee1 = stableOut.mul(500).div(1e6);
+    //
+    //     let fees1 = await bondIssuer.fee();
+    //     expect(stableFee1).to.be.eq(fees1.sub(fees));
     //
     //
     // });
     // it('test recoverToken ', async () => {
-    //     expect(await busd.balanceOf(fraxBondIssuer.address)).to.be.eq(0);
-    //     await busd.mint(fraxBondIssuer.address, "1000");
-    //     expect(await busd.balanceOf(fraxBondIssuer.address)).to.be.eq("1000");
-    //     await busd.approve(fraxBondIssuer.address, toWei('1000'));
+    //     expect(await busd.balanceOf(bondIssuer.address)).to.be.eq(0);
+    //     await busd.mint(bondIssuer.address, "1000");
+    //     expect(await busd.balanceOf(bondIssuer.address)).to.be.eq("1000");
+    //     await busd.approve(bondIssuer.address, toWei('1000'));
     //
-    //     await fraxBondIssuer.recoverToken(busd.address, "1000");
-    //     expect(await busd.balanceOf(fraxBondIssuer.address)).to.be.eq(0);
+    //     await bondIssuer.recoverToken(busd.address, "1000");
+    //     expect(await busd.balanceOf(bondIssuer.address)).to.be.eq(0);
     //
     //
     // });
-    // it("test globalCollateralValue", async () => {
-    //     expect(await frax.stablePoolAddressCount()).to.be.eq(2);
-    //     // await frax.setStableStep("250000");
-    //     // await frax.refreshCollateralRatio();
+    // it("transfer the mintbond token to the reserve address and then take it out", async () => {
+    //     let amount = "100000";
+    //     await bondIssuer.connect(owner).mintBond(amount);
+    //     let mintfee = await bondIssuer.issueFee();
+    //     let stableFee = BigNumber.from(amount).mul(mintfee).div(1e6);
+    //     let reserveAmount = BigNumber.from(amount).sub(stableFee);
+    //     let befReserve = await frax.balanceOf(reserve.address);
+    //     let exchangeRate = await bondIssuer.exchangeRate();
+    //     let vBalStableBef = await bondIssuer.vBalStable();
+    //     expect(vBalStableBef).to.be.eq(amount);
+    //     let fees = await bondIssuer.fee()
     //
-    //     // await pool.mintFractionalFRAX(toWei('1'), toWei('10000000000'), 0);
-    //     await usdc_uniswapOracle.setPeriod(1);
-    //     await usdc_uniswapOracle.update();
-    //     await frax_uniswapOracle.setPeriod(1);
-    //     await frax_uniswapOracle.update();
-    //     await fxs_uniswapOracle.setPeriod(1);
-    //     await fxs_uniswapOracle.update();
+    //     let bondOut = BigNumber.from(amount).mul(1e6).div(exchangeRate);
+    //     expect(await bondIssuer.reserveAmount()).to.be.eq(BigNumber.from(amount).sub(fees));
     //
-    //     expect(await frax.globalCollateralValue()).to.be.eq(toWei('1'));
+    //     await bondIssuer.fetchReserve();
+    //
+    //     let aftReserve = await frax.balanceOf(reserve.address);
+    //     expect(await bondIssuer.reserveAmount()).to.be.eq(0);
+    //     expect(aftReserve).to.be.gt(befReserve);
+    //     expect(aftReserve).to.be.eq(reserveAmount);
+    //
+    //
+    //     await bondIssuer.connect(owner).redeemBond(bondOut);
+    //     exchangeRate = await bondIssuer.exchangeRate();
+    //
+    //     let stableOut = BigNumber.from(bondOut).mul(exchangeRate).div(1e6);
+    //     let vBalStableAft = await bondIssuer.vBalStable();
+    //     expect(vBalStableAft).to.be.eq(vBalStableBef.sub(stableOut));
+    //
+    //     let aft1 = await frax.balanceOf(reserve.address);
+    //     expect(aft1).to.be.eq(reserveAmount);
+    //     let fraxBef = await frax.balanceOf(owner.address);
+    //     fees = await bondIssuer.fee();
+    //
+    //     await bondIssuer.claimFee();
+    //     let fraxAft = await frax.balanceOf(owner.address);
+    //
+    //     expect(fraxAft).to.be.eq(fraxBef.add(fees));
+    //
+    //     fees = await bondIssuer.fee();
+    //     expect(fees).to.be.eq(0);
+    //
+    //     let rAmount = aftReserve.add(1);
+    //     await expect(reserve.fetchToken(frax.address, rAmount)).to.be.revertedWith("TRANSFER_FAILED");
+    //
+    //     await expect(reserve.connect(dev).fetchToken(frax.address, aftReserve)).to.be.revertedWith("not operator");
+    //     await reserve.fetchToken(frax.address, aftReserve);
+    //
+    //     let fraxAft1 = await frax.balanceOf(owner.address);
+    //     expect(fraxAft1).to.be.eq(fraxAft.add(aftReserve));
+    //
+    //
     // });
-    it("test fetchReserve", async () => {
+    it("test globalCollateralValue", async () => {
+        expect(await frax.stablePoolAddressCount()).to.be.eq(2);
+        await usdc_uniswapOracle.setPeriod(1);
+        await usdc_uniswapOracle.update();
+        await frax_uniswapOracle.setPeriod(1);
+        await frax_uniswapOracle.update();
+        await fxs_uniswapOracle.setPeriod(1);
+        await fxs_uniswapOracle.update();
 
-        await frax.approve(fraxBondIssuer.address, toWei('10000'));
-        await fxb.approve(fraxBondIssuer.address, toWei('10000'));
-
-        await fraxBondIssuer.connect(owner).mintBond("100000");
-        let stableFee = BigNumber.from("100000").mul("100").div(1e6);
-        let reserveAmount = BigNumber.from("100000").sub(stableFee);
-        let bef = await frax.balanceOf(reserve.address);
-
-        await fraxBondIssuer.fetchReserve();
-
-        let aft = await frax.balanceOf(reserve.address);
-        expect(aft).to.be.gt(bef);
-
-
+        expect(await frax.globalCollateralValue()).to.be.eq(toWei('1'));
     });
+
+
 });
