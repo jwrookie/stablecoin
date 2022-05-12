@@ -205,36 +205,35 @@ contract('Boost', () => {
 
         await gauge_usdc.deposit(toWei('10'), 1);
         await gauge_busd.deposit(toWei('10'), 1);
-        //
-        //  let lastBlock = await time.latestBlock();
-        // await time.advanceBlockTo(parseInt(lastBlock) + 10);
-        //
-        //   await gauge_usdc.deposit(toWei('10'), 1);
-        // await gauge_busd.deposit(toWei('10'), 1);
-        //
-        // rewardOwner = await gauge_usdc.pendingMax(owner.address)
-        // console.log("rewardOwner:" + rewardOwner)
-        // rewardOwner1 = await gauge_usdc.pending(owner.address)
-        // console.log("rewardOwner1:" + rewardOwner1)
-        //
-        // console.log("get reward aft1 blocknum:" + await getCurrentBlock());
 
-        // await boost.reset(1)
-        //
-        // await time.increase(time.duration.days(1));
-        //
-        // await lock.withdraw(1)
-        // await gauge_usdc.connect(owner).getReward(owner.address)
-        //
-        // console.log("fxs:" + await fxs.balanceOf(owner.address))
+         let lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 10);
 
-        // await gauge_usdc.connect(owner).getReward(owner.address)
-        // console.log("fxs:" + await fxs.balanceOf(owner.address))
-        //
-        // await gauge_usdc.connect(owner).getReward(owner.address)
-        // console.log("fxs:" + await fxs.balanceOf(owner.address))
+          await gauge_usdc.deposit(toWei('10'), 1);
+        await gauge_busd.deposit(toWei('10'), 1);
 
-        // await gauge_usdc.connect(owner).withdrawToken(toWei('10'), 1);
+       let  rewardOwner = await gauge_usdc.pendingMax(owner.address)
+       let  rewardOwner1 = await gauge_usdc.pending(owner.address)
+
+          let multiple = rewardOwner/rewardOwner1
+      expect(multiple).to.be.eq(3.3333333333333335);
+
+        await boost.reset(1)
+
+        await time.increase(time.duration.days(1));
+
+        await lock.withdraw(1)
+        await gauge_usdc.connect(owner).getReward(owner.address)
+
+        console.log("fxs:" + await fxs.balanceOf(owner.address))
+
+        await gauge_usdc.connect(owner).getReward(owner.address)
+        console.log("fxs:" + await fxs.balanceOf(owner.address))
+
+        await gauge_usdc.connect(owner).getReward(owner.address)
+        console.log("fxs:" + await fxs.balanceOf(owner.address))
+
+        await gauge_usdc.connect(owner).withdrawToken(toWei('10'), 1);
 
 
     });
