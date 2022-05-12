@@ -161,7 +161,7 @@ contract('Boost', async function () {
         await lock.addBoosts(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
 
-        await expectRevert(boost.createGauge(pool.address, "100", true), "Transaction reverted without a reason string");
+        await expectRevert(boost.createGauge(pool.address, "100", true), " function returned an unexpected amount of data");
 
         //todo add token for pool
         // gaugeAddr = await boost.gauges(pool.address);
