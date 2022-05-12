@@ -7,6 +7,14 @@ const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
 contract('Boost', () => {
+    async function getPending(account) {
+        let lastBlock = await time.latestBlock();
+        await time.advanceBlockTo(parseInt(lastBlock) + 1);
+        let reward = await gauge_usdc.pending(account);
+
+        return reward;
+    }
+
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         const TestOracle = await ethers.getContractFactory('TestOracle');
@@ -94,74 +102,69 @@ contract('Boost', () => {
 
         await lock.connect(dev).create_lock(toWei('10000'), parseInt(eta));
         await lock.create_lock(toWei('10'), parseInt(eta));
-        await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-        await usdc.approve(gauge_usdc.address, toWei('10000000'))
-        await fxs.approve(gauge_usdc.address, toWei('10000000'))
+        await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
+        await fxs.approve(gauge_usdc.address, toWei('10000000'));
 
-        await gauge_usdc.connect(dev).deposit("1000", 1);
-        await gauge_usdc.connect(owner).deposit("2000", 2);
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_usdc.connect(owner).deposit(toWei('2'), 2);
 
         await boost.updatePool(0);
         expect(await boost.poolLength()).to.be.eq(2);
 
-        await time.increase(time.duration.days(1));
 
-         console.log("boost fxs:" + await fxs.balanceOf(boost.address));
-        console.log("fxs bef:" + await fxs.balanceOf(dev.address))
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('99989990'));
 
-        let rewardDev = await gauge_usdc.pending(dev.address)
-        console.log("rewardDev:" + rewardDev)
-        await gauge_usdc.connect(dev).getReward(dev.address)
-        console.log(gauge_usdc)
-        console.log("fxs aft:" + await fxs.balanceOf(dev.address))
+        let pendDev = await getPending(dev.address);
 
-        console.log("fxs bef:" + await fxs.balanceOf(owner.address))
-        await time.increase(time.duration.days(1));
-        let rewardOwner = await gauge_usdc.pending(owner.address)
-        console.log("rewardOwner:" + rewardOwner)
-        await gauge_usdc.connect(owner).getReward(owner.address)
-        console.log("fxs aft:" + await fxs.balanceOf(owner.address))
+        await gauge_usdc.connect(dev).getReward(dev.address);
+
+        let aftDev = await fxs.balanceOf(dev.address);
+        expect(aftDev).to.be.eq(pendDev.add("50000000000100000"));
+
+        let pendOwner = await getPending(owner.address);
+        let befOwner = await fxs.balanceOf(owner.address);
+
+        await gauge_usdc.getReward(owner.address);
+
+        let aftOwner = await fxs.balanceOf(owner.address);
+        let diff = aftOwner.sub(befOwner);
+
+        let reward = BigNumber.from("50000000000100000").mul(2);
+        expect(diff).to.be.eq(pendOwner.add(reward));
 
 
     });
-    // it('should two pools, single user getReward correct', async () => {
-    //     await busd.connect(dev).approve(lock.address, toWei('10000000'));
-    //     await usdc.connect(dev).approve(lock.address, toWei('10000000'));
-    //     let eta = time.duration.days(1);
-    //     // console.log("eta:" + parseInt(eta));
-    //
-    //     await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
-    //
-    //     await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'))
-    //     await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'))
-    //
-    //
-    //     await gauge_usdc.connect(dev).deposit("1000", 1);
-    //     await gauge_busd.connect(dev).deposit("1000", 1);
-    //
-    //     await boost.updatePool(0);
-    //     await boost.updatePool(1);
-    //
-    //     await gauge_usdc.connect(dev).deposit("1000", 1);
-    //
-    //
-    //     await time.increase(time.duration.days(1));
-    //
-    //     // console.log("fxs bef:" + await fxs.balanceOf(dev.address))
-    //
-    //     //let rewardDev = await gauge_usdc.pending(dev.address)
-    //     // console.log("rewardDev:" + rewardDev)
-    //     await gauge_usdc.connect(dev).getReward(dev.address)
-    //     // console.log("fxs aft:" + await fxs.balanceOf(dev.address))
-    //
-    //     let rewardDev1 = await gauge_busd.pending(dev.address)
-    //     console.log("rewardDev1:" + rewardDev1)
-    //     await gauge_busd.connect(dev).getReward(dev.address)
-    //     console.log("fxs aft1:" + await fxs.balanceOf(dev.address))
-    //
-    //
-    // });
+    it('should two pools, single user getReward correct', async () => {
+        await busd.connect(dev).approve(lock.address, toWei('10000000'));
+        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        let eta = time.duration.days(1);
+        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
+
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_busd.connect(dev).deposit(toWei('1'), 1);
+
+        await boost.updatePool(0);
+        await boost.updatePool(1);
+        let befDev = await fxs.balanceOf(dev.address);
+
+        await gauge_usdc.connect(dev).getReward(dev.address);
+        let aftDev = await fxs.balanceOf(dev.address);
+
+        let diff = aftDev.sub(befDev);
+
+        await gauge_busd.connect(dev).getReward(dev.address);
+        let aft1Dev = await fxs.balanceOf(dev.address);
+
+        let diff1 = aft1Dev.sub(aftDev);
+        expect(diff1).to.be.eq(diff);
+
+    });
 
 
 });
