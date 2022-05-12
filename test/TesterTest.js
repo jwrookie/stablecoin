@@ -44,8 +44,10 @@ contract('Test' , async function () {
        // Mock token Date
        // const MockToken = await ethers.getContractFactory("MockToken");
        // usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
-       [usdc, token0] = await GetMockToken(["usdc", "token0"],[owner.address, dev.address]);
+       [usdc, token0] = await GetMockToken(1,[owner.address, dev.address]);
        console.log(await usdc.balanceOf(owner.address));
+       console.log(usdc.address);
+       console.log(token0.address);
        // await usdc.mint(owner.address, toWei("1"));
        // console.log(await usdc.balanceOf(owner.address));
        // await MintMockToken(usdc, owner.address, toWei("1"));
