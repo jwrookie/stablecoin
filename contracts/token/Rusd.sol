@@ -172,17 +172,17 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function globalCollateralValue() public view returns (uint256) {
-        uint256 total_collateral_value_d18 = 0;
+        uint256 totalCollateralValueD18 = 0;
 
         for (uint256 i = 0; i < poolAddress.length; i++) {
             // Exclude null addresses
             if (poolAddress[i] != address(0)) {
-                total_collateral_value_d18 = total_collateral_value_d18.add(
+                totalCollateralValueD18 = totalCollateralValueD18.add(
                     StablecoinPool(poolAddress[i]).collatDollarBalance()
                 );
             }
         }
-        return total_collateral_value_d18;
+        return totalCollateralValueD18;
     }
 
     function refreshOtherCR() private {

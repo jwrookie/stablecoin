@@ -140,6 +140,11 @@ contract BondIssuer is AbstractPausable {
         emit Recovered(token, msg.sender, amount);
     }
 
+    function collatDollarBalance() external pure returns (uint256) {
+        return uint256(1e18);
+        // 1 nonexistant USDC
+    }
+
     event Recovered(address token, address to, uint256 amount);
 
     // Track bond redeeming
