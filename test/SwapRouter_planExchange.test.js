@@ -24,17 +24,17 @@ contract('plainPool', () => {
             bytecode: WETH9.bytecode,
             abi: WETH9.abi,
         });
-
-        const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth9.address);
-        const TestOracle = await ethers.getContractFactory('TestOracle');
-        oracle = await TestOracle.deploy();
-
         const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
 
         const CheckPermission = await ethers.getContractFactory("CheckPermission");
         checkPermission = await CheckPermission.deploy(operatable.address);
+
+        const SwapRouter = await ethers.getContractFactory('SwapRouter');
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth9.address);
+        const TestOracle = await ethers.getContractFactory('TestOracle');
+        oracle = await TestOracle.deploy();
+
 
         const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
@@ -199,7 +199,6 @@ contract('plainPool', () => {
 
         await swapRouter.swapStable(pool.address, 2, 0, "10000000", 0, dev.address, times);
         await swapRouter.swapStable(pool.address, 2, 1, "10000000", 0, dev.address, times);
-
 
 
     });

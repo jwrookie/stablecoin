@@ -58,7 +58,7 @@ contract('Crypto', () => {
             abi: WETH9.abi,
         });
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth9.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth9.address);
 
         expect(await weth9.balanceOf(owner.address)).to.be.eq(0);
         await weth9.deposit({value: toWei('10')});
@@ -159,7 +159,7 @@ contract('Crypto', () => {
 
 
     });
-     it('test crypto pool swapEthForToken have reward', async () => {
+    it('test crypto pool swapEthForToken have reward', async () => {
         await token0.approve(swapRouter.address, toWei("10000"))
         await weth9.approve(swapRouter.address, toWei('100000'))
 
@@ -178,7 +178,7 @@ contract('Crypto', () => {
         expect(diff).to.be.eq(reword.add("52500000000000000"));
 
         //weth -> token0
-        await swapRouter.swapEthForToken(pool.address, 1, 0, dx, 0, owner.address, times,{value:"1000000"});
+        await swapRouter.swapEthForToken(pool.address, 1, 0, dx, 0, owner.address, times, {value: "1000000"});
 
         reword = await swapMining.rewardInfo(owner.address);
         await swapMining.getReward(0);

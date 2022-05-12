@@ -5,20 +5,21 @@ pragma solidity =0.8.10;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+import "../tools/CheckPermission.sol";
 import "../tools/TransferHelper.sol";
 import "../interface/IStablePool.sol";
 import "../interface/curve/IZapDepositor4pool.sol";
 import "../interface/ICryptoPool.sol";
 import "../interface/ISwapMining.sol";
 
-contract SwapRouter is Ownable {
+contract SwapRouter is CheckPermission {
     event ChangeSwapMining(address indexed oldSwapMining, address indexed newSwapMining);
 
     address public WETH;
 
     address public swapMining;
 
-    constructor(address _weth) {
+    constructor(address _operatorMsg, address _weth) CheckPermission(_operatorMsg){
         WETH = _weth;
     }
 
@@ -207,7 +208,7 @@ contract SwapRouter is Ownable {
             TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
         }
 
-        ICryptoPool(pool).exchange{value: bal}(from, to, _from_amount, _min_to_amount, true, receiver);
+        ICryptoPool(pool).exchange{value : bal}(from, to, _from_amount, _min_to_amount, true, receiver);
         callCryptoSwapMining(receiver, pool, from, _from_amount);
     }
 
