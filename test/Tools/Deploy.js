@@ -1,4 +1,5 @@
 const {deployContract} = require("ethereum-waffle");
+const {ZEROADDRESS} = require("../Core/Address");
 const {
     CRVFACTORY,
     FACTORY,
@@ -10,7 +11,6 @@ const {
     REGISTRY,
     ROUTER
 } = require("../Lib/QuoteMockJson");
-const {ZEROADDRESS} = require("../Core/Address");
 
 const Weth = async (ownerAddress) => {
     return await deployContract(ownerAddress, {

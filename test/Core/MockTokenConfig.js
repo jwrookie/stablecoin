@@ -1,9 +1,14 @@
 const {ethers} = require('hardhat');
+const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
-const SetMockToken = async (mintNumber) => {
+const SetMockToken = async (mintNumber = toWei("1")) => {
     const MockToken = await ethers.getContractFactory("MockToken");
-    return await MockToken.deploy("token0", "token0", 18, BigNumber.from(mintNumber));
+    return await MockToken.deploy("token0", "token0", 18, mintNumber);
+}
+
+const MintMockToken = async (mockToken, user, mintNumber = toWei("1")) => {
+    await mockToken.mint(user, mintNumber);
 }
 
 const SetMockChainLink = async () => {
@@ -21,5 +26,6 @@ const SetChainlinkETHUSDPriceConsumer = async () => {
 
 module.exports = {
     SetMockToken,
-    SetChainlinkETHUSDPriceConsumer
+    SetChainlinkETHUSDPriceConsumer,
+    MintMockToken
 }

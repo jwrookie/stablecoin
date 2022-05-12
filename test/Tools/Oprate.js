@@ -1,12 +1,14 @@
-const SetArray = async () => {
-    let argumentsLength = arguments.length;
-    let resultArray = new Array();
+const {ZEROADDRESS} = require("../Core/Address");
 
-    if (0 === argumentsLength) {
-        return Error("Invaild arguments!");
-    }
-    for (let i = 0; i < argumentsLength; i++) {
-        resultArray.push(arguments[i]);
+const SetArray = async (length= 10, address = []) => {
+    let resultArray = new Array(length);
+
+    for (let i = 0; i < length; i++) {
+        if (address[i] !== undefined) {
+            resultArray.push(address[i]);
+        }else {
+            resultArray.push(ZEROADDRESS);
+        }
     }
     return resultArray;
 }

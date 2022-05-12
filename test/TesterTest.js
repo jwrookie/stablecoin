@@ -1,8 +1,9 @@
 const {GetConfigAboutCRV} = require("./Tools/Deploy");
 const {StableCoinPool, GetRusdAndTra, SetRusdAndTraConfig} = require("./Utils/GetStableConfig");
-const {SetMockToken} = require("./Core/MockTokenConfig");
+const {SetArray} = require("./Tools/Oprate");
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {Signers} = require("./Core/WalletConfig");
+const {MintMockToken} = require("./Core/MockTokenConfig");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
@@ -45,9 +46,16 @@ contract('Test' , async function () {
        // usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
        [usdc, token0] = await GetMockToken(["usdc", "token0"],[owner.address, dev.address]);
        console.log(await usdc.balanceOf(owner.address));
+       // await usdc.mint(owner.address, toWei("1"));
+       // console.log(await usdc.balanceOf(owner.address));
+       // await MintMockToken(usdc, owner.address, toWei("1"));
+       // console.log(await usdc.balanceOf(owner.address));
        console.log(await usdc.balanceOf(dev.address));
-       console.log(usdc.address);
+       // await usdc.mint(dev.address, toWei("1"));
+       // console.log(await usdc.balanceOf(dev.address));
+       // console.log(usdc.address);
        console.log("2");
+       console.log(await SetArray(10, [usdc.address]));
 
        // Mint for account
        // await usdc.mint(owner.address, toWei("1000"));
