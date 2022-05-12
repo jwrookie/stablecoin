@@ -404,7 +404,7 @@ contract('AMOMinter', async function () {
         await usdcUniswapOracle.update();
         initUsdcInPool = await getBalances(usdc, stableCoinPool);
         expect(parseInt(initUsdcInPool)).to.be.eq(0);
-        await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
+        await stableCoinPool.mint1t1Stable(toWei("1"), 0);
         // console.log(await usdc.balanceOf(stableCoinPool.address));
         // expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(parseInt(toWei("1")));
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);
@@ -424,7 +424,7 @@ contract('AMOMinter', async function () {
         let colPriceUsd;
         let globalCollateralRatio;
 
-        redemptionFee = await stableCoinPool.redemption_fee();
+        redemptionFee = await stableCoinPool.redemptionFee();
         // Set oracle
         expect(parseInt(redemptionFee)).to.be.eq(0);
         // Set mockChainLink
@@ -464,7 +464,7 @@ contract('AMOMinter', async function () {
         await frax.refreshCollateralRatio();
         expect(parseInt(await frax.stablePrice())).to.be.eq(20);
         expect(parseInt(await frax.globalCollateralRatio())).to.be.eq(1000000);
-        await stableCoinPool.mint1t1FRAX(toWei("1"), 0);
+        await stableCoinPool.mint1t1Stable(toWei("1"), 0);
         // console.log(await usdc.balanceOf(stableCoinPool.address));
         // expect(await getBalances(usdc, stableCoinPool)).to.be.eq(parseInt(toWei("1")));
         expect(await getBalances(usdc, exchangeAMO)).to.be.eq(0);

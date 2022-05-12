@@ -151,7 +151,7 @@ export const cleanLockedNFT = (locked_nft_info: any) => {
 export const printCollateralInfo = async (pool_multicollateral_contract: any, collateralAddress: string) => {
     // Collateral Info
     const pack = await pool_multicollateral_contract.collateral_information(collateralAddress);
-    const { index, symbol, col_addr, is_enabled, missing_decs, price, price_dec_multiplier, pool_ceiling, mint_paused, redeem_paused, recollat_paused, buyback_paused, minting_fee, redemption_fee, buyback_fee, recollat_fee } = pack;
+    const { index, symbol, col_addr, is_enabled, missing_decs, price, price_dec_multiplier, poolCeiling, mint_paused, redeem_paused, recollat_paused, buyback_paused, mintingFee, redemptionFee, buybackFee, recollatFee } = pack;
     
     const collateral_info = {
         index,
@@ -160,15 +160,15 @@ export const printCollateralInfo = async (pool_multicollateral_contract: any, co
         is_enabled,
         missing_decs: (new BigNumber(pack.missing_decs)).toNumber(),
         price: (new BigNumber(pack.price)).div(BIG6).toNumber(),
-        pool_ceiling: (new BigNumber(pack.pool_ceiling)).toNumber(),
+        poolCeiling: (new BigNumber(pack.poolCeiling)).toNumber(),
         mint_paused,
         redeem_paused,
         recollat_paused,
         buyback_paused,
-        minting_fee: (new BigNumber(pack.minting_fee)).toNumber(),
-        redemption_fee: (new BigNumber(pack.redemption_fee)).toNumber(),
-        buyback_fee: (new BigNumber(pack.buyback_fee)).toNumber(),
-        recollat_fee: (new BigNumber(pack.recollat_fee)).toNumber(),
+        mintingFee: (new BigNumber(pack.mintingFee)).toNumber(),
+        redemptionFee: (new BigNumber(pack.redemptionFee)).toNumber(),
+        buybackFee: (new BigNumber(pack.buybackFee)).toNumber(),
+        recollatFee: (new BigNumber(pack.recollatFee)).toNumber(),
     }
     console.log("Collateral Info: ", collateral_info);
 }

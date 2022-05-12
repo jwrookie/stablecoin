@@ -115,7 +115,7 @@ contract AMOMinter is CheckPermission {
     }
 
     function poolRedeem(uint256 _amount) external onlyOperator {
-        uint256 redemptionFee = pool.redemption_fee();
+        uint256 redemptionFee = pool.redemptionFee();
         uint256 colPriceUsd = pool.getCollateralPrice();
 
         uint256 globalCollateralRatio = stablecoin.globalCollateralRatio();
@@ -132,7 +132,7 @@ contract AMOMinter is CheckPermission {
 
         // Redeem the stablecoin
         stablecoin.approve(address(pool), _amount);
-        pool.redeemFractionalFRAX(_amount, 0, 0);
+        pool.redeemFractionalStable(_amount, 0, 0);
     }
 
     function poolCollectAndGive(address destinationAmo) external onlyOperator validAMO(destinationAmo) {

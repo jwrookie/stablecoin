@@ -2,15 +2,15 @@
 pragma solidity 0.8.10;
 
 interface IStablecoinPool {
-    function minting_fee() external returns (uint256);
+    function mintingFee() external returns (uint256);
 
     function redeemCollateralBalances(address addr) external returns (uint256);
 
-    function redemption_fee() external returns (uint256);
+    function redemptionFee() external returns (uint256);
 
-    function buyback_fee() external returns (uint256);
+    function buybackFee() external returns (uint256);
 
-    function recollat_fee() external returns (uint256);
+    function recollatFee() external returns (uint256);
 
     function collatDollarBalance() external returns (uint256);
 
@@ -20,31 +20,31 @@ interface IStablecoinPool {
 
     function setCollatETHOracle(address _collateral_weth_oracle_address, address _weth_address) external;
 
-    function mint1t1FRAX(uint256 collateral_amount, uint256 FRAX_out_min) external;
+    function mint1t1Stable(uint256 collateral_amount, uint256 FRAX_out_min) external;
 
-    function mintAlgorithmicFRAX(uint256 fxs_amount_d18, uint256 FRAX_out_min) external;
+    function mintAlgorithmicStable(uint256 fxs_amount_d18, uint256 FRAX_out_min) external;
 
-    function mintFractionalFRAX(
+    function mintFractionalStable(
         uint256 collateral_amount,
         uint256 fxs_amount,
         uint256 FRAX_out_min
     ) external;
 
-    function redeem1t1FRAX(uint256 FRAX_amount, uint256 COLLATERAL_out_min) external;
+    function redeem1t1Stable(uint256 FRAX_amount, uint256 COLLATERAL_out_min) external;
 
-    function redeemFractionalFRAX(
+    function redeemFractionalStable(
         uint256 FRAX_amount,
         uint256 FXS_out_min,
         uint256 COLLATERAL_out_min
     ) external;
 
-    function redeemAlgorithmicFRAX(uint256 FRAX_amount, uint256 FXS_out_min) external;
+    function redeemAlgorithmicStable(uint256 FRAX_amount, uint256 FXS_out_min) external;
 
     function collectRedemption() external;
 
-    function recollateralizeFRAX(uint256 collateral_amount, uint256 FXS_out_min) external;
+    function recollateralizeStable(uint256 collateral_amount, uint256 FXS_out_min) external;
 
-    function buyBackFXS(uint256 FXS_amount, uint256 COLLATERAL_out_min) external;
+    function buyBackStock(uint256 FXS_amount, uint256 COLLATERAL_out_min) external;
 
     function toggleMinting() external;
 
@@ -62,8 +62,8 @@ interface IStablecoinPool {
         uint256 new_redemption_delay,
         uint256 new_mint_fee,
         uint256 new_redeem_fee,
-        uint256 new_buyback_fee,
-        uint256 new_recollat_fee
+        uint256 new_buybackFee,
+        uint256 new_recollatFee
     ) external;
 
     function setTimelock(address new_timelock) external;

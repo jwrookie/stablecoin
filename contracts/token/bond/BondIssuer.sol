@@ -125,9 +125,9 @@ contract BondIssuer is AbstractPausable {
         interestRate = _interestRate;
     }
 
-    function setFees(uint256 _issue_fee, uint256 _redemption_fee) external onlyOperator {
+    function setFees(uint256 _issue_fee, uint256 _redemptionFee) external onlyOperator {
         issueFee = _issue_fee;
-        redemptionFee = _redemption_fee;
+        redemptionFee = _redemptionFee;
     }
 
     function claimFee() external onlyOperator {
