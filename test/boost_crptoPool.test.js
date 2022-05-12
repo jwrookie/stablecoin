@@ -161,7 +161,7 @@ contract('Boost', async function () {
         await lock.addBoosts(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
 
-        await expectRevert(boost.createGauge(pool.address, "100", true), "function returned an unexpected amount of data");
+        await expectRevert(boost.createGauge(pool.address, "100", true), " function returned an unexpected amount of data");
 
         //todo add token for pool
         // gaugeAddr = await boost.gauges(pool.address);
@@ -185,9 +185,9 @@ contract('Boost', async function () {
 
     });
 
-    it('if crypto Pool is the pool address, an error will be reported', async function () {
-        await boost.createGauge(busd.address, "100", true);
-        await boost.createGauge(token0.address, "100", true);
+    it('if crypto pool is the pool address, an error will be reported', async function () {
+       await boost.createGauge(token0.address, "100", true);
+
 
 
     });

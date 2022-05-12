@@ -434,42 +434,42 @@ contract StablecoinPool is AbstractPausable, Multicall {
 
     // Combined into one function due to 24KiB contract memory limit
     function setPoolParameters(
-        uint256 new_ceiling,
-        uint256 new_bonus_rate,
-        uint256 new_redemption_delay,
-        uint256 new_mint_fee,
-        uint256 new_redeem_fee,
-        uint256 new_buybackFee,
-        uint256 new_recollatFee
+        uint256 _ceiling,
+        uint256 _bonusRate,
+        uint256 _redemptionDelay,
+        uint256 _mintFee,
+        uint256 _redeemFee,
+        uint256 _buybackFee,
+        uint256 _recollatFee
     ) external onlyOperator {
-        poolCeiling = new_ceiling;
-        bonusRate = new_bonus_rate;
-        redemptionDelay = new_redemption_delay;
-        mintingFee = new_mint_fee;
-        redemptionFee = new_redeem_fee;
-        buybackFee = new_buybackFee;
-        recollatFee = new_recollatFee;
+        poolCeiling = _ceiling;
+        bonusRate = _bonusRate;
+        redemptionDelay = _redemptionDelay;
+        mintingFee = _mintFee;
+        redemptionFee = _redeemFee;
+        buybackFee = _buybackFee;
+        recollatFee = _recollatFee;
 
         emit PoolParametersSet(
-            new_ceiling,
-            new_bonus_rate,
-            new_redemption_delay,
-            new_mint_fee,
-            new_redeem_fee,
-            new_buybackFee,
-            new_recollatFee
+            _ceiling,
+            _bonusRate,
+            _redemptionDelay,
+            _mintFee,
+            _redeemFee,
+            _buybackFee,
+            _recollatFee
         );
     }
 
     event AMOMinterAdded(address amo_minter_addr);
     event AMOMinterRemoved(address amo_minter_addr);
     event PoolParametersSet(
-        uint256 new_ceiling,
-        uint256 new_bonus_rate,
-        uint256 new_redemption_delay,
-        uint256 new_mint_fee,
-        uint256 new_redeem_fee,
-        uint256 new_buybackFee,
-        uint256 new_recollatFee
+        uint256 ceiling,
+        uint256 bonusRate,
+        uint256 redemptionDelay,
+        uint256 mintFee,
+        uint256 redeemFee,
+        uint256 buybackFee,
+        uint256 recollatFee
     );
 }

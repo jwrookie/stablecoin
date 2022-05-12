@@ -239,7 +239,7 @@ contract('SwapRouter5Coins', () => {
         await fxs.addPool(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
         //todo pool is token
-        // await boost.createGauge(depositZap.address, "100", true);
+       // await boost.createGauge(depositZap.address, "100", true);
 
 
     });
@@ -248,7 +248,7 @@ contract('SwapRouter5Coins', () => {
 
 
     });
-
+    //
     // it('test zap exchange_underlying', async () => {
     //     let token0OwnerBef = await token0.balanceOf(owner.address);
     //     let token0PoolBef = await token0.balanceOf(pool3.address);

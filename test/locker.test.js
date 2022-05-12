@@ -20,21 +20,24 @@ contract('Locker', () => {
 
         const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
+
+        const CheckPermission = await ethers.getContractFactory("CheckPermission");
+        checkPermission = await CheckPermission.deploy(operatable.address);
+
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
         await fxs.setFraxAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         const Locker = await ethers.getContractFactory('Locker');
         let eta = time.duration.days(1);
-        lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
+        lock = await Locker.deploy(checkPermission.address, fxs.address, parseInt(eta));
 
         await fxs.approve(lock.address, toWei('100000'));
-
         await fxs.transfer(dev.address, toWei('1000'));
 
 
@@ -50,12 +53,6 @@ contract('Locker', () => {
 
     });
     it("test create_lock and withdraw", async () => {
-        let point = await lock.point_history(0)
-        console.log("bias:" + point[0])
-        console.log("slope:" + point[1])
-        console.log("ts:" + point[2])
-        console.log("blk:" + point[3])
-
         let amountfxs = await fxs.balanceOf(owner.address)
         await fxs.approve(lock.address, toWei('1000'))
         let eta = time.duration.days(1);
@@ -72,9 +69,6 @@ contract('Locker', () => {
 
         let lockInfo = await lock.locked(1);
         expect(lockInfo[0]).to.be.eq("1000");
-        console.log("end:" + lockInfo[1])
-
-        console.log("balanceOf:" + await lock.balanceOf(owner.address))
 
         let eta1 = time.duration.days(2);
         await lock.increase_amount(1, "4000")
@@ -88,7 +82,6 @@ contract('Locker', () => {
         let lockendAft = +lockInfo[1];
         expect(parseInt(eta)).to.be.eq(lockendAft - lockBef);
 
-        console.log("balanceOfNFT:" + await lock.balanceOfNFT(1))
 
         await time.increase(time.duration.days(4));
         await lock.withdraw(1);
@@ -102,11 +95,6 @@ contract('Locker', () => {
     });
 
     it("test create_lock_for and withdraw", async () => {
-        let point = await lock.point_history(0);
-        console.log("bias:" + point[0])
-        console.log("slope:" + point[1])
-        console.log("ts:" + point[2])
-        console.log("blk:" + point[3])
 
         let amountfxs = await fxs.balanceOf(dev.address);
         await fxs.connect(dev).approve(lock.address, toWei('1000'));
@@ -120,7 +108,6 @@ contract('Locker', () => {
 
         let lockInfo = await lock.locked(1);
         expect(lockInfo[0]).to.be.eq("1000");
-        console.log("end:" + lockInfo[1])
 
         await time.increase(time.duration.days(4));
         await lock.connect(dev).withdraw(1);
