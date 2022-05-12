@@ -161,7 +161,7 @@ contract('test pool mint stable', () => {
         await fxs.addPool(pool.address);
 
     });
-    it('test mintFractionalFRAX and redeemFractionalFRAX', async () => {
+    it('test mintFractionalStable and redeemFractionalStable', async () => {
         await usdc_uniswapOracle.setPeriod(1);
         await usdc_uniswapOracle.update();
         await frax_uniswapOracle.setPeriod(1);
@@ -181,14 +181,14 @@ contract('test pool mint stable', () => {
         expect(await usdc.balanceOf(pool.address)).to.be.eq(0);
 
         //  console.log("globalCollateralValue:"+await frax.globalCollateralValue())
-        await pool.mintFractionalFRAX("1000", "1000000000000", 0);
+        await pool.mintFractionalStable("1000", "1000000000000", 0);
         expect(await usdc.balanceOf(owner.address)).to.be.eq("999999999999999999999999999000");
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999999000000000000133333");
         expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998999999999999999667");
         expect(await fxs.balanceOf(pool.address)).to.be.eq(0);
         expect(await usdc.balanceOf(pool.address)).to.be.eq("1000");
         //
-        await pool.redeemFractionalFRAX("133340", 0, 0);
+        await pool.redeemFractionalStable("133340", 0, 0);
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999998999999999999999993");
         expect(await usdc.balanceOf(owner.address)).to.be.eq("999999999999999999999999999000");
         expect(await usdc.balanceOf(pool.address)).to.be.eq("1000");
@@ -196,7 +196,7 @@ contract('test pool mint stable', () => {
 
         expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998999999999999999667");
         expect(await pool.unclaimedPoolCollateral()).to.be.eq("1000");
-        expect(await pool.unclaimedPoolFXS()).to.be.eq("333");
+        expect(await pool.unclaimedPoolStock()).to.be.eq("333");
         expect(await pool.redeemCollateralBalances(owner.address)).to.be.eq("1000");
 
         await pool.collectRedemption();
@@ -206,7 +206,7 @@ contract('test pool mint stable', () => {
 
         expect(await fxs.balanceOf(owner.address)).to.be.eq("99999999000000000000000000");
         expect(await pool.unclaimedPoolCollateral()).to.be.eq(0);
-        expect(await pool.unclaimedPoolFXS()).to.be.eq(0);
+        expect(await pool.unclaimedPoolStock()).to.be.eq(0);
         expect(await pool.redeemCollateralBalances(owner.address)).to.be.eq(0);
 
     });

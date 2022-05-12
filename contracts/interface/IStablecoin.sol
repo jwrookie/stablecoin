@@ -46,13 +46,13 @@ interface IStablecoin is IERC20 {
     //  function hasRole(bytes32 role, address account ) external view returns (bool);
     //  function increaseAllowance(address spender, uint256 addedValue ) external returns (bool);
     //  function last_call_time() external view returns (uint256);
-    //  function minting_fee() external view returns (uint256);
+    //  function mintingFee() external view returns (uint256);
     //  function name() external view returns (string memory);
     //  function owner_address() external view returns (address);
 
     //  function price_band() external view returns (uint256);
     //  function price_target() external view returns (uint256);
-    //  function redemption_fee() external view returns (uint256);
+    //  function redemptionFee() external view returns (uint256);
     //  function refreshCollateralRatio() external;
     //  function refresh_cooldown() external view returns (uint256);
     //  function removePool(address pool_address ) external;

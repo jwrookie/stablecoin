@@ -363,7 +363,7 @@ declare global {
         cr_value_bn: BigNumber;
         cr_value_dec: number;
         decimals: number;
-        missing_decimals: number;
+        missingDecimals: number;
     }
 
     export interface TrackedAddrTokenInfo {
