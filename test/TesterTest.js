@@ -28,14 +28,15 @@ contract('Test' , async function () {
        console.log("---" + dev.address);
        [weth, factory, router, registry, poolRegistry] = await GetConfigAboutCRV(owner);
        [operatable, frax, fxs] = await GetRusdAndTra();
-       // console.log(operatable.address);
+       console.log(operatable.address);
        // console.log(frax.address);
        // console.log(fxs.address);
-       // console.log(weth.address);
+       console.log(weth.address);
        // console.log(factory.address);
        // console.log(router.address);
-       console.log(registry.address);
-       console.log(poolRegistry.address);
+       // console.log(await GetConfigAboutCRV(owner))
+       // console.log(registry.address);
+       // console.log(poolRegistry.address);
 
        // Set each other
        await SetRusdAndTraConfig(frax, fxs);
@@ -45,6 +46,7 @@ contract('Test' , async function () {
        // usdc = await MockToken.deploy("usdc", "usdc", 18, BigNumber.from("1000000000000000000"));
        [usdc, token0] = await GetMockToken(1,[owner.address, dev.address]);
        console.log(await usdc.balanceOf(owner.address));
+       console.log("usdc" + usdc)
        console.log(usdc.address);
        // console.log(token0.address);
        // await usdc.mint(owner.address, toWei("1"));

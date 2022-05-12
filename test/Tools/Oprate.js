@@ -4,7 +4,8 @@ const SetArray = async (length= 10, address = []) => {
     let resultArray = new Array(length);
 
     for (let i = 0; i < length; i++) {
-        if (address[i] !== undefined) {
+        console.log("--------========" + i)
+        if (address[i] !== undefined && address[i] !== null) {
             resultArray.push(address[i]);
         }else {
             resultArray.push(ZEROADDRESS);
