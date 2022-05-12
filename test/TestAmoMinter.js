@@ -369,7 +369,7 @@ contract('AMOMinter', async function () {
 
         // Set redeem fee
         await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
-        redeemPtionFee = await usdcPool.redemption_fee();
+        redeemPtionFee = await usdcPool.redemptionFee();
         console.log("redeem_fee:\t" + redeemPtionFee);
         latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
         console.log(latestPrice);
@@ -401,7 +401,7 @@ contract('AMOMinter', async function () {
         amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);
         expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(0);
 
-        // Usdc pool redeemFractionalFRAX function
+        // Usdc pool redeemFractionalStable function
         // stockPrice = await frax.stockPrice();
         // Set period
         await fxs_uniswapOracle.setPeriod(1);
@@ -448,14 +448,14 @@ contract('AMOMinter', async function () {
         console.log("second_global_collateral_ratio:\t" + globalCollateralRatio);
         // Swap
 
-        //todo mintAlgorithmicFRAX
+        //todo mintAlgorithmicStable
 
         // pairArray = new Array(2);
         // pairArray[0] = frax.address;
         // pairArray[1] = weth.address;
-        // await usdcPool.mint1t1FRAX(toWei('1'), 0);
-        // await usdcPool.mintAlgorithmicFRAX(toWei('1'), 0);
-        // await usdcPool.mintFractionalFRAX(toWei('1'), 1, 0);
+        // await usdcPool.mint1t1Stable(toWei('1'), 0);
+        // await usdcPool.mintAlgorithmicStable(toWei('1'), 0);
+        // await usdcPool.mintFractionalStable(toWei('1'), 1, 0);
         // // console.log("owner_fxs:\t" + await usdcPool.FXS_NEEDED());
         // console.log("usdc_value_in_pool:\t" + await usdc.balanceOf(usdcPool.address));
 

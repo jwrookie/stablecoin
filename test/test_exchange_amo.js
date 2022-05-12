@@ -304,7 +304,7 @@ contract('test exchange amo', async function () {
 
         // Set redeem fee
         await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
-        redeemPtionFee = await usdcPool.redemption_fee();
+        redeemPtionFee = await usdcPool.redemptionFee();
         console.log("redeem_fee:\t" + redeemPtionFee);
         latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
         console.log(latestPrice);
@@ -336,7 +336,7 @@ contract('test exchange amo', async function () {
         amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);
         expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(0);
 
-        // Usdc pool redeemFractionalFRAX function
+        // Usdc pool redeemFractionalStable function
         // stockPrice = await frax.stockPrice();
         // Set period
         await fxs_uniswapOracle.setPeriod(1);

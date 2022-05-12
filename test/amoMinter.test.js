@@ -315,7 +315,7 @@ contract('amo minter test', async function () {
     //
     //     // Set redeem fee
     //     await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
-    //     redeemPtionFee = await usdcPool.redemption_fee();
+    //     redeemPtionFee = await usdcPool.redemptionFee();
     //     // latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
     //     // expect(parseInt(latestPrice)).to.be.eq(1);
     //
@@ -339,7 +339,7 @@ contract('amo minter test', async function () {
     //     amoMinterBalanceOfFrax = await frax.balanceOf(amoMinter.address);
     //     expect(parseInt(amoMinterBalanceOfFrax)).to.be.eq(0);
     //
-    //     // Usdc pool redeemFractionalFRAX function
+    //     // Usdc pool redeemFractionalStable function
     //     // stockPrice = await frax.stockPrice();
     //     // Set period
     //     await fxs_uniswapOracle.setPeriod(1);
