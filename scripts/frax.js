@@ -89,7 +89,7 @@ async function main() {
     // frax = await FRAXStablecoin.deploy(operatable, "frax", "frax");
     // console.log("frax:" + frax.address);
     //
-    // await fxs.setFraxAddress(frax.address);
+    // await fxs.setStableAddress(frax.address);
     // await frax.setStockAddress(fxs.address);
     // const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
     // poolLibrary = await PoolLibrary.deploy();

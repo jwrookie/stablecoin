@@ -146,7 +146,7 @@ contract('Locker operation', async function () {
         frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
         fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
         await fxs.transfer(dev.address, toWei("0.5"));

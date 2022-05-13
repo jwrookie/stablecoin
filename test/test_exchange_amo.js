@@ -79,7 +79,7 @@ contract('test exchange amo', async function () {
         const Timelock = await ethers.getContractFactory('Timelock');
         timelock = await Timelock.deploy(owner.address, "259200");
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         const FraxPoolLibrary = await ethers.getContractFactory('PoolLibrary')

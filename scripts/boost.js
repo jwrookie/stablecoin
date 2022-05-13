@@ -70,7 +70,7 @@ async function main() {
     // console.log("fxs:" + fxs.address);
     //
     //
-    // await fxs.setFraxAddress(frax.address);
+    // await fxs.setStableAddress(frax.address);
     // await frax.setStockAddress(fxs.address);
     //
     //

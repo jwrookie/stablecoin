@@ -12,7 +12,7 @@ import "../Rusd.sol";
 contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
-    uint256 public constant GENESIS_SUPPLY = 100000000e18; // 100M is printed upon genesis
+    uint256 public constant GENESIS_SUPPLY = 1e6 * 1e18;
     uint256 public constant MAX_SUPPLY = 1e9 * 1e18;
 
     address[] public poolAddress;
@@ -44,12 +44,12 @@ contract Stock is ERC20Burnable, AbstractPausable {
         oracle = _oracle;
     }
 
-    function setFraxAddress(address _address) external onlyOperator {
+    function setStableAddress(address _address) external onlyOperator {
         require(_address != address(0), "0 address");
 
         _stable = RStablecoin(_address);
 
-        emit FRAXAddressSet(_address);
+        emit StableAddressSet(_address);
     }
 
     function stablePoolAddressCount() public view returns (uint256) {
@@ -104,7 +104,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
 
     event StockBurned(address indexed from, address indexed to, uint256 amount);
     event StockMinted(address indexed from, address indexed to, uint256 amount);
-    event FRAXAddressSet(address addr);
+    event StableAddressSet(address addr);
     event PoolAdded(address pool);
 
     event PoolRemoved(address pool);

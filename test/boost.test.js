@@ -42,7 +42,7 @@ contract('Boost', () => {
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
