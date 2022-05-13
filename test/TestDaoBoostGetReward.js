@@ -50,14 +50,38 @@ contract('Gauge', async function () {
         return gauge;
     }
 
-    async function getBoostLpOfPid(gaugeAddress) {
-        if (null === gaugeAddress || undefined === typeof gaugeAddress) {
-            return -1;
+    async function getGaugesInfo() {
+        let gaugeArray = new Array();
+        let poolInfoLength = await boost.poolLength();
+
+        if (poolInfoLength === 0) {
+            return Error("First need to create a gauge!");
         }
 
-        gauge = await boost.gauges(gaugeAddress.address);
-        pool = await boost.poolForGauge(gauge);
-        return await boost.lpOfPid(pool);
+        for (let i = 0; i < poolInfoLength; i++) {
+            poolAddress = await boost.poolInfo(i);
+            gaugesInfo = await boost.gauges(poolAddress[0]);
+            gaugeArray.push(gaugesInfo);
+        }
+
+        return gaugeArray;
+    }
+
+    async function getBoostLpOfPid(poolAddress) {
+        if (null === poolAddress || undefined === typeof poolAddress || poolAddress === ZEROADDRESS) {
+            return Error("Unknow gauge for pool!");
+        }
+
+        gauge = await getGaugesInfo();
+
+        for (let i = 0; i < gauge.length; i++) {
+            pool = await boost.poolForGauge(gauge[i]);
+            if (pool === poolAddress.address) {
+                return await boost.lpOfPid(pool)
+            }
+        }
+
+        return Error("The address of the pool was not added to struct of poolInfo!");
     }
 
     async function getPoolVote() {
@@ -202,6 +226,45 @@ contract('Gauge', async function () {
         expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
         expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);
         expect(await gauge.tokenPerBlock()).to.be.eq(beforeGetRewardTokenPerBlock);
+    });
+
+    it('test Update fxs balance will be big', async function () {
+        let gauge;
+
+        // Create a pool
+        await boost.createGauge(frax.address, 100000, false);
+        await boost.addController(gaugeController.address); // Vote
+        gauge = await getGauges(frax, "1");
+
+        // Get token id -> parameter value is stake token
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        tokenId = await locker.tokenId();
+
+        // About gaugeController
+        await gaugeController.setDuration(await getDurationTime());
+        await gaugeController.addPool(frax.address);
+
+        await gauge.deposit(toWei("0.000001"), tokenId);
+
+        // Get reward
+        beforeGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);
+        getBlock = parseInt(await time.latestBlock());
+        await boost.updatePool(await getBoostLpOfPid(frax));
+        await gauge.getReward(owner.address);
+        afterGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);
+        updateBlock = parseInt(await time.latestBlock()) - getBlock;
+        afterGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);
+        updateBlock = parseInt(await time.latestBlock()) - getBlock;
+        updateFxsBalanceOfOwner = await fxs.balanceOf(owner.address) - beforeGetRewardBalanceOfFxs;
+
+        getCurrentBlock = parseInt(await time.latestBlock());
+        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+        await gauge.getReward(owner.address);
+        subBlock = parseInt(await time.latestBlock()) - getCurrentBlock;
+        subFxsBalanceOfOwner = await fxs.balanceOf(owner.address) - beforeGetRewardBalanceOfFxs;
+        expect(subBlock).to.be.eq(updateBlock);
+        expect(subFxsBalanceOfOwner).to.be.gt(updateFxsBalanceOfOwner);
     });
 
     it('test Single user deposit and vote and get reward and reduce block', async function () {
