@@ -68,7 +68,6 @@ contract('test pool mint stable', () => {
 
         await chainLink.setAnswer(toWei('100'));
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('100000000'));
         expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('2000000'));
         await usdc.mint(owner.address, toWei('1'));
 
