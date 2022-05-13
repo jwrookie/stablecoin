@@ -170,7 +170,7 @@ contract('Gauge', async function () {
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
 
-        boostDurationTime = await boost.duration();
+        boostDurationTime = "10000";
 
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
@@ -182,7 +182,6 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and get reward', async function () {
-        let gauge;
 
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
@@ -268,8 +267,7 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and vote and get reward and reduce block', async function () {
-        let gauge;
-        let currentBlock;
+
 
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);

@@ -86,13 +86,17 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     function mint(address to, uint256 amount) public onlyPools returns (bool) {
-        require(amount.add(totalSupply()) > MAX_SUPPLY, "max supply");
+        if (amount.add(totalSupply()) > MAX_SUPPLY) {
+            return false;
+        }
         _mint(to, amount);
         return true;
     }
 
     function poolMint(address to, uint256 amount) external onlyPools {
-        require(amount.add(totalSupply()) > MAX_SUPPLY, "max supply");
+        if (amount.add(totalSupply()) > MAX_SUPPLY) {
+            return;
+        }
         super._mint(to, amount);
         emit StockMinted(address(this), to, amount);
     }
