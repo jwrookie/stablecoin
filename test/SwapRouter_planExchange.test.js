@@ -151,57 +151,137 @@ contract('plainPool', () => {
         await swapMining.addController(swapController.address);
         await lock.addBoosts(swapController.address);
 
-
-    });
-    it('test swapStable have reward', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
-
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
-
-        let dx = "1000000";
-
-        //token0 -> token1
-        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-        let reword = await swapMining.rewardInfo(dev.address);
-        let bef = await fxs.balanceOf(dev.address);
-
-        await swapMining.connect(dev).getReward(0);
-        let aft = await fxs.balanceOf(dev.address);
-
-        let diff = aft.sub(bef)
-        expect(diff).to.be.eq(reword.add("52500000000000000"));
-
-        //token1 -> token0
-        await swapRouter.connect(dev).swapStable(pool.address, 1, 0, dx, 0, dev.address, times);
-
-        reword = await swapMining.rewardInfo(dev.address);
-        await swapMining.connect(dev).getReward(0);
-
-        let aft1 = await fxs.balanceOf(dev.address);
-        let diff1 = aft1.sub(aft);
-        expect(diff1).to.be.eq(reword.mul(2));
+        await swapController.addPool(pool.address)
 
 
     });
-    it('test plain3Pool can swapStable', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await token1.approve(swapRouter.address, toWei("10000"));
-        await token2.approve(swapRouter.address, toWei("10000"));
+    //  it('test swapStable have reward', async () => {
+    //     await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //     await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //
+    //     let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+    //
+    //     let dx = "1000000";
+    //
+    //     //token0 -> token1
+    //     await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+    //     let reword = await swapMining.rewardInfo(dev.address);
+    //     let bef = await fxs.balanceOf(dev.address);
+    //
+    //     await swapMining.connect(dev).getReward(0);
+    //     let aft = await fxs.balanceOf(dev.address);
+    //
+    //     let diff = aft.sub(bef)
+    //     expect(diff).to.be.eq(reword.add("52500000000000000"));
+    //
+    //     //token1 -> token0
+    //     await swapRouter.connect(dev).swapStable(pool.address, 1, 0, dx, 0, dev.address, times);
+    //
+    //     reword = await swapMining.rewardInfo(dev.address);
+    //     await swapMining.connect(dev).getReward(0);
+    //
+    //     let aft1 = await fxs.balanceOf(dev.address);
+    //     let diff1 = aft1.sub(aft);
+    //     expect(diff1).to.be.eq(reword.mul(2));
+    //
+    //
+    // });
+    it("'test allocPoint", async () => {
 
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
-        let times = Number((new Date().getTime() + 1000).toFixed(0));
-        await swapRouter.swapStable(pool.address, 0, 1, "10000000", 0, dev.address, times);
-        await swapRouter.swapStable(pool.address, 0, 2, "10000000", 0, dev.address, times);
+        let info = await swapMining.poolInfo(0)
+        console.log("allocPoint:" + info[2])
 
-        await swapRouter.swapStable(pool.address, 1, 0, "10000000", 0, dev.address, times);
-        await swapRouter.swapStable(pool.address, 1, 2, "10000000", 0, dev.address, times);
+        await swapMining.connect(dev).vote(1, [pool.address], [toWei("1")]);
+        info = await swapMining.poolInfo(0)
+        console.log("allocPoint:" + info[2])
 
-        await swapRouter.swapStable(pool.address, 2, 0, "10000000", 0, dev.address, times);
-        await swapRouter.swapStable(pool.address, 2, 1, "10000000", 0, dev.address, times);
+        // await swapController.connect(dev).vote(1, pool.address);
+        // info = await swapMining.poolInfo(0)
+        // console.log("allocPoint:" + info[2])
 
 
     });
+    // it('swapStable have reward', async () => {
+    //     await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //     await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //
+    //     let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+    //
+    //     let dx = "1000000";
+    //
+    //
+    //     //token0 -> token1
+    //     await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+    //     // let reword = await swapMining.rewardInfo(dev.address);
+    //     // let bef = await fxs.balanceOf(dev.address);
+    //     let eta = time.duration.days(7);
+    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+    //
+    //       await swapMining.connect(dev).getReward(0);
+    //
+    //     // await swapMining.connect(dev).getReward(0);
+    //     // let aft = await fxs.balanceOf(dev.address);
+    //     //
+    //     // let diff = aft.sub(bef)
+    //     // expect(diff).to.be.eq(reword.add("52500000000000000"));
+    //     //
+    //     // //token1 -> token0
+    //     // await swapRouter.connect(dev).swapStable(pool.address, 1, 0, dx, 0, dev.address, times);
+    //     //
+    //     // reword = await swapMining.rewardInfo(dev.address);
+    //     // await swapMining.connect(dev).getReward(0);
+    //     //
+    //     // let aft1 = await fxs.balanceOf(dev.address);
+    //     // let diff1 = aft1.sub(aft);
+    //     // expect(diff1).to.be.eq(reword.mul(2));
+    //     console.log("reward:" + await fxs.balanceOf(dev.address))
+    //
+    //
+    // });
+    // it('test swapStable have reward', async () => {
+    //     await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //     await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+    //
+    //     let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+    //
+    //     let dx = "1000000";
+    //     let eta = time.duration.days(7);
+    //     await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+    //
+    //
+    //     await swapMining.connect(dev).vote(1, [pool.address], [toWei("1")]);
+    //
+    //     //token0 -> token1
+    //     await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+    //
+    //     await swapMining.connect(dev).getReward(0);
+    //
+    //
+    //     console.log("reward:" + await fxs.balanceOf(dev.address))
+    //
+    //
+    // });
+    // it('test plain3Pool can swapStable', async () => {
+    //     await token0.approve(swapRouter.address, toWei("10000"));
+    //     await token1.approve(swapRouter.address, toWei("10000"));
+    //     await token2.approve(swapRouter.address, toWei("10000"));
+    //
+    //
+    //     let times = Number((new Date().getTime() + 1000).toFixed(0));
+    //     await swapRouter.swapStable(pool.address, 0, 1, "10000000", 0, dev.address, times);
+    //     await swapRouter.swapStable(pool.address, 0, 2, "10000000", 0, dev.address, times);
+    //
+    //     await swapRouter.swapStable(pool.address, 1, 0, "10000000", 0, dev.address, times);
+    //     await swapRouter.swapStable(pool.address, 1, 2, "10000000", 0, dev.address, times);
+    //
+    //     await swapRouter.swapStable(pool.address, 2, 0, "10000000", 0, dev.address, times);
+    //     await swapRouter.swapStable(pool.address, 2, 1, "10000000", 0, dev.address, times);
+    //
+    //
+    // });
 
 
 });
