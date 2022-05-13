@@ -322,7 +322,7 @@ contract('test exchange amo', async function () {
         // Get usdc price
         await usdc_uniswapOracle.update();
         colPriceUsd = await usdcPool.getCollateralPrice();
-        console.log("col_price_usd:\t" + colPriceUsd);
+        console.log("colPriceUsd:\t" + colPriceUsd);
         // expect(parseInt(colPriceUsd)).to.be.eq(10);
         console.log("price_target:\t" + await frax.priceTarget());
         console.log("price_band:\t" + await frax.priceBand());

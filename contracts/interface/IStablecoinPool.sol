@@ -20,12 +20,12 @@ interface IStablecoinPool {
 
     function setCollatETHOracle(address _collateral_weth_oracle_address, address _weth_address) external;
 
-    function mint1t1Stable(uint256 collateral_amount, uint256 FRAX_out_min) external;
+    function mint1t1Stable(uint256 collateralAmount, uint256 FRAX_out_min) external;
 
     function mintAlgorithmicStable(uint256 fxs_amount_d18, uint256 FRAX_out_min) external;
 
     function mintFractionalStable(
-        uint256 collateral_amount,
+        uint256 collateralAmount,
         uint256 fxs_amount,
         uint256 FRAX_out_min
     ) external;
@@ -42,7 +42,7 @@ interface IStablecoinPool {
 
     function collectRedemption() external;
 
-    function recollateralizeStable(uint256 collateral_amount, uint256 FXS_out_min) external;
+    function recollateralizeStable(uint256 collateralAmount, uint256 FXS_out_min) external;
 
     function buyBackStock(uint256 FXS_amount, uint256 COLLATERAL_out_min) external;
 
@@ -70,5 +70,5 @@ interface IStablecoinPool {
 
     function setOwner(address _owner_address) external;
 
-    function amoMinterBorrow(uint256 collateral_amount) external;
+    function amoMinterBorrow(uint256 collateralAmount) external;
 }
