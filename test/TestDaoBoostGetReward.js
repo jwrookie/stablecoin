@@ -195,10 +195,6 @@ contract('Gauge', async function () {
         expect(tokenId).to.be.eq(1);
 
         // About gaugeController
-        await gaugeController.setDuration(await getDurationTime());
-        await gaugeController.addPool(frax.address);
-        expect(await gaugeController.getPoolLength()).to.be.eq(1);
-        expect(await gaugeController.getPool(0)).to.be.eq(frax.address);
 
         // About gauge
         expect(await getUserInfo(gauge, owner, 0)).to.be.eq(0);
@@ -221,6 +217,15 @@ contract('Gauge', async function () {
         initFxsBalanceOfOwner = await fxs.balanceOf(owner.address);
         initGaugeTokenPerBlock = await gauge.tokenPerBlock();
         beforeGetRewardTokenPerBlock = await gauge.tokenPerBlock();
+        pendingAmount = await gauge.pendingMax(owner.address);
+        boostAmount = await fxs.balanceOf(boost.address);
+        gaugeAmount = await fxs.balanceOf(gauge.address);
+        allowance=await fxs.allowance(boost.address,gauge.address);
+        console.log("pendingAmount:" + pendingAmount);
+        console.log("boostAmount:" + boostAmount);
+        console.log("gaugeAmount:" + gaugeAmount);
+        console.log("allowance:" + allowance);
+
         await gauge.getReward(owner.address);
         expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
         expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);

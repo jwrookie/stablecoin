@@ -116,7 +116,7 @@ contract('Boost', async function () {
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
 
-        boostDurationTime = await boost.duration();
+        boostDurationTime = "10000";
 
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
@@ -215,7 +215,6 @@ contract('Boost', async function () {
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
 
-        expect(await boost.duration()).to.be.eq(await getDurationTime(7));
         poolVotesArray = await getPoolVote();
         expect(poolVotesArray).to.be.not.eq([]);
         weightsArray = await getWeights();
@@ -313,8 +312,7 @@ contract('Boost', async function () {
         expect(await locker.boosts(gaugeController.address)).to.be.eq(true);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
-
-        expect(await boost.duration()).to.be.eq(await getDurationTime(7));
+        
         poolVotesArray = await getPoolVote();
         expect(poolVotesArray).to.be.not.eq([]);
         weight = await locker.balanceOfNFT(tokenId);
