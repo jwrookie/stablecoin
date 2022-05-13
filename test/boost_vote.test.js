@@ -140,99 +140,56 @@ contract('Boost', () => {
         await gauge_usdc.deposit(toWei('10'), 1);
 
         await boost.updatePool(0);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
 
-        // let lastBlock = await time.latestBlock();
-        //await time.advanceBlockTo(parseInt(lastBlock) + 1);
-       // console.log("get reward befor blocknum:" + await getCurrentBlock());
-
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
-
-        await gauge_usdc.connect(owner).getReward(owner.address)
-       // console.log("get reward aft blocknum:" + await getCurrentBlock());
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
-
-        console.log("---------------------------")
-
-
-        await gauge_usdc.connect(owner).getReward(owner.address)
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
-       // console.log("get reward aft1 blocknum:" + await getCurrentBlock());
-
-        await gauge_usdc.connect(owner).getReward(owner.address)
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
-
-        await gauge_usdc.connect(owner).getReward(owner.address)
-        console.log("fxs:" + await fxs.balanceOf(owner.address))
+        await gauge_usdc.getReward(owner.address);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990.3'));
 
 
     });
-    // it("test boost vote with boost", async () => {
-    //     let eta = time.duration.days(1);
-    //     await lock.create_lock(toWei('1000'), parseInt(eta));
-    //
-    //     await usdc.approve(gauge_usdc.address, toWei('10000000'));
-    //     await busd.approve(gauge_busd.address, toWei('10000000'));
-    //     await gauge_usdc.deposit(toWei('10'), 1);
-    //     await gauge_busd.deposit(toWei('10'), 1);
-    //     //
-    //     await boost.updatePool(0);
-    //     await boost.updatePool(1);
-    //     //
-    //     // // let lastBlock = await time.latestBlock();
-    //     // // await time.advanceBlockTo(parseInt(lastBlock) + 1);
-    //     // // console.log("get reward befor blocknum:" + await getCurrentBlock());
-    //     // // let rewardOwner = await gauge_usdc.pendingMax(owner.address)
-    //     // // console.log("rewardOwner:" + rewardOwner)
-    //     // // let rewardOwner1 = await gauge_usdc.pending(owner.address)
-    //     // // console.log("rewardOwner1:" + rewardOwner1)
-    //     // //
-    //     // // console.log("fxs:" + await fxs.balanceOf(owner.address))
-    //     // // await gauge_usdc.connect(owner).getReward(owner.address)
-    //     // // console.log("get reward aft blocknum:" + await getCurrentBlock());
-    //     // // console.log("fxs:" + await fxs.balanceOf(owner.address))
-    //     //
-    //     //
-    //     // //console.log("---------------------------")
-    //     //
-    //     //
-    //     await boost.connect(owner).vote(1, [usdc.address], [toWei('1')])
-    //
-    //     await boost.connect(owner).reset(1)
-    //
-    //     await gauge_usdc.deposit(toWei('10'), 1);
-    //     await gauge_busd.deposit(toWei('10'), 1);
-    //
-    //      let lastBlock = await time.latestBlock();
-    //     await time.advanceBlockTo(parseInt(lastBlock) + 10);
-    //
-    //       await gauge_usdc.deposit(toWei('10'), 1);
-    //     await gauge_busd.deposit(toWei('10'), 1);
-    //
-    //    let  rewardOwner = await gauge_usdc.pendingMax(owner.address)
-    //    let  rewardOwner1 = await gauge_usdc.pending(owner.address)
-    //
-    //       let multiple = rewardOwner/rewardOwner1
-    //   expect(multiple).to.be.eq(3.3333333333333335);
-    //
-    //     await boost.reset(1)
-    //
-    //     await time.increase(time.duration.days(1));
-    //
-    //     await lock.withdraw(1)
-    //     await gauge_usdc.connect(owner).getReward(owner.address)
-    //
-    //     console.log("fxs:" + await fxs.balanceOf(owner.address))
-    //
-    //     await gauge_usdc.connect(owner).getReward(owner.address)
-    //     console.log("fxs:" + await fxs.balanceOf(owner.address))
-    //
-    //     await gauge_usdc.connect(owner).getReward(owner.address)
-    //     console.log("fxs:" + await fxs.balanceOf(owner.address))
-    //
-    //     await gauge_usdc.connect(owner).withdrawToken(toWei('10'), 1);
-    //
-    //
-    // });
+    it("test boost vote with boost", async () => {
+        let eta = time.duration.days(7);
+        await lock.create_lock(toWei('1000'), parseInt(eta));
+
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.deposit(toWei('10'), 1);
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.updatePool(0);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
+
+        await gauge_usdc.getReward(owner.address);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998991.5'));
+
+
+    });
+    it("the acceleration multiplier is 3.3", async () => {
+        let eta = time.duration.days(1);
+        await lock.create_lock(toWei('1000'), parseInt(eta));
+
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.deposit(toWei('10'), 1);
+        await boost.updatePool(0);
+
+        let pendingMax = await gauge_usdc.pendingMax(owner.address);
+        let pending = await gauge_usdc.pending(owner.address);
+
+        let multiple = pendingMax / pending;
+        expect(pendingMax).to.be.gt(pending);
+        expect(multiple).to.be.eq(3.3333333333333335);
+
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+
+
+        pendingMax = await gauge_usdc.pendingMax(owner.address);
+        pending = await gauge_usdc.pending(owner.address);
+        multiple = pendingMax / pending;
+        expect(pendingMax).to.be.eq(pending);
+        expect(multiple).to.be.eq(1);
+
+
+    });
     // it("test two users boost vote with boost", async () => {
     //     let eta = time.duration.days(7);
     //     await lock.create_lock(toWei('1'), parseInt(eta));
