@@ -13,6 +13,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
     uint256 public constant GENESIS_SUPPLY = 100000000e18; // 100M is printed upon genesis
+    uint256 public constant MAX_SUPPLY = 1e9 * 1e18;
 
     address[] public poolAddress;
     mapping(address => bool) public isPools;
@@ -38,12 +39,12 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
 
-    function setOracle(address _oracle) external onlyOwner {
+    function setOracle(address _oracle) external onlyOperator {
         require(_oracle != address(0), "0 address");
         oracle = _oracle;
     }
 
-    function setFraxAddress(address _address) external onlyOwner {
+    function setFraxAddress(address _address) external onlyOperator {
         require(_address != address(0), "0 address");
 
         _stable = RStablecoin(_address);
@@ -56,7 +57,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     // Adds collateral addresses supported, such as tether and busd, must be ERC20
-    function addPool(address _pool) public onlyOwner {
+    function addPool(address _pool) public onlyOperator {
         require(_pool != address(0), "0 address");
         require(isPools[_pool] == false, "Address already exists");
         isPools[_pool] = true;
@@ -66,7 +67,7 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     // Remove a pool
-    function removePool(address _pool) public onlyOwner {
+    function removePool(address _pool) public onlyOperator {
         require(_pool != address(0), "0 address");
         require(isPools[_pool] == true, "Address nonexistant");
 
@@ -85,11 +86,13 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     function mint(address to, uint256 amount) public onlyPools returns (bool) {
+        require(amount.add(totalSupply()) > MAX_SUPPLY, "max supply");
         _mint(to, amount);
         return true;
     }
 
     function poolMint(address to, uint256 amount) external onlyPools {
+        require(amount.add(totalSupply()) > MAX_SUPPLY, "max supply");
         super._mint(to, amount);
         emit StockMinted(address(this), to, amount);
     }

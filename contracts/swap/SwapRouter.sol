@@ -29,7 +29,7 @@ contract SwapRouter is CheckPermission {
     }
 
     // address(0) means no swap mining
-    function setSwapMining(address addr) public onlyOwner {
+    function setSwapMining(address addr) public onlyOperator {
         address oldSwapMining = swapMining;
         swapMining = addr;
         emit ChangeSwapMining(oldSwapMining, swapMining);
@@ -212,7 +212,7 @@ contract SwapRouter is CheckPermission {
         callCryptoSwapMining(receiver, pool, from, _from_amount);
     }
 
-    function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOwner {
+    function recoverERC20(address _tokenAddress, uint256 _tokenAmount) external onlyOperator {
         TransferHelper.safeTransfer(_tokenAddress, owner(), _tokenAmount);
         emit Recovered(_tokenAddress, _tokenAmount);
     }

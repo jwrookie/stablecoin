@@ -40,13 +40,13 @@ contract Bond is ERC20Burnable, AbstractPausable {
         emit BondBurned(_address, msg.sender, _amount);
     }
 
-    function addIssuer(address _address) external onlyOwner {
+    function addIssuer(address _address) external onlyOperator {
         require(isBondIssuers[_address] == false, "already exists");
         isBondIssuers[_address] = true;
         bondIssuers.push(_address);
     }
 
-    function removeIssuer(address _address) external onlyOwner {
+    function removeIssuer(address _address) external onlyOperator {
         require(isBondIssuers[_address] == true, "non existant");
 
         // Delete from the mapping
