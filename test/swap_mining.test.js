@@ -25,11 +25,14 @@ contract('SwapMining', () => {
 
         const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
+        const CheckPermission = await ethers.getContractFactory("CheckPermission");
+        checkPermission = await CheckPermission.deploy(operatable.address);
+
         const FRAXShares = await ethers.getContractFactory('Stock');
-        fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
+        fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
-        frax = await FRAXStablecoin.deploy(operatable.address, "frax", "frax");
+        frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
         const MockToken = await ethers.getContractFactory("MockToken");
         usdc = await MockToken.deploy("usdc", "usdc", 18, toWei('10'));
@@ -53,19 +56,19 @@ contract('SwapMining', () => {
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        lock = await Locker.deploy(operatable.address, fxs.address, parseInt(eta));
+        lock = await Locker.deploy(checkPermission.address, fxs.address, parseInt(eta));
 
         const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-        gaugeFactory = await GaugeFactory.deploy(operatable.address);
+        gaugeFactory = await GaugeFactory.deploy(checkPermission.address);
 
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
-            operatable.address,
+            checkPermission.address,
             lock.address,
             gaugeFactory.address,
             fxs.address,
@@ -150,12 +153,12 @@ contract('SwapMining', () => {
             "4000000", 0, 0, gas);
 
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth9.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth9.address);
 
 
         const SwapMining = await ethers.getContractFactory('SwapMining');
         swapMining = await SwapMining.deploy(
-            operatable.address,
+            checkPermission.address,
             lock.address,
             fxs.address,
             crvFactory.address,

@@ -141,7 +141,7 @@ contract('SwapRouter5Coins', () => {
             "5500000000000",// adjustment_step
             "0", // admin_fee
             "600",// ma_half_time
-            [toWei("1"), toWei("1")],
+            [toWei("0.08"), toWei("0.1")],
             math.address,
             view.address,
             curveToken.address,
@@ -186,22 +186,22 @@ contract('SwapRouter5Coins', () => {
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let _duration = time.duration.days(1);
         const Locker = await ethers.getContractFactory('Locker');
-        locker = await Locker.deploy(checkPermission.address, fxs.address, parseInt(_duration));
+        lock = await Locker.deploy(checkPermission.address, fxs.address, parseInt(_duration));
 
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth.address);
 
         let latestBlock = await time.latestBlock();
 
         const SwapMining = await ethers.getContractFactory("SwapMining");
         swapMining = await SwapMining.deploy(
             checkPermission.address,
-            locker.address,
+            lock.address,
             fxs.address,
             factory.address,
             swapRouter.address,
@@ -212,7 +212,7 @@ contract('SwapRouter5Coins', () => {
 
         await swapRouter.setSwapMining(swapMining.address);
         await swapMining.addPair(100, depositZap.address, true);
-
+        await lock.addBoosts(swapMining.address);
         await fxs.addPool(swapMining.address);
 
         await token0.approve(swapRouter.address, toWei("10000"));
@@ -228,7 +228,7 @@ contract('SwapRouter5Coins', () => {
         Boost = await ethers.getContractFactory("Boost");
         boost = await Boost.deploy(
             checkPermission.address,
-            locker.address,
+            lock.address,
             gaugeFactory.address,
             fxs.address,
             toWei('1'),
@@ -237,269 +237,90 @@ contract('SwapRouter5Coins', () => {
         );
 
         await fxs.addPool(boost.address);
-        await fxs.approve(locker.address, toWei('10000'));
+        await fxs.approve(lock.address, toWei('10000'));
+        //todo pool is token
+        // await boost.createGauge(depositZap.address, "100", true);
+
+
     });
+    it("if creategauge is the pool address, an error will be reported", async () => {
+        await boost.createGauge(token0.address, "200", true);
 
-    it("test gauge deposit", async () => {
-        await deposit_bind();
 
-        let fraxOwnerBef = await frax.balanceOf(owner.address);
-        let gaugeTotalBef = await gauge.totalSupply();
-
-        await gauge.deposit(toWei("10"), tokenId);
-
-        let fraxOwnerAft = await frax.balanceOf(owner.address);
-        let gaugeTotalAft = await gauge.totalSupply();
-
-        expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).sub(toWei("10")));
-        expect(gaugeTotalAft).to.be.eq(BigNumber.from(gaugeTotalBef).add(toWei("10")));
-
-        let fxsOwnerBef = await fxs.balanceOf(owner.address);
-
-        await boost.massUpdatePools();
-        await gauge.getReward(owner.address);
-
-        let fxsOwnerAft = await fxs.balanceOf(owner.address);
-        expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
     });
-
-    it('test gauge deposit with vote', async () => {
-        await deposit_bind();
-
-        let fraxOwnerBef = await frax.balanceOf(owner.address);
-        let gaugeTotalBef = await gauge.totalSupply();
-
-        await gauge.deposit(toWei("10"), tokenId);
-
-        let fraxOwnerAft = await frax.balanceOf(owner.address);
-        let gaugeTotalAft = await gauge.totalSupply();
-
-        expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).sub(toWei("10")));
-        expect(gaugeTotalAft).to.be.eq(BigNumber.from(gaugeTotalBef).add(toWei("10")));
-
-        let tokenWeightBef = await gaugeController.usedWeights(tokenId);
-
-        await gaugeController.vote(tokenId, frax.address);
-
-        let tokenWeightAft = await gaugeController.usedWeights(tokenId);
-        expect(tokenWeightAft).to.be.gt(tokenWeightBef);
-
-        let fxsOwnerBef = await fxs.balanceOf(owner.address);
-
-        await gauge.getReward(owner.address);
-
-        let fxsOwnerAft = await fxs.balanceOf(owner.address);
-        expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
-    });
-
-    it('test gauge deposit with boost', async () => {
-        await deposit_bind();
-
-        let fraxOwnerBef = await frax.balanceOf(owner.address);
-        let gaugeTotalBef = await gauge.totalSupply();
-
-        await gauge.deposit(toWei("10"), tokenId);
-
-        let fraxOwnerAft = await frax.balanceOf(owner.address);
-        let gaugeTotalAft = await gauge.totalSupply();
-
-        expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).sub(toWei("10")));
-        expect(gaugeTotalAft).to.be.eq(BigNumber.from(gaugeTotalBef).add(toWei("10")));
-
-        await boost.vote(tokenId, [frax.address], [toWei("1")]);
-
-        let fxsOwnerBef = await fxs.balanceOf(owner.address);
-
-        await gauge.getReward(owner.address);
-
-        let fxsOwnerAft = await fxs.balanceOf(owner.address);
-        expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
-    });
-
-    it('test zap exchange_underlying', async () => {
-        let token0OwnerBef = await token0.balanceOf(owner.address);
-        let token0PoolBef = await token0.balanceOf(pool3.address);
-
-        let wethOwnerBef = await weth.balanceOf(owner.address);
-        let wethPoolBef = await weth.balanceOf(metaPool.address);
-
-        await depositZap.exchange_underlying(0, 4, toWei("0.02"), 0, owner.address, {gasLimit: "9500000"});
-
-        let token0OwnerAft = await token0.balanceOf(owner.address);
-        let token0PoolAft = await token0.balanceOf(pool3.address);
-
-        let wethOwnerAft = await weth.balanceOf(owner.address);
-        let wethPoolAft = await weth.balanceOf(metaPool.address);
-
-        expect(token0OwnerAft).to.be.eq(BigNumber.from(token0OwnerBef).sub(toWei("0.02")));
-        expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add(toWei("0.02")));
-
-        expect(BigNumber.from(wethOwnerAft).sub(wethOwnerBef)).to.be.eq(BigNumber.from(wethPoolBef).sub(wethPoolAft));
-    });
-
-    it('test swap mining', async () => {
-        await swap_bind();
-
-        let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
-        expect(data).to.be.eq(token0.address)
-
-        const times = Number((new Date().getTime() + 1000).toFixed(0))
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times)
-        let reword = await swapMining.rewardInfo(owner.address);
-
-        let fxsBef = await fxs.balanceOf(owner.address);
-        await swapMining.getReward(0);
-        let fxsAft = await fxs.balanceOf(owner.address);
-
-        let diff = fxsAft.sub(fxsBef);
-        expect(diff).to.be.eq(reword.add("52500000000000000"));
-
-        await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
-
-        reword = await swapMining.rewardInfo(owner.address);
-        await swapMining.getReward(0);
-
-        let fxsAft1 = await fxs.balanceOf(owner.address);
-        let diff1 = fxsAft1.sub(fxsAft);
-        expect(diff1).to.be.eq(reword.mul(2));
-    });
-
-    it('test swap mining with vote', async () => {
-        await swap_bind();
-        let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
-        expect(data).to.be.eq(token0.address)
-
-        const times = Number((new Date().getTime() + 1000).toFixed(0))
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times)
-        let reword = await swapMining.rewardInfo(owner.address);
-
-        let tokenWeightBef = await swapController.usedWeights(tokenId);
-
-        await swapController.vote(tokenId, curveToken.address);
-
-        let tokenWeightAft = await swapController.usedWeights(tokenId);
-        expect(tokenWeightAft).to.be.gt(tokenWeightBef);
-
-        let fxsBef = await fxs.balanceOf(owner.address);
-        await swapMining.getReward(0);
-        let fxsAft = await fxs.balanceOf(owner.address);
-
-        expect(fxsAft).to.be.gt(fxsBef);
-    });
-
-    it('test swap mining with boost', async () => {
-        await swap_bind();
-        let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
-        expect(data).to.be.eq(token0.address)
-
-        const times = Number((new Date().getTime() + 1000).toFixed(0))
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("2"), 0, owner.address, times)
-        let reword = await swapMining.rewardInfo(owner.address);
-
-        let fxsBef = await fxs.balanceOf(owner.address);
-        await swapMining.getReward(0);
-        let fxsAft = await fxs.balanceOf(owner.address);
-
-        let diff = fxsAft.sub(fxsBef);
-        expect(diff).to.be.eq(reword.add("52500000000000000"));
-
-        // console.log(fromWei(toBN(diff)));
-
-        await swapMining.vote(tokenId, [curveToken.address], [toWei("100")]);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times);
-
-        reword = await swapMining.rewardInfo(owner.address);
-        await swapMining.getReward(0);
-
-        let fxsAft1 = await fxs.balanceOf(owner.address);
-        let diff1 = fxsAft1.sub(fxsAft);
-        // console.log(fromWei(toBN(diff1)));
-        expect(fxsAft1).to.be.gt(fxsAft);
-    });
-
-    it('test metaPool can swapCryptoToken', async () => {
-
-        let times = Number((new Date().getTime() + 1000).toFixed(0));
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 1, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 2, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 3, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, "10000000", 0, owner.address, times);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 1, 2, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 1, 3, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 1, 4, "10000000", 0, owner.address, times);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 2, 0, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 2, 1, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 2, 3, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 2, 4, "10000000", 0, owner.address, times);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 3, 0, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 3, 1, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 3, 2, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 3, 4, "10000000", 0, owner.address, times);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 4, 0, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 4, 1, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 4, 2, "10000000", 0, owner.address, times);
-        await swapRouter.swapCryptoToken(depositZap.address, 4, 3, "10000000", 0, owner.address, times);
-    });
-
-    async function deposit_bind() {
-        await boost.createGauge(frax.address, "100", true);
-
-        _duration = await boost.duration();
-        const GaugeController = await ethers.getContractFactory('GaugeController');
-        gaugeController = await GaugeController.deploy(
-            checkPermission.address,
-            boost.address,
-            locker.address,
-            _duration
-        );
-        await gaugeController.setDuration(_duration);
-        await gaugeController.addPool(frax.address);
-        expect(await gaugeController.getPool(0)).to.be.eq(frax.address);
-
-        const gaugeAddress = await boost.gauges(frax.address);
-        const Gauge = await ethers.getContractFactory("Gauge");
-        gauge = await Gauge.attach(gaugeAddress);
-        expect(gaugeAddress).to.be.eq(gauge.address);
-
-        await locker.create_lock(toWei("1"), _duration);
-        tokenId = await locker.tokenId();
-        expect(tokenId).to.not.eq(0);
-
-        await frax.approve(gaugeAddress, toWei("10000"));
-
-        await boost.addController(gaugeController.address);
-        await locker.addBoosts(gaugeController.address);
-        await locker.addBoosts(boost.address);
-    }
-
-    async function swap_bind() {
-
-        _duration = await boost.duration();
-        const SwapController = await ethers.getContractFactory('SwapController');
-        swapController = await SwapController.deploy(
-            checkPermission.address,
-            swapMining.address,
-            locker.address,
-            _duration
-        );
-        await swapController.setDuration(_duration);
-        await swapController.addPool(curveToken.address);
-        expect(await swapController.getPool(0)).to.be.eq(curveToken.address);
-
-        await locker.create_lock(toWei("1"), _duration);
-        tokenId = await locker.tokenId();
-        expect(tokenId).to.not.eq(0);
-
-        await curveToken.approve(swapMining.address, toWei("10000"));
-
-        await swapMining.addController(swapController.address);
-        await locker.addBoosts(swapController.address);
-        await locker.addBoosts(swapMining.address);
-    }
+    //
+    // it('test zap exchange_underlying', async () => {
+    //     let token0OwnerBef = await token0.balanceOf(owner.address);
+    //     let token0PoolBef = await token0.balanceOf(pool3.address);
+    //
+    //     let wethOwnerBef = await weth.balanceOf(owner.address);
+    //     let wethPoolBef = await weth.balanceOf(metaPool.address);
+    //
+    //     await depositZap.exchange_underlying(0, 4, toWei("0.02"), 0, owner.address, {gasLimit: "9500000"});
+    //
+    //     let token0OwnerAft = await token0.balanceOf(owner.address);
+    //     let token0PoolAft = await token0.balanceOf(pool3.address);
+    //
+    //     let wethOwnerAft = await weth.balanceOf(owner.address);
+    //     let wethPoolAft = await weth.balanceOf(metaPool.address);
+    //
+    //     expect(token0OwnerAft).to.be.eq(BigNumber.from(token0OwnerBef).sub(toWei("0.02")));
+    //     expect(token0PoolAft).to.be.eq(BigNumber.from(token0PoolBef).add(toWei("0.02")));
+    //
+    //     expect(BigNumber.from(wethOwnerAft).sub(wethOwnerBef)).to.be.eq(BigNumber.from(wethPoolBef).sub(wethPoolAft));
+    // });
+    //
+    // it('test swap mining', async () => {
+    //     let data = await depositZap.underlying_coins(0, {gasLimit: "9500000"});
+    //     expect(data).to.be.eq(token0.address)
+    //
+    //     const times = Number((new Date().getTime() + 1000).toFixed(0))
+    //     await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times)
+    //     let reword = await swapMining.rewardInfo(owner.address);
+    //
+    //     let fxsBef = await fxs.balanceOf(owner.address);
+    //     await swapMining.getReward(0);
+    //     let fxsAft = await fxs.balanceOf(owner.address);
+    //
+    //     let diff = fxsAft.sub(fxsBef);
+    //     expect(diff).to.be.eq(reword.add("52500000000000000"));
+    //
+    //     await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
+    //
+    //     reword = await swapMining.rewardInfo(owner.address);
+    //     await swapMining.getReward(0);
+    //
+    //     let fxsAft1 = await fxs.balanceOf(owner.address);
+    //     let diff1 = fxsAft1.sub(fxsAft);
+    //     expect(diff1).to.be.eq(reword.mul(2));
+    // });
+    //
+    // it('test metaPool can swapCryptoToken', async () => {
+    //
+    //     let times = Number((new Date().getTime() + 1000).toFixed(0));
+    //     await swapRouter.swapCryptoToken(depositZap.address, 0, 1, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 0, 2, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 0, 3, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 0, 4, "10000000", 0, owner.address, times);
+    //
+    //     await swapRouter.swapCryptoToken(depositZap.address, 1, 0, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 1, 2, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 1, 3, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 1, 4, "10000000", 0, owner.address, times);
+    //
+    //     await swapRouter.swapCryptoToken(depositZap.address, 2, 0, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 2, 1, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 2, 3, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 2, 4, "10000000", 0, owner.address, times);
+    //
+    //     await swapRouter.swapCryptoToken(depositZap.address, 3, 0, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 3, 1, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 3, 2, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 3, 4, "10000000", 0, owner.address, times);
+    //
+    //     await swapRouter.swapCryptoToken(depositZap.address, 4, 0, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 4, 1, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 4, 2, "10000000", 0, owner.address, times);
+    //     await swapRouter.swapCryptoToken(depositZap.address, 4, 3, "10000000", 0, owner.address, times);
+    // });
 });

@@ -70,7 +70,7 @@ async function main() {
     // console.log("fxs:" + fxs.address);
     //
     //
-    // await fxs.setFraxAddress(frax.address);
+    // await fxs.setStableAddress(frax.address);
     // await frax.setStockAddress(fxs.address);
     //
     //
@@ -96,15 +96,15 @@ async function main() {
 
 
     const GaugeController = await ethers.getContractFactory('GaugeController');
-      gaugeController = await GaugeController.deploy(
-          checkPermission,
-          boost,
-          lock,
-          "1200");
+    gaugeController = await GaugeController.deploy(
+        checkPermission,
+        boost,
+        lock,
+        "1200");
 
-      console.log("gaugeController:" + gaugeController.address)
+    console.log("gaugeController:" + gaugeController.address)
     const SwapRouter = await ethers.getContractFactory('SwapRouter');
-    swapRouter = await SwapRouter.deploy(weth9);
+    swapRouter = await SwapRouter.deploy(checkPermission, weth9);
     console.log("swapRouter:" + swapRouter.address);
 
 

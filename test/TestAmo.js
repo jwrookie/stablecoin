@@ -99,7 +99,7 @@ contract('AMOMinter', async function () {
         fxs = await Stock.deploy(operatable.address, "fxs", "fxs", testOracle.address);
 
         // Set each other
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         // Mock token Date

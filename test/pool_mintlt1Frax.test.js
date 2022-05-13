@@ -43,7 +43,7 @@ contract('Pool_USDC', () => {
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
@@ -70,7 +70,7 @@ contract('Pool_USDC', () => {
 
         await chainLink.setAnswer(toWei('100'));
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('100000000'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('1000000'));
         expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('2000000'));
         await usdc.mint(owner.address, toWei('1'));
 
@@ -215,21 +215,21 @@ contract('Pool_USDC', () => {
 
         expect(await frax.globalCollateralRatio()).to.be.eq(0);
         expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('1999999'));
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('99999999'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999999'));
 
         await pool.mintAlgorithmicStable("1000", "100");
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999999000000000000100000");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998999999999999999000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("999998999999999999999000");
         expect(await fxs.balanceOf(pool.address)).to.be.eq(0);
 
         await pool.redeemAlgorithmicStable("1000000", 0);
         expect(await frax.balanceOf(owner.address)).to.be.eq("1999998999999999999100000");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998999999999999999000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("999998999999999999999000");
         expect(await pool.unclaimedPoolStock()).to.be.eq("10000");
 
         await pool.collectRedemption();
         expect(await fxs.balanceOf(pool.address)).to.be.eq(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("99999999000000000000009000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("999999000000000000009000");
         expect(await pool.unclaimedPoolStock()).to.be.eq(0);
 
 
@@ -256,7 +256,7 @@ contract('Pool_USDC', () => {
         expect(await frax.totalSupply()).to.be.eq("134333333333333333333");
 
         expect(await usdc.balanceOf(pool.address)).to.be.eq("1000000000000000000");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998666666666666666667");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("999998666666666666666667");
 
         await pool.recollateralizeStable(toWei('1'), "100");
 
@@ -266,7 +266,7 @@ contract('Pool_USDC', () => {
         expect(await pool.availableExcessCollatDV()).to.be.eq("117333333333301");
 
         expect(await usdc.balanceOf(pool.address)).to.be.eq("1007501173333333333");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("99999998674224098800000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("999998674224098800000000");
 
         await pool.mintFractionalStable(toWei('10'), toWei('10000000000'), 0);
         await pool.buyBackStock(toWei('0.000000000001'), 0);

@@ -133,7 +133,7 @@ contract('Gauge', async function () {
         frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
         fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
         await fxs.transfer(dev.address, toWei("0.5"));
@@ -170,7 +170,7 @@ contract('Gauge', async function () {
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
 
-        boostDurationTime = await boost.duration();
+        boostDurationTime = "10000";
 
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
@@ -182,11 +182,11 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and get reward', async function () {
-        let gauge;
 
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
+        await gaugeController.addPool(frax.address);
         gauge = await getGauges(frax, "1");
 
         // Get token id -> parameter value is stake token
@@ -196,10 +196,6 @@ contract('Gauge', async function () {
         expect(tokenId).to.be.eq(1);
 
         // About gaugeController
-        await gaugeController.setDuration(await getDurationTime());
-        await gaugeController.addPool(frax.address);
-        expect(await gaugeController.getPoolLength()).to.be.eq(1);
-        expect(await gaugeController.getPool(0)).to.be.eq(frax.address);
 
         // About gauge
         expect(await getUserInfo(gauge, owner, 0)).to.be.eq(0);
@@ -222,6 +218,15 @@ contract('Gauge', async function () {
         initFxsBalanceOfOwner = await fxs.balanceOf(owner.address);
         initGaugeTokenPerBlock = await gauge.tokenPerBlock();
         beforeGetRewardTokenPerBlock = await gauge.tokenPerBlock();
+        pendingAmount = await gauge.pendingMax(owner.address);
+        boostAmount = await fxs.balanceOf(boost.address);
+        gaugeAmount = await fxs.balanceOf(gauge.address);
+        allowance=await fxs.allowance(boost.address,gauge.address);
+        console.log("pendingAmount:" + pendingAmount);
+        console.log("boostAmount:" + boostAmount);
+        console.log("gaugeAmount:" + gaugeAmount);
+        console.log("allowance:" + allowance);
+
         await gauge.getReward(owner.address);
         expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
         expect(await getUserInfo(gauge, owner, 1)).to.be.gt(0);
@@ -268,8 +273,7 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and vote and get reward and reduce block', async function () {
-        let gauge;
-        let currentBlock;
+
 
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);

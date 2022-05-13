@@ -32,7 +32,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
     // pid corresponding address
     mapping(address => uint256) public lpOfPid;
 
-    uint256 public constant duration = 7 days; // rewards are released over 7 days
+    uint256 public mintDuration = 7 * 28800; // rewards are released over 7 days
 
     address[] public pools; // all pools viable for incentives
     mapping(address => address) public gauges; // pool => gauge
@@ -69,7 +69,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
         uint256 lastRewardBlock = block.number > startBlock ? block.number : startBlock;
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
-        poolInfo.push(PoolInfo({lpToken: _pool, allocPoint: _allocPoint, lastRewardBlock: lastRewardBlock}));
+        poolInfo.push(PoolInfo({lpToken : _pool, allocPoint : _allocPoint, lastRewardBlock : lastRewardBlock}));
         lpOfPid[address(_pool)] = poolLength() - 1;
 
         address _gauge = IGaugeFactory(gaugeFactory).createGauge(_pool, veToken, address(swapToken));
@@ -96,6 +96,10 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         }
     }
 
+    function setMitDuration(uint256 _duration) public onlyOperator {
+        mintDuration = _duration;
+    }
+
     function massUpdatePools() public override {
         uint256 length = poolInfo.length;
         for (uint256 pid = 0; pid < length; ++pid) {
@@ -117,17 +121,17 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         if (tokenPerBlock <= 0) {
             return;
         }
-        uint256 mul = block.number.sub(pool.lastRewardBlock);
-        uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
-        //todo duration
-        bool minRet = swapToken.mint(address(this), tokenReward.mul(duration));
-        if (minRet) {
-            IGauge(gauges[pool.lpToken]).notifyRewardAmount(
-                address(swapToken),
-                tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint)
-            );
+        uint256 tokenReward = tokenPerBlock.mul(pool.allocPoint).div(totalAllocPoint);
+        if (IERC20(swapToken).balanceOf(gauges[pool.lpToken]) < tokenReward.mul(mintDuration)) {
+            bool minRet = swapToken.mint(address(this), tokenReward.mul(mintDuration));
+            if (minRet) {
+                IGauge(gauges[pool.lpToken]).notifyRewardAmount(
+                    address(swapToken),
+                    tokenReward
+                );
+            }
+            pool.lastRewardBlock = block.number;
         }
-        pool.lastRewardBlock = block.number;
     }
 
     function updateAll() external {

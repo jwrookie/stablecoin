@@ -7,15 +7,7 @@ const {BigNumber} = require('ethers');
 contract('Locker operation', async function () {
     const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
     const PERIOD = 10;
-    let gauge;
-    let initStartBlock;
-
-    async function getDurationTime(day = 1) {
-        if (undefined === typeof day || 0 >= day) {
-            return;
-        }
-        return parseInt(await time.duration.days(day));
-    }
+    const ONE_DAT_DURATION = 86400;
 
     async function getPoolInfo(poolIndex = 0, structIndex = 0) {
         let poolInfoLength = await boost.poolLength();
@@ -151,15 +143,14 @@ contract('Locker operation', async function () {
         frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
         fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
         await fxs.transfer(dev.address, toWei("0.5"));
 
         // Mint
-        duration = await getDurationTime();
         const Locker = await ethers.getContractFactory("Locker");
-        locker = await Locker.deploy(checkOper.address, fxs.address, duration);
+        locker = await Locker.deploy(checkOper.address, fxs.address, ONE_DAT_DURATION);
 
         await fxs.connect(owner).approve(locker.address, toWei("0.5"));
         await fxs.connect(dev).approve(locker.address, toWei("0.5"));
@@ -188,14 +179,12 @@ contract('Locker operation', async function () {
         await usdc.mint(owner.address, toWei("1"));
         await usdc.mint(dev.address, toWei("1"));
 
-        boostDurationTime = await boost.duration();
-
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
             checkOper.address,
             boost.address,
             locker.address,
-            boostDurationTime
+            ONE_DAT_DURATION
         );
 
         // Create a gauge pool
@@ -207,7 +196,7 @@ contract('Locker operation', async function () {
     it('test User lock there tokens can not transfer token', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
         await locker.addBoosts(boost.address);
         tokenId = await locker.tokenId();
 
@@ -229,7 +218,7 @@ contract('Locker operation', async function () {
     it('test User lock there tokens can not withdraw', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
         await locker.addBoosts(boost.address);
         tokenId = await locker.tokenId();
 
@@ -251,7 +240,7 @@ contract('Locker operation', async function () {
     it('test Merge lock balance will lock shipping space', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
-        await expectRevert(locker.create_lock(toWei("0.1"), await getDurationTime()), "less than 1 nft");
+        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
+        await expectRevert(locker.create_lock(toWei("0.1"), ONE_DAT_DURATION), "less than 1 nft");
     });
 });
