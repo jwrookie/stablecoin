@@ -77,7 +77,7 @@ contract('Locker', () => {
 
         await fxs.addPool(boost.address);
 
-        await fxs.transfer(dev.address, toWei('10000000'))
+        await fxs.transfer(dev.address, toWei('100000'))
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000000'))
         await fxs.connect(dev).approve(lock.address, toWei('10000000000'))
 
