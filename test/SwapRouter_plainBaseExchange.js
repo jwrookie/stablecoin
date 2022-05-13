@@ -194,7 +194,7 @@ contract('SwapRouter5Coins', () => {
         lock = await Locker.deploy(checkPermission.address, fxs.address, parseInt(_duration));
 
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth.address);
 
         let latestBlock = await time.latestBlock();
 
@@ -239,7 +239,7 @@ contract('SwapRouter5Coins', () => {
         await fxs.addPool(boost.address);
         await fxs.approve(lock.address, toWei('10000'));
         //todo pool is token
-       // await boost.createGauge(depositZap.address, "100", true);
+        // await boost.createGauge(depositZap.address, "100", true);
 
 
     });
