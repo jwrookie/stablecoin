@@ -44,7 +44,7 @@ contract('BondIssuer', () => {
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         expect(await fxs.oracle()).to.be.eq(oracle.address);
@@ -71,7 +71,7 @@ contract('BondIssuer', () => {
 
         await chainLink.setAnswer(toWei('100'));
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('100000000'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("1000000000000000000000000");
         expect(await frax.balanceOf(owner.address)).to.be.eq(toWei('2000000'));
         await usdc.mint(owner.address, toWei('1'));
 

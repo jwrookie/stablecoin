@@ -19,7 +19,7 @@ const SetRusdAndTraConfig = async (rusd, tra) => {
     if (ZEROADDRESS === rusd.address || ZEROADDRESS === tra.address) {
         return Error("Invaild Token!");
     }
-    await tra.setFraxAddress(rusd.address);
+    await tra.setStableAddress(rusd.address);
     await rusd.setStockAddress(tra.address);
 }
 

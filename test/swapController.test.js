@@ -29,8 +29,14 @@ contract('SwapController', () => {
             abi: WETH9.abi,
         });
 
+        const Operatable = await ethers.getContractFactory("Operatable");
+        operatable = await Operatable.deploy();
+
+        const CheckPermission = await ethers.getContractFactory("CheckPermission");
+        checkPermission = await CheckPermission.deploy(operatable.address);
+
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth9.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth9.address);
 
         const MockToken = await ethers.getContractFactory("MockToken")
 
@@ -124,12 +130,6 @@ contract('SwapController', () => {
         await mulPool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
 
 
-        const Operatable = await ethers.getContractFactory("Operatable");
-        operatable = await Operatable.deploy();
-
-        const CheckPermission = await ethers.getContractFactory("CheckPermission");
-        checkPermission = await CheckPermission.deploy(operatable.address);
-
         const TestOracle = await ethers.getContractFactory('TestOracle');
         oracle = await TestOracle.deploy();
 
@@ -138,7 +138,7 @@ contract('SwapController', () => {
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
@@ -349,8 +349,8 @@ contract('SwapController', () => {
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
 
-        let  usedWeightsDev = await swapController.usedWeights(1);
-        let  usedWeightsOwner = await swapController.usedWeights(2);
+        let usedWeightsDev = await swapController.usedWeights(1);
+        let usedWeightsOwner = await swapController.usedWeights(2);
 
         let totalWeight = await swapController.totalWeight();
         expect(totalWeight).to.be.eq(usedWeightsDev.add(usedWeightsOwner));

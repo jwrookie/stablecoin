@@ -28,7 +28,7 @@ contract('Locker', () => {
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let lastBlock = await time.latestBlock();
@@ -77,7 +77,7 @@ contract('Locker', () => {
 
         await fxs.addPool(boost.address);
 
-        await fxs.transfer(dev.address, toWei('10000000'))
+        await fxs.transfer(dev.address, toWei('100000'))
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000000'))
         await fxs.connect(dev).approve(lock.address, toWei('10000000000'))
 

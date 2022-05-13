@@ -42,7 +42,7 @@ contract('Boost', () => {
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
@@ -115,7 +115,7 @@ contract('Boost', () => {
 
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('99989990'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
 
         let pendDev = await getPending(dev.address);
 

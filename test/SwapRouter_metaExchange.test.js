@@ -57,7 +57,7 @@ contract('3metaPool', () => {
         });
 
         const SwapRouter = await ethers.getContractFactory('SwapRouter');
-        swapRouter = await SwapRouter.deploy(weth9.address);
+        swapRouter = await SwapRouter.deploy(checkPermission.address, weth9.address);
 
         expect(await weth9.balanceOf(owner.address)).to.be.eq(0);
         await weth9.deposit({value: toWei('10')});
@@ -67,9 +67,9 @@ contract('3metaPool', () => {
         let lastBlock = await time.latestBlock();
         //console.log("lastBlock:" + lastBlock);
 
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
-        await fxs.setFraxAddress(frax.address);
+        await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
 
         let eta = time.duration.days(1);
