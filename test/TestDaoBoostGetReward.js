@@ -186,6 +186,7 @@ contract('Gauge', async function () {
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
+        await gaugeController.addPool(frax.address);
         gauge = await getGauges(frax, "1");
 
         // Get token id -> parameter value is stake token
