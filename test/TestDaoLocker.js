@@ -51,12 +51,17 @@ contract('Locker operation', async function () {
         return gauge;
     }
 
-    async function getBoostLpOfPid(gaugeAddress) {
-        if (null === gaugeAddress || undefined === typeof gaugeAddress) {
+    async function getBoostLpOfPid(poolAddress) {
+        if (null === poolAddress || undefined === typeof poolAddress) {
             return -1;
         }
 
-        gauge = await boost.gauges(gaugeAddress.address);
+        gauge = await boost.gauges(poolAddress.address);
+
+        if (gauge === ZEROADDRESS) {
+            return Error("Unknow gauge for pool!");
+        }
+
         pool = await boost.poolForGauge(gauge);
         return await boost.lpOfPid(pool);
     }
