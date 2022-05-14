@@ -151,9 +151,11 @@ contract('plainPool', () => {
         await swapMining.addController(swapController.address);
         await lock.addBoosts(swapController.address);
 
+        await swapController.addPool(pool.address)
+
 
     });
-    it('test swapStable have reward', async () => {
+     it('test swapStable have reward', async () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
 
@@ -181,6 +183,49 @@ contract('plainPool', () => {
         let aft1 = await fxs.balanceOf(dev.address);
         let diff1 = aft1.sub(aft);
         expect(diff1).to.be.eq(reword.mul(2));
+
+
+    });
+    it('test vote without swapMining', async () => {
+        await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+
+        let dx = "1000000";
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
+
+        await swapMining.connect(dev).getReward(0);
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.735'));
+
+
+    });
+    it('test vote with swapMining', async () => {
+        await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = "1000000";
+
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
+
+        await swapMining.connect(dev).vote(1, [pool.address], [toWei("1")]);
+
+        await swapMining.connect(dev).getReward(0);
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.7875'));
 
 
     });

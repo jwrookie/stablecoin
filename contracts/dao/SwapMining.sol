@@ -252,6 +252,21 @@ contract SwapMining is AbstractBoost, ISwapMining {
         return userSub;
     }
 
+
+    function rewardInfoMax(address account) public view returns (uint256) {
+        uint256 userSub;
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            PoolInfo storage pool = poolInfo[pid];
+            UserInfo storage user = userInfo[pid][account];
+            if (user.quantity > 0) {
+                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                userSub = userSub.add(userReward);
+            }
+        }
+        return userSub;
+    }
+
     // The user withdraws all the transaction rewards of one pool
     function getReward(uint256 pid) public override {
         uint256 userSub;

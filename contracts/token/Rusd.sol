@@ -72,7 +72,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
 
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
-    uint256 public K = 1e3; // 1=1e6
+    uint256 public k = 1e3; // 1=1e6
     uint256 public maxCR = 1e16;
     uint256 public lastQX;
     uint256 public kDuration = 1e7 * 1e18;
@@ -108,9 +108,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         lastQX = GENESIS_SUPPLY;
     }
 
-    function oraclePrice(PriceChoice choice) internal view returns (uint256) {
+    function _oraclePrice(PriceChoice choice) internal view returns (uint256) {
         // Get the ETH / USD price first, and cut it down to 1e6 precision
-        uint256 __ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(
+        uint256 _ethusdPrice = uint256(ethUsdPricer.getLatestPrice()).mul(PRICE_PRECISION).div(
             uint256(10) ** ethUsdPricerDecimals
         );
         uint256 priceVSeth = 0;
@@ -122,17 +122,17 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         } else revert("INVALID PRICE CHOICE. Needs to be either 0  or 1 ");
 
         // Will be in 1e6 format
-        return __ethusdPrice.mul(PRICE_PRECISION).div(priceVSeth);
+        return _ethusdPrice.mul(PRICE_PRECISION).div(priceVSeth);
     }
 
     // Returns X stable = 1 USD
     function stablePrice() public view returns (uint256) {
-        return oraclePrice(PriceChoice.STABLE);
+        return _oraclePrice(PriceChoice.STABLE);
     }
 
     // Returns X stock = 1 USD
     function stockPrice() public view returns (uint256) {
-        return oraclePrice(PriceChoice.STOCK);
+        return _oraclePrice(PriceChoice.STOCK);
     }
 
     function ethUsdPrice() public view returns (uint256) {
@@ -156,8 +156,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     )
     {
         return (
-        oraclePrice(PriceChoice.STABLE),
-        oraclePrice(PriceChoice.STOCK),
+        _oraclePrice(PriceChoice.STABLE),
+        _oraclePrice(PriceChoice.STOCK),
         totalSupply(),
         globalCollateralRatio,
         globalCollateralValue(),
@@ -185,7 +185,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         return totalCollateralValueD18;
     }
 
-    function refreshOtherCR() private {
+    function _refreshOtherCR() private {
         uint256 qx = totalSupply();
         uint256 diff;
         bool isReduce;
@@ -198,9 +198,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         uint256 period = diff.div(kDuration);
         for (uint256 i = 0; i < period; i++) {
             if (isReduce) {
-                maxCR = maxCR.mul(1e6 - K);
+                maxCR = maxCR.mul(1e6 - k);
             } else {
-                maxCR = maxCR.div(1e6 - K);
+                maxCR = maxCR.div(1e6 - k);
             }
         }
         if (maxCR > PRICE_PRECISION) {
@@ -217,7 +217,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             "Must wait for the refresh cooldown since last refresh"
         );
 
-        refreshOtherCR();
+        _refreshOtherCR();
         // Step increments are 0.25% (upon genesis, changable by setStableStep())
 
         if (stablePriceCur > priceTarget.add(priceBand)) {
@@ -353,8 +353,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function setKAndKDuration(uint256 _k, uint256 _kDuration) public onlyOperator {
-        K = _k;
+        k = _k;
         kDuration = _kDuration;
-        emit SetK(kDuration, K);
+        emit SetK(kDuration, k);
     }
 }

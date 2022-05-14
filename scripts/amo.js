@@ -18,8 +18,8 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let fxs = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
-    let frax = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
+    let tra = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
+    let rusd = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
 
     // let operatable = ""
     // let lock = ""
@@ -39,7 +39,7 @@ async function main() {
 
     //
     // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(fxs, "300");
+    // lock = await Locker.deploy(tra, "300");
     // console.log("Locker:" + lock.address)
 
     // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
@@ -51,7 +51,7 @@ async function main() {
     //     operatable,
     //     lock,
     //     gaugeFactory.address,
-    //     fxs,
+    //     tra,
     //     toWei('1'),
     //     parseInt("10575868"),
     //     "1000"
@@ -63,15 +63,15 @@ async function main() {
         minterAmo = await AMOMinter.deploy(
             deployer.address,
             deployer.address,
-            frax,
-            fxs,
+            rusd,
+            tra,
             usdc,
             pool_usdc
         );
         console.log("minterAmo:"+minterAmo.address)
 
 
-    // await frax.addPool(boost.address);
+    // await rusd.addPool(boost.address);
 
 
 
