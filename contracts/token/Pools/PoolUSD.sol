@@ -3,8 +3,8 @@ pragma solidity 0.8.10;
 
 import "./StablecoinPool.sol";
 
-contract Pool_USDC is StablecoinPool {
-    address public USDC_address;
+contract PoolUSDC is StablecoinPool {
+    address public usdAddress;
 
     constructor(
         address _operatorMsg,
@@ -17,6 +17,6 @@ contract Pool_USDC is StablecoinPool {
     StablecoinPool(_operatorMsg, _stableAddress, _stockAddress, _collateralAddress, _poolCeiling)
     {
         require(_collateralAddress != address(0), "0 address");
-        USDC_address = _collateralAddress;
+        usdAddress = _collateralAddress;
     }
 }

@@ -17,14 +17,14 @@ library PoolLibrary {
     }
 
     struct BuybackStockParams {
-        uint256 excess_collateral_dollar_value_d18;
+        uint256 excessCollateralDollarValueD18;
         uint256 stockPrice;
         uint256 colPriceUsd;
         uint256 stockAmount;
     }
 
-    function calcMint1t1Stable(uint256 col_price, uint256 collateral_amount_d18) public pure returns (uint256) {
-        return (collateral_amount_d18.mul(col_price)).div(1e6);
+    function calcMint1t1Stable(uint256 colPrice, uint256 collateralAmountD18) public pure returns (uint256) {
+        return (collateralAmountD18.mul(colPrice)).div(1e6);
     }
 
     function calcMintAlgorithmicStable(uint256 stockPrice, uint256 _amount) public pure returns (uint256) {
@@ -32,21 +32,21 @@ library PoolLibrary {
     }
 
     function calcMintFractionalStable(MintFFParams memory params) internal pure returns (uint256, uint256) {
-        uint256 stock_dollar_value_d18;
-        uint256 c_dollar_value_d18;
+        uint256 stockDollarValueD18;
+        uint256 cDollarValueD18;
 
         // Scoping for stack concerns
         {
-            stock_dollar_value_d18 = params.stockAmount.mul(params.stockPrice).div(1e6);
-            c_dollar_value_d18 = params.collateralAmount.mul(params.colPriceUsd).div(1e6);
+            stockDollarValueD18 = params.stockAmount.mul(params.stockPrice).div(1e6);
+            cDollarValueD18 = params.collateralAmount.mul(params.colPriceUsd).div(1e6);
         }
-        uint256 calculated_fxs_dollar_value_d18 = (c_dollar_value_d18.mul(1e6).div(params.colRatio)).sub(
-            c_dollar_value_d18
+        uint256 calculatedStockDollarValueD18 = (cDollarValueD18.mul(1e6).div(params.colRatio)).sub(
+            cDollarValueD18
         );
 
-        uint256 calculated_fxs_needed = calculated_fxs_dollar_value_d18.mul(1e6).div(params.stockPrice);
+        uint256 calculatedStockNeeded = calculatedStockDollarValueD18.mul(1e6).div(params.stockPrice);
 
-        return (c_dollar_value_d18.add(calculated_fxs_dollar_value_d18), calculated_fxs_needed);
+        return (cDollarValueD18.add(calculatedStockDollarValueD18), calculatedStockNeeded);
     }
 
     function calcRedeem1t1Stable(uint256 colPriceUsd, uint256 _amount) public pure returns (uint256) {
@@ -56,55 +56,55 @@ library PoolLibrary {
     // Must be internal because of the struct
     function calcBuyBackStock(BuybackStockParams memory params) internal pure returns (uint256) {
         // If the total collateral value is higher than the amount required at the current collateral ratio then buy back up to the possible FXS with the desired collateral
-        require(params.excess_collateral_dollar_value_d18 > 0, "No excess collateral to buy back!");
+        require(params.excessCollateralDollarValueD18 > 0, "No excess collateral to buy back!");
 
         // Make sure not to take more than is available
-        uint256 stock_dollar_value_d18 = params.stockAmount.mul(params.stockPrice).div(1e6);
+        uint256 stockDollarValueD18 = params.stockAmount.mul(params.stockPrice).div(1e6);
         require(
-            stock_dollar_value_d18 <= params.excess_collateral_dollar_value_d18,
+            stockDollarValueD18 <= params.excessCollateralDollarValueD18,
             "You are trying to buy back more than the excess!"
         );
 
-        uint256 collateral_equivalent_d18 = stock_dollar_value_d18.mul(1e6).div(params.colPriceUsd);
+        uint256 collateralEquivalentD18 = stockDollarValueD18.mul(1e6).div(params.colPriceUsd);
 
-        return (collateral_equivalent_d18);
+        return (collateralEquivalentD18);
     }
 
     // Returns value of collateral that must increase to reach recollateralization target (if 0 means no recollateralization)
     function recollateralizeAmount(
-        uint256 total_supply,
+        uint256 totalSupply,
         uint256 globalCollateralRatio,
-        uint256 global_collat_value
+        uint256 globalCollatValue
     ) public pure returns (uint256) {
-        uint256 target_collat_value = total_supply.mul(globalCollateralRatio).div(1e6);
+        uint256 targetCollatValue = totalSupply.mul(globalCollateralRatio).div(1e6);
         // We want 18 decimals of precision so divide by 1e6; total_supply is 1e18 and globalCollateralRatio is 1e6
         // Subtract the current value of collateral from the target value needed, if higher than 0 then system needs to recollateralize
-        return target_collat_value.sub(global_collat_value);
+        return targetCollatValue.sub(globalCollatValue);
         // If recollateralization is not needed, throws a subtraction underflow
         // return(recollateralization_left);
     }
 
     function calcRecollateralizeStableInner(
         uint256 collateralAmount,
-        uint256 col_price,
-        uint256 global_collat_value,
-        uint256 frax_total_supply,
+        uint256 colPrice,
+        uint256 globalCollatValue,
+        uint256 stableTotalSupply,
         uint256 globalCollateralRatio
     ) public pure returns (uint256, uint256) {
-        uint256 collat_value_attempted = collateralAmount.mul(col_price).div(1e6);
-        uint256 effective_collateral_ratio = global_collat_value.mul(1e6).div(frax_total_supply);
+        uint256 collatValueAttempted = collateralAmount.mul(colPrice).div(1e6);
+        uint256 effectiveCollateralRatio = globalCollatValue.mul(1e6).div(stableTotalSupply);
         //returns it in 1e6
-        uint256 recollat_possible = (
-            globalCollateralRatio.mul(frax_total_supply).sub(frax_total_supply.mul(effective_collateral_ratio))
+        uint256 recollatPossible = (
+        globalCollateralRatio.mul(stableTotalSupply).sub(stableTotalSupply.mul(effectiveCollateralRatio))
         ).div(1e6);
 
-        uint256 amount_to_recollat;
-        if (collat_value_attempted <= recollat_possible) {
-            amount_to_recollat = collat_value_attempted;
+        uint256 amountRecollat;
+        if (collatValueAttempted <= recollatPossible) {
+            amountRecollat = collatValueAttempted;
         } else {
-            amount_to_recollat = recollat_possible;
+            amountRecollat = recollatPossible;
         }
 
-        return (amount_to_recollat.mul(1e6).div(col_price), amount_to_recollat);
+        return (amountRecollat.mul(1e6).div(colPrice), amountRecollat);
     }
 }

@@ -13,7 +13,7 @@ contract Bond is ERC20Burnable, AbstractPausable {
 
     // genesis supply will be 5k on Mainnet
     uint256 public constant GENESIS_SUPPLY = 5000e18;
-    uint256 private constant PRICE_PRECISION = 1e6;
+    uint256 public constant PRICE_PRECISION = 1e6;
 
     address[] public bondIssuers;
     mapping(address => bool) public isBondIssuers;
