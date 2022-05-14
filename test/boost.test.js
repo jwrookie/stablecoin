@@ -110,9 +110,11 @@ contract('Boost', () => {
         await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
         await gauge_usdc.connect(owner).deposit(toWei('2'), 2);
 
+        let usdcDevBef = await usdc.balanceOf(dev.address);
+        let usdcOwnerBef = await usdc.balanceOf(owner.address);
+
         await boost.updatePool(0);
         expect(await boost.poolLength()).to.be.eq(2);
-
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
@@ -135,6 +137,14 @@ contract('Boost', () => {
         let reward = BigNumber.from("50000000000100000").mul(2);
         expect(diff).to.be.eq(pendOwner.add(reward));
 
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 1);
+        await gauge_usdc.connect(owner).withdrawToken(toWei('2'), 2);
+
+        let usdcDevAft = await usdc.balanceOf(dev.address);
+        let usdcOwnerAft = await usdc.balanceOf(owner.address);
+        expect(usdcDevAft).to.be.eq(usdcDevBef.add(toWei('1')));
+        expect(usdcOwnerAft).to.be.eq(usdcOwnerBef.add(toWei('2')));
+
 
     });
     it('should two pools, single user getReward correct', async () => {
@@ -147,7 +157,10 @@ contract('Boost', () => {
         await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
 
         await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        let usdcDevBef = await usdc.balanceOf(dev.address);
+
         await gauge_busd.connect(dev).deposit(toWei('1'), 1);
+        let busdDevBef = await busd.balanceOf(dev.address);
 
         await boost.updatePool(0);
         await boost.updatePool(1);
@@ -163,6 +176,15 @@ contract('Boost', () => {
 
         let diff1 = aft1Dev.sub(aftDev);
         expect(diff1).to.be.eq(diff);
+
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 1);
+        await gauge_busd.connect(dev).withdrawToken(toWei('1'), 1);
+
+        let usdcDevAft = await usdc.balanceOf(dev.address);
+        let busdDevAft = await busd.balanceOf(dev.address);
+
+        expect(usdcDevAft).to.be.eq(usdcDevBef.add(toWei('1')));
+        expect(busdDevAft).to.be.eq(busdDevBef.add(toWei('1')));
 
     });
 

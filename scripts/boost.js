@@ -18,7 +18,7 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let fxs = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
+    let TRA = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
     // let frax = "0xa0fec666998754149132F2B49DAeEE484B522df7"
     // //
     // // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
@@ -47,8 +47,8 @@ async function main() {
     //  console.log("operatable:" + operatable.address)
     //
     // const FRAXShares = await ethers.getContractFactory('Stock');
-    // fxs = await FRAXShares.deploy(operatable.address, "fxs", "fxs", oracle.address);
-    // console.log("fxs:" + fxs.address);
+    // TRA = await FRAXShares.deploy(operatable.address, "TRA", "TRA", oracle.address);
+    // console.log("TRA:" + TRA.address);
     //
 
 
@@ -66,16 +66,16 @@ async function main() {
     // console.log("frax:" + frax.address);
     //
     //  const FRAXShares = await ethers.getContractFactory('Stock');
-    // fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
-    // console.log("fxs:" + fxs.address);
+    // TRA = await FRAXShares.deploy(checkPermission.address, "TRA", "TRA", oracle.address);
+    // console.log("TRA:" + TRA.address);
     //
     //
-    // await fxs.setStableAddress(frax.address);
-    // await frax.setStockAddress(fxs.address);
+    // await TRA.setStableAddress(frax.address);
+    // await frax.setStockAddress(TRA.address);
     //
     //
     // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(checkPermission, fxs, "1800");
+    // lock = await Locker.deploy(checkPermission, TRA, "1800");
     // console.log("Locker:" + lock.address)
     //
     // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
@@ -87,7 +87,7 @@ async function main() {
     //      checkPermission,
     //      lock,
     //      gaugeFactory,
-    //      fxs,
+    //      TRA,
     //      toWei('1'),
     //      parseInt("19204972"),
     //      "2592000"
@@ -112,7 +112,7 @@ async function main() {
     swapMining = await SwapMining.deploy(
         checkPermission,
         lock,
-        fxs,
+        TRA,
         deployer.address,
         swapRouter.address,
         toWei('1'),
@@ -137,7 +137,7 @@ async function main() {
     // await lock.addBoosts(gaugeController.address);
 
     // await lock.addBoosts(boost.address)
-    // await fxs.addPool(boost.address);
+    // await TRA.addPool(boost.address);
 
 
 }

@@ -24,14 +24,14 @@ async function main() {
     // let factory = "0xc8476C842DFdfA3c24fb75FE8A945D1595D9Ed98"
     // let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"//usdc
     // // let tokenA = "0x17b16eAF39C055405a6Ccc41258698F048b4bA38"//usdt
-    // let frax = ""
-    // let fxs = ""
+    // let rusd = ""
+    // let tra = ""
     let wbnb = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
 
      let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let frax = '0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d'
-    let fxs = '0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31'
+    let rusd = '0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d'
+    let tra = '0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31'
 
 
 
@@ -63,11 +63,11 @@ async function main() {
     usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, deployer.address, timeLock.address);
     console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
 
-    frax_uniswapOracle = await UniswapPairOracle.deploy(factory, frax, wbnb, deployer.address, timeLock.address);
-    console.log("frax_uniswapOracle:" + frax_uniswapOracle.address)
+    rusd_uniswapOracle = await UniswapPairOracle.deploy(factory, rusd, wbnb, deployer.address, timeLock.address);
+    console.log("rusd_uniswapOracle:" + rusd_uniswapOracle.address)
 
-    fxs_uniswapOracle = await UniswapPairOracle.deploy(factory, fxs, wbnb, deployer.address, timeLock.address);
-    console.log("fxs_uniswapOracle:" + fxs_uniswapOracle.address)
+    tra_uniswapOracle = await UniswapPairOracle.deploy(factory, tra, wbnb, deployer.address, timeLock.address);
+    console.log("tra_uniswapOracle:" + tra_uniswapOracle.address)
 
 
 
