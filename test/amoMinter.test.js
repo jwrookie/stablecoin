@@ -216,7 +216,6 @@ contract('amo minter test', async function () {
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
             checkOper.address,
-            dev.address,
             frax.address,
             fxs.address,
             usdc.address,

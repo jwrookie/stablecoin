@@ -62,7 +62,6 @@ async function main() {
      const AMOMinter = await ethers.getContractFactory('AMOMinter');
         minterAmo = await AMOMinter.deploy(
             deployer.address,
-            deployer.address,
             rusd,
             tra,
             usdc,
