@@ -228,6 +228,7 @@ contract('3metaPool', () => {
         await swapMining.addPair(100, pool1.address, true);
         await lock.addBoosts(swapMining.address);
         await fxs.addPool(swapMining.address);
+        await fxs.approve(lock.address, toWei('100000'));
 
     });
     it('test metaPool swapMeta have reward', async () => {
@@ -257,6 +258,51 @@ contract('3metaPool', () => {
         let aft1 = await fxs.balanceOf(owner.address);
         let diff1 = aft1.sub(aft);
         expect(diff1).to.be.eq(reword.mul(2));
+
+
+    });
+    it('test vote without swapMining', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+        await token3.approve(swapRouter.address, toWei("10000"));
+        await pool.approve(swapRouter.address, toWei('100000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+
+        let dx = "1000000";
+        await swapRouter.swapMeta(pool1.address, 0, 1, dx, 0, owner.address, times);
+        let eta = time.duration.days(7);
+        await lock.create_lock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999990'));
+        await swapMining.getReward(0);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999990.5775'));
+
+
+    });
+    it('test vote with swapMining', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await token1.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
+        await token3.approve(swapRouter.address, toWei("10000"));
+        await pool.approve(swapRouter.address, toWei('100000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = "1000000";
+
+        await swapRouter.swapMeta(pool1.address, 0, 1, dx, 0, owner.address, times);
+
+        let eta = time.duration.days(7);
+        await lock.create_lock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999990'));
+
+        await swapMining.vote(1, [pool.address], [toWei("1")]);
+
+        await swapMining.getReward(0);
+
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999990.63'));
 
 
     });
