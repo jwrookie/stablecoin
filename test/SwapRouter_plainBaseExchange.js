@@ -359,7 +359,7 @@ contract('SwapRouter5Coins', () => {
         let fxsOwnerAft = await fxs.balanceOf(owner.address);
 
         let rewardBlocks = rewardBlockAft - rewardBlockBef;
-        let diff = fxsOwnerAft - fxsOwnerBef;
+        let diff = fxsOwnerAft.sub(fxsOwnerBef);
 
         await gauge.deposit(toWei("10"), tokenId);
 
@@ -374,7 +374,7 @@ contract('SwapRouter5Coins', () => {
         let fxsOwnerAft1 = await fxs.balanceOf(owner.address);
 
         let rewardBlocks1 = rewardBlockAft - rewardBlockBef;
-        let diff1 = fxsOwnerAft1 - fxsOwnerBef1;
+        let diff1 = fxsOwnerAft1.sub(fxsOwnerBef1);
         expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
 
         expect(rewardBlocks).to.be.eq(rewardBlocks1);
@@ -441,10 +441,10 @@ contract('SwapRouter5Coins', () => {
 
         await swapMining.getReward(0);
         let fxsAft = await fxs.balanceOf(owner.address);
-        let diff = fxsAft - fxsBef;
+        let diff = fxsAft.sub(fxsBef);
 
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.365000000026706000"));
+        expect(diff.toString()).to.be.eq(toWei("1.365"));
     });
 
     it('test swap mining with vote', async () => {
@@ -464,10 +464,10 @@ contract('SwapRouter5Coins', () => {
 
         await swapMining.getReward(0);
         let fxsAft1 = await fxs.balanceOf(owner.address);
-        let diff1 = fxsAft1 - fxsBef1;
+        let diff1 = fxsAft1.sub(fxsBef1);
 
         expect(fxsAft1).to.be.gt(fxsBef1);
-        expect(diff1.toString()).to.be.eq(toWei("1.417499999981273000"));
+        expect(diff1.toString()).to.be.eq(toWei("1.4175"));
     });
 
     it('test swap mining with boost', async () => {
@@ -490,7 +490,7 @@ contract('SwapRouter5Coins', () => {
         let fxsAft = await fxs.balanceOf(owner.address);
         let diff = fxsAft.sub(fxsBef);
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.417500000000000000"));
+        expect(diff.toString()).to.be.eq(toWei("1.4175"));
     });
 
     it('test swap mining without boost and dev boost', async () => {
@@ -508,7 +508,7 @@ contract('SwapRouter5Coins', () => {
         let fxsAft = await fxs.balanceOf(owner.address);
         let diff = fxsAft.sub(fxsBef);
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.365000000000000000"));
+        expect(diff.toString()).to.be.eq(toWei("1.365"));
 
         // other boost
 
@@ -528,7 +528,7 @@ contract('SwapRouter5Coins', () => {
         let fxsAft1 = await fxs.balanceOf(dev.address);
         let diff1 = fxsAft1.sub(fxsBef1);
         expect(fxsAft1).to.be.gt(fxsBef1);
-        expect(diff1.toString()).to.be.eq(toWei("0.262500000000000000"));
+        expect(diff1.toString()).to.be.eq(toWei("0.2625"));
     });
 
     it('test metaPool can swapCryptoToken', async () => {
