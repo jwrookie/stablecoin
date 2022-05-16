@@ -133,13 +133,7 @@ contract('Boost', async function () {
         expect(await boost.poolLength()).to.be.eq(0);
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
-        expect(await boost.totalAllocPoint()).to.be.eq(100000);
-        expect(await boost.poolLength()).to.be.eq(1);
-        expect(await getPoolInfo(0, 0)).to.be.eq(frax.address);
-        expect(await getPoolInfo(0, 1)).to.be.eq(100000);
         lastRewardBlock = await getPoolInfo(0, 2);
-        expect(await boost.poolForGauge(await boost.gauges(frax.address))).to.be.eq(frax.address);
-        expect(await boost.isGauge(await boost.gauges(frax.address))).to.be.eq(true);
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
@@ -150,21 +144,10 @@ contract('Boost', async function () {
         await gaugeController.setDuration(await getDurationTime());
         await boost.addController(gaugeController.address);
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 10);
-        expect(await gaugeController.getPoolLength()).to.be.eq(0);
         await gaugeController.addPool(frax.address);
         gaugeAddress = await gaugeController.getPool(0);
         pid = await boost.lpOfPid(await gaugeController.getPool(0));
-        expect(await gaugeController.getPoolLength()).to.be.eq(1);
-        expect(await gaugeController.isPool(frax.address)).to.be.eq(true);
-        expect(await gaugeController.totalWeight()).to.be.eq(0);
-        expect(await gaugeController.weights(frax.address)).to.be.eq(0);
-        expect(await boost.weights(await gaugeController.getPool(0))).to.be.eq(0);
         await gaugeController.vote(tokenId, frax.address);
-        expect(await getPoolInfo(pid, 1)).to.be.eq(await gaugeController.weights(gaugeAddress));
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(frax.address);
-        expect(await gaugeController.weights(frax.address)).to.be.eq(await locker.balanceOfNFT(tokenId));
-        expect(await gaugeController.totalWeight()).to.be.eq(await locker.balanceOfNFT(tokenId));
-        expect(await gaugeController.usedWeights(tokenId)).to.be.eq(await locker.balanceOfNFT(tokenId));
     });
 
     it('test Single user vote and reset and vote', async function () {
