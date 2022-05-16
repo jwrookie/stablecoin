@@ -182,7 +182,6 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and get reward', async function () {
-
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
@@ -193,20 +192,10 @@ contract('Gauge', async function () {
         await locker.addBoosts(gaugeController.address);
         await locker.create_lock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
-        expect(tokenId).to.be.eq(1);
-
-        // About gaugeController
 
         // About gauge
-        expect(await getUserInfo(gauge, owner, 0)).to.be.eq(0);
-        expect(await getUserInfo(gauge, owner, 1)).to.be.eq(0);
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
         await gauge.deposit(toWei("0.000001"), tokenId);
-        expect(await getUserInfo(gauge, owner, 0)).to.be.eq(toWei("0.000001"));
-        expect(await getUserInfo(gauge, owner, 1)).to.be.eq(0);
-        expect(await gauge.totalSupply()).to.be.eq(toWei("0.000001"));
-        expect(await gauge.tokenIds(owner.address)).to.be.eq(tokenId);
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
 
         // Vote
         await gaugeController.vote(tokenId, await gaugeController.getPool(0));
@@ -273,8 +262,6 @@ contract('Gauge', async function () {
     });
 
     it('test Single user deposit and vote and get reward and reduce block', async function () {
-
-
         // Create a pool
         await boost.createGauge(frax.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
@@ -407,19 +394,9 @@ contract('Gauge', async function () {
         await gaugeController.setDuration(await getDurationTime());
         await gaugeController.addPool(frax.address);
         await gaugeController.addPool(usdc.address);
-        expect(await gaugeController.getPoolLength()).to.be.eq(2);
-        expect(await gaugeController.getPool(0)).to.be.eq(frax.address);
-        expect(await gaugeController.getPool(1)).to.be.eq(usdc.address);
 
         await fraxGauge.deposit(toWei("0.000001"), tokenId);
         await usdcGauge.deposit(toWei("0.000001"), tokenId);
-        expect(await getUserInfo(fraxGauge, owner, 0)).to.be.eq(toWei("0.000001"));
-        expect(await fraxGauge.totalSupply()).to.be.eq(toWei("0.000001"));
-        expect(await fraxGauge.tokenIds(owner.address)).to.be.eq(tokenId);
-        expect(await getUserInfo(usdcGauge, owner, 0)).to.be.eq(toWei("0.000001"));
-        expect(await usdcGauge.totalSupply()).to.be.eq(toWei("0.000001"));
-        expect(await usdcGauge.tokenIds(owner.address)).to.be.eq(tokenId);
-        expect(await getPoolVoteInfo(tokenId)).to.be.eq(ZEROADDRESS);
 
         // Vote
         expect(await getUserInfo(fraxGauge, owner, 1)).to.be.eq(0);

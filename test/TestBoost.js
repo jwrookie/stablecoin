@@ -18,8 +18,8 @@ contract("About Dao", async function () {
         }
 
         for (let i = 0; i < poolInfoLength; i++) {
-            poolAddress = await boost.poolInfo(i);
-            gaugesInfo = await boost.gauges(poolAddress[0]);
+            let poolAddress = await boost.poolInfo(i);
+            let gaugesInfo = await boost.gauges(poolAddress[0]);
             gaugeArray.push(gaugesInfo);
         }
 
@@ -34,7 +34,7 @@ contract("About Dao", async function () {
         let gauge = await getGaugesInfo();
 
         for (let i = 0; i < gauge.length; i++) {
-            pool = await boost.poolForGauge(gauge[i]);
+            let pool = await boost.poolForGauge(gauge[i]);
             if (pool === poolAddress.address) {
                 return parseInt(await boost.lpOfPid(pool));
             }
@@ -71,7 +71,7 @@ contract("About Dao", async function () {
             locker.address,
             gaugeFactory.address,
             tra.address,
-            toWei("1"),
+            10000,
             parseInt(initStartBlock),
             10
         );
@@ -88,26 +88,40 @@ contract("About Dao", async function () {
             boostDurationTime
         );
 
-        await boost.createGauge(rusd.address, 100000, false);
+        await boost.createGauge(rusd.address, toWei("0.5"), false);
         const Gauge = await ethers.getContractFactory("Gauge");
         gaugeAddress = await boost.gauges(rusd.address);
         gauge = await Gauge.attach(gaugeAddress);
         await rusd.approve(gauge.address, toWei("1"));
         await usdc.approve(gauge.address, toWei("1"));
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
+        await locker.addBoosts(gaugeController.address);
+        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION); // Stake toWei("0.1") tra token
         tokenId = await locker.tokenId();
     });
 
     it('test Single user to deposit and get reward', async function () {
         // Token reward managed all the rewards
-        expect(await boost.tokenPerBlock()).to.be.eq(toWei("1"));
+        expect(await boost.tokenPerBlock()).to.be.eq(10000);
+        console.log(await boost.getJudge());
         await boost.updatePool(await getBoostLpOfPid(rusd));
         expect(await tra.balanceOf(boost.address)).to.be.eq(0);
         expect(await gauge.accTokenPerShare()).to.be.eq(0);
-        expect(await gauge.lastRewardBlock()).to.be.eq(0);
+        console.log(await tra.balanceOf(owner.address));
 
         await gauge.deposit(toWei("0.5"), tokenId);
-        await expect(boost.updatePool(await getBoostLpOfPid(rusd))).to.emit(gauge, 'NotifyReward')
-            .withArgs(boost.address, tra.address, toWei("0.5"));
+        let poolInfoMap = await boost.poolInfo(await getBoostLpOfPid(rusd));
+        expect(await boost.totalAllocPoint()).to.be.eq(poolInfoMap[1]);
+        await expect(gauge.deposit(toWei("0.5"), tokenId)).to.emit(gauge, 'Deposit')
+            .withArgs(owner.address, tokenId, toWei("0.5"));
+
+        let userPoolInfoMap = await gaugeController.userPool(tokenId);
+        await gaugeController.vote(tokenId, userPoolInfoMap[0]);
+        console.log(await tra.balanceOf(boost.address));
+
+        // expect(await tra.balanceOf(owner.address)).to.be.eq();
+        await gauge.getReward(owner.address);
+        // await expect(gauge.getReward(owner.address)).to.emit(gauge, 'NotifyReward')
+        //     .withArgs(owner.address, tokenId, toWei("0.5"));
+        console.log(await tra.balanceOf(owner.address));
     });
 });
