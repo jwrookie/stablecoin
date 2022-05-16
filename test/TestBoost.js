@@ -8,7 +8,6 @@ const {ZEROADDRESS} = require("./Lib/Address");
 contract("About Dao", async function () {
     const ONE_DAT_DURATION = 86400;
     let initStartBlock;
-    let gaugeObject;
 
     async function getGaugesInfo() {
         let gaugeArray = new Array();
@@ -32,12 +31,12 @@ contract("About Dao", async function () {
             return Error("Unknow gauge for pool!");
         }
 
-        gauge = await getGaugesInfo();
+        let gauge = await getGaugesInfo();
 
         for (let i = 0; i < gauge.length; i++) {
             pool = await boost.poolForGauge(gauge[i]);
             if (pool === poolAddress.address) {
-                return await boost.lpOfPid(pool)
+                return parseInt(await boost.lpOfPid(pool));
             }
         }
 
@@ -77,6 +76,8 @@ contract("About Dao", async function () {
             10
         );
 
+        await tra.addPool(boost.address); // Mint tra in boost as swap token
+
         boostDurationTime = "10000";
 
         const GaugeController = await ethers.getContractFactory("GaugeController");
@@ -91,7 +92,7 @@ contract("About Dao", async function () {
         const Gauge = await ethers.getContractFactory("Gauge");
         gaugeAddress = await boost.gauges(rusd.address);
         gauge = await Gauge.attach(gaugeAddress);
-        gaugeObject = gauge;
+        await rusd.approve(gauge.address, toWei("1"));
         await usdc.approve(gauge.address, toWei("1"));
         await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
         tokenId = await locker.tokenId();
@@ -102,11 +103,11 @@ contract("About Dao", async function () {
         expect(await boost.tokenPerBlock()).to.be.eq(toWei("1"));
         await boost.updatePool(await getBoostLpOfPid(rusd));
         expect(await tra.balanceOf(boost.address)).to.be.eq(0);
-        expect(await gaugeObject.accTokenPerShare()).to.be.eq(0);
-        expect(await gaugeObject.lastRewardBlock()).to.be.eq(0);
+        expect(await gauge.accTokenPerShare()).to.be.eq(0);
+        expect(await gauge.lastRewardBlock()).to.be.eq(0);
 
-        await gaugeObject.deposit(toWei("0.1"), tokenId);
-        await expect(boost.updatePool(await getBoostLpOfPid(rusd))).to.emit(gaugeObject, 'NotifyReward')
-            .withArgs(boost.address, rusd.address, toWei("0.1"));
+        await gauge.deposit(toWei("0.5"), tokenId);
+        await expect(boost.updatePool(await getBoostLpOfPid(rusd))).to.emit(gauge, 'NotifyReward')
+            .withArgs(boost.address, tra.address, toWei("0.5"));
     });
 });
