@@ -1,7 +1,12 @@
 const {Weth,Factory,Router,Registry,PoolRegistry,CRVFactory,Plain3Balances} = require("../Core/LibSourceConfig");
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetConfigAboutCRV = async (user) => {
     let resultArray = new Array();
+
+    if (ZEROADDRESS === user.address || undefined === user.address) {
+        return Error("Please enter the correct user address!");
+    }
 
     weth = await Weth(user);
     factory = await Factory(user);

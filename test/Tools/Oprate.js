@@ -1,4 +1,4 @@
-const {ZEROADDRESS} = require("../Core/Address");
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const SetArray = async (length= 10, address = []) => {
     let resultArray = new Array(length);

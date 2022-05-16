@@ -1,5 +1,5 @@
 const {ethers} = require('hardhat');
-const {ZEROADDRESS} = require('../Core/Address');
+const {ZEROADDRESS} = require('../Lib/Address');
 const {BigNumber} = require('ethers');
 
 const SetTimeLock = async (userAddress, timeLockDuration = 259200) => {
@@ -39,7 +39,7 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
         factory.address,
         coinPairs.address,
         weth.address,
-        owner.address,
+        user.address,
         timeLock.address
     )
 
