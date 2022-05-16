@@ -1,5 +1,5 @@
 const {SetTimeLock, SetUniswapOracle} = require("../Core/UniswapOracleConfig");
-const {ZEROADDRESS} = require("../Core/Address");
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth, user) => {
     let tempTimeLock = await SetTimeLock(userAddress);

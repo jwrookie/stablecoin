@@ -1,17 +1,18 @@
 const {ethers} = require('hardhat');
-const {SetOracle, SetOperatable, SetRusd, SetTra} = require("../Core/StableConfig");
-const {ZEROADDRESS} = require("../Core/Address");
+const {SetOracle, SetOperatable, SetRusd, SetTra, SetCheckPermission} = require("../Core/StableConfig");
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
     let resultArray = new Array();
 
     oracle = await SetOracle();
     operatable = await SetOperatable();
+    checkOpera = await SetCheckPermission(operatable);
     rusd = await SetRusd(operatable);
     tra = await SetTra(operatable, oracle);
-    if (ZEROADDRESS !== rusd.address && ZEROADDRESS !== tra.address && ZEROADDRESS !== operatable) {
-        resultArray.push(operatable, rusd, tra);
-    }
+
+    resultArray.push(oracle, operatable, checkOpera, rusd, tra);
+
     return resultArray;
 }
 

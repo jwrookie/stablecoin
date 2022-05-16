@@ -10,6 +10,11 @@ const SetOperatable = async () => {
     return await TestOperatable.deploy();
 }
 
+const SetCheckPermission = async (operatable) => {
+    const CheckOperator = await ethers.getContractFactory("CheckPermission");
+    return await CheckOperator.deploy(operatable.address);
+}
+
 const SetRusd = async (operatable) => {
     RStableCoin = await ethers.getContractFactory("RStablecoin");
     return await RStableCoin.deploy(operatable.address, "Rusd", "Rusd");
@@ -23,6 +28,7 @@ const SetTra = async (operatable, oracle) => {
 module.exports = {
     SetOracle,
     SetOperatable,
+    SetCheckPermission,
     SetRusd,
     SetTra
 }
