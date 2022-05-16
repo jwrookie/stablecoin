@@ -58,7 +58,7 @@ contract('PoolUSD', () => {
             },
         });
         pool = await PoolUSD.deploy(checkPermission.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
-        expect(await pool.USDC_address()).to.be.eq(usdc.address);
+        expect(await pool.usdAddress()).to.be.eq(usdc.address);
 
 
         const MockChainLink = await ethers.getContractFactory("MockChainLink");

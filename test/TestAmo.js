@@ -132,7 +132,7 @@ contract('AMOMinter', async function () {
             usdc.address,
             POOL_CELLING
         );
-        expect(await stableCoinPool.USDC_address()).to.be.eq(usdc.address);
+        expect(await stableCoinPool.usdAddress()).to.be.eq(usdc.address);
 
         // Approve
         await usdc.approve(stableCoinPool.address, toWei("1"));

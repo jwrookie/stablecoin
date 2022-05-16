@@ -85,7 +85,7 @@ contract('amo minter test', async function () {
             },
         });
         usdcPool = await PoolUSD.deploy(checkOper.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
-        expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
+        expect(await usdcPool.usdAddress()).to.be.eq(usdc.address);
 
         await frax.addPool(usdcPool.address);
 
