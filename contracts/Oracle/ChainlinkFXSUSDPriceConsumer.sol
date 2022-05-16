@@ -4,23 +4,23 @@ pragma solidity 0.8.10;
 import "./AggregatorV3Interface.sol";
 
 contract ChainlinkFXSUSDPriceConsumer {
-    AggregatorV3Interface internal priceFeed;
+    AggregatorV3Interface internal _priceFeed;
 
-    constructor() public {
-        priceFeed = AggregatorV3Interface(0x6Ebc52C8C1089be9eB3945C4350B68B8E4C2233f);
+    constructor(address _aggregator) public {
+        _priceFeed = AggregatorV3Interface(_aggregator);
     }
 
     /**
      * Returns the latest price
      */
     function getLatestPrice() public view returns (int256) {
-        (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = priceFeed.latestRoundData();
+        (uint80 roundID, int256 price, , uint256 updatedAt, uint80 answeredInRound) = _priceFeed.latestRoundData();
         require(price >= 0 && updatedAt != 0 && answeredInRound >= roundID, "Invalid chainlink price");
 
         return price;
     }
 
     function getDecimals() public view returns (uint8) {
-        return priceFeed.decimals();
+        return _priceFeed.decimals();
     }
 }

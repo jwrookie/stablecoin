@@ -14,15 +14,17 @@ import "../tools/CheckPermission.sol";
 contract ExchangeAMO is CheckPermission {
     using SafeMath for uint256;
 
-    IStableSwap3Pool private threePool;
-    ERC20 private threePoolLp;
-    RStablecoin private stablecoin;
-    ERC20 private collateralToken;
-    IAMOMinter private amoMinter;
+    uint256 public constant PRICE_PRECISION = 1e6;
 
-    uint256 private missingDecimals;
+    IStableSwap3Pool public threePool;
+    ERC20 public threePoolLp;
+    RStablecoin public stablecoin;
+    ERC20 public collateralToken;
+    IAMOMinter public amoMinter;
 
-    uint256 private PRICE_PRECISION = 1e6;
+    uint256 public missingDecimals;
+
+
 
     uint256 public liqSlippage3crv;
 
@@ -38,7 +40,7 @@ contract ExchangeAMO is CheckPermission {
 
     constructor(
         address _operatorMsg,
-        address _amo_minter_address,
+        address _amoMinterAddress,
         address stableCoinAddress,
         address collateralAddress,
         address poolAddress,
@@ -47,7 +49,7 @@ contract ExchangeAMO is CheckPermission {
         stablecoin = RStablecoin(stableCoinAddress);
         collateralToken = ERC20(collateralAddress);
         missingDecimals = uint256(18).sub(collateralToken.decimals());
-        amoMinter = IAMOMinter(_amo_minter_address);
+        amoMinter = IAMOMinter(_amoMinterAddress);
         threePool = IStableSwap3Pool(poolAddress);
         threePoolLp = ERC20(poolTokenAddress);
         liqSlippage3crv = 800000;
@@ -63,29 +65,29 @@ contract ExchangeAMO is CheckPermission {
 
     function showAllocations() public view returns (uint256[9] memory arr) {
         uint256 lpBalance = threePoolLp.balanceOf(address(this));
-        uint256 frax3crv_supply = threePoolLp.totalSupply();
-        uint256 frax_withdrawable;
-        uint256 _3pool_withdrawable;
-        frax_withdrawable = iterate();
-        uint256 frax_in_contract = stablecoin.balanceOf(address(this));
-        uint256 usdc_in_contract = collateralToken.balanceOf(address(this));
-        uint256 usdc_withdrawable = _3pool_withdrawable.mul(threePool.get_virtual_price()).div(1e18).div(
+        uint256 stable3crvSupply = threePoolLp.totalSupply();
+        uint256 stableWithdrawable;
+        uint256 pool3Withdrawable;
+        stableWithdrawable = iterate();
+        uint256 stableInContract = stablecoin.balanceOf(address(this));
+        uint256 usdcInContract = collateralToken.balanceOf(address(this));
+        uint256 usdcWithdrawable = pool3Withdrawable.mul(threePool.get_virtual_price()).div(1e18).div(
             10**missingDecimals
         );
-        uint256 usdc_subtotal = usdc_in_contract.add(usdc_withdrawable);
+        uint256 usdcSubtotal = usdcInContract.add(usdcWithdrawable);
 
         return [
-            frax_in_contract, // [0] Free FRAX in the contract
-            frax_withdrawable, // [1] FRAX withdrawable from the FRAX3CRV tokens
-            frax_withdrawable.add(frax_in_contract), // [2] FRAX withdrawable + free FRAX in the the contract
-            usdc_in_contract, // [3] Free USDC
-            usdc_withdrawable, // [4] USDC withdrawable from the FRAX3CRV tokens
-            usdc_subtotal, // [5] USDC subtotal assuming FRAX drops to the CR and all reserves are arbed
-            usdc_subtotal.add(
-                (frax_in_contract.add(frax_withdrawable)).mul(stableDiscountRate()).div(1e6 * (10**missingDecimals))
+        stableInContract, // [0] Free stable in the contract
+        stableWithdrawable, // [1] stable withdrawable from the FRAX3CRV tokens
+            stableWithdrawable.add(stableInContract), // [2] stable withdrawable + free FRAX in the the contract
+        usdcInContract, // [3] Free USDC
+        usdcWithdrawable, // [4] USDC withdrawable from the FRAX3CRV tokens
+        usdcSubtotal, // [5] USDC subtotal assuming FRAX drops to the CR and all reserves are arbed
+            usdcSubtotal.add(
+                (stableInContract.add(stableWithdrawable)).mul(stableDiscountRate()).div(1e6 * (10**missingDecimals))
             ), // [6] USDC Total
             lpBalance, // [7] FRAX3CRV free or in the vault
-            frax3crv_supply // [8] Total supply of stable tokens
+        stable3crvSupply // [8] Total supply of stable tokens
         ];
     }
 
@@ -112,8 +114,8 @@ contract ExchangeAMO is CheckPermission {
         if (
             dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)
         ) {} else if (dollarValue <= floorPrice.add(convergenceWindow)) {
-            uint256 crv3_to_swap = lpBalance.div(2);
-            lpBalance = lpBalance.sub(threePool.get_dy(1, 0, crv3_to_swap));
+            uint256 crv3ToSwap = lpBalance.div(2);
+            lpBalance = lpBalance.sub(threePool.get_dy(1, 0, crv3ToSwap));
         } else if (dollarValue >= floorPrice.sub(convergenceWindow)) {
             uint256 stableToSwap = lpBalance.div(2);
             lpBalance = lpBalance.add(stableToSwap);
@@ -149,28 +151,28 @@ contract ExchangeAMO is CheckPermission {
         onlyOperator
         returns (uint256 lpReceived)
     {
-        uint256 threeCRV_received = 0;
+        uint256 threeCRVReceived = 0;
         if (_collateralAmount > 0) {
             // Approve the collateral to be added to 3pool
             collateralToken.approve(address(threePool), _collateralAmount);
 
             // Convert collateral into 3pool
-            uint256[3] memory three_pool_collaterals;
-            three_pool_collaterals[1] = _collateralAmount;
+            uint256[3] memory threePoolCollaterals;
+            threePoolCollaterals[1] = _collateralAmount;
             {
                 uint256 min_3pool_out = (_collateralAmount * (10**missingDecimals)).mul(liqSlippage3crv).div(
                     PRICE_PRECISION
                 );
-                threePool.add_liquidity(three_pool_collaterals, min_3pool_out);
+                threePool.add_liquidity(threePoolCollaterals, min_3pool_out);
             }
 
             // Approve the 3pool for the metapool
-            threeCRV_received = threePoolLp.balanceOf(address(this));
+            threeCRVReceived = threePoolLp.balanceOf(address(this));
 
             // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
             // May be related to https://github.com/vyperlang/vyper/blob/3e1ff1eb327e9017c5758e24db4bdf66bbfae371/examples/tokens/ERC20.vy#L85
             threePoolLp.approve(address(threePool), 0);
-            threePoolLp.approve(address(threePool), threeCRV_received);
+            threePoolLp.approve(address(threePool), threeCRVReceived);
         }
 
         // Approve the FRAX for the metapool
@@ -178,44 +180,44 @@ contract ExchangeAMO is CheckPermission {
 
         {
             // Add the FRAX and the collateral to the metapool
-            uint256 min_lp_out = (_stableAmount.add(threeCRV_received)).mul(liqSlippage3crv).div(PRICE_PRECISION);
-            lpReceived = threePool.add_liquidity([_stableAmount, uint256(0), uint256(0)], min_lp_out);
+            uint256 minLpOut = (_stableAmount.add(threeCRVReceived)).mul(liqSlippage3crv).div(PRICE_PRECISION);
+            lpReceived = threePool.add_liquidity([_stableAmount, uint256(0), uint256(0)], minLpOut);
         }
 
         return lpReceived;
     }
 
     function metapoolWithdrawAtCurRatio(
-        uint256 _metapool_lp_in,
-        bool burn_the_frax,
-        uint256 min_frax,
-        uint256 min_3pool
-    ) external onlyOperator returns (uint256 frax_received) {
+        uint256 metapoolLpIn,
+        bool burnTheStable,
+        uint256 minStable,
+        uint256 min3pool
+    ) external onlyOperator returns (uint256 stableReceived) {
         // Approve the metapool LP tokens for the metapool contract
-        threePoolLp.approve(address(this), _metapool_lp_in);
+        threePoolLp.approve(address(this), metapoolLpIn);
 
         // Withdraw FRAX and 3pool from the metapool at the current balance
-        uint256 three_pool_received;
+        uint256 threePoolReceived;
         {
-            uint256[3] memory result_arr = threePool.remove_liquidity(_metapool_lp_in, [min_frax, 0, 0]);
-            frax_received = result_arr[0];
-            three_pool_received = result_arr[1];
+            uint256[3] memory result_arr = threePool.remove_liquidity(metapoolLpIn, [minStable, 0, 0]);
+            stableReceived = result_arr[0];
+            threePoolReceived = result_arr[1];
         }
 
         // Convert the 3pool into the collateral
         threePoolLp.approve(address(threePool), 0);
-        threePoolLp.approve(address(threePool), three_pool_received);
+        threePoolLp.approve(address(threePool), threePoolReceived);
         {
-            // Add the FRAX and the collateral to the metapool
-            uint256 min_collat_out = three_pool_received.mul(liqSlippage3crv).div(
+            // Add the stable and the collateral to the metapool
+            uint256 minCollatOut = threePoolReceived.mul(liqSlippage3crv).div(
                 PRICE_PRECISION * (10**missingDecimals)
             );
-            threePool.remove_liquidity_one_coin(three_pool_received, 1, min_collat_out);
+            threePool.remove_liquidity_one_coin(threePoolReceived, 1, minCollatOut);
         }
 
         // Optionally burn the FRAX
-        if (burn_the_frax) {
-            burnStable(frax_received);
+        if (burnTheStable) {
+            burnStable(stableReceived);
         }
     }
 

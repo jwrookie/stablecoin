@@ -5,12 +5,11 @@ import "./UniswapPairOracle.sol";
 
 // Fixed window oracle that recomputes the average price for the entire period once every period
 // Note that the price average is only guaranteed to be over at least 1 period, but may be over a longer period
-contract UniswapPairOracle_STABLE_USDT is UniswapPairOracle {
+contract UniswapPairOracleStable is UniswapPairOracle {
     constructor(
         address factory,
         address tokenA,
         address tokenB,
-        address owner_address,
-        address timelock_address
-    ) UniswapPairOracle(factory, tokenA, tokenB, owner_address, timelock_address) {}
+        address timelockAddress
+    ) UniswapPairOracle(factory, tokenA, tokenB, timelockAddress) {}
 }
