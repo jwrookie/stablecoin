@@ -326,7 +326,7 @@ contract('ExchangeAMO', async function () {
 
     it('test setSlippages', async function () {
         expect(await exchangeAMO.liqSlippage3crv()).to.be.eq(800000);
-        await exchangeAMO.setSlippages(900000, 1000000);
+        await exchangeAMO.setSlippages(900000);
         expect(await exchangeAMO.liqSlippage3crv()).to.be.eq(900000);
     });
 

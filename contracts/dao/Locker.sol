@@ -85,11 +85,12 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     mapping(uint256 => bool) public voted;
     mapping(address => bool) public boosts;
 
-    string public constant NAME = "veNFT";
-    string public constant SYMBOL = "veNFT";
-    string public constant VERSION = "1.0.0";
-    uint8 public constant DECIMALS = 18;
-
+    /* solhint-disable avoid-tx-origin */
+    string constant public name = "veNFT";
+    string constant public symbol = "veNFT";
+    string constant public version = "1.0.0";
+    uint8 constant public decimals = 18;
+    /* solhint-enable avoid-tx-origin */
     uint256 public tokenId;
 
     mapping(uint256 => address) internal _idToOwner;
@@ -104,6 +105,13 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
 
     mapping(address => mapping(address => bool)) internal _ownerToOperators;
 
+    mapping(bytes4 => bool) internal supportedInterfaces;
+
+    bytes4 internal constant ERC165_INTERFACE_ID = 0x01ffc9a7;
+
+    bytes4 internal constant ERC721_INTERFACE_ID = 0x80ac58cd;
+
+    bytes4 internal constant ERC721_METADATA_INTERFACE_ID = 0x5b5e139f;
 
     constructor(
         address _operatorMsg,
@@ -115,7 +123,9 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         pointHistory[0].ts = block.timestamp;
 
         duration = _duration;
-
+        supportedInterfaces[ERC165_INTERFACE_ID] = true;
+        supportedInterfaces[ERC721_INTERFACE_ID] = true;
+        supportedInterfaces[ERC721_METADATA_INTERFACE_ID] = true;
         // mint-ish
         emit Transfer(address(0), address(this), tokenId);
         // burn-ish
@@ -125,6 +135,10 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     modifier onlyBoost() {
         require(boosts[msg.sender], "only voter");
         _;
+    }
+
+    function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
+        return supportedInterfaces[_interfaceID];
     }
 
 
