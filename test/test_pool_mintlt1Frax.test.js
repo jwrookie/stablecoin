@@ -50,12 +50,12 @@ contract('test pool mint stable', () => {
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
 
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        pool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        pool = await PoolUSD.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
         expect(await pool.USDC_address()).to.be.eq(usdc.address);
 
 
@@ -146,14 +146,14 @@ contract('test pool mint stable', () => {
         );
 
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, owner.address, timelock.address);
+        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, timelock.address);
         await pool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
-        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
+        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, timelock.address);
         await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
-        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
+        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, timelock.address);
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 

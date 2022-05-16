@@ -32,7 +32,7 @@ const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
     }
     const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
     fraxPoolLibrary = await FraxPoolLibrary.deploy();
-    const PoolUsdc = await ethers.getContractFactory("Pool_USDC", {
+    const PoolUsdc = await ethers.getContractFactory("PoolUSD", {
         libraries: {
             PoolLibrary: fraxPoolLibrary.address,
         },

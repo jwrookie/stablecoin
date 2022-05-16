@@ -39,7 +39,6 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
         factory.address,
         coinPairs.address,
         weth.address,
-        user.address,
         timeLock.address
     )
 

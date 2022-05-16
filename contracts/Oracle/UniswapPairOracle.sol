@@ -16,7 +16,7 @@ contract UniswapPairOracle is Ownable {
 
     address public timelockAddress;
 
-    uint256 public constant PERIOD = 3600; // 1 hour TWAP (time-weighted average price)
+    uint256 public  period = 3600; // 1 hour TWAP (time-weighted average price)
     uint256 public  consultLeniency = 120; // Used for being able to consult past the period end
     bool public allowStaleConsults = false; // If false, consult() will fail if the TWAP is stale
 
@@ -66,7 +66,7 @@ contract UniswapPairOracle is Ownable {
     }
 
     function setPeriod(uint256 _period) external onlyByOwnGov {
-        PERIOD = _period;
+        period = _period;
     }
 
     function setConsultLeniency(uint256 _consultLeniency) external onlyByOwnGov {
@@ -82,17 +82,17 @@ contract UniswapPairOracle is Ownable {
         uint32 blockTimestamp = UniswapV2OracleLibrary.currentBlockTimestamp();
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
         // Overflow is desired
-        return (timeElapsed >= PERIOD);
+        return (timeElapsed >= period);
     }
 
     function update() external {
         (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = UniswapV2OracleLibrary
-            .currentCumulativePrices(address(pair));
+        .currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
         // Overflow is desired
 
         // Ensure that at least one full period has passed since the last update
-        require(timeElapsed >= PERIOD, "UniswapPairOracle: PERIOD_NOT_ELAPSED");
+        require(timeElapsed >= period, "UniswapPairOracle: PERIOD_NOT_ELAPSED");
 
         // Overflow is desired, casting never truncates
         // Cumulative price is in (Uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
@@ -112,7 +112,7 @@ contract UniswapPairOracle is Ownable {
 
         // Ensure that the price is not stale
         require(
-            (timeElapsed < (PERIOD + consultLeniency)) || allowStaleConsults,
+            (timeElapsed < (period + consultLeniency)) || allowStaleConsults,
             "UniswapPairOracle: PRICE_IS_STALE_NEED_TO_CALL_UPDATE"
         );
 

@@ -99,7 +99,7 @@ abstract contract AbstractBoost is TokenReward {
         for (uint256 i = 0; i < _poolCnt; i++) {
             address _pool = _poolVote[i];
 
-            if (isGaugeForPool(_pool)) {
+            if (_isGaugeForPool(_pool)) {
                 int256 _poolWeight = (_weights[i] * _weight) / _totalVoteWeight;
                 require(votes[_tokenId][_pool] == 0, "token pool is 0");
                 require(_poolWeight != 0, "weight is 0");
@@ -159,5 +159,5 @@ abstract contract AbstractBoost is TokenReward {
 
     function _updatePoolInfo(address _pool) internal virtual;
 
-    function isGaugeForPool(address _pool) internal view virtual returns (bool);
+    function _isGaugeForPool(address _pool) internal view virtual returns (bool);
 }

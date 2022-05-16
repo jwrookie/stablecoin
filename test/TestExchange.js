@@ -44,7 +44,6 @@ contract('ExchangeAMO', async function () {
             factory.address,
             coinPairs.address,
             weth.address,
-            owner.address,
             timelock.address
         );
 
@@ -115,13 +114,13 @@ contract('ExchangeAMO', async function () {
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
 
         // Deploy usdc pool need libraries
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: fraxPoolLibrary.address,
             },
         });
 
-        stableCoinPool = await Pool_USDC.deploy(
+        stableCoinPool = await PoolUSD.deploy(
             operatable.address,
             frax.address,
             fxs.address,

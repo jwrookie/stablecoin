@@ -3,7 +3,7 @@ pragma solidity 0.8.10;
 
 import "./StablecoinPool.sol";
 
-contract PoolUSDC is StablecoinPool {
+contract PoolUSD is StablecoinPool {
     address public usdAddress;
 
     constructor(
