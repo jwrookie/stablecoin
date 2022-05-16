@@ -319,15 +319,12 @@ contract('Gauge', async function () {
 
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
         await gauge.deposit(toWei("0.000001"), tokenId);
-        expect(await getUserInfo(gauge, owner, 0)).to.be.eq(toWei("0.000001"));
 
         // Set reduce config
         expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + PERIOD);
         // Waiting block
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
         currentBlock = parseInt(await time.latestBlock());
-        expect(currentBlock).to.be.gt(initStartBlock);
-        expect(currentBlock).to.be.gt(parseInt(await boost.periodEndBlock()));
 
         // About reduce
         await boost.setMinTokenReward(5000);

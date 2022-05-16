@@ -1,47 +1,15 @@
 const {GetRusdAndTra,SetRusdAndTraConfig} = require("./Utils/GetStableConfig");
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
+const {GetGauge} = require("./Utils/GetGaugeAboutBoost");
 const {expect} = require("chai");
-const {toWei} = web3.utils;
+const {BigNumber} = require('ethers');
+const {toWei, fromWei, toBN} = require("web3-utils");
 const {ZEROADDRESS} = require("./Lib/Address");
 
-contract("About Dao", async function () {
+contract('Boost、Gauge、GaugeController', async function () {
     const ONE_DAT_DURATION = 86400;
-    let initStartBlock;
-
-    async function getGaugesInfo() {
-        let gaugeArray = new Array();
-        let poolInfoLength = await boost.poolLength();
-
-        if (poolInfoLength === 0) {
-            return Error("First need to create a gauge!");
-        }
-
-        for (let i = 0; i < poolInfoLength; i++) {
-            let poolAddress = await boost.poolInfo(i);
-            let gaugesInfo = await boost.gauges(poolAddress[0]);
-            gaugeArray.push(gaugesInfo);
-        }
-
-        return gaugeArray;
-    }
-
-    async function getBoostLpOfPid(poolAddress) {
-        if (null === poolAddress || undefined === poolAddress || poolAddress === ZEROADDRESS) {
-            return Error("Unknow gauge for pool!");
-        }
-
-        let gauge = await getGaugesInfo();
-
-        for (let i = 0; i < gauge.length; i++) {
-            let pool = await boost.poolForGauge(gauge[i]);
-            if (pool === poolAddress.address) {
-                return parseInt(await boost.lpOfPid(pool));
-            }
-        }
-
-        return Error("The address of the pool was not added to struct of poolInfo!");
-    }
+    const PERIOD = 10;
 
     beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
@@ -51,7 +19,7 @@ contract("About Dao", async function () {
         await tra.transfer(dev.address, toWei("0.5"));
 
         // Mock
-        [usdc] = await GetMockToken(1, [owner, dev], toWei("10"));
+        [usdc, token0] = await GetMockToken(2, [owner, dev], toWei("10"));
 
         // Set lock
         const Locker = await ethers.getContractFactory("Locker");
@@ -71,7 +39,7 @@ contract("About Dao", async function () {
             locker.address,
             gaugeFactory.address,
             tra.address,
-            10000,
+            toWei("1"),
             parseInt(initStartBlock),
             10
         );
@@ -88,40 +56,81 @@ contract("About Dao", async function () {
             boostDurationTime
         );
 
+        await boost.addController(gaugeController.address); // Authorize to vote
         await boost.createGauge(rusd.address, toWei("0.5"), false);
-        const Gauge = await ethers.getContractFactory("Gauge");
-        gaugeAddress = await boost.gauges(rusd.address);
-        gauge = await Gauge.attach(gaugeAddress);
-        await rusd.approve(gauge.address, toWei("1"));
-        await usdc.approve(gauge.address, toWei("1"));
+        gauge = await GetGauge(boost, rusd);
+        await rusd.approve(gauge.address, toWei("0.5"));
+
         await locker.addBoosts(gaugeController.address);
+        await locker.addBoosts(boost.address);
         await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION); // Stake toWei("0.1") tra token
         tokenId = await locker.tokenId();
     });
 
-    it('test Single user to deposit and get reward', async function () {
-        // Token reward managed all the rewards
-        expect(await boost.tokenPerBlock()).to.be.eq(10000);
-        console.log(await boost.getJudge());
-        await boost.updatePool(await getBoostLpOfPid(rusd));
-        expect(await tra.balanceOf(boost.address)).to.be.eq(0);
-        expect(await gauge.accTokenPerShare()).to.be.eq(0);
-        console.log(await tra.balanceOf(owner.address));
+    it('test Single user and more gauges to vote and get reward will fail', async function () {
+        await boost.createGauge(token0.address, toWei("0.5"), false);
+        let token0Gauge = await GetGauge(boost, token0);
+        await token0.approve(token0Gauge.address, toWei("0.5"));
 
-        await gauge.deposit(toWei("0.5"), tokenId);
-        let poolInfoMap = await boost.poolInfo(await getBoostLpOfPid(rusd));
-        expect(await boost.totalAllocPoint()).to.be.eq(poolInfoMap[1]);
-        await expect(gauge.deposit(toWei("0.5"), tokenId)).to.emit(gauge, 'Deposit')
-            .withArgs(owner.address, tokenId, toWei("0.5"));
+        await gaugeController.setDuration(ONE_DAT_DURATION);
+        await gaugeController.addPool(gauge.address);
+        await gaugeController.addPool(token0.address);
 
-        let userPoolInfoMap = await gaugeController.userPool(tokenId);
-        await gaugeController.vote(tokenId, userPoolInfoMap[0]);
-        console.log(await tra.balanceOf(boost.address));
+        await gauge.deposit(toWei("0.1"), tokenId);
+        await token0Gauge.deposit(toWei("0.1"), tokenId); // Because deposit will transfer from user to pool
 
-        // expect(await tra.balanceOf(owner.address)).to.be.eq();
+        await gaugeController.vote(tokenId, await gaugeController.getPool(0));
+        await expectRevert(gaugeController.vote(tokenId, await gaugeController.getPool(1)), "next duration use");
+
+        let beforGetReward = await tra.balanceOf(owner.address);
         await gauge.getReward(owner.address);
-        // await expect(gauge.getReward(owner.address)).to.emit(gauge, 'NotifyReward')
-        //     .withArgs(owner.address, tokenId, toWei("0.5"));
-        console.log(await tra.balanceOf(owner.address));
+        let afterGetReward = await tra.balanceOf(owner.address);
+        let sub = afterGetReward.sub(beforGetReward);
+        expect(fromWei(toBN(sub))).to.be.eq("0.96");
+
+        await token0Gauge.getReward(owner.address);
+        expect(await tra.balanceOf(owner.address)).to.be.eq(afterGetReward);
+    });
+
+    it('test Single user to speed more pools and get reward', async function () {
+        await boost.createGauge(token0.address, toWei("0.5"), false);
+        let token0Gauge = await GetGauge(boost, token0);
+        await token0.approve(token0Gauge.address, toWei("0.5"));
+
+        await gaugeController.setDuration(ONE_DAT_DURATION);
+        await gaugeController.addPool(gauge.address);
+        await gaugeController.addPool(token0.address);
+
+        await gauge.deposit(toWei("0.1"), tokenId);
+        await token0Gauge.deposit(toWei("0.1"), tokenId); // Because deposit will transfer from user to pool
+
+        expect(await tra.balanceOf(boost.address)).to.be.eq(0);
+        await boost.vote(tokenId, [rusd.address, token0.address], [toWei("0.1"), toWei("0.1")]);
+
+        let beforeGetReward = await tra.balanceOf(owner.address);
+        await gauge.getReward(owner.address);
+        let afterGetReward = await tra.balanceOf(owner.address);
+        let sub = afterGetReward.sub(beforeGetReward);
+
+        await token0Gauge.getReward(owner.address);
+        let latestGetReward = await tra.balanceOf(owner.address);
+        let secondSub = latestGetReward.sub(afterGetReward);
+        expect(fromWei(toBN(secondSub))).to.be.eq(fromWei(toBN(sub)));
+    });
+
+    it('test Single user deposit and vote and get reward and than tokenperblock change to eighty percent', async function () {
+        await gaugeController.setDuration(parseInt(await time.duration.days(1)));
+        await gaugeController.addPool(rusd.address);
+
+        await gauge.deposit(toWei("0.000001"), tokenId);
+
+        // Waiting block
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
+        currentBlock = parseInt(await time.latestBlock());
+
+        // About reduce
+        await boost.setMinTokenReward(5000);
+        await gauge.getReward(owner.address);
+        // expect(await gauge.tokenPerBlock()).to.be.eq(BigNumber.from(toWei("1")) * 0.8);
     });
 });
