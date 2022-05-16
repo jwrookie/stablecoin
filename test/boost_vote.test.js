@@ -89,7 +89,7 @@ contract('Boost_vote', () => {
     });
     it("test boost without vote", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
@@ -104,7 +104,7 @@ contract('Boost_vote', () => {
     });
     it("test boost with vote", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
@@ -122,8 +122,8 @@ contract('Boost_vote', () => {
 
     it("test two users without vote", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1'), parseInt(eta));
-        await lock.connect(dev).create_lock(toWei('1'), parseInt(eta));
+        await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
@@ -143,8 +143,8 @@ contract('Boost_vote', () => {
     });
     it("test two users with vote", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1'), parseInt(eta));
-        await lock.connect(dev).create_lock(toWei('1'), parseInt(eta));
+        await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));

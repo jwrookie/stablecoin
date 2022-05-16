@@ -131,7 +131,7 @@ contract('Boost', () => {
     });
     it("test boost acceleration without boost", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
@@ -146,7 +146,7 @@ contract('Boost', () => {
     });
     it("test boost acceleration with boost", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
@@ -163,7 +163,7 @@ contract('Boost', () => {
     });
     it("the acceleration multiplier is 3.3", async () => {
         let eta = time.duration.days(1);
-        await lock.create_lock(toWei('1000'), parseInt(eta));
+        await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
@@ -189,8 +189,8 @@ contract('Boost', () => {
     });
     it("test two users without boost", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1'), parseInt(eta));
-        await lock.connect(dev).create_lock(toWei('1'), parseInt(eta));
+        await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
@@ -210,8 +210,8 @@ contract('Boost', () => {
     });
     it("test two users with boost", async () => {
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('1'), parseInt(eta));
-        await lock.connect(dev).create_lock(toWei('1'), parseInt(eta));
+        await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));

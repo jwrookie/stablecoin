@@ -309,10 +309,10 @@ contract('test exchange amo', async function () {
         console.log(latestPrice);
         // expect(parseInt(latestPrice)).to.be.eq(1);
 
-        expect(await usdc_uniswapOracle.PERIOD()).to.be.eq(3600);
+        expect(await usdc_uniswapOracle.period()).to.be.eq(3600);
         // Set period
         await usdc_uniswapOracle.setPeriod(1);
-        expect(await usdc_uniswapOracle.PERIOD()).to.be.eq(1);
+        expect(await usdc_uniswapOracle.period()).to.be.eq(1);
         expect(await usdc_uniswapOracle.canUpdate()).to.be.eq(true);
         // expect(await chainlinkETHUSDPriceConsumer.getLatestPrice()).to.be.eq(1);
         // Update MockChainLink value -> test token so can call set function

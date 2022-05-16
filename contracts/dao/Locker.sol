@@ -59,57 +59,51 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         uint256 tokenId,
         uint256 value,
         uint256 indexed locktime,
-        DepositType deposit_type,
+        DepositType depositType,
         uint256 ts
     );
 
-    uint256 internal immutable duration;
-    uint256 internal constant MAXTIME = 4 * 365 * 86400;
-    int128 internal constant iMAXTIME = 4 * 365 * 86400;
-    uint256 internal constant MULTIPLIER = 1 ether;
+    uint256 public constant MAXTIME = 4 * 365 * 86400;
+    int128 public constant I_MAXTIME = 4 * 365 * 86400;
+    uint256 public constant MULTIPLIER = 1 ether;
 
+    uint256 public immutable duration;
     address public immutable token;
+
     uint256 public supply;
     mapping(uint256 => LockedBalance) public locked;
 
-    mapping(uint256 => uint256) public ownership_change;
+    mapping(uint256 => uint256) public ownershipChange;
 
     uint256 public epoch;
-    mapping(uint256 => Point) public point_history; // epoch -> unsigned point
-    mapping(uint256 => Point[1000000000]) public user_point_history; // user -> Point[user_epoch]
+    mapping(uint256 => Point) public pointHistory; // epoch -> unsigned point
+    mapping(uint256 => Point[1000000000]) public userPointHistory; // user -> Point[user_epoch]
 
-    mapping(uint256 => uint256) public user_point_epoch;
-    mapping(uint256 => int128) public slope_changes; // time -> signed slope change
+    mapping(uint256 => uint256) public userPointEpoch;
+    mapping(uint256 => int128) public slopeChanges; // time -> signed slope change
 
     mapping(uint256 => bool) public voted;
     mapping(address => bool) public boosts;
 
-    string public constant name = "veNFT";
-    string public constant symbol = "veNFT";
-    string public constant version = "1.0.0";
-    uint8 public constant decimals = 18;
+    string public constant NAME = "veNFT";
+    string public constant SYMBOL = "veNFT";
+    string public constant VERSION = "1.0.0";
+    uint8 public constant DECIMALS = 18;
 
     uint256 public tokenId;
 
-    mapping(uint256 => address) internal idToOwner;
+    mapping(uint256 => address) internal _idToOwner;
 
-    mapping(uint256 => address) internal idToApprovals;
+    mapping(uint256 => address) internal _idToApprovals;
 
-    mapping(address => uint256) internal ownerToNFTokenCount;
+    mapping(address => uint256) internal _ownerToNFTokenCount;
 
-    mapping(address => mapping(uint256 => uint256)) internal ownerToNFTokenIdList;
+    mapping(address => mapping(uint256 => uint256)) internal _ownerToNFTokenIdList;
 
-    mapping(uint256 => uint256) internal tokenToOwnerIndex;
+    mapping(uint256 => uint256) internal _tokenToOwnerIndex;
 
-    mapping(address => mapping(address => bool)) internal ownerToOperators;
+    mapping(address => mapping(address => bool)) internal _ownerToOperators;
 
-    mapping(bytes4 => bool) internal supportedInterfaces;
-
-    bytes4 internal constant ERC165_INTERFACE_ID = 0x01ffc9a7;
-
-    bytes4 internal constant ERC721_INTERFACE_ID = 0x80ac58cd;
-
-    bytes4 internal constant ERC721_METADATA_INTERFACE_ID = 0x5b5e139f;
 
     constructor(
         address _operatorMsg,
@@ -117,12 +111,8 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         uint256 _duration
     ) CheckPermission(_operatorMsg) {
         token = tokenAddr;
-        point_history[0].blk = block.number;
-        point_history[0].ts = block.timestamp;
-
-        supportedInterfaces[ERC165_INTERFACE_ID] = true;
-        supportedInterfaces[ERC721_INTERFACE_ID] = true;
-        supportedInterfaces[ERC721_METADATA_INTERFACE_ID] = true;
+        pointHistory[0].blk = block.number;
+        pointHistory[0].ts = block.timestamp;
 
         duration = _duration;
 
@@ -137,25 +127,22 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         _;
     }
 
-    function supportsInterface(bytes4 _interfaceID) external view returns (bool) {
-        return supportedInterfaces[_interfaceID];
+
+    function getLastUserSlope(uint256 _tokenId) external view returns (int128) {
+        uint256 uepoch = userPointEpoch[_tokenId];
+        return userPointHistory[_tokenId][uepoch].slope;
     }
 
-    function get_last_user_slope(uint256 _tokenId) external view returns (int128) {
-        uint256 uepoch = user_point_epoch[_tokenId];
-        return user_point_history[_tokenId][uepoch].slope;
+    function userPointHistoryTs(uint256 _tokenId, uint256 _idx) external view returns (uint256) {
+        return userPointHistory[_tokenId][_idx].ts;
     }
 
-    function user_point_history__ts(uint256 _tokenId, uint256 _idx) external view returns (uint256) {
-        return user_point_history[_tokenId][_idx].ts;
-    }
-
-    function locked__end(uint256 _tokenId) external view returns (uint256) {
+    function lockedEnd(uint256 _tokenId) external view returns (uint256) {
         return locked[_tokenId].end;
     }
 
     function _balance(address _owner) internal view returns (uint256) {
-        return ownerToNFTokenCount[_owner];
+        return _ownerToNFTokenCount[_owner];
     }
 
     function balanceOf(address _owner) public view returns (uint256) {
@@ -163,26 +150,26 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function ownerOf(uint256 _tokenId) public view returns (address) {
-        return idToOwner[_tokenId];
+        return _idToOwner[_tokenId];
     }
 
     function getApproved(uint256 _tokenId) external view returns (address) {
-        return idToApprovals[_tokenId];
+        return _idToApprovals[_tokenId];
     }
 
     function isApprovedForAll(address _owner, address _operator) external view returns (bool) {
-        return (ownerToOperators[_owner])[_operator];
+        return (_ownerToOperators[_owner])[_operator];
     }
 
     function tokenOfOwnerByIndex(address _owner, uint256 _tokenIndex) external view returns (uint256) {
-        return ownerToNFTokenIdList[_owner][_tokenIndex];
+        return _ownerToNFTokenIdList[_owner][_tokenIndex];
     }
 
     function _isApprovedOrOwner(address _spender, uint256 _tokenId) internal view returns (bool) {
-        address owner = idToOwner[_tokenId];
+        address owner = _idToOwner[_tokenId];
         bool spenderIsOwner = owner == _spender;
-        bool spenderIsApproved = _spender == idToApprovals[_tokenId];
-        bool spenderIsApprovedForAll = (ownerToOperators[owner])[_spender];
+        bool spenderIsApproved = _spender == _idToApprovals[_tokenId];
+        bool spenderIsApprovedForAll = (_ownerToOperators[owner])[_spender];
         return spenderIsOwner || spenderIsApproved || spenderIsApprovedForAll;
     }
 
@@ -191,67 +178,67 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function _addTokenToOwnerList(address _to, uint256 _tokenId) internal {
-        uint256 current_count = _balance(_to);
+        uint256 currentCount = _balance(_to);
 
-        ownerToNFTokenIdList[_to][current_count] = _tokenId;
-        tokenToOwnerIndex[_tokenId] = current_count;
+        _ownerToNFTokenIdList[_to][currentCount] = _tokenId;
+        _tokenToOwnerIndex[_tokenId] = currentCount;
     }
 
     function _removeTokenFromOwnerList(address _from, uint256 _tokenId) internal {
         // Delete
-        uint256 current_count = _balance(_from) - 1;
-        uint256 current_index = tokenToOwnerIndex[_tokenId];
+        uint256 currentCount = _balance(_from) - 1;
+        uint256 currentIndex = _tokenToOwnerIndex[_tokenId];
 
-        if (current_count == current_index) {
+        if (currentCount == currentIndex) {
             // update ownerToNFTokenIdList
-            ownerToNFTokenIdList[_from][current_count] = 0;
+            _ownerToNFTokenIdList[_from][currentCount] = 0;
             // update tokenToOwnerIndex
-            tokenToOwnerIndex[_tokenId] = 0;
+            _tokenToOwnerIndex[_tokenId] = 0;
         } else {
-            uint256 lastTokenId = ownerToNFTokenIdList[_from][current_count];
+            uint256 lastTokenId = _ownerToNFTokenIdList[_from][currentCount];
 
             // Add
             // update ownerToNFTokenIdList
-            ownerToNFTokenIdList[_from][current_index] = lastTokenId;
+            _ownerToNFTokenIdList[_from][currentIndex] = lastTokenId;
             // update tokenToOwnerIndex
-            tokenToOwnerIndex[lastTokenId] = current_index;
+            _tokenToOwnerIndex[lastTokenId] = currentIndex;
 
             // Delete
             // update ownerToNFTokenIdList
-            ownerToNFTokenIdList[_from][current_count] = 0;
+            _ownerToNFTokenIdList[_from][currentCount] = 0;
             // update tokenToOwnerIndex
-            tokenToOwnerIndex[_tokenId] = 0;
+            _tokenToOwnerIndex[_tokenId] = 0;
         }
     }
 
     function _addTokenTo(address _to, uint256 _tokenId) internal {
         // Throws if `_tokenId` is owned by someone
-        assert(idToOwner[_tokenId] == address(0));
+        assert(_idToOwner[_tokenId] == address(0));
         // Change the owner
-        idToOwner[_tokenId] = _to;
+        _idToOwner[_tokenId] = _to;
         // Update owner token index tracking
         _addTokenToOwnerList(_to, _tokenId);
         // Change count tracking
-        ownerToNFTokenCount[_to] += 1;
+        _ownerToNFTokenCount[_to] += 1;
     }
 
     function _removeTokenFrom(address _from, uint256 _tokenId) internal {
         // Throws if `_from` is not the current owner
-        assert(idToOwner[_tokenId] == _from);
+        assert(_idToOwner[_tokenId] == _from);
         // Change the owner
-        idToOwner[_tokenId] = address(0);
+        _idToOwner[_tokenId] = address(0);
         // Update owner token index tracking
         _removeTokenFromOwnerList(_from, _tokenId);
         // Change count tracking
-        ownerToNFTokenCount[_from] -= 1;
+        _ownerToNFTokenCount[_from] -= 1;
     }
 
     function _clearApproval(address _owner, uint256 _tokenId) internal {
         // Throws if `_owner` is not the current owner
-        assert(idToOwner[_tokenId] == _owner);
-        if (idToApprovals[_tokenId] != address(0)) {
+        assert(_idToOwner[_tokenId] == _owner);
+        if (_idToApprovals[_tokenId] != address(0)) {
             // Reset approvals
-            idToApprovals[_tokenId] = address(0);
+            _idToApprovals[_tokenId] = address(0);
         }
     }
 
@@ -271,7 +258,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         // Add NFT
         _addTokenTo(_to, _tokenId);
         // Set the block of ownership transfer (for Flash NFT protection)
-        ownership_change[_tokenId] = block.number;
+        ownershipChange[_tokenId] = block.number;
         // Log the transfer
         emit Transfer(_from, _to, _tokenId);
     }
@@ -328,24 +315,24 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function approve(address _approved, uint256 _tokenId) public {
-        address owner = idToOwner[_tokenId];
+        address owner = _idToOwner[_tokenId];
         // Throws if `_tokenId` is not a valid NFT
         require(owner != address(0));
         // Throws if `_approved` is the current owner
         require(_approved != owner);
         // Check requirements
-        bool senderIsOwner = (idToOwner[_tokenId] == msg.sender);
-        bool senderIsApprovedForAll = (ownerToOperators[owner])[msg.sender];
+        bool senderIsOwner = (_idToOwner[_tokenId] == msg.sender);
+        bool senderIsApprovedForAll = (_ownerToOperators[owner])[msg.sender];
         require(senderIsOwner || senderIsApprovedForAll);
         // Set the approval
-        idToApprovals[_tokenId] = _approved;
+        _idToApprovals[_tokenId] = _approved;
         emit Approval(owner, _approved, _tokenId);
     }
 
     function setApprovalForAll(address _operator, bool _approved) external {
         // Throws if `_operator` is the `msg.sender`
         assert(_operator != msg.sender);
-        ownerToOperators[msg.sender][_operator] = _approved;
+        _ownerToOperators[msg.sender][_operator] = _approved;
         emit ApprovalForAll(msg.sender, _operator, _approved);
     }
 
@@ -360,161 +347,161 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
 
     function _checkpoint(
         uint256 _tokenId,
-        LockedBalance memory old_locked,
-        LockedBalance memory new_locked
+        LockedBalance memory oldLocked,
+        LockedBalance memory newLocked
     ) internal {
-        Point memory u_old;
-        Point memory u_new;
-        int128 old_dslope = 0;
-        int128 new_dslope = 0;
+        Point memory uOld;
+        Point memory uNew;
+        int128 oldDslope = 0;
+        int128 newDslope = 0;
         uint256 _epoch = epoch;
 
         if (_tokenId != 0) {
             // Calculate slopes and biases
             // Kept at zero when they have to
-            if (old_locked.end > block.timestamp && old_locked.amount > 0) {
-                u_old.slope = old_locked.amount / iMAXTIME;
-                u_old.bias = u_old.slope * int128(int256(old_locked.end - block.timestamp));
+            if (oldLocked.end > block.timestamp && oldLocked.amount > 0) {
+                uOld.slope = oldLocked.amount / I_MAXTIME;
+                uOld.bias = uOld.slope * int128(int256(oldLocked.end - block.timestamp));
             }
-            if (new_locked.end > block.timestamp && new_locked.amount > 0) {
-                u_new.slope = new_locked.amount / iMAXTIME;
-                u_new.bias = u_new.slope * int128(int256(new_locked.end - block.timestamp));
+            if (newLocked.end > block.timestamp && newLocked.amount > 0) {
+                uNew.slope = newLocked.amount / I_MAXTIME;
+                uNew.bias = uNew.slope * int128(int256(newLocked.end - block.timestamp));
             }
 
             // Read values of scheduled changes in the slope
             // old_locked.end can be in the past and in the future
             // new_locked.end can ONLY by in the FUTURE unless everything expired: than zeros
-            old_dslope = slope_changes[old_locked.end];
-            if (new_locked.end != 0) {
-                if (new_locked.end == old_locked.end) {
-                    new_dslope = old_dslope;
+            oldDslope = slopeChanges[oldLocked.end];
+            if (newLocked.end != 0) {
+                if (newLocked.end == oldLocked.end) {
+                    newDslope = oldDslope;
                 } else {
-                    new_dslope = slope_changes[new_locked.end];
+                    newDslope = slopeChanges[newLocked.end];
                 }
             }
         }
 
-        Point memory last_point = Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
+        Point memory lastPoint = Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
         if (_epoch > 0) {
-            last_point = point_history[_epoch];
+            lastPoint = pointHistory[_epoch];
         }
-        uint256 last_checkpoint = last_point.ts;
+        uint256 lastCheckpoint = lastPoint.ts;
         // initial_last_point is used for extrapolation to calculate block number
         // (approximately, for *At methods) and save them
         // as we cannot figure that out exactly from inside the contract
-        Point memory initial_last_point = last_point;
-        uint256 block_slope = 0;
+        Point memory initialLastPoint = lastPoint;
+        uint256 blockSlope = 0;
         // dblock/dt
-        if (block.timestamp > last_point.ts) {
-            block_slope = (MULTIPLIER * (block.number - last_point.blk)) / (block.timestamp - last_point.ts);
+        if (block.timestamp > lastPoint.ts) {
+            blockSlope = (MULTIPLIER * (block.number - lastPoint.blk)) / (block.timestamp - lastPoint.ts);
         }
         // If last point is already recorded in this block, slope=0
         // But that's ok b/c we know the block in such case
 
         // Go over weeks to fill history and calculate what the current point is
         {
-            uint256 t_i = (last_checkpoint / duration) * duration;
+            uint256 ti = (lastCheckpoint / duration) * duration;
             for (uint256 i = 0; i < 255; ++i) {
                 // Hopefully it won't happen that this won't get used in 5 years!
                 // If it does, users will be able to withdraw but vote weight will be broken
-                t_i += duration;
-                int128 d_slope = 0;
-                if (t_i > block.timestamp) {
-                    t_i = block.timestamp;
+                ti += duration;
+                int128 dSlope = 0;
+                if (ti > block.timestamp) {
+                    ti = block.timestamp;
                 } else {
-                    d_slope = slope_changes[t_i];
+                    dSlope = slopeChanges[ti];
                 }
-                last_point.bias -= last_point.slope * int128(int256(t_i - last_checkpoint));
-                last_point.slope += d_slope;
-                if (last_point.bias < 0) {
+                lastPoint.bias -= lastPoint.slope * int128(int256(ti - lastCheckpoint));
+                lastPoint.slope += dSlope;
+                if (lastPoint.bias < 0) {
                     // This can happen
-                    last_point.bias = 0;
+                    lastPoint.bias = 0;
                 }
-                if (last_point.slope < 0) {
+                if (lastPoint.slope < 0) {
                     // This cannot happen - just in case
-                    last_point.slope = 0;
+                    lastPoint.slope = 0;
                 }
-                last_checkpoint = t_i;
-                last_point.ts = t_i;
-                last_point.blk = initial_last_point.blk + (block_slope * (t_i - initial_last_point.ts)) / MULTIPLIER;
+                lastCheckpoint = ti;
+                lastPoint.ts = ti;
+                lastPoint.blk = initialLastPoint.blk + (blockSlope * (ti - initialLastPoint.ts)) / MULTIPLIER;
                 _epoch += 1;
-                if (t_i == block.timestamp) {
-                    last_point.blk = block.number;
+                if (ti == block.timestamp) {
+                    lastPoint.blk = block.number;
                     break;
                 } else {
-                    point_history[_epoch] = last_point;
+                    pointHistory[_epoch] = lastPoint;
                 }
             }
         }
 
         epoch = _epoch;
-        // Now point_history is filled until t=now
+        // Now pointHistory is filled until t=now
 
         if (_tokenId != 0) {
             // If last point was in this block, the slope change has been applied already
             // But in such case we have 0 slope(s)
-            last_point.slope += (u_new.slope - u_old.slope);
-            last_point.bias += (u_new.bias - u_old.bias);
-            if (last_point.slope < 0) {
-                last_point.slope = 0;
+            lastPoint.slope += (uNew.slope - uOld.slope);
+            lastPoint.bias += (uNew.bias - uOld.bias);
+            if (lastPoint.slope < 0) {
+                lastPoint.slope = 0;
             }
-            if (last_point.bias < 0) {
-                last_point.bias = 0;
+            if (lastPoint.bias < 0) {
+                lastPoint.bias = 0;
             }
         }
 
         // Record the changed point into history
-        point_history[_epoch] = last_point;
+        pointHistory[_epoch] = lastPoint;
 
         if (_tokenId != 0) {
             // Schedule the slope changes (slope is going down)
             // We subtract new_user_slope from [new_locked.end]
             // and add old_user_slope to [old_locked.end]
-            if (old_locked.end > block.timestamp) {
+            if (oldLocked.end > block.timestamp) {
                 // old_dslope was <something> - u_old.slope, so we cancel that
-                old_dslope += u_old.slope;
-                if (new_locked.end == old_locked.end) {
-                    old_dslope -= u_new.slope;
+                oldDslope += uOld.slope;
+                if (newLocked.end == oldLocked.end) {
+                    oldDslope -= uNew.slope;
                     // It was a new deposit, not extension
                 }
-                slope_changes[old_locked.end] = old_dslope;
+                slopeChanges[oldLocked.end] = oldDslope;
             }
 
-            if (new_locked.end > block.timestamp) {
-                if (new_locked.end > old_locked.end) {
-                    new_dslope -= u_new.slope;
+            if (newLocked.end > block.timestamp) {
+                if (newLocked.end > oldLocked.end) {
+                    newDslope -= uNew.slope;
                     // old slope disappeared at this point
-                    slope_changes[new_locked.end] = new_dslope;
+                    slopeChanges[newLocked.end] = newDslope;
                 }
                 // else: we recorded it already in old_dslope
             }
             // Now handle user history
-            uint256 user_epoch = user_point_epoch[_tokenId] + 1;
+            uint256 userEpoch = userPointEpoch[_tokenId] + 1;
 
-            user_point_epoch[_tokenId] = user_epoch;
-            u_new.ts = block.timestamp;
-            u_new.blk = block.number;
-            user_point_history[_tokenId][user_epoch] = u_new;
+            userPointEpoch[_tokenId] = userEpoch;
+            uNew.ts = block.timestamp;
+            uNew.blk = block.number;
+            userPointHistory[_tokenId][userEpoch] = uNew;
         }
     }
 
-    function _deposit_for(
+    function _depositFor(
         uint256 _tokenId,
         uint256 _value,
-        uint256 unlock_time,
-        LockedBalance memory locked_balance,
-        DepositType deposit_type
+        uint256 unlockTime,
+        LockedBalance memory lockedBalance,
+        DepositType depositType
     ) internal {
-        LockedBalance memory _locked = locked_balance;
-        uint256 supply_before = supply;
+        LockedBalance memory _locked = lockedBalance;
+        uint256 supplyBefore = supply;
 
-        supply = supply_before + _value;
-        LockedBalance memory old_locked;
-        (old_locked.amount, old_locked.end) = (_locked.amount, _locked.end);
+        supply = supplyBefore + _value;
+        LockedBalance memory oldLocked;
+        (oldLocked.amount, oldLocked.end) = (_locked.amount, _locked.end);
         // Adding to existing lock, or if a lock is expired - creating a new one
         _locked.amount += int128(int256(_value));
-        if (unlock_time != 0) {
-            _locked.end = unlock_time;
+        if (unlockTime != 0) {
+            _locked.end = unlockTime;
         }
         locked[_tokenId] = _locked;
 
@@ -522,15 +509,15 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         // Both old_locked.end could be current or expired (>/< block.timestamp)
         // value == 0 (extend lock) or value > 0 (add to lock or extend lock)
         // _locked.end > block.timestamp (always)
-        _checkpoint(_tokenId, old_locked, _locked);
+        _checkpoint(_tokenId, oldLocked, _locked);
 
         address from = msg.sender;
-        if (_value != 0 && deposit_type != DepositType.MERGE_TYPE) {
+        if (_value != 0 && depositType != DepositType.MERGE_TYPE) {
             assert(IERC20(token).transferFrom(from, address(this), _value));
         }
 
-        emit Deposit(from, _tokenId, _value, _locked.end, deposit_type, block.timestamp);
-        emit Supply(supply_before, supply_before + _value);
+        emit Deposit(from, _tokenId, _value, _locked.end, depositType, block.timestamp);
+        emit Supply(supplyBefore, supplyBefore + _value);
     }
 
     function addBoosts(address _address) external onlyOperator {
@@ -569,62 +556,58 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         locked[_from] = LockedBalance(0, 0);
         _checkpoint(_from, _locked0, LockedBalance(0, 0));
         _burn(_from);
-        _deposit_for(_to, value0, end, _locked1, DepositType.MERGE_TYPE);
-    }
-
-    function block_number() external view returns (uint256) {
-        return block.number;
+        _depositFor(_to, value0, end, _locked1, DepositType.MERGE_TYPE);
     }
 
     function checkpoint() external {
         _checkpoint(0, LockedBalance(0, 0), LockedBalance(0, 0));
     }
 
-    function deposit_for(uint256 _tokenId, uint256 _value) external nonReentrant {
+    function depositFor(uint256 _tokenId, uint256 _value) external nonReentrant {
         LockedBalance memory _locked = locked[_tokenId];
 
         require(_value > 0);
         // dev: need non-zero value
         require(_locked.amount > 0, "No existing lock found");
         require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
+        _depositFor(_tokenId, _value, 0, _locked, DepositType.DEPOSIT_FOR_TYPE);
     }
 
-    function _create_lock(
+    function _createLock(
         uint256 _value,
-        uint256 _lock_duration,
+        uint256 _lockDuration,
         address _to
     ) internal returns (uint256) {
-        uint256 unlock_time = ((block.timestamp + _lock_duration) / duration) * duration;
+        uint256 unlockTime = ((block.timestamp + _lockDuration) / duration) * duration;
         // Locktime is rounded down to weeks
 
         require(_value > 0, "v >0");
         require(balanceOf(_to) == 0, "less than 1 nft");
         // dev: need non-zero value
-        require(unlock_time > block.timestamp, "Can only lock until time in the future");
-        require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 4 years max");
+        require(unlockTime > block.timestamp, "Can only lock until time in the future");
+        require(unlockTime <= block.timestamp + MAXTIME, "Voting lock can be 4 years max");
 
         ++tokenId;
         uint256 _tokenId = tokenId;
         _mint(_to, _tokenId);
 
-        _deposit_for(_tokenId, _value, unlock_time, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
+        _depositFor(_tokenId, _value, unlockTime, locked[_tokenId], DepositType.CREATE_LOCK_TYPE);
         return _tokenId;
     }
 
-    function create_lock_for(
+    function createLockFor(
         uint256 _value,
-        uint256 _lock_duration,
+        uint256 _lockDuration,
         address _to
     ) external nonReentrant returns (uint256) {
-        return _create_lock(_value, _lock_duration, _to);
+        return _createLock(_value, _lockDuration, _to);
     }
 
-    function create_lock(uint256 _value, uint256 _lock_duration) external nonReentrant returns (uint256) {
-        return _create_lock(_value, _lock_duration, msg.sender);
+    function createLock(uint256 _value, uint256 _lockDuration) external nonReentrant returns (uint256) {
+        return _createLock(_value, _lockDuration, msg.sender);
     }
 
-    function increase_amount(uint256 _tokenId, uint256 _value) external nonReentrant {
+    function increaseAmount(uint256 _tokenId, uint256 _value) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -634,22 +617,22 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         require(_locked.amount > 0, "No existing lock found");
         require(_locked.end > block.timestamp, "Cannot add to expired lock. Withdraw");
 
-        _deposit_for(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
+        _depositFor(_tokenId, _value, 0, _locked, DepositType.INCREASE_LOCK_AMOUNT);
     }
 
-    function increase_unlock_time(uint256 _tokenId, uint256 _lock_duration) external nonReentrant {
+    function increaseUnlockTime(uint256 _tokenId, uint256 _lockDuration) external nonReentrant {
         assert(_isApprovedOrOwner(msg.sender, _tokenId));
 
         LockedBalance memory _locked = locked[_tokenId];
-        uint256 unlock_time = ((block.timestamp + _lock_duration) / duration) * duration;
+        uint256 unlockTime = ((block.timestamp + _lockDuration) / duration) * duration;
         // Locktime is rounded down to weeks
 
         require(_locked.end > block.timestamp, "Lock expired");
         require(_locked.amount > 0, "Nothing is locked");
-        require(unlock_time > _locked.end, "Can only increase lock duration");
-        require(unlock_time <= block.timestamp + MAXTIME, "Voting lock can be 4 years max");
+        require(unlockTime > _locked.end, "Can only increase lock duration");
+        require(unlockTime <= block.timestamp + MAXTIME, "Voting lock can be 4 years max");
 
-        _deposit_for(_tokenId, 0, unlock_time, _locked, DepositType.INCREASE_UNLOCK_TIME);
+        _depositFor(_tokenId, 0, unlockTime, _locked, DepositType.INCREASE_UNLOCK_TIME);
     }
 
     function withdraw(uint256 _tokenId) external nonReentrant {
@@ -661,8 +644,8 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         uint256 value = uint256(int256(_locked.amount));
 
         locked[_tokenId] = LockedBalance(0, 0);
-        uint256 supply_before = supply;
-        supply = supply_before - value;
+        uint256 supplyBefore = supply;
+        supply = supplyBefore - value;
 
         // old_locked can have either expired <= timestamp or zero end
         // _locked has only 0 end
@@ -675,7 +658,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         _burn(_tokenId);
 
         emit Withdraw(msg.sender, _tokenId, value, block.timestamp);
-        emit Supply(supply_before, supply_before - value);
+        emit Supply(supplyBefore, supplyBefore - value);
     }
 
     function emergencyWithdraw(uint256 _tokenId) public nonReentrant {
@@ -686,8 +669,8 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         uint256 value = uint256(int256(_locked.amount));
 
         locked[_tokenId] = LockedBalance(0, 0);
-        uint256 supply_before = supply;
-        supply = supply_before - value;
+        uint256 supplyBefore = supply;
+        supply = supplyBefore - value;
 
         assert(IERC20(token).transfer(msg.sender, value));
 
@@ -695,20 +678,20 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         _burn(_tokenId);
 
         emit Withdraw(msg.sender, _tokenId, value, block.timestamp);
-        emit Supply(supply_before, supply_before - value);
+        emit Supply(supplyBefore, supplyBefore - value);
     }
 
-    function _find_block_epoch(uint256 _block, uint256 max_epoch) internal view returns (uint256) {
+    function _findBlockEpoch(uint256 _block, uint256 maxEpoch) internal view returns (uint256) {
         // Binary search
         uint256 _min = 0;
-        uint256 _max = max_epoch;
+        uint256 _max = maxEpoch;
         for (uint256 i = 0; i < 128; ++i) {
             // Will be always enough for 128-bit numbers
             if (_min >= _max) {
                 break;
             }
             uint256 _mid = (_min + _max + 1) / 2;
-            if (point_history[_mid].blk <= _block) {
+            if (pointHistory[_mid].blk <= _block) {
                 _min = _mid;
             } else {
                 _max = _mid - 1;
@@ -718,28 +701,28 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function _balanceOfNFT(uint256 _tokenId, uint256 _t) internal view returns (uint256) {
-        uint256 _epoch = user_point_epoch[_tokenId];
+        uint256 _epoch = userPointEpoch[_tokenId];
         if (_epoch == 0) {
             return 0;
         } else {
-            Point memory last_point = user_point_history[_tokenId][_epoch];
-            last_point.bias -= last_point.slope * int128(int256(_t) - int256(last_point.ts));
-            if (last_point.bias < 0) {
-                last_point.bias = 0;
+            Point memory lastPoint = userPointHistory[_tokenId][_epoch];
+            lastPoint.bias -= lastPoint.slope * int128(int256(_t) - int256(lastPoint.ts));
+            if (lastPoint.bias < 0) {
+                lastPoint.bias = 0;
             }
-            return uint256(int256(last_point.bias));
+            return uint256(int256(lastPoint.bias));
         }
     }
 
     function tokenURI(uint256 _tokenId) external view returns (string memory) {
-        require(idToOwner[_tokenId] != address(0), "Query for nonexistent token");
+        require(_idToOwner[_tokenId] != address(0), "Query for nonexistent token");
         LockedBalance memory _locked = locked[_tokenId];
         return
             _tokenURI(_tokenId, _balanceOfNFT(_tokenId, block.timestamp), _locked.end, uint256(int256(_locked.amount)));
     }
 
     function balanceOfNFT(uint256 _tokenId) external view returns (uint256) {
-        if (ownership_change[_tokenId] == block.number) return 0;
+        if (ownershipChange[_tokenId] == block.number) return 0;
         return _balanceOfNFT(_tokenId, block.timestamp);
     }
 
@@ -754,41 +737,41 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
 
         // Binary search
         uint256 _min = 0;
-        uint256 _max = user_point_epoch[_tokenId];
+        uint256 _max = userPointEpoch[_tokenId];
         for (uint256 i = 0; i < 128; ++i) {
             // Will be always enough for 128-bit numbers
             if (_min >= _max) {
                 break;
             }
             uint256 _mid = (_min + _max + 1) / 2;
-            if (user_point_history[_tokenId][_mid].blk <= _block) {
+            if (userPointHistory[_tokenId][_mid].blk <= _block) {
                 _min = _mid;
             } else {
                 _max = _mid - 1;
             }
         }
 
-        Point memory upoint = user_point_history[_tokenId][_min];
+        Point memory upoint = userPointHistory[_tokenId][_min];
 
-        uint256 max_epoch = epoch;
-        uint256 _epoch = _find_block_epoch(_block, max_epoch);
-        Point memory point_0 = point_history[_epoch];
-        uint256 d_block = 0;
-        uint256 d_t = 0;
-        if (_epoch < max_epoch) {
-            Point memory point_1 = point_history[_epoch + 1];
-            d_block = point_1.blk - point_0.blk;
-            d_t = point_1.ts - point_0.ts;
+        uint256 maxEpoch = epoch;
+        uint256 _epoch = _findBlockEpoch(_block, maxEpoch);
+        Point memory point0 = pointHistory[_epoch];
+        uint256 dBlock = 0;
+        uint256 dt = 0;
+        if (_epoch < maxEpoch) {
+            Point memory point1 = pointHistory[_epoch + 1];
+            dBlock = point1.blk - point0.blk;
+            dt = point1.ts - point0.ts;
         } else {
-            d_block = block.number - point_0.blk;
-            d_t = block.timestamp - point_0.ts;
+            dBlock = block.number - point0.blk;
+            dt = block.timestamp - point0.ts;
         }
-        uint256 block_time = point_0.ts;
-        if (d_block != 0) {
-            block_time += (d_t * (_block - point_0.blk)) / d_block;
+        uint256 blockTime = point0.ts;
+        if (dBlock != 0) {
+            blockTime += (dt * (_block - point0.blk)) / dBlock;
         }
 
-        upoint.bias -= upoint.slope * int128(int256(block_time - upoint.ts));
+        upoint.bias -= upoint.slope * int128(int256(blockTime - upoint.ts));
         if (upoint.bias >= 0) {
             return uint256(uint128(upoint.bias));
         } else {
@@ -800,35 +783,35 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         return _balanceOfAtNFT(_tokenId, _block);
     }
 
-    function _supply_at(Point memory point, uint256 t) internal view returns (uint256) {
-        Point memory last_point = point;
-        uint256 t_i = (last_point.ts / duration) * duration;
+    function _supplyAt(Point memory point, uint256 t) internal view returns (uint256) {
+        Point memory lastPoint = point;
+        uint256 ti = (lastPoint.ts / duration) * duration;
         for (uint256 i = 0; i < 255; ++i) {
-            t_i += duration;
-            int128 d_slope = 0;
-            if (t_i > t) {
-                t_i = t;
+            ti += duration;
+            int128 dSlope = 0;
+            if (ti > t) {
+                ti = t;
             } else {
-                d_slope = slope_changes[t_i];
+                dSlope = slopeChanges[ti];
             }
-            last_point.bias -= last_point.slope * int128(int256(t_i - last_point.ts));
-            if (t_i == t) {
+            lastPoint.bias -= lastPoint.slope * int128(int256(ti - lastPoint.ts));
+            if (ti == t) {
                 break;
             }
-            last_point.slope += d_slope;
-            last_point.ts = t_i;
+            lastPoint.slope += dSlope;
+            lastPoint.ts = ti;
         }
 
-        if (last_point.bias < 0) {
-            last_point.bias = 0;
+        if (lastPoint.bias < 0) {
+            lastPoint.bias = 0;
         }
-        return uint256(uint128(last_point.bias));
+        return uint256(uint128(lastPoint.bias));
     }
 
     function totalSupplyAtT(uint256 t) public view returns (uint256) {
         uint256 _epoch = epoch;
-        Point memory last_point = point_history[_epoch];
-        return _supply_at(last_point, t);
+        Point memory lastPoint = pointHistory[_epoch];
+        return _supplyAt(lastPoint, t);
     }
 
     function totalSupply() external view returns (uint256) {
@@ -838,14 +821,14 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     function totalSupplyAt(uint256 _block) external view returns (uint256) {
         assert(_block <= block.number);
         uint256 _epoch = epoch;
-        uint256 target_epoch = _find_block_epoch(_block, _epoch);
+        uint256 targetEpoch = _findBlockEpoch(_block, _epoch);
 
-        Point memory point = point_history[target_epoch];
+        Point memory point = pointHistory[targetEpoch];
         uint256 dt = 0;
-        if (target_epoch < _epoch) {
-            Point memory point_next = point_history[target_epoch + 1];
-            if (point.blk != point_next.blk) {
-                dt = ((_block - point.blk) * (point_next.ts - point.ts)) / (point_next.blk - point.blk);
+        if (targetEpoch < _epoch) {
+            Point memory pointNext = pointHistory[targetEpoch + 1];
+            if (point.blk != pointNext.blk) {
+                dt = ((_block - point.blk) * (pointNext.ts - point.ts)) / (pointNext.blk - point.blk);
             }
         } else {
             if (point.blk != block.number) {
@@ -853,33 +836,33 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
             }
         }
         // Now dt contains info on how far are we beyond point
-        return _supply_at(point, point.ts + dt);
+        return _supplyAt(point, point.ts + dt);
     }
 
     function _tokenURI(
         uint256 _tokenId,
         uint256 _balanceOf,
-        uint256 _locked_end,
+        uint256 _lockedEnd,
         uint256 _value
     ) internal pure returns (string memory output) {
         output = '<svg xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet" viewBox="0 0 350 350"><style>.base { fill: white; font-family: serif; font-size: 14px; }</style><rect width="100%" height="100%" fill="black" /><text x="10" y="20" class="base">';
         output = string(
-            abi.encodePacked(output, "token ", toString(_tokenId), '</text><text x="10" y="40" class="base">')
+            abi.encodePacked(output, "token ", _toString(_tokenId), '</text><text x="10" y="40" class="base">')
         );
         output = string(
-            abi.encodePacked(output, "balanceOf ", toString(_balanceOf), '</text><text x="10" y="60" class="base">')
+            abi.encodePacked(output, "balanceOf ", _toString(_balanceOf), '</text><text x="10" y="60" class="base">')
         );
         output = string(
-            abi.encodePacked(output, "locked_end ", toString(_locked_end), '</text><text x="10" y="80" class="base">')
+            abi.encodePacked(output, "locked_end ", _toString(_lockedEnd), '</text><text x="10" y="80" class="base">')
         );
-        output = string(abi.encodePacked(output, "value ", toString(_value), "</text></svg>"));
+        output = string(abi.encodePacked(output, "value ", _toString(_value), "</text></svg>"));
 
         string memory json = Base64.encode(
             bytes(
                 string(
                     abi.encodePacked(
                         '{"name": "lock #',
-                        toString(_tokenId),
+                        _toString(_tokenId),
                         '", "description": "Solidly locks, can be used to boost gauge yields, vote on token emission, and receive bribes", "image": "data:image/svg+xml;base64,',
                         Base64.encode(bytes(output)),
                         '"}'
@@ -890,7 +873,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         output = string(abi.encodePacked("data:application/json;base64,", json));
     }
 
-    function toString(uint256 value) internal pure returns (string memory) {
+    function _toString(uint256 value) internal pure returns (string memory) {
         // Inspired by OraclizeAPI's implementation - MIT license
         // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol
 

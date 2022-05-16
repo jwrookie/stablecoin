@@ -198,7 +198,7 @@ contract('Crypto', () => {
         //token0 -> weth
         await swapRouter.swapEthForToken(pool.address, 0, 1, dx, 0, owner.address, times);
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
 
@@ -219,7 +219,7 @@ contract('Crypto', () => {
         await swapRouter.swapEthForToken(pool.address, 0, 1, dx, 0, owner.address, times);
 
         let eta = time.duration.days(7);
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
 

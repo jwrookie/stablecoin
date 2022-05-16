@@ -74,7 +74,7 @@ contract('Gauge', async function () {
         gaugeAddress = await boost.gauges(frax.address);
         gauge = await Gauge.attach(gaugeAddress);
         await frax.approve(gauge.address, toWei("10000"));
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
+        await locker.createLock(toWei("0.1"), ONE_DAT_DURATION);
         tokenId = await locker.tokenId();
     });
     it("update pool and use gauge", async function () {

@@ -52,11 +52,11 @@ contract('Locker', () => {
 
 
     });
-    it("test create_lock and withdraw", async () => {
+    it("test createLock and withdraw", async () => {
         let amountfxs = await fxs.balanceOf(owner.address)
         await fxs.approve(lock.address, toWei('1000'))
         let eta = time.duration.days(1);
-        await lock.create_lock("1000", parseInt(eta));
+        await lock.createLock("1000", parseInt(eta));
 
         let amountfxsBef = await fxs.balanceOf(owner.address)
 
@@ -71,12 +71,12 @@ contract('Locker', () => {
         expect(lockInfo[0]).to.be.eq("1000");
 
         let eta1 = time.duration.days(2);
-        await lock.increase_amount(1, "4000")
+        await lock.increaseAmount(1, "4000")
         lockInfo = await lock.locked(1);
         expect(lockInfo[0]).to.be.eq("5000");
         let lockBef = lockInfo[1];
 
-        await lock.increase_unlock_time(1, parseInt(eta1));
+        await lock.increaseUnlockTime(1, parseInt(eta1));
 
         lockInfo = await lock.locked(1);
         let lockendAft = +lockInfo[1];
@@ -94,13 +94,13 @@ contract('Locker', () => {
 
     });
 
-    it("test create_lock_for and withdraw", async () => {
+    it("test createLockFor and withdraw", async () => {
 
         let amountfxs = await fxs.balanceOf(dev.address);
         await fxs.connect(dev).approve(lock.address, toWei('1000'));
         let eta = time.duration.days(1);
 
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+        await lock.connect(dev).createLockFor("1000", parseInt(eta), dev.address);
 
         let amountfxsBef = await fxs.balanceOf(dev.address);
 

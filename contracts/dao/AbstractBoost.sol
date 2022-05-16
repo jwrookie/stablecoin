@@ -24,7 +24,7 @@ abstract contract AbstractBoost is TokenReward {
     uint256 public totalWeight; // total voting weight
 
     address public immutable veToken; // the ve token that governs these contracts
-    address internal immutable base;
+    address internal immutable _base;
 
     mapping(address => int256) public weights; // pool => weight
     mapping(uint256 => mapping(address => int256)) public votes; // nft => pool => votes
@@ -40,7 +40,7 @@ abstract contract AbstractBoost is TokenReward {
         uint256 _period
     ) TokenReward(_operatorMsg, _swapToken, _tokenPerBlock, _startBlock, _period) {
         veToken = __ve;
-        base = IVeToken(__ve).token();
+        _base = IVeToken(__ve).token();
     }
 
     function getPoolVote(uint256 tokenId) public view returns (address[] memory) {
