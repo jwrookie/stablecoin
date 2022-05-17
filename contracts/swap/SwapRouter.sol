@@ -208,7 +208,11 @@ contract SwapRouter is CheckPermission {
             TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), _from_amount);
         }
 
-        ICryptoPool(pool).exchange{value : bal}(from, to, _from_amount, _min_to_amount, true, receiver);
+        if (fromToken == WETH) {
+            ICryptoPool(pool).exchange{value : bal}(from, to, _from_amount, _min_to_amount, true, receiver);
+        } else {
+            ICryptoPool(pool).exchange(from, to, _from_amount, _min_to_amount, true, receiver);
+        }
         callCryptoSwapMining(receiver, pool, from, _from_amount);
     }
 
