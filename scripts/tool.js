@@ -16,14 +16,14 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
-    let frax = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
-    let pool = "0x618b5142Ca5804ABa43882c4Ae7a51D7AF5a9864"
-    let lock = "0x85a549bd0Cca5B0ab930D62BAcb7a1aa3c3BF2aa"
-    let swapMining = "0x27D801020b531154003ba9f31598FbBf3C0A1d01"
+    let fxs = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
+    let frax = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
+    let pool = "0x4406d41F93E1cb9eA147B61e1358D16C985C6aa9"
+    let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
+    // let swapMining = "0x27D801020b531154003ba9f31598FbBf3C0A1d01"
 
 
     for (const account of accounts) {
@@ -54,7 +54,7 @@ async function main() {
 
     const CalcTool = await ethers.getContractFactory('CalcTool', {
         libraries: {
-            PoolLibrary: "0x6b60Ba3E76CaAD657D4A01dEd8Ee2c315ccF281A",
+            PoolLibrary: "0xc39b3260e176C722926dC6F43B5A10b3249faEC8",
         },
     });
 

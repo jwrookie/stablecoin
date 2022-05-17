@@ -299,7 +299,7 @@ contract('SwapController', () => {
 
 
     });
-    it('users cannot vote again before the cycle', async () => {
+    it('users can not vote again before the cycle', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
@@ -328,18 +328,28 @@ contract('SwapController', () => {
 
 
     });
-    it('transaction mining multi-user single pool voting', async () => {
+     it('transaction mining,single user,single pool voting, reset and re voting', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await swapController.connect(dev).vote(1, pool.address);
+
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).reset(1);
+
+        await time.increase(time.duration.days(1));
+
+        await swapController.connect(dev).vote(1, pool.address);
+
+
+    });
+
+    it('transaction mining,two users,single pool voting, reset and re voting', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
         await lock.create_lock(toWei('10'), parseInt(eta));
 
-        let info = await swapMining.poolInfo(0);
-        expect(info[2]).to.be.eq("100");
-
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
-        info = await swapMining.poolInfo(0);
-        expect(info[2]).to.be.not.eq("100");
 
         await time.increase(time.duration.days(1));
         await swapController.connect(dev).reset(1);
@@ -349,11 +359,6 @@ contract('SwapController', () => {
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
 
-        let usedWeightsDev = await swapController.usedWeights(1);
-        let usedWeightsOwner = await swapController.usedWeights(2);
-
-        let totalWeight = await swapController.totalWeight();
-        expect(totalWeight).to.be.eq(usedWeightsDev.add(usedWeightsOwner));
 
 
     });
