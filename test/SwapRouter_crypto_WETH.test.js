@@ -11,7 +11,7 @@ const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
 const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
 const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
-const {toWei} = web3.utils;
+const {toWei, fromWei, toBN} = web3.utils;
 const WETH9 = require('./mock/WETH9.json');
 const {BigNumber} = require('ethers');
 const gas = {gasLimit: "9550000"};
@@ -230,6 +230,46 @@ contract('Crypto', () => {
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990.735'));
 
 
+    });
+
+    it('test swapEth exchange eth->', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await weth9.approve(swapRouter.address, toWei('100000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = "1000";
+
+        let token0Bef =  await token0.balanceOf(owner.address);
+        let ethBef =  await web3.eth.getBalance(owner.address);
+        await swapRouter.swapEthForToken(pool.address, 1, 0, dx, 0, owner.address, times, {value: dx});
+
+        reword = await swapMining.rewardInfo(owner.address);
+        await swapMining.getReward(0);
+
+        let token0Aft =  await token0.balanceOf(owner.address);
+        let ethAft =  await web3.eth.getBalance(owner.address);
+
+        expect(BigNumber.from(token0Aft)).to.be.eq(BigNumber.from(token0Bef).add("970"));
+    });
+
+    it('test swapEth exchange eth<-', async () => {
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await weth9.approve(swapRouter.address, toWei('100000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = "1000";
+
+        let token0Bef =  await token0.balanceOf(owner.address);
+        let ethBef =  await web3.eth.getBalance(owner.address);
+        await swapRouter.swapEthForToken(pool.address, 0, 1, dx, 0, owner.address, times, {value: dx});
+
+        reword = await swapMining.rewardInfo(owner.address);
+        await swapMining.getReward(0);
+
+        let token0Aft =  await token0.balanceOf(owner.address);
+        let ethAft =  await web3.eth.getBalance(owner.address);
+
+        expect(BigNumber.from(token0Aft)).to.be.eq(BigNumber.from(token0Bef).sub("1000"));
     });
 
 });
