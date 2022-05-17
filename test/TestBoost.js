@@ -1,7 +1,7 @@
 const {GetRusdAndTra,SetRusdAndTraConfig} = require("./Utils/GetStableConfig");
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetGauge} = require("./Utils/GetGaugeAboutBoost");
+const {GetGauge, GetBoost} = require("./Utils/GetGaugeAboutBoost");
 const {expect} = require("chai");
 const {BigNumber} = require('ethers');
 const {toWei, fromWei, toBN} = require("web3-utils");
@@ -68,7 +68,7 @@ contract('Boost、Gauge、GaugeController', async function () {
         tokenId = await locker.tokenId();
     });
 
-    it('test Single user and more gauges to vote and get reward will fail', async function () {
+    it('test Single user user multiple gauge strategies to vote and get reward will fail', async function () {
         await boost.createGauge(token0.address, toWei("0.5"), false);
         let token0Gauge = await GetGauge(boost, token0);
         await token0.approve(token0Gauge.address, toWei("0.5"));
@@ -93,7 +93,7 @@ contract('Boost、Gauge、GaugeController', async function () {
         expect(await tra.balanceOf(owner.address)).to.be.eq(afterGetReward);
     });
 
-    it('test Single user to speed more pools and get reward', async function () {
+    it('test Single user to speed multiple gauge strategies and get reward', async function () {
         await boost.createGauge(token0.address, toWei("0.5"), false);
         let token0Gauge = await GetGauge(boost, token0);
         await token0.approve(token0Gauge.address, toWei("0.5"));
@@ -115,7 +115,7 @@ contract('Boost、Gauge、GaugeController', async function () {
         expect(fromWei(toBN(secondSub))).to.be.eq(fromWei(toBN(sub)));
     });
 
-    it('test Single user deposit and vote and get reward and than tokenperblock change to eighty percent', async function () {
+    it('test Single user use gauge strategies to deposit and use boost strategies to speeding and than tokenperblock change to eighty percent', async function () {
         await gaugeController.setDuration(parseInt(await time.duration.days(1)));
         await gaugeController.addPool(rusd.address);
 
@@ -131,7 +131,7 @@ contract('Boost、Gauge、GaugeController', async function () {
         expect(await gauge.tokenPerBlock()).to.be.eq(BigNumber.from(toWei("1")).mul(80).div(100));
     });
 
-    it('test More users and more pools', async function () {
+    it('test More users use gauge strategies', async function () {
         /*
         Two pools of two users,
         where one user speeds up and the other user doesn't speed up to see the difference in rewards
@@ -162,7 +162,7 @@ contract('Boost、Gauge、GaugeController', async function () {
         expect(fromWei(toBN(sub))).to.be.eq("1");
     });
 
-    it('test More users and get get reward', async function () {
+    it('test More users and get reward', async function () {
         /*
         One of them is not accelerated, the other one is only accelerated
          */

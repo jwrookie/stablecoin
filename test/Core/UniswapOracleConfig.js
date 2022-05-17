@@ -30,7 +30,7 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
     for (let i = 0; i < argumentsLength; i++) {
         argument = arguments[i];
         if (ZEROADDRESS === argument.address || undefined === argument.address) {
-            return Error("Address zero exists!");
+            throw "Address zero exists!";
         }
     }
 
@@ -56,7 +56,7 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
             expect(await coinPair.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
-            return Error("Unknow token!");
+            throw "Unknow token!";
     }
     return uniswapOracle;
 }

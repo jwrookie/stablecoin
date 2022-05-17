@@ -5,11 +5,11 @@ const {ZEROADDRESS} = require("../Lib/Address");
 const GetRusdAndTra = async () => {
     let resultArray = new Array();
 
-    oracle = await SetOracle();
-    operatable = await SetOperatable();
-    checkOpera = await SetCheckPermission(operatable);
-    rusd = await SetRusd(operatable);
-    tra = await SetTra(operatable, oracle);
+    let oracle = await SetOracle();
+    let operatable = await SetOperatable();
+    let checkOpera = await SetCheckPermission(operatable);
+    let rusd = await SetRusd(operatable);
+    let tra = await SetTra(operatable, oracle);
 
     resultArray.push(oracle, operatable, checkOpera, rusd, tra);
 
@@ -18,7 +18,7 @@ const GetRusdAndTra = async () => {
 
 const SetRusdAndTraConfig = async (rusd, tra) => {
     if (ZEROADDRESS === rusd.address || ZEROADDRESS === tra.address) {
-        return Error("Invaild Token!");
+        throw "Invaild Token!";
     }
     await tra.setStableAddress(rusd.address);
     await rusd.setStockAddress(tra.address);
@@ -28,7 +28,7 @@ const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
     let stableCoinPool;
 
     if (0 >= poolCelling) {
-        return Error("Invaild pool celling!");
+        throw "Invaild pool celling!";
     }
     const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
     fraxPoolLibrary = await FraxPoolLibrary.deploy();
