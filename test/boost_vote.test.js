@@ -167,6 +167,62 @@ contract('Boost_vote', () => {
 
 
     });
+    it('mobile mining, single user deposit, single pool voting, reset and re voting', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
+
+        await gaugeController.connect(dev).vote(1, usdc.address);
+
+        await time.increase(time.duration.days(1));
+        await gaugeController.connect(dev).reset(1);
+
+        await time.increase(time.duration.days(1));
+
+        await gaugeController.connect(dev).vote(1, usdc.address);
+
+
+    });
+    it('mobile mining,two users deposit, single pool voting, reset and re voting', async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.create_lock(toWei('10'), parseInt(eta));
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
+        await gauge_usdc.deposit(toWei('10'), 2);
+
+        await gaugeController.connect(dev).vote(1, usdc.address);
+        await gaugeController.vote(2, usdc.address);
+
+        await time.increase(time.duration.days(1));
+        await gaugeController.connect(dev).reset(1);
+        await gaugeController.reset(2);
+
+        await time.increase(time.duration.days(1));
+
+        await gaugeController.connect(dev).vote(1, usdc.address);
+        await gaugeController.vote(2, usdc.address);
+
+
+    });
+    it("users can speed up, reset, and vote again", async () => {
+        let eta = time.duration.days(7);
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
+
+        await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
+
+        await boost.connect(dev).reset(1);
+
+        await gaugeController.connect(dev).vote(1, usdc.address);
+
+    })
 
 
 });

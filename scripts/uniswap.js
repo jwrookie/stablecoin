@@ -16,7 +16,7 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
     // let dai = "0xD4EDbFcDB6E5eBFA20e09a1B216ca5c84e4Ad889"
     //
     // let usdt = "0xfecaB3217751C1c92301F827e309ec552100dAC1"
@@ -30,8 +30,8 @@ async function main() {
 
      let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let rusd = '0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d'
-    let tra = '0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31'
+    let rusd = '0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D'
+    let tra = '0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9'
 
 
 
