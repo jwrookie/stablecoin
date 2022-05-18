@@ -222,7 +222,8 @@ contract('Boost_vote', () => {
 
         await gaugeController.connect(dev).vote(1, usdc.address);
 
-    })
+    });
+
 
 
 });
