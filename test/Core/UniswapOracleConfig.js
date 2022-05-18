@@ -44,7 +44,6 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
         timeLock.address
     )
 
-    // TODO TYPE OF ASSERTIONS
     switch (coinPairs.address) {
         case USDC:
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
