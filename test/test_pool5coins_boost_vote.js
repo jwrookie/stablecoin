@@ -587,21 +587,6 @@ contract('SwapRouter5Coins', () => {
         let fxsAft2 = await fxs.balanceOf(owner.address);
         let diff2 = fxsAft2.sub(fxsAft1);
         expect(diff2).to.be.eq(toWei("0.21"));
-
-        let tokenWeightBef1 = await swapController.usedWeights(tokenId);
-
-        await time.increase(time.duration.days(1));
-        await swapController.vote(tokenId, curveToken.address);
-
-        let tokenWeightAft1 = await swapController.usedWeights(tokenId);
-        expect(tokenWeightAft1).to.be.gt(tokenWeightBef1);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times);
-        await swapMining.getReward(0);
-        let fxsAft3 = await fxs.balanceOf(owner.address);
-        let diff3 = fxsAft3.sub(fxsAft2);
-
-        expect(diff3).to.be.eq(toWei("0.21"));
     });
 
     it('test swap mining with boost', async () => {
