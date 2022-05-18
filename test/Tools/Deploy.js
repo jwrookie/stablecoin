@@ -1,4 +1,4 @@
-const {Weth,Factory,Router,Registry,PoolRegistry,CRVFactory,Plain3Balances} = require("../Core/LibSourceConfig");
+const {Weth,Factory,Router,Registry,PoolRegistry,CRVFactory,Plain3Balances,SetPlainImplementations} = require("../Core/LibSourceConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetConfigAboutCRV = async (user) => {
@@ -26,6 +26,8 @@ const GetConfigAboutCRV = async (user) => {
     }catch (err) {
         throw "Get object fail!";
     }
+
+    await SetPlainImplementations(crvFactory, 3, [plain3Balances]);
 
     resultArray.push(weth, factory, router, registry, poolRegistry, crvFactory, plain3Balances);
 
