@@ -1,34 +1,28 @@
 const {ethers} = require('hardhat');
-const {SetOracle, SetOperatable, SetRusd, SetTra, SetCheckPermission} = require("../Core/StableConfig");
+const {TokenFactory} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
-    let resultArray = new Array();
+    let resultArray;
 
-    oracle = await SetOracle();
-    operatable = await SetOperatable();
-    checkOpera = await SetCheckPermission(operatable);
-    rusd = await SetRusd(operatable);
-    tra = await SetTra(operatable, oracle);
-
-    resultArray.push(oracle, operatable, checkOpera, rusd, tra);
+    resultArray = await TokenFactory();
 
     return resultArray;
 }
 
 const SetRusdAndTraConfig = async (rusd, tra) => {
     if (ZEROADDRESS === rusd.address || ZEROADDRESS === tra.address) {
-        return Error("Invaild Token!");
+        throw "Invalid token!";
     }
     await tra.setStableAddress(rusd.address);
     await rusd.setStockAddress(tra.address);
 }
 
-const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
+const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
     let stableCoinPool;
 
     if (0 >= poolCelling) {
-        return Error("Invaild pool celling!");
+        throw "Invalid pool celling!";
     }
     const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
     fraxPoolLibrary = await FraxPoolLibrary.deploy();
@@ -38,7 +32,7 @@ const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
         },
     });
     stableCoinPool = await PoolUsdc.deploy(
-        operater.address,
+        checkPermission.address,
         rusd.address,
         tra.address,
         usdc.address,
