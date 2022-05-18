@@ -4,28 +4,29 @@ const {SetGauge, SetBoost} = require("../Core/DaoConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetBoost = async (
-    checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period, token
+    checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period, token = []
 ) => {
     let resultArray = new Array();
     let boost;
     let gauge;
+    let tempToken;
 
     if (0 >= rewardNumber || 0 >= startBlock || 0 >= period) {
         throw "Invaild Set value!";
     }
 
-    console.log(checkOperator.address);
-    console.log(locker.address);
-    console.log(factory.address);
-    console.log(swapToken.address);
-
     boost = await SetBoost(checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period);
 
-    await boost.createGauge(token.address, toWei(("1")), false);
+    if (undefined !== boost) {
+        resultArray.push(boost);
+    }
 
-    gauge = await GetGauge(boost, token);
-
-    resultArray.push(boost, gauge);
+    for (let i = 0; i < token.length; i++) {
+        tempToken = token[i];
+        await boost.createGauge(tempToken.address, toWei(("1")), false);
+        gauge = await GetGauge(boost, tempToken);
+        resultArray.push(gauge);
+    }
 
     return resultArray;
 }
@@ -34,11 +35,7 @@ const GetGauge = async (boost, token) => {
     let gaugeAddress;
     let gauge;
 
-    console.log("boost\t" + boost.address);
-    console.log("coin\t" + token.address);
-    console.log(await boost.gauges(token.address));
     gaugeAddress = await boost.gauges(token.address);
-    console.log(gaugeAddress)
 
     if (ZEROADDRESS === gaugeAddress) {
         throw "Exist invaild gauge address!"
