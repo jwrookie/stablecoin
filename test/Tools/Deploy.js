@@ -19,6 +19,7 @@ const GetConfigAboutCRV = async (user) => {
         weth = await Weth(user);
         factory = await Factory(user);
         router = await Router(user, factory, weth);
+        // TODO SET ADDRESS
         registry = await Registry(user);
         poolRegistry = await PoolRegistry(user, registry);
         crvFactory = await CRVFactory(user, registry);
@@ -26,6 +27,8 @@ const GetConfigAboutCRV = async (user) => {
     }catch (err) {
         throw "Get object fail!";
     }
+
+    // TODO APPROVE ROUTER
 
     await SetPlainImplementations(crvFactory, 3, [plain3Balances]);
 
