@@ -6,7 +6,7 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth, 
 
     for (let i = 0; i < arguments.length; i++) {
         if (ZEROADDRESS === arguments[i] || null === arguments[i] || undefined === arguments[i]) {
-            throw "Exist invaild address!";
+            throw "Exist Invalid address!";
         }
     }
 

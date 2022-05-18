@@ -97,11 +97,11 @@ const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 
                 if (i === 3) {
                     tempTokenArray.push(ZEROADDRESS);
                 }else {
-                    throw "Exist Invaild Token!";
+                    throw "Exist invalid Token!";
                 }
                 break;
             case ZEROADDRESS:
-                throw "Exist Invaild Token!";
+                throw "Exist invalid Token!";
             default:
                 tempTokenArray.push(tempToken);
                 break;

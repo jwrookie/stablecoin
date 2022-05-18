@@ -1,10 +1,11 @@
 const {ethers} = require('hardhat');
+const {RUSD,TRA,USDC} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require('../Lib/Address');
 const {BigNumber} = require('ethers');
 
 const SetTimeLock = async (userAddress, timeLockDuration = 259200) => {
     if (0 >= timeLockDuration) {
-        return Error("Please input right time!");
+        throw "Please input right time!";
     }
     const Timelock = await ethers.getContractFactory("Timelock");
     return await Timelock.deploy(userAddress.address, BigNumber.from(timeLockDuration));
@@ -44,20 +45,20 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
     )
 
     // TODO TYPE OF ASSERTIONS
-    switch (coinPairs) {
-        case usdc:
+    switch (coinPairs.address) {
+        case USDC:
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
             break;
-        case rusd:
+        case RUSD:
             await SetStableEthOracle(coinPair, uniswapOracle, weth);
             expect(await coinPair.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
-        case tra:
+        case TRA:
             await SetStockEthOracle(coinPair, uniswapOracle, weth);
             expect(await coinPair.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
-            throw "Unknow token!";
+            throw "Unknown token!";
     }
     return uniswapOracle;
 }
