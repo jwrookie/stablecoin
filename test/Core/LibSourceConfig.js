@@ -82,7 +82,7 @@ const SetPlainImplementations = async (crvFactory, coinInPoolNumber, poolArray =
     await crvFactory.set_plain_implementations(coinInPoolNumber, factoryArray);
 }
 
-const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification, fee, gas) => {
+const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 0, fee = 0, gas) => {
     let tempTokenArray = new Array(4);
     let tempToken;
 
@@ -92,12 +92,19 @@ const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification, f
 
     for (let i = 0; i < tempTokenArray.length; i++) {
         tempToken = tokenArray[i];
-        if (undefined === tempToken && i === 3) {
-            tempTokenArray.push(ZEROADDRESS);
-        }else if (undefined !== tempToken && ZEROADDRESS !== tempToken) {
-            tempTokenArray.push(tempToken);
-        }else {
-            throw "Exist Invaild token!";
+        switch (tempToken) {
+            case undefined:
+                if (i === 3) {
+                    tempTokenArray.push(ZEROADDRESS);
+                }else {
+                    throw "Exist Invaild Token!";
+                }
+                break;
+            case ZEROADDRESS:
+                throw "Exist Invaild Token!";
+            default:
+                tempTokenArray.push(tempToken);
+                break;
         }
     }
 
