@@ -1,7 +1,8 @@
 const {SetTimeLock, SetUniswapOracle} = require("../Core/UniswapOracleConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
-const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth, user) => {
+const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) => {
+    let tempUniswapOracle;
     let tempTimeLock = await SetTimeLock(userAddress);
 
     for (let i = 0; i < arguments.length; i++) {
@@ -10,7 +11,8 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth, 
         }
     }
 
-    await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, user, tempTimeLock);
+    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, userAddress, tempTimeLock);
+    return tempUniswapOracle;
 }
 
 module.exports = {

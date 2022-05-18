@@ -1,5 +1,5 @@
 const {ethers} = require('hardhat');
-const {RUSD,TRA,USDC} = require("../Factory/StableAndMockFactory");
+const {GraphicToken} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require('../Lib/Address');
 const {BigNumber} = require('ethers');
 
@@ -15,25 +15,16 @@ const SetCollatETHOracle = async (stableCoinPool, setConfig, ethAddress) => {
     await stableCoinPool.setCollatETHOracle(setConfig.address, ethAddress.address);
 }
 
-const SetStableEthOracle = async (rusd, setConfig, ethAddress) => {
-    await rusd.setStableEthOracle(setConfig.address, ethAddress.address);
+const SetStableEthOracle = async (setConfig, ethAddress) => {
+    await GraphicToken.RUSDOBJECT.setStableEthOracle(setConfig.address, ethAddress.address);
 }
 
-const SetStockEthOracle = async (tra, setConfig, ethAddress) => {
-    await tra.setStockEthOracle(setConfig.address, ethAddress.address);
+const SetStockEthOracle = async (setConfig, ethAddress) => {
+    await GraphicToken.RUSDOBJECT.setStockEthOracle(setConfig.address, ethAddress.address);
 }
 
-const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, timeLock) => {
-    let argumentsLength = arguments.length;
-    let argument;
+const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, user, timeLock) => {
     let uniswapOracle;
-
-    for (let i = 0; i < argumentsLength; i++) {
-        argument = arguments[i];
-        if (ZEROADDRESS === argument.address || undefined === argument.address) {
-            throw "Address zero exists!";
-        }
-    }
 
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
     uniswapOracle = await UniswapPairOracle.deploy(
@@ -42,19 +33,19 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPair, weth, user, t
         weth.address,
         user.address,
         timeLock.address
-    )
+    );
 
     switch (coinPairs.address) {
-        case USDC:
+        case GraphicToken.USDC:
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
             break;
-        case RUSD:
-            await SetStableEthOracle(coinPair, uniswapOracle, weth);
-            expect(await coinPair.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
+        case GraphicToken.RUSD:
+            await SetStableEthOracle(uniswapOracle, weth);
+            expect(await GraphicToken.RUSDOBJECT.stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
-        case TRA:
-            await SetStockEthOracle(coinPair, uniswapOracle, weth);
-            expect(await coinPair.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
+        case GraphicToken.TRA:
+            await SetStockEthOracle(uniswapOracle, weth);
+            expect(await GraphicToken.RUSDOBJECT.stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
             throw "Unknown token!";

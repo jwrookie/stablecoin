@@ -18,7 +18,7 @@ const SetRusdAndTraConfig = async (rusd, tra) => {
     await rusd.setStockAddress(tra.address);
 }
 
-const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
+const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
     let stableCoinPool;
 
     if (0 >= poolCelling) {
@@ -32,7 +32,7 @@ const StableCoinPool = async (operater, rusd, tra, usdc, poolCelling) => {
         },
     });
     stableCoinPool = await PoolUsdc.deploy(
-        operater.address,
+        checkPermission.address,
         rusd.address,
         tra.address,
         usdc.address,

@@ -3,9 +3,12 @@ const {SetOracle, SetOperatable, SetRusd, SetTra, SetCheckPermission} = require(
 const {SetMockToken, MintMockToken} = require("../Core/MockTokenConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
-let RUSD;
-let TRA;
-let USDC;
+const GraphicToken = {
+    USDC: "",
+    RUSD: "",
+    RUSDOBJECT: null,
+    TRA: ""
+}
 
 const TokenFactory = async () => {
     let resultArray = new Array();
@@ -16,8 +19,9 @@ const TokenFactory = async () => {
     let rusd = await SetRusd(operatable);
     let tra = await SetTra(operatable, oracle);
 
-    RUSD = rusd.address;
-    TRA = tra.address;
+    GraphicToken.RUSD = rusd.address;
+    GraphicToken.RUSDOBJECT = rusd;
+    GraphicToken.TRA = tra.address;
 
     resultArray.push(oracle, operatable, checkOpera, rusd, tra);
 
@@ -40,7 +44,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
             if (mintUser[j] !== undefined || mintUser[j] !== ZEROADDRESS) {
                 user = mintUser[j];
                 await MintMockToken(token, user.address, mintNumber);
-            }else {
+            } else {
                 throw "Please checking user addresses!";
             }
         }
@@ -48,7 +52,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
     }
 
     temp = resultArray[0]
-    USDC = temp.address;
+    GraphicToken.USDC = temp.address;
 
     return resultArray;
 }
@@ -56,7 +60,5 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
 module.exports = {
     TokenFactory,
     MockTokenFactory,
-    RUSD,
-    TRA,
-    USDC
+    GraphicToken,
 }
