@@ -34,7 +34,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
     let resultArray = new Array();
 
     if (deployMockTokenNumber <= 0) {
-        throw "Please input token what you need!";
+        throw Error("Please input token what you need!");
     }
 
     for (let i = 0; i < deployMockTokenNumber; i++) {
@@ -44,7 +44,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
                 user = mintUser[j];
                 await MintMockToken(token, user.address, mintNumber);
             } else {
-                throw "Please checking user addresses!";
+                throw Error("Please checking user addresses!");
             }
         }
         resultArray.push(token);

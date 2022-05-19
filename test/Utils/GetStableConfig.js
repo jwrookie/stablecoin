@@ -12,7 +12,7 @@ const GetRusdAndTra = async () => {
 
 const SetRusdAndTraConfig = async (rusd, tra) => {
     if (ZEROADDRESS === rusd.address || ZEROADDRESS === tra.address) {
-        throw "Invalid token!";
+        throw Error("Invalid token!");
     }
     await tra.setStableAddress(rusd.address);
     await rusd.setStockAddress(tra.address);
@@ -25,7 +25,7 @@ const SetFraxPoolLib = async () => {
 
 const SetPoolAddress = async (poolLib) => {
     if (undefined === poolLib || null === poolLib || ZEROADDRESS === poolLib.address) {
-        throw "Input right address!";
+        throw Error("Input right address!");
     }
 
     return await ethers.getContractFactory("Pool_USDC", {
@@ -36,9 +36,8 @@ const SetPoolAddress = async (poolLib) => {
 }
 
 const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
-
     if (0 >= poolCelling) {
-        throw "Invalid pool celling!";
+        throw Error("Invalid pool celling!");
     }
 
     let fraxPoolLibrary = await SetFraxPoolLib();

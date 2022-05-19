@@ -5,7 +5,7 @@ const {BigNumber} = require('ethers');
 
 const SetTimeLock = async (userAddress, timeLockDuration = 259200) => {
     if (0 >= timeLockDuration) {
-        throw "Please input right time!";
+        throw Error("Please input right time!");
     }
     const Timelock = await ethers.getContractFactory("Timelock");
     return await Timelock.deploy(userAddress.address, BigNumber.from(timeLockDuration));
@@ -21,6 +21,19 @@ const SetStableEthOracle = async (tokenObject, setConfig, ethAddress) => {
 
 const SetStockEthOracle = async (tokenObject, setConfig, ethAddress) => {
     await tokenObject.setStockEthOracle(setConfig.address, ethAddress.address);
+}
+
+const SetAddLiquidity = async (router, tokenA, tokenB, tokenANumber, tokenBNumber, amplification, fee, user, date) => {
+    await router.addLiquidity(
+        tokenA.address,
+        tokenB.address,
+        tokenANumber,
+        tokenBNumber,
+        amplification,
+        fee,
+        user.address,
+        date
+    );
 }
 
 const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, user, timeLock) => {
@@ -49,12 +62,13 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, user, 
             expect(await GraphicMap.get("RUSDOBJECT").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
-            throw "Unknown token!";
+            throw Error("Unknown token!");
     }
     return uniswapOracle;
 }
 
 module.exports = {
     SetTimeLock,
-    SetUniswapOracle
+    SetUniswapOracle,
+    SetAddLiquidity
 }
