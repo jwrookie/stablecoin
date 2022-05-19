@@ -50,7 +50,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
         resultArray.push(token);
     }
 
-    temp = resultArray[0]
+    temp = resultArray[0];
     GraphicTokenMap.set("USDC", temp.address);
 
     return resultArray;
