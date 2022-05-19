@@ -12,7 +12,7 @@ const GetBoost = async (
     let tempToken;
 
     if (0 >= rewardNumber || 0 >= startBlock || 0 >= period) {
-        throw "Invalid Set value!";
+        throw Error("Invalid Set value!");
     }
 
     boost = await SetBoost(checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period);
@@ -38,7 +38,7 @@ const GetGauge = async (boost, token) => {
     gaugeAddress = await boost.gauges(token.address);
 
     if (ZEROADDRESS === gaugeAddress) {
-        throw "Exist invalid gauge address!"
+        throw Error("Exist invalid gauge address!");
     }
 
     gauge = await SetGauge(gaugeAddress);

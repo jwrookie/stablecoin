@@ -1,6 +1,7 @@
 const {ethers} = require('hardhat');
 const {deployContract} = require("ethereum-waffle");
 const {ZEROADDRESS} = require("../Lib/Address");
+const GAS = {gasLimit: "9550000"};
 const {
     CRVFACTORY,
     FACTORY,
@@ -68,7 +69,7 @@ const SetPlainImplementations = async (crvFactory, coinInPoolNumber, poolArray =
     let pool;
 
     if (0 === poolArray.length) {
-        throw "Error, Must add a 3pool!";
+        throw Error("Error, Must add a 3pool!");
     }
 
     for (let i = 0; i < 10; i++) {
@@ -83,12 +84,12 @@ const SetPlainImplementations = async (crvFactory, coinInPoolNumber, poolArray =
     await crvFactory.set_plain_implementations(coinInPoolNumber, factoryArray);
 }
 
-const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 0, fee = 0, gas) => {
+const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 0, fee = 0, gas = GAS) => {
     let tempTokenArray = new Array();
     let tempToken;
 
     if (0 > fee || 0 > gas) {
-        throw "More fee or gas!";
+        throw Error("More fee or gas!");
     }
 
     for (let i = 0; i < 4; i++) {
@@ -98,11 +99,11 @@ const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 
                 if (i === 3) {
                     tempTokenArray.push(ZEROADDRESS);
                 }else {
-                    throw "Exist invalid Token!";
+                    throw Error("Exist invalid Token!");
                 }
                 break;
             case ZEROADDRESS:
-                throw "Exist invalid Token!";
+                throw Error("Exist invalid Token!");
             default:
                 tempTokenArray.push(tempToken.address);
                 break;

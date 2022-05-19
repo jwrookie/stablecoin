@@ -12,33 +12,45 @@ const GetRusdAndTra = async () => {
 
 const SetRusdAndTraConfig = async (rusd, tra) => {
     if (ZEROADDRESS === rusd.address || ZEROADDRESS === tra.address) {
-        throw "Invalid token!";
+        throw Error("Invalid token!");
     }
     await tra.setStableAddress(rusd.address);
     await rusd.setStockAddress(tra.address);
 }
 
-const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
-    let stableCoinPool;
-
-    if (0 >= poolCelling) {
-        throw "Invalid pool celling!";
-    }
+const SetFraxPoolLib = async () => {
     const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
-    fraxPoolLibrary = await FraxPoolLibrary.deploy();
-    const PoolUsdc = await ethers.getContractFactory("PoolUSD", {
+    return await FraxPoolLibrary.deploy();
+}
+
+const SetPoolAddress = async (poolLib) => {
+    if (undefined === poolLib || null === poolLib || ZEROADDRESS === poolLib.address) {
+        throw Error("Input right address!");
+    }
+
+    return await ethers.getContractFactory("PoolUSD", {
         libraries: {
-            PoolLibrary: fraxPoolLibrary.address,
+            PoolLibrary: poolLib.address,
         },
     });
-    stableCoinPool = await PoolUsdc.deploy(
+}
+
+const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
+    if (0 >= poolCelling) {
+        throw Error("Invalid pool celling!");
+    }
+
+    let fraxPoolLibrary = await SetFraxPoolLib();
+
+    let PoolUsdc = await SetPoolAddress(fraxPoolLibrary);
+
+    return await PoolUsdc.deploy(
         checkPermission.address,
         rusd.address,
         tra.address,
         usdc.address,
         poolCelling
     );
-    return stableCoinPool;
 }
 
 module.exports = {
