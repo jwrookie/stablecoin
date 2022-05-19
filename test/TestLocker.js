@@ -36,17 +36,17 @@ contract('Locker', async () => {
         expect(supportBool).to.be.eq(true);
     });
 
-    it('test get_last_user_slope', async function () {
+    it('test getLastUserSlope', async function () {
         let lockSlop;
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        tokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        tokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
         // console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
 
-        await lock.get_last_user_slope(1);
+        await lock.getLastUserSlope(1);
 
-        lockMap = await lock.point_history(0);
+        lockMap = await lock.pointHistory(0);
         lockSlop = lockMap[1];
         assert.equal(lockSlop, 0);
 
@@ -57,32 +57,32 @@ contract('Locker', async () => {
         assert.equal(nftCount, 1);
     });
 
-    it('test user_point_history__ts', async function () {
+    it('test userPointHistoryTs', async function () {
         let functionReturnTimeStamp;
 
-        lockMap = await lock.point_history(0);
+        lockMap = await lock.pointHistory(0);
         lockMapTimeStamp = lockMap[2];
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        tokenId = await lock.create_lock(1000, durationTime);
+        tokenId = await lock.createLock(1000, durationTime);
 
-        functionReturnTimeStamp = await lock.user_point_history__ts(1, 2);
+        functionReturnTimeStamp = await lock.userPointHistoryTs(1, 2);
 
         expect(functionReturnTimeStamp).to.be.eq(0);
     });
 
-    it('test locked__end', async function () {
+    it('test lockedEnd', async function () {
         let functionReturnEnd;
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        tokenId = await lock.create_lock(1000, durationTime);
+        tokenId = await lock.createLock(1000, durationTime);
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceEnd = lockBalanceMap[1];
 
-        functionReturnEnd = await lock.locked__end(1);
+        functionReturnEnd = await lock.lockedEnd(1);
 
         expect(functionReturnEnd).to.be.eq(lockBalanceEnd);
     });
@@ -90,7 +90,7 @@ contract('Locker', async () => {
     it('test balanceOf、ownerOf', async function () {
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        tokenId = await lock.create_lock(1000, durationTime);
+        tokenId = await lock.createLock(1000, durationTime);
 
         arrayName = await lock.ownerOf(1);
         expect(arrayName).to.be.not.eq(null);
@@ -108,10 +108,10 @@ contract('Locker', async () => {
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        firstTokenId = await lock.create_lock(1000, durationTime);
+        firstTokenId = await lock.createLock(1000, durationTime);
         await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address);
+        secondTokenId = await lock.createLockFor(1000, durationTime, seObject.address);
 
         firstTokenAddress = await lock.ownerOf(1);
         secondTokenAddress = await lock.ownerOf(2);
@@ -134,10 +134,10 @@ contract('Locker', async () => {
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
         await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        secondTokenId = await lock.create_lock_for(1000, durationTime, seObject.address); // The token id is 2
+        secondTokenId = await lock.createLockFor(1000, durationTime, seObject.address); // The token id is 2
 
         initFirstVoteBoolean = await lock.voted(1);
         assert.equal(initFirstVoteBoolean, false);
@@ -167,9 +167,9 @@ contract('Locker', async () => {
     it('test checkPoint、_checkPoint', async function () {
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
-        firstTokenId = await lock.create_lock(1000, durationTime);
+        firstTokenId = await lock.createLock(1000, durationTime);
 
-        lockMap = await lock.point_history(0);
+        lockMap = await lock.pointHistory(0);
         lastPointBias = lockMap[0];
         assert.equal(lastPointBias, 0);
         lastPointSlope = lockMap[1];
@@ -185,12 +185,12 @@ contract('Locker', async () => {
         lockBalanceAmount = lockBalanceMap[0];
         lockBalanceEnd = lockBalanceMap[1];
         t_i = (lastPointTs / durationTime) * durationTime;
-        await lock.get_last_user_slope(1);
-        userPointEpoch = await lock.user_point_epoch(1);
+        await lock.getLastUserSlope(1);
+        userPointEpoch = await lock.userPointEpoch(1);
 
         await lock.checkpoint();
-        lockMap = await lock.point_history(1);
-        currentLockMap = await lock.point_history(0);
+        lockMap = await lock.pointHistory(1);
+        currentLockMap = await lock.pointHistory(0);
         expect(currentLockMap).to.be.not.eq(lockMap);
     });
 
@@ -199,20 +199,19 @@ contract('Locker', async () => {
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
         latestBlock = await time.latestBlock();
 
-        returnBlock = await lock.block_number();
     });
 
-    it('test deposit_for', async function () {
+    it('test depositFor', async function () {
         let initLockBalanceAmount;
         let initLockBalanceEnd;
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
@@ -220,7 +219,7 @@ contract('Locker', async () => {
         lockBalanceEnd = lockBalanceMap[1];
         initLockBalanceEnd = lockBalanceEnd;
 
-        await lock.deposit_for(1, 1);
+        await lock.depositFor(1, 1);
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];
         lockBalanceEnd = lockBalanceMap[1];
@@ -237,11 +236,11 @@ contract('Locker', async () => {
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
         currentBlock = await time.latestBlock();
 
-        lockMap = await lock.point_history(0);
+        lockMap = await lock.pointHistory(0);
         latestPointBias = lockMap[0];
         expect(parseInt(latestPointBias)).to.be.eq(0);
         latestPointSlope = lockMap[1];
@@ -250,17 +249,17 @@ contract('Locker', async () => {
         latestPointTimeStamp = lockMap[2];
         expect(parseInt(latestPointTimeStamp)).to.be.not.eq(parseInt(timeStamp));
 
-        userPointEpoch = await lock.user_point_epoch(1);
+        userPointEpoch = await lock.userPointEpoch(1);
         expect(userPointEpoch).to.be.eq(1);
 
         await lock.balanceOfNFT(1);
-        lockMap = await lock.point_history(1);
+        lockMap = await lock.pointHistory(1);
         latestPointBias = lockMap[0];
         expect(parseInt(latestPointBias)).to.be.eq(0);
 
         paraTime = await time.latest();
         await lock.balanceOfNFTAt(1, parseInt(paraTime));
-        lockMap = await lock.point_history(1);
+        lockMap = await lock.pointHistory(1);
         latestPointBias = lockMap[0];
         expect(latestPointBias).to.be.eq(0);
     });
@@ -271,7 +270,7 @@ contract('Locker', async () => {
 
         await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
-        firstTokenId = await lock.create_lock(1000, durationTime); // This function return a value type is uint
+        firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
         lockBalanceMap = await lock.locked(1);
         lockBalanceAmount = lockBalanceMap[0];

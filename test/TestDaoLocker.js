@@ -6,7 +6,7 @@ const {BigNumber} = require('ethers');
 
 contract('Locker operation', async function () {
     const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
-    const PERIOD = 10;
+    const period = 10;
     const ONE_DAT_DURATION = 86400;
 
     async function getPoolInfo(poolIndex = 0, structIndex = 0) {
@@ -196,7 +196,7 @@ contract('Locker operation', async function () {
     it('test User lock there tokens can not transfer token', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
+        await locker.createLock(toWei("0.1"), ONE_DAT_DURATION);
         await locker.addBoosts(boost.address);
         tokenId = await locker.tokenId();
 
@@ -218,7 +218,7 @@ contract('Locker operation', async function () {
     it('test User lock there tokens can not withdraw', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
+        await locker.createLock(toWei("0.1"), ONE_DAT_DURATION);
         await locker.addBoosts(boost.address);
         tokenId = await locker.tokenId();
 
@@ -240,7 +240,7 @@ contract('Locker operation', async function () {
     it('test Merge lock balance will lock shipping space', async function () {
         // Get token id
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION);
-        await expectRevert(locker.create_lock(toWei("0.1"), ONE_DAT_DURATION), "less than 1 nft");
+        await locker.createLock(toWei("0.1"), ONE_DAT_DURATION);
+        await expectRevert(locker.createLock(toWei("0.1"), ONE_DAT_DURATION), "less than 1 nft");
     });
 });

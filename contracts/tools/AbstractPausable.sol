@@ -6,6 +6,7 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 import "../tools/CheckPermission.sol";
 
 abstract contract AbstractPausable is CheckPermission, Pausable {
+
     constructor(address _operatorMsg) CheckPermission(_operatorMsg) {}
 
     function togglePause() public onlyOwner {

@@ -14,11 +14,11 @@ import "./Uniswap/UniswapV2Library.sol";
 contract UniswapPairOracle is Ownable {
     using FixedPoint for *;
 
-    address timelock_address;
+    address public timelockAddress;
 
-    uint256 public PERIOD = 3600; // 1 hour TWAP (time-weighted average price)
-    uint256 public CONSULT_LENIENCY = 120; // Used for being able to consult past the period end
-    bool public ALLOW_STALE_CONSULTS = false; // If false, consult() will fail if the TWAP is stale
+    uint256 public  period = 3600; // 1 hour TWAP (time-weighted average price)
+    uint256 public  consultLeniency = 120; // Used for being able to consult past the period end
+    bool public allowStaleConsults = false; // If false, consult() will fail if the TWAP is stale
 
     IUniswapV2Pair public immutable pair;
     address public immutable token0;
@@ -27,12 +27,12 @@ contract UniswapPairOracle is Ownable {
     uint256 public price0CumulativeLast;
     uint256 public price1CumulativeLast;
     uint32 public blockTimestampLast;
-    FixedPoint.uq112x112 public price0Average;
-    FixedPoint.uq112x112 public price1Average;
+    FixedPoint.Uq112x112 public price0Average;
+    FixedPoint.Uq112x112 public price1Average;
 
     modifier onlyByOwnGov() {
         require(
-            msg.sender == owner() || msg.sender == timelock_address,
+            msg.sender == owner() || msg.sender == timelockAddress,
             "You are not an owner or the governance timelock"
         );
         _;
@@ -42,8 +42,7 @@ contract UniswapPairOracle is Ownable {
         address factory,
         address tokenA,
         address tokenB,
-        address _owner_address,
-        address _timelock_address
+        address timelockAddress
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
         pair = _pair;
@@ -59,23 +58,23 @@ contract UniswapPairOracle is Ownable {
         require(reserve0 != 0 && reserve1 != 0, "UniswapPairOracle: NO_RESERVES");
         // Ensure that there's liquidity in the pair
 
-        timelock_address = _timelock_address;
+        timelockAddress = timelockAddress;
     }
 
-    function setTimelock(address _timelock_address) external onlyByOwnGov {
-        timelock_address = _timelock_address;
+    function setTimelock(address timelockAddress) external onlyByOwnGov {
+        timelockAddress = timelockAddress;
     }
 
     function setPeriod(uint256 _period) external onlyByOwnGov {
-        PERIOD = _period;
+        period = _period;
     }
 
-    function setConsultLeniency(uint256 _consult_leniency) external onlyByOwnGov {
-        CONSULT_LENIENCY = _consult_leniency;
+    function setConsultLeniency(uint256 _consultLeniency) external onlyByOwnGov {
+        consultLeniency = _consultLeniency;
     }
 
-    function setAllowStaleConsults(bool _allow_stale_consults) external onlyByOwnGov {
-        ALLOW_STALE_CONSULTS = _allow_stale_consults;
+    function setAllowStaleConsults(bool _allowStaleConsults) external onlyByOwnGov {
+        allowStaleConsults = _allowStaleConsults;
     }
 
     // Check if update() can be called instead of wasting gas calling it
@@ -83,22 +82,22 @@ contract UniswapPairOracle is Ownable {
         uint32 blockTimestamp = UniswapV2OracleLibrary.currentBlockTimestamp();
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
         // Overflow is desired
-        return (timeElapsed >= PERIOD);
+        return (timeElapsed >= period);
     }
 
     function update() external {
         (uint256 price0Cumulative, uint256 price1Cumulative, uint32 blockTimestamp) = UniswapV2OracleLibrary
-            .currentCumulativePrices(address(pair));
+        .currentCumulativePrices(address(pair));
         uint32 timeElapsed = blockTimestamp - blockTimestampLast;
         // Overflow is desired
 
         // Ensure that at least one full period has passed since the last update
-        require(timeElapsed >= PERIOD, "UniswapPairOracle: PERIOD_NOT_ELAPSED");
+        require(timeElapsed >= period, "UniswapPairOracle: PERIOD_NOT_ELAPSED");
 
         // Overflow is desired, casting never truncates
-        // Cumulative price is in (uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
-        price0Average = FixedPoint.uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed));
-        price1Average = FixedPoint.uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed));
+        // Cumulative price is in (Uq112x112 price * seconds) units so we simply wrap it after division by time elapsed
+        price0Average = FixedPoint.Uq112x112(uint224((price0Cumulative - price0CumulativeLast) / timeElapsed));
+        price1Average = FixedPoint.Uq112x112(uint224((price1Cumulative - price1CumulativeLast) / timeElapsed));
 
         price0CumulativeLast = price0Cumulative;
         price1CumulativeLast = price1Cumulative;
@@ -113,7 +112,7 @@ contract UniswapPairOracle is Ownable {
 
         // Ensure that the price is not stale
         require(
-            (timeElapsed < (PERIOD + CONSULT_LENIENCY)) || ALLOW_STALE_CONSULTS,
+            (timeElapsed < (period + consultLeniency)) || allowStaleConsults,
             "UniswapPairOracle: PRICE_IS_STALE_NEED_TO_CALL_UPDATE"
         );
 

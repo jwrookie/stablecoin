@@ -100,8 +100,8 @@ contract('Boost', () => {
         let eta = time.duration.days(1);
         // console.log("eta:" + parseInt(eta));
 
-        await lock.connect(dev).create_lock(toWei('10000'), parseInt(eta));
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10000'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
         await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
@@ -151,7 +151,7 @@ contract('Boost', () => {
         await busd.connect(dev).approve(lock.address, toWei('10000000'));
         await usdc.connect(dev).approve(lock.address, toWei('10000000'));
         let eta = time.duration.days(1);
-        await lock.connect(dev).create_lock_for("1000", parseInt(eta), dev.address);
+        await lock.connect(dev).createLockFor("1000", parseInt(eta), dev.address);
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
