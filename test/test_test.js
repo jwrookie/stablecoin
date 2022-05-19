@@ -24,14 +24,5 @@ contract("test", async function () {
         fraxUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
         fxsUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, tra, weth);
     });
-    it('should ', async function () {
-        console.log(rusd.address);
-        console.log(tra.address);
-        console.log(usdc.address);
-        console.log(token0.address);
-        console.log(token1.address);
-        console.log(stableCoinPool.address);
-        console.log(crvFactory.address);
-        console.log(factory.address);
-    });
+
 });

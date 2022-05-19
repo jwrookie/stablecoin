@@ -18,13 +18,13 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let TRA = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
-    let rusd = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
-    // //
-    // // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
-    let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
-    let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
-    let gaugeFactory ="0xCF183377bd729c30f05bC013c221C4585105C9F7"
+    // let TRA = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
+    // let rusd = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
+    // // //
+    // // // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
+    // let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+    // let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
+    // let gaugeFactory ="0xCF183377bd729c30f05bC013c221C4585105C9F7"
     // let boost = ""
     let weth9 = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
 

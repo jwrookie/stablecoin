@@ -1,3 +1,5 @@
+
+
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {toWei} = web3.utils;
 
@@ -30,8 +32,8 @@ async function main() {
 
     let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let rusd = '0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D'
-    let tra = '0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9'
+    let rusd = '0x27ede5894cdae5b077aA74dD17112ECFe4574054'
+    let tra = '0x120818ffb5b291aEe8e5034D1c37b1AfAe7d677a'
 
 
     for (const account of accounts) {

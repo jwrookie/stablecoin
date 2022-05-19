@@ -16,10 +16,10 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
+    let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let TRA = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
-    let rusd = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
+   // let TRA = "0x59004773A3Af6671B7e2dC47aCba3e6b1DaEab31"
+    //let rusd = "0xB4434520c08D3DD00D4BE1bC9063Cd557D17e19d"
     //  let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
     //  //let bond = "0x0830b7Bb803965D47a2c5Dcfcd819d7BC4B69Ebf"
     //
@@ -37,9 +37,9 @@ async function main() {
     //  // // let poolAddr ="0x5ca013872bB0729134725EBa04dF3caB8d256a58"
     //  // let oracle = "0x821Ce313D3F015C4290D1035a3d0Df1153D556c3"
     //  // let rusdPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
-    //  let rusd = "0x5AF694EC26FFD0141ff385e4793fbFF89e915B57"
-    let bond = "0x093f34d559cE672C701372528FacE67f91f967d5"
-    let checkPermission = "0xDd3325440F70F590B8011b8C557c26242595E34F"
+     let rusd = "0x27ede5894cdae5b077aA74dD17112ECFe4574054"
+    let bond = "0x6Fd30E5D362E571a457C98C2E0CD0D8147b2A0C9"
+    let checkPermission = "0xAad390D24725aEf75ee26a3472bE09E60DEb9546"
 
 
     for (const account of accounts) {
@@ -80,13 +80,23 @@ async function main() {
     // const TestOracle = await ethers.getContractFactory("TestOracle");
     // oracle = await TestOracle.deploy();
     // console.log("oracle:" + oracle.address);
-
+    //
+    //
+    // const Operatable = await ethers.getContractFactory("Operatable");
+    // operatable = await Operatable.deploy();
+    //  console.log("operatable:" + operatable.address);
+    //
+    //
+    // const CheckPermission = await ethers.getContractFactory("CheckPermission");
+    // checkPermission = await CheckPermission.deploy(operatable.address);
+    //  console.log("checkPermission:" + checkPermission.address);
+    //
     // const rusdShares = await ethers.getContractFactory('Stock');
-    // TRA = await rusdShares.deploy(operatable, "TRA", "TRA", oracle.address);
+    // TRA = await rusdShares.deploy(checkPermission.address, "TRA", "TRA", oracle.address);
     // console.log("TRA:" + TRA.address);
     //
     // const rusdStablecoin = await ethers.getContractFactory('RStablecoin');
-    // rusd = await rusdStablecoin.deploy(operatable, "rusd", "rusd");
+    // rusd = await rusdStablecoin.deploy(checkPermission.address, "rusd", "rusd");
     // console.log("rusd:" + rusd.address);
     //
     // await TRA.setStableAddress(rusd.address);
@@ -97,12 +107,12 @@ async function main() {
     // console.log("poolLibrary:" + poolLibrary.address);
     //
     //
-    // const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+    // const Pool_USDC = await ethers.getContractFactory('PoolUSD', {
     //     libraries: {
     //         PoolLibrary: poolLibrary.address,
     //     },
     // });
-    // pool = await Pool_USDC.deploy(checkPermission, rusd, TRA, usdc, toWei('10000000000'));
+    // pool = await Pool_USDC.deploy(checkPermission.address, rusd.address, TRA.address, usdc, toWei('10000000000'));
     // console.log("pool:" + pool.address)
     //
     // const MockChainLink = await ethers.getContractFactory("MockChainLink");
@@ -154,12 +164,12 @@ async function main() {
     // console.log("bond:" + bond.address)
 
     const rusdBondIssuer = await ethers.getContractFactory('BondIssuer');
-    rusdBondIssuer = await rusdBondIssuer.deploy(checkPermission, rusd, bond);
-    console.log("rusdBondIssuer:" + rusdBondIssuer.address)
+    bondIssuer = await rusdBondIssuer.deploy(checkPermission, rusd, bond);
+    console.log("bondIssuer:" + bondIssuer.address)
 
-    // //  const Locker = await ethers.getContractFactory('Locker');
-    // // locker = await Locker.deploy(TRA);
-    // // console.log("Locker:" + locker.address)
+    //  const Locker = await ethers.getContractFactory('Locker');
+    // locker = await Locker.deploy(TRA);
+    // console.log("Locker:" + locker.address)
 
 
     // await bond.addIssuer(deployer.address);
