@@ -48,7 +48,6 @@ contract('AMOMinter', async function () {
             factory.address,
             coinPairs.address,
             weth.address,
-            owner.address,
             timelock.address
         );
 
@@ -120,20 +119,20 @@ contract('AMOMinter', async function () {
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
 
         // Deploy usdc pool need libraries
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: fraxPoolLibrary.address,
             },
         });
 
-        stableCoinPool = await Pool_USDC.deploy(
+        stableCoinPool = await PoolUSD.deploy(
             operatable.address,
             frax.address,
             fxs.address,
             usdc.address,
             POOL_CELLING
         );
-        expect(await stableCoinPool.USDC_address()).to.be.eq(usdc.address);
+        expect(await stableCoinPool.usdAddress()).to.be.eq(usdc.address);
 
         // Approve
         await usdc.approve(stableCoinPool.address, toWei("1"));
@@ -284,7 +283,6 @@ contract('AMOMinter', async function () {
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
             operatable.address,
-            dev.address,
             frax.address,
             fxs.address,
             usdc.address,

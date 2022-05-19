@@ -198,7 +198,7 @@ contract('plainPool', () => {
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
 
@@ -219,7 +219,7 @@ contract('plainPool', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
 
@@ -276,8 +276,8 @@ contract('plainPool', () => {
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('990000'));
 
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await lock.connect(owner).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(owner).createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
 
@@ -304,7 +304,7 @@ contract('plainPool', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         let rewardMax = await swapMining.rewardInfoMax(dev.address);
         let reward = await swapMining.rewardInfo(dev.address);
@@ -353,8 +353,8 @@ contract('plainPool', () => {
         let dx = "1000000";
 
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));

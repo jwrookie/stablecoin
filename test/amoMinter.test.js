@@ -79,13 +79,13 @@ contract('amo minter test', async function () {
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
 
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        usdcPool = await Pool_USDC.deploy(checkOper.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
-        expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
+        usdcPool = await PoolUSD.deploy(checkOper.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        expect(await usdcPool.usdAddress()).to.be.eq(usdc.address);
 
         await frax.addPool(usdcPool.address);
 
@@ -202,21 +202,20 @@ contract('amo minter test', async function () {
         );
 
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, owner.address, timelock.address);
+        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, timelock.address);
         await usdcPool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
-        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, owner.address, timelock.address);
+        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, timelock.address);
         await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
-        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, owner.address, timelock.address);
+        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, timelock.address);
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
             checkOper.address,
-            dev.address,
             frax.address,
             fxs.address,
             usdc.address,
@@ -319,10 +318,10 @@ contract('amo minter test', async function () {
     //     // latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
     //     // expect(parseInt(latestPrice)).to.be.eq(1);
     //
-    //     expect(await usdc_uniswapOracle.PERIOD()).to.be.eq(3600);
+    //     expect(await usdc_uniswapOracle.period()).to.be.eq(3600);
     //     // Set period
     //     await usdc_uniswapOracle.setPeriod(1);
-    //     expect(await usdc_uniswapOracle.PERIOD()).to.be.eq(1);
+    //     expect(await usdc_uniswapOracle.period()).to.be.eq(1);
     //     expect(await usdc_uniswapOracle.canUpdate()).to.be.eq(true);
     //     //expect(await chainlinkETHUSDPriceConsumer.getLatestPrice()).to.be.eq(1);
     //     // Update MockChainLink value -> test token so can call set function

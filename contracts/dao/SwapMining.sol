@@ -308,7 +308,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         updatePool(lpOfPid[_pool]);
     }
 
-    function isGaugeForPool(address _pool) internal view override returns (bool) {
+    function _isGaugeForPool(address _pool) internal view override returns (bool) {
         uint256 _pid = lpOfPid[_pool];
         PoolInfo memory pool = poolInfo[_pid];
         return pool.pair == _pool;

@@ -8,7 +8,7 @@
     "test": "hardhat test",
     "tsc": "tsc",
     "coverage": "RUN_COVERAGE=1 hardhat coverage",
-    "lint:sol": "solhint 'contracts/**/*.sol' && prettier -c 'contracts/**/*.sol'",
+    "lint:sol": "solhint 'contracts/**/*.sol'",
     "lint:sol:fix": "prettier --write \"contracts/**/*.sol\"",
     "test:inheritance": "node scripts/inheritanceOrdering artifacts/build-info/*"
   },

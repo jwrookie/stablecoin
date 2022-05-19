@@ -261,7 +261,7 @@ contract('SwapRouter5Coins', () => {
         await fxs.connect(dev).approve(locker.address, toWei('10000'));
     });
 
-    it("test deposit", async () => {
+    it("test gauge deposit", async () => {
         await deposit_bind();
 
         let fraxOwnerBef = await frax.balanceOf(owner.address);
@@ -292,7 +292,7 @@ contract('SwapRouter5Coins', () => {
         expect(diff).to.be.eq(toWei("0.6"));
     });
 
-    it('test deposit with vote', async () => {
+    it('test gauge deposit with vote', async () => {
         await deposit_bind();
 
         expect(await fxs.balanceOf(boost.address)).to.be.eq(0);
@@ -335,7 +335,7 @@ contract('SwapRouter5Coins', () => {
         expect(gaugeFxsAmount).to.be.eq(BigNumber.from(toWei("2")).sub(diff));
     });
 
-    it('test deposit with boost', async () => {
+    it('test gauge deposit with boost', async () => {
         await deposit_bind();
 
         let fraxOwnerBef = await frax.balanceOf(owner.address);
@@ -378,93 +378,6 @@ contract('SwapRouter5Coins', () => {
         expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
 
         expect(rewardBlocks).to.be.eq(rewardBlocks1);
-        expect(diff).to.be.lt(diff1);
-    });
-
-    it('test deposit vote reset', async () => {
-        await deposit_bind();
-
-        expect(await fxs.balanceOf(boost.address)).to.be.eq(0);
-        expect(await fxs.balanceOf(gauge.address)).to.be.eq(0);
-
-        await gauge.deposit(toWei("10"), tokenId);
-
-        let rewardBlockBef = await gauge.lastRewardBlock();
-
-        await gaugeController.vote(tokenId, frax.address);
-
-        let fxsOwnerBef = await fxs.balanceOf(owner.address);
-
-        let rewardBlockAft = await gauge.lastRewardBlock();
-
-        await expect(gauge.getReward(owner.address)).to.emit(gauge, 'ClaimRewards')
-            .withArgs(owner.address, fxs.address, toWei("2"));
-
-        let fxsOwnerAft = await fxs.balanceOf(owner.address);
-        expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
-
-        let diff = BigNumber.from(fxsOwnerAft).sub(fxsOwnerBef);
-        let rewardBlocks = rewardBlockAft - rewardBlockBef;
-        expect(diff).to.be.eq(BigNumber.from(rewardBlocks + 1).mul(toWei("0.3")));
-
-        let gaugeFxsAmount = await fxs.balanceOf(gauge.address);
-        expect(gaugeFxsAmount).to.be.eq(BigNumber.from(toWei("2")).sub(diff));
-
-        await time.increase(time.duration.days(1));
-        await gaugeController.reset(tokenId);
-
-        await time.increase(time.duration.days(1));
-        let tokenWeightBef = await gaugeController.usedWeights(tokenId);
-
-        await gaugeController.vote(tokenId, frax.address);
-
-        let tokenWeightAft = await gaugeController.usedWeights(tokenId);
-        expect(tokenWeightAft).to.be.gt(tokenWeightBef);
-
-        let fxsOwnerBef1 = await fxs.balanceOf(owner.address);
-
-        await expect(gauge.getReward(owner.address)).to.emit(gauge, 'ClaimRewards')
-            .withArgs(owner.address, fxs.address, toWei("5"));
-
-        let fxsOwnerAft1 = await fxs.balanceOf(owner.address);
-        expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
-    });
-
-    it('test deposit without vote and dev vote', async () => {
-        await deposit_bind();
-
-        await gauge.deposit(toWei("10"), tokenId);
-
-        let fxsOwnerBef = await fxs.balanceOf(owner.address);
-
-        await boost.updatePool(0);
-        await gauge.getReward(owner.address);
-
-        let fxsOwnerAft = await fxs.balanceOf(owner.address);
-
-        let diff = fxsOwnerAft.sub(fxsOwnerBef);
-
-        await fxs.transfer(dev.address, toWei("10"));
-        await frax.transfer(dev.address, toWei("10"));
-        await frax.connect(dev).approve(gauge.address, toWei("100"));
-
-        await locker.connect(dev).create_lock(toWei("1"), parseInt(_duration));
-        tokenId2 = await locker.tokenId();
-        expect(tokenId2).to.be.eq(2);
-
-        await gauge.connect(dev).deposit(toWei("10"), tokenId2);
-
-        let fxsDevBef1 = await fxs.balanceOf(dev.address);
-
-        await boost.connect(dev).vote(tokenId2, [frax.address], [toWei("1")]);
-
-        await gauge.connect(dev).getReward(dev.address);
-
-        let fxsDevAft1 = await fxs.balanceOf(dev.address);
-
-        let diff1 = fxsDevAft1.sub(fxsDevBef1);
-        expect(fxsDevAft1).to.be.gt(fxsDevBef1);
-
         expect(diff).to.be.lt(diff1);
     });
 
@@ -531,7 +444,7 @@ contract('SwapRouter5Coins', () => {
         let diff = fxsAft.sub(fxsBef);
 
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.3125"));
+        expect(diff.toString()).to.be.eq(toWei("1.365"));
     });
 
     it('test swap mining with vote', async () => {
@@ -554,39 +467,7 @@ contract('SwapRouter5Coins', () => {
         let diff1 = fxsAft1.sub(fxsBef1);
 
         expect(fxsAft1).to.be.gt(fxsBef1);
-        expect(diff1.toString()).to.be.eq(toWei("1.365"));
-    });
-
-    it('test swap mining vote reset', async () => {
-        await swap_bind();
-
-        let tokenWeightBef = await swapController.usedWeights(tokenId);
-
-        await swapController.vote(tokenId, curveToken.address);
-
-        let tokenWeightAft = await swapController.usedWeights(tokenId);
-        expect(tokenWeightAft).to.be.gt(tokenWeightBef);
-
-        const times = Number((new Date().getTime() + 1000).toFixed(0));
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times);
-
-        let fxsBef1 = await fxs.balanceOf(owner.address);
-
-        await swapMining.getReward(0);
-        let fxsAft1 = await fxs.balanceOf(owner.address);
-        let diff1 = fxsAft1.sub(fxsBef1);
-
-        expect(fxsAft1).to.be.gt(fxsBef1);
-        expect(diff1.toString()).to.be.eq(toWei("1.365"));
-
-        await time.increase(time.duration.days(1));
-        await swapController.reset(tokenId);
-
-        await swapRouter.swapCryptoToken(depositZap.address, 0, 4, toWei("0.02"), 0, owner.address, times);
-        await swapMining.getReward(0);
-        let fxsAft2 = await fxs.balanceOf(owner.address);
-        let diff2 = fxsAft2.sub(fxsAft1);
-        expect(diff2).to.be.eq(toWei("0.21"));
+        expect(diff1.toString()).to.be.eq(toWei("1.4175"));
     });
 
     it('test swap mining with boost', async () => {
@@ -609,7 +490,7 @@ contract('SwapRouter5Coins', () => {
         let fxsAft = await fxs.balanceOf(owner.address);
         let diff = fxsAft.sub(fxsBef);
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.365"));
+        expect(diff.toString()).to.be.eq(toWei("1.4175"));
     });
 
     it('test swap mining without boost and dev boost', async () => {
@@ -627,13 +508,13 @@ contract('SwapRouter5Coins', () => {
         let fxsAft = await fxs.balanceOf(owner.address);
         let diff = fxsAft.sub(fxsBef);
         expect(fxsAft).to.be.gt(fxsBef);
-        expect(diff.toString()).to.be.eq(toWei("1.3125"));
+        expect(diff.toString()).to.be.eq(toWei("1.365"));
 
         // other boost
 
         await fxs.transfer(dev.address, toWei("10"));
 
-        await locker.connect(dev).create_lock(toWei("1"), parseInt(_duration));
+        await locker.connect(dev).createLock(toWei("1"), _duration);
         tokenId2 = await locker.tokenId();
         expect(tokenId2).to.be.eq(2);
         await swapController.connect(dev).vote(tokenId2, curveToken.address);
@@ -682,16 +563,15 @@ contract('SwapRouter5Coins', () => {
     async function deposit_bind() {
         await boost.createGauge(frax.address, "100", true);
 
-        _duration = time.duration.days(7);
-
+        _duration = await boost.mintDuration();
         const GaugeController = await ethers.getContractFactory('GaugeController');
         gaugeController = await GaugeController.deploy(
             checkPermission.address,
             boost.address,
             locker.address,
-            parseInt(time.duration.days(1))
+            _duration
         );
-        // await gaugeController.setDuration(parseInt(time.duration.days(1)));
+        await gaugeController.setDuration(_duration);
         await gaugeController.addPool(frax.address);
         expect(await gaugeController.getPool(0)).to.be.eq(frax.address);
 
@@ -700,7 +580,7 @@ contract('SwapRouter5Coins', () => {
         gauge = await Gauge.attach(gaugeAddress);
         expect(gaugeAddress).to.be.eq(gauge.address);
 
-        await locker.create_lock(toWei("1"), parseInt(_duration));
+        await locker.createLock(toWei("1"), _duration);
         tokenId = await locker.tokenId();
         expect(tokenId).to.not.eq(0);
 
@@ -713,20 +593,19 @@ contract('SwapRouter5Coins', () => {
 
     async function swap_bind() {
 
-        _duration = time.duration.days(7);
-
+        _duration = await boost.mintDuration();
         const SwapController = await ethers.getContractFactory('SwapController');
         swapController = await SwapController.deploy(
             checkPermission.address,
             swapMining.address,
             locker.address,
-            parseInt(time.duration.days(1))
+            _duration
         );
-        // await swapController.setDuration(parseInt(parseInt(time.duration.days(1))));
+        await swapController.setDuration(_duration);
         await swapController.addPool(curveToken.address);
         expect(await swapController.getPool(0)).to.be.eq(curveToken.address);
 
-        await locker.create_lock(toWei("1"), parseInt(_duration));
+        await locker.createLock(toWei("1"), _duration);
         tokenId = await locker.tokenId();
         expect(tokenId).to.not.eq(0);
 

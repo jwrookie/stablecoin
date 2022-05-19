@@ -6,7 +6,7 @@ const {BigNumber} = require('ethers');
 
 contract('Gauge', async function () {
     const ZEROADDRESS = "0x0000000000000000000000000000000000000000";
-    const PERIOD = 10;
+    const period = 10;
     let initStartBlock;
 
     async function getDurationTime(day = 1) {
@@ -190,7 +190,7 @@ contract('Gauge', async function () {
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
 
         // About gauge
@@ -232,7 +232,7 @@ contract('Gauge', async function () {
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
 
         // About gaugeController
@@ -269,7 +269,7 @@ contract('Gauge', async function () {
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
         expect(tokenId).to.be.eq(1);
 
@@ -282,7 +282,7 @@ contract('Gauge', async function () {
         expect(await getUserInfo(gauge, owner, 0)).to.be.eq(toWei("0.000001"));
 
         // Set reduce config
-        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + PERIOD);
+        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + period);
         // Waiting block
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
         currentBlock = parseInt(await time.latestBlock());
@@ -309,7 +309,7 @@ contract('Gauge', async function () {
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
         expect(tokenId).to.be.eq(1);
 
@@ -321,7 +321,7 @@ contract('Gauge', async function () {
         await gauge.deposit(toWei("0.000001"), tokenId);
 
         // Set reduce config
-        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + PERIOD);
+        expect(parseInt(await boost.periodEndBlock())).to.be.eq(initStartBlock + period);
         // Waiting block
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 20);
         currentBlock = parseInt(await time.latestBlock());
@@ -343,7 +343,7 @@ contract('Gauge', async function () {
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
         await locker.addBoosts(boost.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
         expect(tokenId).to.be.eq(1);
 
@@ -384,7 +384,7 @@ contract('Gauge', async function () {
 
         // Get token id -> parameter value is stake token
         await locker.addBoosts(gaugeController.address);
-        await locker.create_lock(toWei("0.1"), await getDurationTime());
+        await locker.createLock(toWei("0.1"), await getDurationTime());
         tokenId = await locker.tokenId();
 
         // About gaugeController

@@ -44,7 +44,6 @@ contract('ExchangeAMO', async function () {
             factory.address,
             coinPairs.address,
             weth.address,
-            owner.address,
             timelock.address
         );
 
@@ -115,20 +114,20 @@ contract('ExchangeAMO', async function () {
         fraxPoolLibrary = await FraxPoolLibrary.deploy();
 
         // Deploy usdc pool need libraries
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: fraxPoolLibrary.address,
             },
         });
 
-        stableCoinPool = await Pool_USDC.deploy(
+        stableCoinPool = await PoolUSD.deploy(
             operatable.address,
             frax.address,
             fxs.address,
             usdc.address,
             POOL_CELLING
         );
-        expect(await stableCoinPool.USDC_address()).to.be.eq(usdc.address);
+        expect(await stableCoinPool.usdAddress()).to.be.eq(usdc.address);
 
         // Approve
         await usdc.approve(stableCoinPool.address, toWei("1"));
@@ -279,7 +278,6 @@ contract('ExchangeAMO', async function () {
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
         amoMinter = await AMOMinter.deploy(
             operatable.address,
-            dev.address,
             frax.address,
             fxs.address,
             usdc.address,
@@ -328,7 +326,7 @@ contract('ExchangeAMO', async function () {
 
     it('test setSlippages', async function () {
         expect(await exchangeAMO.liqSlippage3crv()).to.be.eq(800000);
-        await exchangeAMO.setSlippages(900000, 1000000);
+        await exchangeAMO.setSlippages(900000);
         expect(await exchangeAMO.liqSlippage3crv()).to.be.eq(900000);
     });
 

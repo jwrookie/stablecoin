@@ -15,6 +15,7 @@ import "../tools/CheckPermission.sol";
 contract Gauge is ReentrancyGuard, CheckPermission {
     using SafeMath for uint256;
 
+
     event Deposit(address indexed from, uint256 tokenId, uint256 amount);
     event Withdraw(address indexed from, uint256 tokenId, uint256 amount);
     event NotifyReward(address indexed from, address indexed reward, uint256 rewardRate);
@@ -30,7 +31,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     address public immutable veToken; // the ve token used for gauges
     address public immutable boost;
     address public immutable rewardToken;
-    uint256 internal constant PRECISION = 10**18;
+
     mapping(address => uint256) public tokenIds;
 
     uint256 public tokenPerBlock;
