@@ -36,7 +36,6 @@ const SetPoolAddress = async (poolLib) => {
 }
 
 const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
-    let stableCoinPool;
 
     if (0 >= poolCelling) {
         throw "Invalid pool celling!";
