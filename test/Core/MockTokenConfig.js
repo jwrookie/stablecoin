@@ -1,6 +1,5 @@
 const {ethers} = require('hardhat');
 const {toWei} = web3.utils;
-const {BigNumber} = require('ethers');
 
 const SetMockToken = async (mintNumber = toWei("1")) => {
     const MockToken = await ethers.getContractFactory("MockToken");

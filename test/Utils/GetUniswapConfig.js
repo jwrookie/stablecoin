@@ -1,16 +1,18 @@
 const {SetTimeLock, SetUniswapOracle} = require("../Core/UniswapOracleConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
-const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth, user) => {
+const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) => {
+    let tempUniswapOracle;
     let tempTimeLock = await SetTimeLock(userAddress);
 
     for (let i = 0; i < arguments.length; i++) {
         if (ZEROADDRESS === arguments[i] || null === arguments[i] || undefined === arguments[i]) {
-            return Error("Exist invaild address!");
+            throw "Exist Invalid address!";
         }
     }
 
-    await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, user, tempTimeLock);
+    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, userAddress, tempTimeLock);
+    return tempUniswapOracle;
 }
 
 module.exports = {
