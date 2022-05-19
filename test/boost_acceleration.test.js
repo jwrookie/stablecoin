@@ -188,7 +188,7 @@ contract('Boost', () => {
     it("mobile mining, single user deposit, single pool acceleration," +
         " reset and re acceleration", async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
@@ -204,8 +204,8 @@ contract('Boost', () => {
     it("mobile mining, two users deposit, single pool acceleration," +
         " reset and re acceleration", async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
@@ -225,7 +225,7 @@ contract('Boost', () => {
     });
     it("users can't vote multiple times, but the weight will be reset each time", async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.connect(dev).deposit(toWei('10'), 1);

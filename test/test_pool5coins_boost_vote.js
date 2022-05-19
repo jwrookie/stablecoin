@@ -514,7 +514,7 @@ contract('SwapRouter5Coins', () => {
 
         await fxs.transfer(dev.address, toWei("10"));
 
-        await locker.connect(dev).create_lock(toWei("1"), _duration);
+        await locker.connect(dev).createLock(toWei("1"), _duration);
         tokenId2 = await locker.tokenId();
         expect(tokenId2).to.be.eq(2);
         await swapController.connect(dev).vote(tokenId2, curveToken.address);
@@ -580,7 +580,7 @@ contract('SwapRouter5Coins', () => {
         gauge = await Gauge.attach(gaugeAddress);
         expect(gaugeAddress).to.be.eq(gauge.address);
 
-        await locker.create_lock(toWei("1"), _duration);
+        await locker.createLock(toWei("1"), _duration);
         tokenId = await locker.tokenId();
         expect(tokenId).to.not.eq(0);
 
@@ -605,7 +605,7 @@ contract('SwapRouter5Coins', () => {
         await swapController.addPool(curveToken.address);
         expect(await swapController.getPool(0)).to.be.eq(curveToken.address);
 
-        await locker.create_lock(toWei("1"), _duration);
+        await locker.createLock(toWei("1"), _duration);
         tokenId = await locker.tokenId();
         expect(tokenId).to.not.eq(0);
 

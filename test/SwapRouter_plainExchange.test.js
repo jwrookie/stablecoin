@@ -353,8 +353,8 @@ contract('plainPool', () => {
         let dx = "1000000";
 
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));

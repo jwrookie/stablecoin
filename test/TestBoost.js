@@ -63,7 +63,7 @@ contract('Boost、Gauge、GaugeController', async function () {
 
         await locker.addBoosts(gaugeController.address);
         await locker.addBoosts(boost.address);
-        await locker.create_lock(toWei("0.1"), ONE_DAT_DURATION); // Stake toWei("0.1") tra token
+        await locker.createLock(toWei("0.1"), ONE_DAT_DURATION); // Stake toWei("0.1") tra token
         tokenId = await locker.tokenId();
     });
 
