@@ -1,5 +1,7 @@
 const {SetTimeLock, SetUniswapOracle, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
+const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
 const {GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
+const {GetMap} = require("../Factory/StableAndMockFactory");
 const {toWei} = web3.utils;
 const {ZEROADDRESS} = require("../Lib/Address");
 
@@ -37,7 +39,19 @@ const RouterApprove = async (
     await SetAddLiquidity(router, coin, weth, tokenANumber, tokenBNumber, amplification, fee, user, date);
 }
 
+const SetETHUSDOracle = async () => {
+    let tempMap = await GetMap();
+    let chainlinkETHUSDPriceConsumer = await SetChainlinkETHUSDPriceConsumer();
+
+    if (undefined === tempMap.get("RUSD")) {
+        throw Error("Need to set rusd first!");
+    }
+
+    await tempMap.get("RUSD").setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
+}
+
 module.exports = {
     GetUniswap,
-    RouterApprove
+    RouterApprove,
+    SetETHUSDOracle
 }

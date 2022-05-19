@@ -3,7 +3,7 @@ const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
 const {GetConfigAboutCRV, CrvFactoryDeploy} = require("./Tools/Deploy");
-const {GetUniswap, RouterApprove} = require("./Utils/GetUniswapConfig");
+const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 
 contract("test", async function () {
     beforeEach(async function () {
@@ -19,6 +19,8 @@ contract("test", async function () {
         await RouterApprove(usdc, {}, owner);
         await RouterApprove(rusd, {}, owner);
         await RouterApprove(tra, {}, owner);
+
+        await SetETHUSDOracle();
 
         usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
         fraxUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
