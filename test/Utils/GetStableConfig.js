@@ -28,7 +28,7 @@ const SetPoolAddress = async (poolLib) => {
         throw Error("Input right address!");
     }
 
-    return await ethers.getContractFactory("Pool_USDC", {
+    return await ethers.getContractFactory("PoolUSD", {
         libraries: {
             PoolLibrary: poolLib.address,
         },

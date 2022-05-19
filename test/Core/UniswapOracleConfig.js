@@ -36,7 +36,7 @@ const SetAddLiquidity = async (router, tokenA, tokenB, tokenANumber, tokenBNumbe
     );
 }
 
-const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, user, timeLock) => {
+const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLock) => {
     let GraphicMap = await GetMap();
     let uniswapOracle;
 

@@ -13,7 +13,7 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) 
         }
     }
 
-    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, userAddress, tempTimeLock);
+    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, tempTimeLock);
     return tempUniswapOracle;
 }
 
