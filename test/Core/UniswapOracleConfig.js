@@ -36,32 +36,37 @@ const SetAddLiquidity = async (router, tokenA, tokenB, tokenANumber, tokenBNumbe
     );
 }
 
-const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLock) => {
-    let GraphicMap = await GetMap();
-    let uniswapOracle;
-
+const SetUniswapPairOracle = async (factory, coinPairs, weth, timeLock) => {
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-    uniswapOracle = await UniswapPairOracle.deploy(
+    return await UniswapPairOracle.deploy(
         factory.address,
         coinPairs.address,
         weth.address,
         timeLock.address
     );
+}
+
+const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLock) => {
+    let GraphicMap = await GetMap();
+    let uniswapOracle;
 
     switch (coinPairs) {
         case GraphicMap.get("USDC"):
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
             break;
         case GraphicMap.get("RUSD"):
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
             await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
             expect(await GraphicMap.get("RUSD").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         case GraphicMap.get("TRA"):
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
             await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
             expect(await GraphicMap.get("RUSD").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
-            throw Error("Unknown token!");
+            throw Error("Can not find oracle what you want!");
     }
     return uniswapOracle;
 }
