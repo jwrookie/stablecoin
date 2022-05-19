@@ -231,7 +231,7 @@ contract('SwapController', () => {
     });
     it('liquidity mining and transaction mining acceleration will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
         await gauge_pool.connect(dev).deposit("1000", 1);
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
@@ -243,7 +243,7 @@ contract('SwapController', () => {
     });
     it('transaction mining acceleration and voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
@@ -254,7 +254,7 @@ contract('SwapController', () => {
     });
     it('liquidity acceleration and voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
@@ -266,7 +266,7 @@ contract('SwapController', () => {
 
     it('trading mining voting and liquidity voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
         await gauge_pool.connect(dev).deposit("1000", 1);
 
         await gaugeController.connect(dev).vote(1, pool.address);
@@ -277,7 +277,7 @@ contract('SwapController', () => {
     });
     it('transaction mining users can accelerate, reset and vote again', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -301,7 +301,7 @@ contract('SwapController', () => {
     });
     it('users cannot vote again before the cycle', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -330,8 +330,8 @@ contract('SwapController', () => {
     });
     it('transaction mining multi-user single pool voting', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-        await lock.createLock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.create_lock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");

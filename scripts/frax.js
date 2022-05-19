@@ -97,12 +97,12 @@ async function main() {
     // console.log("poolLibrary:" + poolLibrary.address);
     //
     //
-    // const PoolUSD = await ethers.getContractFactory('PoolUSD', {
+    // const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
     //     libraries: {
     //         PoolLibrary: poolLibrary.address,
     //     },
     // });
-    // pool = await PoolUSD.deploy(checkPermission, rusd, TRA, usdc, toWei('10000000000'));
+    // pool = await Pool_USDC.deploy(checkPermission, rusd, TRA, usdc, toWei('10000000000'));
     // console.log("pool:" + pool.address)
     //
     // const MockChainLink = await ethers.getContractFactory("MockChainLink");
@@ -128,12 +128,12 @@ async function main() {
     // let rusd = await rusdStablecoin.at(rusdAddr)
 
 
-    // const PoolUSD = await ethers.getContractFactory('PoolUSD', {
+    // const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
     //     libraries: {
     //         rusdPoolLibrary: rusdPoolLibrary,
     //     },
     // });
-    // let pool = await PoolUSD.at(poolAddr)
+    // let pool = await Pool_USDC.at(poolAddr)
 
 
     // //
