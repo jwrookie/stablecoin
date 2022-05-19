@@ -18,9 +18,8 @@ const TokenFactory = async () => {
     let rusd = await SetRusd(operatable);
     let tra = await SetTra(operatable, oracle);
 
-    GraphicTokenMap.set("RUSD", rusd.address);
-    GraphicTokenMap.set("TRA", tra.address);
-    GraphicTokenMap.set("RUSDOBJECT", rusd);
+    GraphicTokenMap.set("RUSD", rusd);
+    GraphicTokenMap.set("TRA", tra);
 
     resultArray.push(oracle, operatable, checkOpera, rusd, tra);
 
@@ -51,7 +50,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
     }
 
     temp = resultArray[0];
-    GraphicTokenMap.set("USDC", temp.address);
+    GraphicTokenMap.set("USDC", temp);
 
     return resultArray;
 }

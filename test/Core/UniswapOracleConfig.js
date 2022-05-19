@@ -48,17 +48,17 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLo
         timeLock.address
     );
 
-    switch (coinPairs.address) {
+    switch (coinPairs) {
         case GraphicMap.get("USDC"):
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
             break;
         case GraphicMap.get("RUSD"):
-            await SetStableEthOracle(GraphicMap.get("RUSDOBJECT"), uniswapOracle, weth);
-            expect(await GraphicMap.get("RUSDOBJECT").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
+            await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
+            expect(await GraphicMap.get("RUSD").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         case GraphicMap.get("TRA"):
-            await SetStockEthOracle(GraphicMap.get("RUSDOBJECT"), uniswapOracle, weth);
-            expect(await GraphicMap.get("RUSDOBJECT").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
+            await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
+            expect(await GraphicMap.get("RUSD").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:
             throw Error("Unknown token!");
