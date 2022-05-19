@@ -28,12 +28,10 @@ async function main() {
     // let tra = ""
     let wbnb = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
 
-     let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
+    let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
     let rusd = '0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D'
     let tra = '0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9'
-
-
 
 
     for (const account of accounts) {
@@ -46,31 +44,25 @@ async function main() {
     console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
 
 
-
-
-      // const Timelock = await ethers.getContractFactory('Timelock');
-      //   timelock = await Timelock.deploy(deployer.address,0);
-      //     console.log("timeLock:" + timeLock.address)
-     timeLock = await deployContract(deployer, {
-         bytecode: Timelock.bytecode,
-         abi: Timelock.abi
-     }, [deployer.address, 0]);
-     console.log("timeLock:" + timeLock.address)
-
+    // const Timelock = await ethers.getContractFactory('Timelock');
+    //   timelock = await Timelock.deploy(deployer.address,0);
+    //     console.log("timeLock:" + timeLock.address)
+    timeLock = await deployContract(deployer, {
+        bytecode: Timelock.bytecode,
+        abi: Timelock.abi
+    }, [deployer.address, 0]);
+    console.log("timeLock:" + timeLock.address)
 
 
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-    usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, deployer.address, timeLock.address);
+    usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, timeLock.address);
     console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
 
-    rusd_uniswapOracle = await UniswapPairOracle.deploy(factory, rusd, wbnb, deployer.address, timeLock.address);
+    rusd_uniswapOracle = await UniswapPairOracle.deploy(factory, rusd, wbnb, timeLock.address);
     console.log("rusd_uniswapOracle:" + rusd_uniswapOracle.address)
 
-    tra_uniswapOracle = await UniswapPairOracle.deploy(factory, tra, wbnb, deployer.address, timeLock.address);
+    tra_uniswapOracle = await UniswapPairOracle.deploy(factory, tra, wbnb, timeLock.address);
     console.log("tra_uniswapOracle:" + tra_uniswapOracle.address)
-
-
-
 
 
 }

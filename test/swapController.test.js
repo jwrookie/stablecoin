@@ -231,7 +231,7 @@ contract('SwapController', () => {
     });
     it('liquidity mining and transaction mining acceleration will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
         await gauge_pool.connect(dev).deposit("1000", 1);
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
@@ -243,7 +243,7 @@ contract('SwapController', () => {
     });
     it('transaction mining acceleration and voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
@@ -254,7 +254,7 @@ contract('SwapController', () => {
     });
     it('liquidity acceleration and voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
@@ -266,7 +266,7 @@ contract('SwapController', () => {
 
     it('trading mining voting and liquidity voting will fail', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
         await gauge_pool.connect(dev).deposit("1000", 1);
 
         await gaugeController.connect(dev).vote(1, pool.address);
@@ -277,7 +277,7 @@ contract('SwapController', () => {
     });
     it('transaction mining users can accelerate, reset and vote again', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -299,9 +299,9 @@ contract('SwapController', () => {
 
 
     });
-    it('users can not vote again before the cycle', async () => {
+    it('users cannot vote again before the cycle', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -328,28 +328,18 @@ contract('SwapController', () => {
 
 
     });
-     it('transaction mining,single user,single pool voting, reset and re voting', async () => {
+    it('transaction mining multi-user single pool voting', async () => {
         let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await swapController.connect(dev).vote(1, pool.address);
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
-        await time.increase(time.duration.days(1));
-        await swapController.connect(dev).reset(1);
-
-        await time.increase(time.duration.days(1));
-
-        await swapController.connect(dev).vote(1, pool.address);
-
-
-    });
-
-    it('transaction mining,two users,single pool voting, reset and re voting', async () => {
-        let eta = time.duration.days(7);
-        await lock.connect(dev).create_lock(toWei('10'), parseInt(eta));
-        await lock.create_lock(toWei('10'), parseInt(eta));
+        let info = await swapMining.poolInfo(0);
+        expect(info[2]).to.be.eq("100");
 
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
+        info = await swapMining.poolInfo(0);
+        expect(info[2]).to.be.not.eq("100");
 
         await time.increase(time.duration.days(1));
         await swapController.connect(dev).reset(1);
@@ -359,6 +349,11 @@ contract('SwapController', () => {
         await swapController.connect(dev).vote(1, pool.address);
         await swapController.vote(2, pool.address);
 
+        let usedWeightsDev = await swapController.usedWeights(1);
+        let usedWeightsOwner = await swapController.usedWeights(2);
+
+        let totalWeight = await swapController.totalWeight();
+        expect(totalWeight).to.be.eq(usedWeightsDev.add(usedWeightsOwner));
 
 
     });

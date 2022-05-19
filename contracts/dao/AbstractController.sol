@@ -38,7 +38,7 @@ abstract contract AbstractController is CheckPermission {
     mapping(uint256 => uint256) public usedWeights; // nft => total voting weight of user
     mapping(uint256 => PoolVote) public userPool; // nft => pool voting weight of user
 
-    EnumerableSet.AddressSet private poolInfo;
+    EnumerableSet.AddressSet private _poolInfo;
 
     constructor(
         address _operatorMsg,
@@ -68,7 +68,6 @@ abstract contract AbstractController is CheckPermission {
 
     function _reset(uint256 _tokenId) internal {
         uint256 _totalWeight = usedWeights[_tokenId];
-        address _pool = userPool[_tokenId].pool;
         emit Abstained(_tokenId, _totalWeight);
         totalWeight -= _totalWeight;
         usedWeights[_tokenId] = 0;
@@ -105,7 +104,7 @@ abstract contract AbstractController is CheckPermission {
             return;
         }
         for (uint256 pid = 0; pid < getPoolLength(); ++pid) {
-            address pool = EnumerableSet.at(poolInfo, pid);
+            address pool = EnumerableSet.at(_poolInfo, pid);
             uint256 _id = IDistribute(distribute).lpOfPid(pool);
             IDistribute(distribute).set(_id, weights[pool], false);
         }
@@ -115,11 +114,11 @@ abstract contract AbstractController is CheckPermission {
 
     function addPool(address _address) external onlyOperator {
         require(_address != address(0), "0 address");
-        EnumerableSet.add(poolInfo, _address);
+        EnumerableSet.add(_poolInfo, _address);
     }
 
     function removePool(address _address) external onlyOperator {
-        EnumerableSet.remove(poolInfo, _address);
+        EnumerableSet.remove(_poolInfo, _address);
     }
 
     function getUserInfo(uint256 tokenId) public view returns (address, uint256) {
@@ -128,15 +127,15 @@ abstract contract AbstractController is CheckPermission {
     }
 
     function getPoolLength() public view returns (uint256) {
-        return EnumerableSet.length(poolInfo);
+        return EnumerableSet.length(_poolInfo);
     }
 
     function isPool(address _pool) public view returns (bool) {
-        return EnumerableSet.contains(poolInfo, _pool);
+        return EnumerableSet.contains(_poolInfo, _pool);
     }
 
     function getPool(uint256 _index) public view returns (address) {
         require(_index <= getPoolLength() - 1, ": index out of bounds");
-        return EnumerableSet.at(poolInfo, _index);
+        return EnumerableSet.at(_poolInfo, _index);
     }
 }

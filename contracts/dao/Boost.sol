@@ -160,7 +160,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         _updateForGauge(gauges[_pool]);
     }
 
-    function isGaugeForPool(address _pool) internal view override returns (bool) {
+    function _isGaugeForPool(address _pool) internal view override returns (bool) {
         return isGauge[gauges[_pool]];
     }
 }

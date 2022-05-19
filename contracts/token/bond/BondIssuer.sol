@@ -42,10 +42,10 @@ contract BondIssuer is AbstractPausable {
     constructor(
         address _operatorMsg,
         address _stableAddress,
-        address _BondAddress
+        address _bondAddress
     ) AbstractPausable(_operatorMsg) {
         stableCoin = RStablecoin(_stableAddress);
-        bond = Bond(_BondAddress);
+        bond = Bond(_bondAddress);
         minInterestRate = 1e4;
         maxInterestRate = 1e5;
         interestRate = 1e4;
@@ -125,8 +125,8 @@ contract BondIssuer is AbstractPausable {
         interestRate = _interestRate;
     }
 
-    function setFees(uint256 _issue_fee, uint256 _redemptionFee) external onlyOperator {
-        issueFee = _issue_fee;
+    function setFees(uint256 _issueFee, uint256 _redemptionFee) external onlyOperator {
+        issueFee = _issueFee;
         redemptionFee = _redemptionFee;
     }
 

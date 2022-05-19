@@ -100,13 +100,13 @@ contract('Boost', async function () {
         const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
         poolLibrary = await PoolLibrary.deploy();
 
-        const Pool_USDC = await ethers.getContractFactory('Pool_USDC', {
+        const PoolUSD = await ethers.getContractFactory('PoolUSD', {
             libraries: {
                 PoolLibrary: poolLibrary.address,
             },
         });
-        usdcPool = await Pool_USDC.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
-        expect(await usdcPool.USDC_address()).to.be.eq(usdc.address);
+        usdcPool = await PoolUSD.deploy(operatable.address, frax.address, fxs.address, usdc.address, toWei('10000000000'));
+        expect(await usdcPool.usdAddress()).to.be.eq(usdc.address);
 
         await frax.addPool(usdcPool.address);
 
