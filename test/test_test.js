@@ -16,9 +16,9 @@ contract("test", async function () {
         // Create token pair
         await CrvFactoryDeploy(crvFactory, [token0, rusd, token1], {});
 
-        await RouterApprove(usdc, {}, owner);
-        await RouterApprove(rusd, {}, owner);
-        await RouterApprove(tra, {}, owner);
+        await RouterApprove(usdc, toWei("1000"), [, toWei("0.1")], owner);
+        await RouterApprove(rusd, toWei("1000"),[toWei("0.000001")], owner);
+        await RouterApprove(tra, toWei("1000"),[, , , 0], owner);
 
         await SetETHUSDOracle();
 
