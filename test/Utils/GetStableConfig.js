@@ -7,6 +7,8 @@ const GetRusdAndTra = async () => {
 
     resultArray = await TokenFactory();
 
+    await SetRusdAndTraConfig(resultArray[3], resultArray[4]);
+
     return resultArray;
 }
 

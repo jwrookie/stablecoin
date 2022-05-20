@@ -22,8 +22,6 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) 
         }
     }
 
-    await SetChainlinkETHUSDPriceConsumer();
-
     tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, tempTimeLock);
     return tempUniswapOracle;
 }
@@ -35,20 +33,22 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
     let router = crvMap.get("router");
 
     for (let i = 0; i < parameter.length; i++) {
-        if (undefined !== parameter[i] && 0 <= parameter[i] || "number" === typeof parameter[i] || "string" === typeof parameter[i]) {
-            switch (i) {
-                case 0:
-                    ParameterMap.tokenANumber = parameter[i];
-                    break;
-                case 1:
-                    ParameterMap.tokenBNumber = parameter[i];
-                    break;
-                case 2:
-                    ParameterMap.amplification = parameter[i];
-                    break;
-                case 3:
-                    ParameterMap.fee = parameter[i];
-                    break;
+        if ("number" === typeof parameter[i] || "string" === typeof parameter[i]) {
+            if (undefined !== parameter[i] && 0 <= parameter[i]) {
+                switch (i) {
+                    case 0:
+                        ParameterMap.tokenANumber = parameter[i];
+                        break;
+                    case 1:
+                        ParameterMap.tokenBNumber = parameter[i];
+                        break;
+                    case 2:
+                        ParameterMap.amplification = parameter[i];
+                        break;
+                    case 3:
+                        ParameterMap.fee = parameter[i];
+                        break;
+                }
             }
         }
     }
