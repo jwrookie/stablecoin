@@ -32,8 +32,8 @@ async function main() {
 
     let factory = "0x664aA5c2b9A12228aEc799cC97f584a06690BdA7"
     //let pool = "0xb769c48368E5A5550f21d08F1da338bF413a777F"
-    let rusd = '0x27ede5894cdae5b077aA74dD17112ECFe4574054'
-    let tra = '0x120818ffb5b291aEe8e5034D1c37b1AfAe7d677a'
+    let rusd = '0xc792dDbC43b0FB824D3B2916bb4BCa9dF113E9Ac'
+    let tra = '0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9'
 
 
     for (const account of accounts) {

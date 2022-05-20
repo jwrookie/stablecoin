@@ -19,9 +19,9 @@ async function main() {
     let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
     // let oracle = "0x3aB76d4344fE2106837155D96b54EAD0bb8140Cf"
-    let fxs = "0x120818ffb5b291aEe8e5034D1c37b1AfAe7d677a"
-    let frax = "0x27ede5894cdae5b077aA74dD17112ECFe4574054"
-    let pool = "0xfD30d193cC339c527825032a08d8F111Be07E8bd"
+    let fxs = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
+    let frax = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
+    let pool = "0x5C45F52A3a2eb307385029bD7F5013C1798E9b10"
     let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
     // let swapMining = "0x27D801020b531154003ba9f31598FbBf3C0A1d01"
 
@@ -54,7 +54,7 @@ async function main() {
 
     const CalcTool = await ethers.getContractFactory('CalcTool', {
         libraries: {
-            PoolLibrary: "0x81FF9cE868cDB22d30b5533F181Bf941cD44CCb9",
+            PoolLibrary: "0x1348038BbEEe55713939F0E9ABE37f36C8632eF1",
         },
     });
 

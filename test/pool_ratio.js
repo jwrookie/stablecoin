@@ -11,13 +11,6 @@ const {GetUniswap, RouterApprove} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
-
-function encodeParameters(types, values) {
-    const abi = new ethers.utils.AbiCoder();
-    return abi.encode(types, values);
-}
-
-
 contract('PoolUSD', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
@@ -103,9 +96,7 @@ contract('PoolUSD', () => {
 
     });
     it("frax price >1, the collateral ratio decreased", async () => {
-
         await oraclePrice();
-
         await rusd.refreshCollateralRatio();
         let ratio = 1000000;
 
@@ -143,30 +134,172 @@ contract('PoolUSD', () => {
 
     });
     it("re mortgage will exceed the pool limit", async () => {
-        await usdc.approve(stableCoinPool.address, toWei("1000000000000"))
         await oraclePrice();
-
         expect(await stableCoinPool.poolCeiling()).to.be.eq(toWei('10000000000'))
 
         await rusd.refreshCollateralRatio();
 
-
         await expect(stableCoinPool.recollateralizeStable(1, "10")).to.be.revertedWith("Slippage limit reached");
-        await stableCoinPool.recollateralizeStable(toWei('10000000000'), "10");
+        await stableCoinPool.recollateralizeStable(toWei('10000000001'), "10");
 
 
     });
-    it("two users mintFractionalStable", async () => {
+    it("two users mintFractionalStable and redeemFractionalStable", async () => {
         await oraclePrice();
         await rusd.refreshCollateralRatio();
-        //console.log( "getCollateralPrice"+await stableCoinPool.getCollateralPrice())
+
+        let befTraOwner = await tra.balanceOf(owner.address);
+        let befRusdOwner = await rusd.balanceOf(owner.address);
         await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('1'))
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('1'));
+        let aftTraOwner = await tra.balanceOf(owner.address);
+        let aftRusdOwner = await rusd.balanceOf(owner.address);
 
+        let diffTraOwner = befTraOwner.sub(aftTraOwner);
+        let diffRusdOwner = aftRusdOwner.sub(befRusdOwner);
+        let befTraDev = await tra.balanceOf(dev.address);
+        let befRusdDev = await rusd.balanceOf(dev.address);
         await stableCoinPool.connect(dev).mintFractionalStable(toWei('1'), toWei('1'), 0);
+        let aftTraDev = await tra.balanceOf(dev.address);
+        let aftRusdDev = await rusd.balanceOf(dev.address);
+
+        let diffTraDev = befTraDev.sub(aftTraDev);
+        expect(diffTraDev).to.be.eq(diffTraOwner);
+
+        let diffRusdDev = aftRusdDev.sub(befRusdDev);
+        expect(diffRusdDev).to.be.eq(diffRusdOwner);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('2'));
+
+        await expect(stableCoinPool.redeemFractionalStable(diffRusdOwner, toWei('1'), 0)).to.be.revertedWith("Slippage limit reached [stock]");
+
+        let bef1RusdOwner = await rusd.balanceOf(owner.address);
+        let bef1RusdDev = await rusd.balanceOf(dev.address);
+        let stockToPoolBef = await tra.balanceOf(stableCoinPool.address);
+
+        await stableCoinPool.redeemFractionalStable(diffRusdOwner, toWei('0.0000001'), 0);
+
+        let stockToPoolAft = await tra.balanceOf(stableCoinPool.address);
+        let diffStockTOPool = stockToPoolAft.sub(stockToPoolBef);
+        await stableCoinPool.connect(dev).redeemFractionalStable(diffRusdDev, toWei('0.0000001'), 0);
+
+        let aft1RusdOwner = await rusd.balanceOf(owner.address);
+        let aft1RusdDev = await rusd.balanceOf(dev.address);
+        let diff1RusdOwner = bef1RusdOwner.sub(aft1RusdOwner);
+        let diff1RusdDev = bef1RusdDev.sub(aft1RusdDev);
+        expect(diff1RusdDev).to.be.eq(diff1RusdOwner);
+
+        let stockToPoolAft1 = await tra.balanceOf(stableCoinPool.address);
+        expect(stockToPoolAft1).to.be.eq(diffStockTOPool.mul(2));
 
 
-        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('2'))
+    });
+    it("two users mintAlgorithmicStable and redeemAlgorithmicStable", async () => {
+        await oraclePrice();
+        await rusd.setStableStep("2500000");
+        await rusd.refreshCollateralRatio();
+
+        let befTraOwner = await tra.balanceOf(owner.address);
+        let befRusdOwner = await rusd.balanceOf(owner.address);
+        await stableCoinPool.mintAlgorithmicStable(toWei('1'), 10);
+        let aftTraOwner = await tra.balanceOf(owner.address);
+        let aftRusdOwner = await rusd.balanceOf(owner.address);
+
+        let diffTraOwner = befTraOwner.sub(aftTraOwner);
+        let diffRusdOwner = aftRusdOwner.sub(befRusdOwner);
+        let befTraDev = await tra.balanceOf(dev.address);
+        let befRusdDev = await rusd.balanceOf(dev.address);
+        await stableCoinPool.connect(dev).mintAlgorithmicStable(toWei('1'), 10);
+        let aftTraDev = await tra.balanceOf(dev.address);
+        let aftRusdDev = await rusd.balanceOf(dev.address);
+
+        let diffTraDev = befTraDev.sub(aftTraDev);
+        expect(diffTraDev).to.be.eq(diffTraOwner);
+
+        let diffRusdDev = aftRusdDev.sub(befRusdDev);
+        expect(diffRusdDev).to.be.eq(diffRusdOwner);
+
+        let bef1RusdOwner = await rusd.balanceOf(owner.address);
+        let bef1RusdDev = await rusd.balanceOf(dev.address);
+        let stockToPoolBef = await tra.balanceOf(stableCoinPool.address);
+
+        await stableCoinPool.redeemAlgorithmicStable(diffRusdOwner, 0);
+
+        let stockToPoolAft = await tra.balanceOf(stableCoinPool.address);
+        let diffStockTOPool = stockToPoolAft.sub(stockToPoolBef);
+        await stableCoinPool.connect(dev).redeemAlgorithmicStable(diffRusdDev, 0);
+
+        let aft1RusdOwner = await rusd.balanceOf(owner.address);
+        let aft1RusdDev = await rusd.balanceOf(dev.address);
+        let diff1RusdOwner = bef1RusdOwner.sub(aft1RusdOwner);
+        let diff1RusdDev = bef1RusdDev.sub(aft1RusdDev);
+        expect(diff1RusdDev).to.be.eq(diff1RusdOwner);
+
+        let stockToPoolAft1 = await tra.balanceOf(stableCoinPool.address);
+        expect(stockToPoolAft1).to.be.eq(diffStockTOPool.mul(2));
+
+
+    });
+    it("two users mint1t1Stable and redeem1t1Stable", async () => {
+        await oraclePrice();
+        let befRusdOwner = await rusd.balanceOf(owner.address);
+        await stableCoinPool.mint1t1Stable(toWei('1'), 0);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('1'));
+        let aftRusdOwner = await rusd.balanceOf(owner.address);
+
+        let diffRusdOwner = aftRusdOwner.sub(befRusdOwner);
+        let befRusdDev = await rusd.balanceOf(dev.address);
+        await stableCoinPool.connect(dev).mint1t1Stable(toWei('1'), 0);
+        let aftRusdDev = await rusd.balanceOf(dev.address);
+
+        let diffRusdDev = aftRusdDev.sub(befRusdDev);
+        expect(diffRusdDev).to.be.eq(diffRusdOwner);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('2'));
+
+        let bef1RusdOwner = await rusd.balanceOf(owner.address);
+        let bef1RusdDev = await rusd.balanceOf(dev.address);
+
+        await stableCoinPool.redeem1t1Stable(diffRusdOwner, 0);
+
+        let aft1RusdOwner = await rusd.balanceOf(owner.address);
+        await stableCoinPool.connect(dev).redeem1t1Stable(diffRusdDev, 0);
+
+
+        let aft1RusdDev = await rusd.balanceOf(dev.address);
+        let diff1RusdOwner = bef1RusdOwner.sub(aft1RusdOwner);
+        let diff1RusdDev = bef1RusdDev.sub(aft1RusdDev);
+        expect(diff1RusdDev).to.be.eq(diff1RusdOwner);
+
+
+    });
+    it("can be re mortgaged many times", async () => {
+        await oraclePrice();
+        await rusd.refreshCollateralRatio();
+        let collateralBef = await usdc.balanceOf(stableCoinPool.address);
+        let stockBef = await tra.balanceOf(owner.address);
+        await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
+
+
+        let collateralAft = await usdc.balanceOf(stableCoinPool.address);
+        let stockAft = await tra.balanceOf(owner.address);
+        let diffCollateral = collateralAft.sub(collateralBef)
+        await stableCoinPool.recollateralizeStable(toWei('2000'), "10");
+        let stockAft1 = await tra.balanceOf(owner.address);
+
+        await stableCoinPool.recollateralizeStable(toWei('3000'), "10");
+
+        let collateralAft1 = await usdc.balanceOf(stableCoinPool.address);
+        let stockAft2 = await tra.balanceOf(owner.address);
+
+        let diffStock = stockAft.sub(stockBef)
+        let diffStock1 = stockAft1.sub(stockAft)
+        let diffStock2 = stockAft2.sub(stockAft1)
+
+
+        expect(collateralAft1).to.be.eq(diffCollateral.mul(6))
+
+        expect(diffStock1).to.be.eq(diffStock.mul(2))
+        // expect(diffStock2).to.be.eq(diffStock1.mul(2))
+        // expect(stockAf2).to.be.eq(diffStock)
     });
     // it("test buyBackStock", async () => {
     //      await usdc_uniswapOracle.setPeriod(1);
