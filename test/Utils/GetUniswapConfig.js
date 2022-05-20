@@ -17,10 +17,12 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) 
     let tempTimeLock = await SetTimeLock(userAddress);
 
     for (let i = 0; i < arguments.length; i++) {
-        if (ZEROADDRESS === arguments[i] || null === arguments[i] || undefined === arguments[i]) {
+        if (ZEROADDRESS === arguments[i] || undefined === arguments[i]) {
             throw Error("Exist Invalid address!");
         }
     }
+
+    await SetChainlinkETHUSDPriceConsumer();
 
     tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, tempTimeLock);
     return tempUniswapOracle;
