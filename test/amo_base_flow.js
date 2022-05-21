@@ -11,16 +11,14 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
     beforeEach(async function (){
         [owner] = await ethers.getSigners();
 
-        [, operatable, checkOpera, rusd, tra] = await GetRusdAndTra();
+        [rusd, tra, operatable] = await GetRusdAndTra();
 
         [usdc, token0, token1] = await GetMockToken(3, [owner], toWei("1000"));
 
-        stableCoinPool = await StableCoinPool(checkOpera, rusd, tra, usdc, 10000);
+        stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
-        [weth, factory, router, registry, poolRegistry, crvFactory, plain3Balances] = await GetConfigAboutCRV(owner);
-        await CrvFactoryDeploy(crvFactory, [token0, rusd, token1], {});
-        poolAddress = await crvFactory.pool_list(0, GAS);
-        pool = await plain3Balances.attach(poolAddress);
+        [weth, factory, registry, poolRegistry] = await GetConfigAboutCRV(owner);
+        pool = await CrvFactoryDeploy([usdc, rusd, token1], {});
 
         // Create transaction pairs
         await factory.createPair(usdc.address, weth.address);
@@ -70,6 +68,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await registry.set_address(0, poolRegistry.address);
 
         // Approve for pool
+        await usdc.approve(pool.address, toWei("10000"));
         await token0.approve(pool.address, toWei("10000"));
         await token1.approve(pool.address, toWei("10000"));
         await rusd.approve(pool.address, toWei("10000"));
@@ -82,25 +81,17 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await amoMinter.addAMO(exchangeAMO.address, true); // Because will call the function dollarBalances and find get lpBalance in 3pool so need to add liquidity in 3pool
     });
 
-    it('before work', async function () {
-        console.log(await rusd.balanceOf(stableCoinPool.address));
-    });
-
     it('when user mint rusd will trigger exchange amo', async function () {
-        // beforeTraBalanceOfOwner = await tra.balanceOf(owner.address);
-        // console.log(beforeTraBalanceOfOwner);
-        // beforeUsdcBalanceOfOwner = await usdc.balanceOf(owner.address);
-        // console.log(beforeUsdcBalanceOfOwner);
-        // beforeRusdBalanceOfOwner = await rusd.balanceOf(owner.address);
-        // console.log(beforeRusdBalanceOfOwner);
-        //
-        // await stableCoinPool.mintFractionalStable(toWei("0.1"), toWei("1"), 1);
-        //
-        // afterTraBalanceOfOwner = await tra.balanceOf(owner.address);
-        // console.log(afterTraBalanceOfOwner);
-        // afterUsdcBalanceOfOwner = await usdc.balanceOf(owner.address);
-        // console.log(afterUsdcBalanceOfOwner);
-        // afterRusdBalanceOfOwner = await rusd.balanceOf(owner.address);
-        // console.log(afterRusdBalanceOfOwner);
+        // Refresh tra uniswaporacle and usdc uniswap to get tra price, because tra price is bound usdc price
+        await usdcUniswapOracle.setPeriod(1);
+        await usdcUniswapOracle.update();
+        await traUniswapOracle.setPeriod(1);
+        await traUniswapOracle.update();
+
+        beforeMintRusdUsdcBalnace = await usdc.balanceOf(owner.address);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(0);
+        await stableCoinPool.mint1t1Stable(toWei("1"), 0);
+        expect(await usdc.balanceOf(owner.address)).to.be.eq(beforeMintRusdUsdcBalnace.sub(toWei("1")));
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei("1"));
     });
 });

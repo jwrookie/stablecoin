@@ -1,7 +1,8 @@
 const {SetPoolByCrvFactory, SetPlainImplementations} = require("../Core/LibSourceConfig");
 const {ConfigCrvFactory, GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
-const {toWei} = web3.utils;
 const {ZEROADDRESS} = require("../Lib/Address");
+const GAS = {gasLimit: "9550000"};
+const {toWei} = web3.utils;
 
 const GetConfigAboutCRV = async (user) => {
     let resultArray = new Array();
@@ -17,33 +18,35 @@ const GetConfigAboutCRV = async (user) => {
     resultArray.push(
         crvFactoryMap.get("weth"),
         crvFactoryMap.get("factory"),
-        crvFactoryMap.get("router"),
         crvFactoryMap.get("registry"),
-        crvFactoryMap.get("poolRegistry"),
-        crvFactoryMap.get("crvFactory"),
-        crvFactoryMap.get("plain3Balances"));
+        crvFactoryMap.get("poolRegistry"));
 
     return resultArray;
 }
 
-const CrvFactoryDeploy = async (crvFactory, tokenArray, {amplification, fee, gas} = {}) => {
+const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
     let recording = await GetCrvMap();
 
     if (recording.get("crvFactory") === undefined || recording.get("crvFactory") === ZEROADDRESS) {
         throw Error("Please call function GetConfigAboutCRV first!");
     }
 
-    if (recording.get("crvFactory") !== crvFactory) {
-        throw Error("Please set right crvFactory, which value is the same as that configured");
-    }
-
     await SetPoolByCrvFactory(
-        crvFactory,
+        recording.get("crvFactory"),
         tokenArray,
         amplification,
         fee,
         gas
     );
+
+    // Get 3pool instantiation object
+    let poolAddress = await recording.get("crvFactory").pool_list(0, GAS);
+
+    if (undefined === recording.get("plain3Balances") || ZEROADDRESS === recording.get("plain3Balances").address) {
+        throw Error("Please check function ConfigCrvFactory!");
+    }
+
+    return await recording.get("plain3Balances").attach(poolAddress);
 }
 
 module.exports = {

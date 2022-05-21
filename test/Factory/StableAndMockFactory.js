@@ -18,10 +18,11 @@ const TokenFactory = async () => {
     let rusd = await SetRusd(operatable);
     let tra = await SetTra(operatable, oracle);
 
+    GraphicTokenMap.set("CHECKOPERA", checkOpera);
     GraphicTokenMap.set("RUSD", rusd);
     GraphicTokenMap.set("TRA", tra);
 
-    resultArray.push(oracle, operatable, checkOpera, rusd, tra);
+    resultArray.push(rusd, tra, operatable, checkOpera, oracle);
 
     return resultArray;
 }

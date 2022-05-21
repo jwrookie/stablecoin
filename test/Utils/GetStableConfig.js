@@ -1,5 +1,5 @@
 const {ethers} = require('hardhat');
-const {TokenFactory} = require("../Factory/StableAndMockFactory");
+const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
@@ -7,7 +7,13 @@ const GetRusdAndTra = async () => {
 
     resultArray = await TokenFactory();
 
-    await SetRusdAndTraConfig(resultArray[3], resultArray[4]);
+    let tempMap = await GetMap();
+
+    if (undefined !== tempMap.get("RUSD") || undefined !== tempMap.get("TRA")) {
+        await SetRusdAndTraConfig(tempMap.get("RUSD"), tempMap.get("TRA"));
+    }else {
+        throw Error("Please check token factory and check rusd and tra contract!");
+    }
 
     return resultArray;
 }
@@ -37,19 +43,35 @@ const SetPoolAddress = async (poolLib) => {
     });
 }
 
-const StableCoinPool = async (checkPermission, rusd, tra, usdc, poolCelling) => {
-    if (0 >= poolCelling) {
-        throw Error("Invalid pool celling!");
+const StableCoinPool = async (usdc, poolCelling) => {
+    let tempMap = await GetMap();
+
+    if (0 >= poolCelling || undefined === usdc) {
+        throw Error("Invalid pool celling or contract!");
     }
 
     let fraxPoolLibrary = await SetFraxPoolLib();
 
     let PoolUsdc = await SetPoolAddress(fraxPoolLibrary);
 
+    switch (undefined) {
+        case tempMap.get("CHECKOPERA"):
+            throw Error("Please call the function GetRusdAndTra first!");
+            break;
+        case tempMap.get("RUSD"):
+            throw Error("Please call the function GetRusdAndTra first!");
+            break;
+        case tempMap.get("TRA"):
+            throw Error("Please call the function GetRusdAndTra first!");
+            break;
+        default:
+            break;
+    }
+
     return await PoolUsdc.deploy(
-        checkPermission.address,
-        rusd.address,
-        tra.address,
+        tempMap.get("CHECKOPERA").address,
+        tempMap.get("RUSD").address,
+        tempMap.get("TRA").address,
         usdc.address,
         poolCelling
     );

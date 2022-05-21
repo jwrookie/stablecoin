@@ -8,13 +8,12 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 contract("test", async function () {
     beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
-        [, , checkOpera, rusd, tra] = await GetRusdAndTra();
-        await SetRusdAndTraConfig(rusd, tra);
+        [rusd, tra] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
-        stableCoinPool = await StableCoinPool(checkOpera, rusd, tra, usdc, 10000);
-        [weth, factory, router, registry, poolRegistry, crvFactory, plain3Balances] = await GetConfigAboutCRV(owner);
+        stableCoinPool = await StableCoinPool(usdc, 10000);
+        [weth, factory, registry, poolRegistry] = await GetConfigAboutCRV(owner);
         // Create token pair
-        await CrvFactoryDeploy(crvFactory, [token0, rusd, token1], {});
+        pool = await CrvFactoryDeploy([usdc, rusd, token1], {});
 
         await RouterApprove(usdc, toWei("1000"), [, toWei("0.1")], owner);
         await RouterApprove(rusd, toWei("1000"),[toWei("0.000001")], owner);
@@ -33,7 +32,6 @@ contract("test", async function () {
         console.log(token0.address);
         console.log(token1.address);
         console.log(stableCoinPool.address);
-        console.log(crvFactory.address);
         console.log(factory.address);
     });
 });
