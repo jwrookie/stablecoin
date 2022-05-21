@@ -1,4 +1,4 @@
-const {GetRusdAndTra,SetRusdAndTraConfig} = require("./Utils/GetStableConfig");
+const {GetRusdAndTra} = require("./Utils/GetStableConfig");
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetGauge} = require("./Utils/GetGaugeAboutBoost");
@@ -13,8 +13,7 @@ contract('Boost、Gauge、GaugeController', async function () {
 
     beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
-        [, , checkOpera, rusd, tra] = await GetRusdAndTra();
-        await SetRusdAndTraConfig(rusd, tra);
+        [rusd, tra, , checkOpera] = await GetRusdAndTra()
         await rusd.transfer(dev.address, toWei("0.5"));
         await tra.transfer(dev.address, toWei("0.5"));
 
