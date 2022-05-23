@@ -39,8 +39,11 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
 
     for (let i = 0; i < deployMockTokenNumber; i++) {
         token = await SetMockToken();
+        if (0 === mintUser.length) {
+            throw Error("Please enter the user who wants to mint coins!");
+        }
         for (let j = 0; j < mintUser.length; j++) {
-            if (mintUser[j] !== undefined || mintUser[j] !== ZEROADDRESS) {
+            if ("object" === typeof mintUser[j] && undefined !== mintUser[j].address) {
                 user = mintUser[j];
                 await MintMockToken(token, user.address, mintNumber);
             } else {
@@ -50,7 +53,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
         resultArray.push(token);
     }
 
-    temp = resultArray[0];
+    temp = resultArray[0]; // First mock token defined to usdc
     GraphicTokenMap.set("USDC", temp);
 
     return resultArray;
