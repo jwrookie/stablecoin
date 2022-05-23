@@ -1,12 +1,14 @@
 const {ethers} = require('hardhat');
 const {toWei} = require("web3-utils");
-const {SetGauge, SetBoost} = require("../Core/DaoConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
+const {GetMap} = require("../Factory/StableAndMockFactory");
+const {SetGauge, SetBoost} = require("../Core/DaoConfig");
 
 const GetBoost = async (
-    checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period, token = []
+    locker, factory, swapToken, rewardNumber, startBlock, period, token = []
 ) => {
     let resultArray = new Array();
+    let tempMap = await GetMap();
     let boost;
     let gauge;
     let tempToken;
@@ -15,7 +17,11 @@ const GetBoost = async (
         throw Error("Invalid Set value!");
     }
 
-    boost = await SetBoost(checkOperator, locker, factory, swapToken, rewardNumber, startBlock, period);
+    if (undefined === tempMap.get("CHECKOPERA")) {
+        throw Error("Please call the function TokenFactory first!");
+    }
+
+    boost = await SetBoost(tempMap.get("CHECKOPERA"), locker, factory, swapToken, rewardNumber, startBlock, period);
 
     if (undefined !== boost) {
         resultArray.push(boost);

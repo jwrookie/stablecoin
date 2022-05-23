@@ -50,7 +50,7 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
         resultArray.push(token);
     }
 
-    temp = resultArray[0];
+    temp = resultArray[0]; // First mock token defined to usdc
     GraphicTokenMap.set("USDC", temp);
 
     return resultArray;
