@@ -126,7 +126,6 @@ module.exports = {
     Weth,
     Factory,
     Router,
-    Router,
     Registry,
     PoolRegistry,
     CRVFactory,
