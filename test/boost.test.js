@@ -186,6 +186,32 @@ contract('Boost', () => {
         expect(usdcDevAft).to.be.eq(usdcDevBef.add(toWei('1')));
         expect(busdDevAft).to.be.eq(busdDevBef.add(toWei('1')));
 
+
+    });
+    it('multiple pools to receive rewards', async () => {
+        await busd.connect(dev).approve(lock.address, toWei('10000000'));
+        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        let eta = time.duration.days(1);
+        await lock.connect(dev).createLockFor("1000", parseInt(eta), dev.address);
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
+
+
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_busd.connect(dev).deposit(toWei('1'), 1);
+        let rewardBef = await fxs.balanceOf(dev.address);
+        expect(rewardBef).to.be.eq("9999999999999999999000");
+
+        await boost.updatePool(0);
+        await boost.updatePool(1);
+
+        await boost.connect(dev).claimRewards([gauge_usdc.address, gauge_busd.address]);
+        let rewardAft = await fxs.balanceOf(dev.address);
+
+        expect(rewardAft).to.be.eq("10001049999999999999000");
+
+
     });
 
 
