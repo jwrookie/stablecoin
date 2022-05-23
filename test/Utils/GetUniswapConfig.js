@@ -5,24 +5,25 @@ const {GetMap} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require("../Lib/Address");
 const {toWei} = web3.utils;
 
-const ParameterMap = {
+const ParameterObj = {
     tokenANumber: toWei("1"),
     tokenBNumber: toWei("1"),
     amplification: 0,
     fee: 0
 }
 
-const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, weth) => {
+const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grapplingCoin) => {
     let tempUniswapOracle;
-    let tempTimeLock = await SetTimeLock(userAddress);
 
     for (let i = 0; i < arguments.length; i++) {
-        if (ZEROADDRESS === arguments[i] || undefined === arguments[i]) {
+        if ("object" !== typeof arguments[i] || undefined === arguments[i].address) {
             throw Error("Exist Invalid address!");
         }
     }
 
-    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, weth, tempTimeLock);
+    let tempTimeLock = await SetTimeLock(userAddress);
+
+    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
     return tempUniswapOracle;
 }
 
@@ -37,16 +38,16 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
             if (undefined !== parameter[i] && 0 <= parameter[i]) {
                 switch (i) {
                     case 0:
-                        ParameterMap.tokenANumber = parameter[i];
+                        ParameterObj.tokenANumber = parameter[i];
                         break;
                     case 1:
-                        ParameterMap.tokenBNumber = parameter[i];
+                        ParameterObj.tokenBNumber = parameter[i];
                         break;
                     case 2:
-                        ParameterMap.amplification = parameter[i];
+                        ParameterObj.amplification = parameter[i];
                         break;
                     case 3:
-                        ParameterMap.fee = parameter[i];
+                        ParameterObj.fee = parameter[i];
                         break;
                 }
             }
@@ -62,7 +63,7 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
     }
 
     await coin.approve(router.address, approveNumber);
-    await SetAddLiquidity(router, coin, weth, ParameterMap.tokenANumber, ParameterMap.tokenBNumber, ParameterMap.amplification, ParameterMap.fee, user, date);
+    await SetAddLiquidity(router, coin, weth, ParameterObj.tokenANumber, ParameterObj.tokenBNumber, ParameterObj.amplification, ParameterObj.fee, user, date);
 }
 
 const SetETHUSDOracle = async () => {

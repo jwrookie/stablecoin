@@ -59,7 +59,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
 
         // Add pool
         await rusd.addPool(amoMinter.address);
-        // await rusd.addPool(pool.address);
+        await rusd.addPool(stableCoinPool.address);
 
         await tra.addPool(stableCoinPool.address);
         await tra.addPool(amoMinter.address);
@@ -71,9 +71,6 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await usdc.approve(pool.address, toWei("10000"));
         await token1.approve(pool.address, toWei("10000"));
         await rusd.approve(pool.address, toWei("10000"));
-        await rusd.approve(stableCoinPool.address, toWei("10000")); // Important
-        await tra.approve(pool.address, toWei("10000"));
-        await tra.approve(stableCoinPool.address, toWei("10000")); // Important
 
         // Add liquidity
         await pool.add_liquidity([toWei("100"), toWei("100"), toWei("100")], 0, GAS);
@@ -90,6 +87,10 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await rusdUniswapOracle.setPeriod(1);
         await rusdUniswapOracle.update();
 
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(0);
+        await stableCoinPool.mint1t1Stable(toWei("1"), 0);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei("1"));
+
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(0);
         await amoMinter.setMinimumCollateralRatio(0);
         await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
@@ -98,16 +99,18 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         // Operator call function to borrow usdc
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
         await amoMinter.setCollatBorrowCap(toWei("10"));
-        await usdc.approve(amoMinter.address, toWei("1"));
-        await amoMinter.setMinimumCollateralRatio(950000);
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
-        // expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei("1"));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei("1"));
+
+        beforeAddLiquidityRusd = await rusd.balanceOf(pool.address); // towei("100")
+        beforeAddLiquidityUsdc = await usdc.balanceOf(pool.address);
+        await usdc.approve(exchangeAMO.address, toWei("10000"));
+        lpReceived = await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityRusd.add(toWei("0.5")));
+        expect(await usdc.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityUsdc.add(toWei("0.1")));
+
+        // await exchangeAMO.metapoolWithdrawAtCurRatio(
         //
-        // beforeAddLiquidityRusd = await rusd.balanceOf(pool.address); // towei("100")
-        // beforeAddLiquidityUsdc = await usdc.balanceOf(pool.address);
-        // await usdc.approve(exchangeAMO.address, toWei("10000"));
-        // lpReceived = await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
-        // console.log(await exchangeAMO.min3PoolOut());
-        // console.log(lpReceived);
+        // );
     });
 });
