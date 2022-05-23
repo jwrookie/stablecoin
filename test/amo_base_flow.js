@@ -17,7 +17,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
 
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
-        [weth,factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
+        [weth, factory, registry, poolRegistry] = await GetConfigAboutCRV(owner);
         pool = await CrvFactoryDeploy([usdc, rusd, token1], {});
 
         // Create transaction pairs

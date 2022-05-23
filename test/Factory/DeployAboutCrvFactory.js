@@ -16,7 +16,7 @@ const ConfigCrvFactory = async (user) => {
     let crvFactory;
     let plain3Balances;
 
-    if (ZEROADDRESS === user.address || undefined === user.address) {
+    if ("object" !== typeof user || undefined === user.address) {
         throw Error("Please enter the correct user address!");
     }
 
