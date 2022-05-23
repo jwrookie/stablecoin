@@ -73,7 +73,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public lastCallTime; // Last time the refreshCollateralRatio function was called
 
     uint256 public k = 1e3; // 1=1e6
-    uint256 public maxCR = 1e16;
+    uint256 public maxCR = 1e6;
     uint256 public lastQX;
     uint256 public kDuration = 1e7 * 1e18;
 
