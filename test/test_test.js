@@ -11,7 +11,7 @@ contract("test", async function () {
         [rusd, tra] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc, 10000);
-        [weth, factory, registry, poolRegistry] = await GetConfigAboutCRV(owner);
+        [weth,factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
         // Create token pair
         pool = await CrvFactoryDeploy([usdc, rusd, token1], {});
 

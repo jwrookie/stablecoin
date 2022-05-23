@@ -19,7 +19,9 @@ const GetConfigAboutCRV = async (user) => {
         crvFactoryMap.get("weth"),
         crvFactoryMap.get("factory"),
         crvFactoryMap.get("registry"),
-        crvFactoryMap.get("poolRegistry"));
+        crvFactoryMap.get("poolRegistry"),
+        crvFactoryMap.get("router")
+    );
 
     return resultArray;
 }
