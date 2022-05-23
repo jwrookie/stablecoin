@@ -14,13 +14,6 @@ const ParameterObj = {
 
 const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grapplingCoin) => {
     let tempUniswapOracle;
-
-    for (let i = 0; i < arguments.length; i++) {
-        if ("object" !== typeof arguments[i] || undefined === arguments[i].address) {
-            throw Error("Exist Invalid address!");
-        }
-    }
-
     let tempTimeLock = await SetTimeLock(userAddress);
 
     tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
