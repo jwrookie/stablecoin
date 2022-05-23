@@ -312,7 +312,7 @@ contract('AMOMinter', async function () {
 
     it('test addAMO and removeAMO', async function () {
         expect(await amoMinter.allAMOsLength()).to.be.eq(1);
-        amoAddress = await amoMinter.amosArray(0)
+        amoAddress = await amoMinter.amosArray(0);
         expect(exchangeAMO.address).to.be.eq(amoAddress);
         expect(await amoMinter.amos(exchangeAMO.address)).to.be.eq(true);
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(0);
