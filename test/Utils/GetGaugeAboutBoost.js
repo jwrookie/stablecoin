@@ -1,4 +1,3 @@
-const {ethers} = require('hardhat');
 const {toWei} = require("web3-utils");
 const {ZEROADDRESS} = require("../Lib/Address");
 const {GetMap} = require("../Factory/StableAndMockFactory");

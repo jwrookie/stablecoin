@@ -1,5 +1,4 @@
 const {Weth,Factory,Router,Registry,PoolRegistry,CRVFactory,Plain3Balances,} = require("../Core/LibSourceConfig");
-const {ZEROADDRESS} = require("../Lib/Address");
 
 const GraphicCrvTokenMap = new Map();
 

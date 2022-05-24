@@ -3,6 +3,7 @@ const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
 const {GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
 const {GetMap} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require("../Lib/Address");
+const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
 const ParameterObj = {
@@ -75,9 +76,20 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
     await SetAddLiquidity(router, coin, weth, ParameterObj.tokenANumber, ParameterObj.tokenBNumber, ParameterObj.amplification, ParameterObj.fee, user, date);
 }
 
-const SetETHUSDOracle = async () => {
+const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
     let tempMap = await GetMap();
-    let chainlinkETHUSDPriceConsumer = await SetChainlinkETHUSDPriceConsumer();
+    let chainlinkETHUSDPriceConsumer;
+
+    switch (typeof setAnswerValue) {
+        case "number":
+            chainlinkETHUSDPriceConsumer = await SetChainlinkETHUSDPriceConsumer(BigNumber.from(setAnswerValue.toString()));
+            break;
+        case "string":
+            chainlinkETHUSDPriceConsumer = await SetChainlinkETHUSDPriceConsumer(BigNumber.from(setAnswerValue));
+            break;
+        default:
+            throw Error("Unknow type of parameter!");
+    }
 
     if (undefined === tempMap.get("RUSD")) {
         throw Error("Need to set rusd first!");
