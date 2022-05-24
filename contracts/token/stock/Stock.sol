@@ -12,7 +12,7 @@ import "../Rusd.sol";
 contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
 
-    uint256 public constant GENESIS_SUPPLY = 1e6 * 1e18;
+    uint256 public constant GENESIS_SUPPLY = 3e8 * 1e18;
     uint256 public constant MAX_SUPPLY = 1e9 * 1e18;
 
     address[] public poolAddress;
@@ -110,6 +110,5 @@ contract Stock is ERC20Burnable, AbstractPausable {
     event StockMinted(address indexed from, address indexed to, uint256 amount);
     event StableAddressSet(address addr);
     event PoolAdded(address pool);
-
     event PoolRemoved(address pool);
 }
