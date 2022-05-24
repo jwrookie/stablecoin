@@ -36,6 +36,7 @@ contract ExchangeAMO is CheckPermission {
     bool public setDiscount;
     uint256 public discountRate;
     int128 stablePoolIndex;
+    int128 collateralPoolIndex;
 
     constructor(
         address _operatorMsg,
@@ -44,6 +45,7 @@ contract ExchangeAMO is CheckPermission {
         address collateralAddress,
         address poolAddress,
         address poolTokenAddress,
+        int128 _collateralPoolIndex,
         int128 _stablePoolIndex
     ) CheckPermission(_operatorMsg) {
         stablecoin = RStablecoin(stableCoinAddress);
@@ -54,6 +56,7 @@ contract ExchangeAMO is CheckPermission {
         threePoolLp = ERC20(poolTokenAddress);
         liqSlippage3crv = 800000;
         convergenceWindow = 1e15;
+        collateralPoolIndex = _collateralPoolIndex;
         stablePoolIndex = _stablePoolIndex;
         customFloor = false;
         setDiscount = false;
@@ -62,6 +65,11 @@ contract ExchangeAMO is CheckPermission {
     modifier onlyByMinter() {
         require(msg.sender == address(amoMinter), "Not minter");
         _;
+    }
+
+    function setIndex( int128 _collateralPoolIndex, int128 _stablePoolIndex) external onlyOperator {
+        collateralPoolIndex = _collateralPoolIndex;
+        stablePoolIndex = _stablePoolIndex;
     }
 
     function showAllocations() public view returns (uint256[9] memory arr) {
@@ -160,7 +168,7 @@ contract ExchangeAMO is CheckPermission {
 
             // Convert collateral into 3pool
             uint256[3] memory threePoolCollaterals;
-            threePoolCollaterals[uint128(stablePoolIndex)] = _collateralAmount;
+            threePoolCollaterals[uint128(collateralPoolIndex)] = _collateralAmount;
             {
                 uint256 min3poolOut = (_collateralAmount * (10 ** missingDecimals)).mul(liqSlippage3crv).div(
                     PRICE_PRECISION

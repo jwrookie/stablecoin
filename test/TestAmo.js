@@ -297,6 +297,7 @@ contract('AMOMinter', async function () {
             usdc.address,
             pool.address,
             frax.address,
+            0,
             1
         );
 

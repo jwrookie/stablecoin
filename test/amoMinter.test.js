@@ -229,7 +229,7 @@ contract('amo minter test', async function () {
             frax.address,
             usdc.address,
             pool.address,
-            frax.address
+            frax.address, 0, 1
         );
         //await frax.addPool(exchangeAMO.address)
 

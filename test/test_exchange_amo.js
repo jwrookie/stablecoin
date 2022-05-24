@@ -241,6 +241,7 @@ contract('test exchange amo', async function () {
             usdc.address,
             pool.address,
             frax.address,
+            0,
             1
         );
         //await frax.addPool(exchangeAMO.address)
