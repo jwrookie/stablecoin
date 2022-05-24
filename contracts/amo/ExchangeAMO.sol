@@ -16,10 +16,10 @@ contract ExchangeAMO is CheckPermission {
 
     uint256 public constant PRICE_PRECISION = 1e6;
 
-    IStableSwap3Pool public threePool;
-    ERC20 public threePoolLp;
-    RStablecoin public stablecoin;
-    ERC20 public collateralToken;
+    IStableSwap3Pool public immutable threePool;
+    ERC20 public immutable threePoolLp;
+    RStablecoin public immutable stablecoin;
+    ERC20 public immutable collateralToken;
     IAMOMinter public amoMinter;
 
     uint256 public missingDecimals;
@@ -35,6 +35,7 @@ contract ExchangeAMO is CheckPermission {
     // Discount
     bool public setDiscount;
     uint256 public discountRate;
+
     int128 stablePoolIndex;
     int128 collateralPoolIndex;
 
@@ -62,12 +63,12 @@ contract ExchangeAMO is CheckPermission {
         setDiscount = false;
     }
 
-    modifier onlyByMinter() {
+    modifier onlyMinter() {
         require(msg.sender == address(amoMinter), "Not minter");
         _;
     }
 
-    function setIndex( int128 _collateralPoolIndex, int128 _stablePoolIndex) external onlyOperator {
+    function setIndex(int128 _collateralPoolIndex, int128 _stablePoolIndex) external onlyOperator {
         collateralPoolIndex = _collateralPoolIndex;
         stablePoolIndex = _stablePoolIndex;
     }
@@ -279,11 +280,10 @@ contract ExchangeAMO is CheckPermission {
     }
 
     function burnStock(uint256 _amount) public onlyOperator {
-        stablecoin.approve(address(amoMinter), _amount);
+        stock.approve(address(amoMinter), _amount);
         amoMinter.burnStockFromAMO(_amount);
     }
 
-    // Burn unneeded or excess stable. Goes through the minter
     function burnStable(uint256 stableAmount) public onlyOperator {
         stablecoin.approve(address(amoMinter), stableAmount);
         amoMinter.burnStableFromAMO(stableAmount);
