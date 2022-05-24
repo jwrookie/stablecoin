@@ -33,6 +33,7 @@ contract('Crypto', () => {
 
         const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
 
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
@@ -239,15 +240,15 @@ contract('Crypto', () => {
         let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         let dx = "1000";
 
-        let token0Bef =  await token0.balanceOf(owner.address);
-        let ethBef =  await web3.eth.getBalance(owner.address);
+        let token0Bef = await token0.balanceOf(owner.address);
+        let ethBef = await web3.eth.getBalance(owner.address);
         await swapRouter.swapEthForToken(pool.address, 1, 0, dx, 0, owner.address, times, {value: dx});
 
         reword = await swapMining.rewardInfo(owner.address);
         await swapMining.getReward(0);
 
-        let token0Aft =  await token0.balanceOf(owner.address);
-        let ethAft =  await web3.eth.getBalance(owner.address);
+        let token0Aft = await token0.balanceOf(owner.address);
+        let ethAft = await web3.eth.getBalance(owner.address);
 
         expect(BigNumber.from(token0Aft)).to.be.eq(BigNumber.from(token0Bef).add("970"));
     });
@@ -259,15 +260,15 @@ contract('Crypto', () => {
         let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         let dx = "1000";
 
-        let token0Bef =  await token0.balanceOf(owner.address);
-        let ethBef =  await web3.eth.getBalance(owner.address);
+        let token0Bef = await token0.balanceOf(owner.address);
+        let ethBef = await web3.eth.getBalance(owner.address);
         await swapRouter.swapEthForToken(pool.address, 0, 1, dx, 0, owner.address, times, {value: dx});
 
         reword = await swapMining.rewardInfo(owner.address);
         await swapMining.getReward(0);
 
-        let token0Aft =  await token0.balanceOf(owner.address);
-        let ethAft =  await web3.eth.getBalance(owner.address);
+        let token0Aft = await token0.balanceOf(owner.address);
+        let ethAft = await web3.eth.getBalance(owner.address);
 
         expect(BigNumber.from(token0Aft)).to.be.eq(BigNumber.from(token0Bef).sub("1000"));
     });

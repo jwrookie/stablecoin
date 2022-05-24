@@ -28,7 +28,7 @@ contract('Boost test', () => {
 
         const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
-
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 
@@ -117,7 +117,7 @@ contract('Boost test', () => {
         expect(await boost.poolLength()).to.be.eq(2);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990000000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
 
         let pendDev = await getPending(dev.address);
 

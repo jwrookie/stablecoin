@@ -38,7 +38,7 @@ contract('swapMining_vote', () => {
 
         const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
-
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
         await fxs.setStableAddress(frax.address);
@@ -188,7 +188,7 @@ contract('swapMining_vote', () => {
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
 
-        await swapController.connect(dev).vote(1, pool.address);
+        await swapController.connect(dev).vote(1,pool.address);
 
         await swapMining.connect(dev).getReward(0);
 
@@ -210,13 +210,13 @@ contract('swapMining_vote', () => {
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000000000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('990000'));
 
         await swapMining.connect(dev).getReward(0);
         await swapMining.connect(owner).getReward(0);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000.42'));
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000472500000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('990000.4725'));
 
 
     });
@@ -234,20 +234,20 @@ contract('swapMining_vote', () => {
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000000000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('990000'));
 
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
         await lock.connect(owner).createLock(toWei('10'), parseInt(eta));
 
-        await swapController.connect(dev).vote(1, pool.address);
-        await swapController.connect(owner).vote(2, pool.address);
+        await swapController.connect(dev).vote(1,pool.address);
+        await swapController.connect(owner).vote(2,pool.address);
 
         await swapMining.connect(dev).getReward(0);
         await swapMining.connect(owner).getReward(0);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.525'));
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990577500000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990.5775'));
 
 
     });

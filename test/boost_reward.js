@@ -23,6 +23,7 @@ contract('Gauge', async function () {
         frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
         fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
         await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
@@ -106,9 +107,9 @@ contract('Gauge', async function () {
         expect(pendingMax).to.be.eq(toWei("3"));
         expect(pendingAmount).to.be.eq(toWei("0.9"));
         expect(gaugeAmount).to.be.eq("0");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999999400000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei("999999.4"));
         await gauge.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("300000001200000000000000000");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei("1000001.2"));
 
     });
 
