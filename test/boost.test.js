@@ -117,7 +117,7 @@ contract('Boost test', () => {
         expect(await boost.poolLength()).to.be.eq(2);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('989990'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990000000000000000000");
 
         let pendDev = await getPending(dev.address);
 

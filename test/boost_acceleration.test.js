@@ -88,10 +88,10 @@ contract('Boost', () => {
         await gauge_usdc.deposit(toWei('10'), 1);
 
         await boost.updatePool(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299998990000000000000000000");
 
         await gauge_usdc.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990.3'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299998990300000000000000000");
 
 
     });
@@ -105,10 +105,10 @@ contract('Boost', () => {
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
         await boost.updatePool(0);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299998990000000000000000000");
 
         await gauge_usdc.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998991.5'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299998991500000000000000000");
 
 
     });
@@ -147,14 +147,14 @@ contract('Boost', () => {
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await gauge_usdc.deposit(toWei('10'), 1);
         await gauge_usdc.connect(dev).deposit(toWei('10'), 2);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999989000000000000000000");
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9'));
 
         await boost.updatePool(0);
 
         await gauge_usdc.getReward(owner.address)
         await gauge_usdc.connect(dev).getReward(dev.address)
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989.225'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999989225000000000000000");
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9.3'));
 
 
@@ -169,7 +169,7 @@ contract('Boost', () => {
         await gauge_usdc.deposit(toWei('10'), 1);
         await gauge_usdc.connect(dev).deposit(toWei('10'), 2);
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999989000000000000000000");
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9'));
 
         await boost.updatePool(0);
@@ -180,7 +180,7 @@ contract('Boost', () => {
         await gauge_usdc.getReward(owner.address)
         await gauge_usdc.connect(dev).getReward(dev.address)
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999990.25'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999990250000000000000000");
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10.5'));
 
 
@@ -236,7 +236,6 @@ contract('Boost', () => {
 
 
     });
-
 
 
 });
