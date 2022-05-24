@@ -11,7 +11,7 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
-contract('PoolUSD', () => {
+contract('PoolUSD_Set', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
@@ -19,7 +19,7 @@ contract('PoolUSD', () => {
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("100000000000"));
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
-        await SetETHUSDOracle();
+        await SetETHUSDOracle(toWei("100"));
         [weth, factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
 
         await CrvFactoryDeploy([token0, rusd, token1], {});

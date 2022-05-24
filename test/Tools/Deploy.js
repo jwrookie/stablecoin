@@ -44,7 +44,7 @@ const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
     // Get 3pool instantiation object
     let poolAddress = await recording.get("crvFactory").pool_list(0, GAS);
 
-    if (undefined === recording.get("plain3Balances") || ZEROADDRESS === recording.get("plain3Balances").address) {
+    if (undefined === recording.get("plain3Balances").address || ZEROADDRESS === recording.get("plain3Balances").address) {
         throw Error("Please check function ConfigCrvFactory!");
     }
 
