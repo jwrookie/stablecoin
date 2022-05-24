@@ -106,9 +106,9 @@ contract('Gauge', async function () {
         expect(pendingMax).to.be.eq(toWei("3"));
         expect(pendingAmount).to.be.eq(toWei("0.9"));
         expect(gaugeAmount).to.be.eq("0");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei("999999.4"));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299999999400000000000000000");
         await gauge.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei("1000001.2"));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("300000001200000000000000000");
 
     });
 
