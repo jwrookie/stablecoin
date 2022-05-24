@@ -54,8 +54,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
             pool.address, // 3pool Lp address
             1,
             0
-        )
-        ;
+        );
 
         // Approve
         await usdc.approve(stableCoinPool.address, toWei("1"));

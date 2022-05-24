@@ -1,7 +1,5 @@
-const {ethers} = require('hardhat');
 const {SetOracle, SetOperatable, SetRusd, SetTra, SetCheckPermission} = require("../Core/StableConfig");
 const {SetMockToken, MintMockToken} = require("../Core/MockTokenConfig");
-const {ZEROADDRESS} = require("../Lib/Address");
 
 const GraphicTokenMap = new Map();
 
@@ -11,12 +9,21 @@ const GetMap = async () => {
 
 const TokenFactory = async () => {
     let resultArray = new Array();
+    let oracle;
+    let operatable;
+    let checkOpera;
+    let rusd;
+    let tra;
 
-    let oracle = await SetOracle();
-    let operatable = await SetOperatable();
-    let checkOpera = await SetCheckPermission(operatable);
-    let rusd = await SetRusd(operatable);
-    let tra = await SetTra(operatable, oracle);
+    try {
+        oracle = await SetOracle();
+        operatable = await SetOperatable();
+        checkOpera = await SetCheckPermission(operatable);
+        rusd = await SetRusd(operatable);
+        tra = await SetTra(operatable, oracle);
+    }catch (err) {
+        throw Error("Deploy token factory error!");
+    }
 
     GraphicTokenMap.set("CHECKOPERA", checkOpera);
     GraphicTokenMap.set("RUSD", rusd);
@@ -32,10 +39,6 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
     let token;
     let temp;
     let resultArray = new Array();
-
-    if (deployMockTokenNumber <= 0) {
-        throw Error("Please input token what you need!");
-    }
 
     for (let i = 0; i < deployMockTokenNumber; i++) {
         token = await SetMockToken();
