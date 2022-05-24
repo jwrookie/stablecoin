@@ -49,6 +49,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
             operatable.address,
             amoMinter.address,
             rusd.address,
+            tra.address,
             usdc.address,
             pool.address,
             pool.address, // 3pool Lp address

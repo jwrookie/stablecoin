@@ -10,6 +10,7 @@ import "../tools/TransferHelper.sol";
 import "../token/Rusd.sol";
 import "../interface/IAMOMinter.sol";
 import "../tools/CheckPermission.sol";
+import "../interface/IStock.sol";
 
 contract ExchangeAMO is CheckPermission {
     using SafeMath for uint256;
@@ -21,6 +22,7 @@ contract ExchangeAMO is CheckPermission {
     RStablecoin public immutable stablecoin;
     ERC20 public immutable collateralToken;
     IAMOMinter public amoMinter;
+    IStock public immutable stock;
 
     uint256 public missingDecimals;
 
@@ -43,6 +45,7 @@ contract ExchangeAMO is CheckPermission {
         address _operatorMsg,
         address _amoMinterAddress,
         address stableCoinAddress,
+        address _stockAddress,
         address collateralAddress,
         address poolAddress,
         address poolTokenAddress,
@@ -50,6 +53,7 @@ contract ExchangeAMO is CheckPermission {
         int128 _stablePoolIndex
     ) CheckPermission(_operatorMsg) {
         stablecoin = RStablecoin(stableCoinAddress);
+        stock = IStock(_stockAddress);
         collateralToken = ERC20(collateralAddress);
         missingDecimals = uint256(18).sub(collateralToken.decimals());
         amoMinter = IAMOMinter(_amoMinterAddress);

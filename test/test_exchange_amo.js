@@ -238,6 +238,7 @@ contract('test exchange amo', async function () {
             operatable.address,
             amoMinter.address,
             frax.address,
+            fxs.address,
             usdc.address,
             pool.address,
             frax.address,
