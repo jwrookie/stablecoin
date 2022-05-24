@@ -314,9 +314,9 @@ contract('AMOMinter', async function () {
 
     it('test addAMO and removeAMO', async function () {
         expect(await amoMinter.allAMOsLength()).to.be.eq(1);
-        amoAddress = await amoMinter.amosArray(0);
+        amoAddress = await amoMinter.getAmo(0);
         expect(exchangeAMO.address).to.be.eq(amoAddress);
-        expect(await amoMinter.amos(exchangeAMO.address)).to.be.eq(true);
+        expect(await amoMinter.isAmo(exchangeAMO.address)).to.be.eq(true);
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.stockMintBalances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.collatBorrowedBalances(exchangeAMO.address)).to.be.eq(0);
@@ -332,9 +332,9 @@ contract('AMOMinter', async function () {
         initCollatDollarBalanceStored = collatDollarBalanceStored;
 
         await amoMinter.removeAMO(exchangeAMO.address, true);
-        expect(await amoMinter.amos(exchangeAMO.address)).to.be.eq(false);
-        expect(await amoMinter.allAMOsLength()).to.be.eq(1);
-        expect(await amoMinter.amosArray(0)).to.be.eq(ZERO_ADDRESS);
+        expect(await amoMinter.isAmo(exchangeAMO.address)).to.be.eq(false);
+        expect(await amoMinter.allAMOsLength()).to.be.eq(0);
+        // expect(await amoMinter.getAmo(0)).to.be.eq(ZERO_ADDRESS);
         expect(await amoMinter.stableMintBalances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.stockMintBalances(exchangeAMO.address)).to.be.eq(0);
         expect(await amoMinter.collatBorrowedBalances(exchangeAMO.address)).to.be.eq(0);
@@ -351,7 +351,7 @@ contract('AMOMinter', async function () {
         expect(await getBalances(frax, amoMinter)).to.be.eq(0);
         expect(await getBalances(frax, stableCoinPool)).to.be.eq(0);
         expect(await getBalances(frax, exchangeAMO)).to.be.eq(0);
-        expect(await amoMinter.amosArray(0)).to.be.eq(exchangeAMO.address);
+        expect(await amoMinter.getAmo(0)).to.be.eq(exchangeAMO.address);
         fraxPoolsLength = await frax.stablePoolAddressCount();
         // expect(fraxPoolsLength).to.be.eq(3);
         for (let i = 0; i < fraxPoolsLength; i++) {
@@ -483,7 +483,7 @@ contract('AMOMinter', async function () {
 
     it('test collatDollarBalance', async function () {
         collatValue = await amoMinter.collatDollarBalance();
-        expect(BigNumber.from(collatValue)).to.be.eq(initCollatDollarBalanceStored);
+        expect(collatValue).to.be.eq(initCollatDollarBalanceStored);
     });
 
     it('test dollarBalances', async function () {

@@ -88,13 +88,18 @@ contract AMOMinter is CheckPermission {
         return EnumerableSet.contains(amos, _address);
     }
 
+    function getAmo(uint256 _index) public view returns (address) {
+        require(_index <= allAMOsLength() - 1, ": index out of bounds");
+        return EnumerableSet.at(amos, _index);
+    }
+
     function stableTrackedGlobal() external view returns (uint256) {
         return stableDollarBalanceStored - stableMintSum - (collatBorrowedSum * (10 ** missingDecimals));
     }
 
     function stableTrackedAMO(address amoAddress) external view returns (uint256) {
-        (uint256 fraxValE18,) = IAMO(amoAddress).dollarBalances();
-        uint256 stableValE18Corrected = fraxValE18 + correctionOffsetsAmos[amoAddress][0];
+        (uint256 stableValE18,) = IAMO(amoAddress).dollarBalances();
+        uint256 stableValE18Corrected = stableValE18 + correctionOffsetsAmos[amoAddress][0];
         return
         stableValE18Corrected -
         stableMintBalances[amoAddress] -
