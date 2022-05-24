@@ -20,7 +20,7 @@ contract('PoolUSD', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle();
-        [weth, factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
+        [weth, factory, registry, poolRegistry, router] = await GetConfigAboutCRV(owner);
 
         await CrvFactoryDeploy([token0, rusd, token1], {});
 
@@ -49,125 +49,125 @@ contract('PoolUSD', () => {
         await tra.transfer(dev.address, toWei('1000'));
 
     });
-    it("the user did not set mintingFee and redemptionFee", async () => {
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-
-        let befRusdOwner = await rusd.balanceOf(owner.address);
-        expect(befRusdOwner).to.be.eq("1999999000000000000000000");
-        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-        let aftRusdOwner = await rusd.balanceOf(owner.address);
-        expect(aftRusdOwner).to.be.eq("2000009025062656641604010");
-
-        let diffRusd = aftRusdOwner.sub(befRusdOwner);
-        expect(diffRusd).to.be.eq("10025062656641604010");
-
-        await stableCoinPool.redeemFractionalStable(toWei('1'), toWei('0.0000001'), 0);
-
-
-        let aft1RusdOwner = await rusd.balanceOf(owner.address);
-
-        expect(aft1RusdOwner).to.be.eq("2000008025062656641604010");
-        let diffRusdAft = aftRusdOwner.sub(aft1RusdOwner);
-        expect(diffRusdAft).to.be.eq("1000000000000000000");
-
-
-    });
-    it("the user set mintingFee and redemptionFee", async () => {
-        await stableCoinPool.setPoolParameters(
-            toWei('100000000000'),
-            "7500",
-            1,
-            "5000",
-            "5000",
-            0,
-            0
-        );
-        expect(await stableCoinPool.poolCeiling()).to.be.eq(toWei("100000000000"));
-        expect(await stableCoinPool.bonusRate()).to.be.eq("7500");
-        expect(await stableCoinPool.redemptionDelay()).to.be.eq(1);
-        expect(await stableCoinPool.mintingFee()).to.be.eq("5000");
-        expect(await stableCoinPool.redemptionFee()).to.be.eq("5000");
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-
-        let befRusdOwner = await rusd.balanceOf(owner.address);
-        expect(befRusdOwner).to.be.eq("1999999000000000000000000");
-
-        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-        let aftRusdOwner = await rusd.balanceOf(owner.address);
-        expect(aftRusdOwner).to.be.eq("2000008974937343358395989");
-        let diffRusd = aftRusdOwner.sub(befRusdOwner);
-        expect(diffRusd).to.be.eq("9974937343358395989");
-
-        await stableCoinPool.redeemFractionalStable(toWei('1'), toWei('0.0000001'), 0);
-
-        let aft1RusdOwner = await rusd.balanceOf(owner.address);
-
-        expect(aft1RusdOwner).to.be.eq("2000007974937343358395989");
-        let diffRusdAft = aftRusdOwner.sub(aft1RusdOwner);
-        expect(diffRusdAft).to.be.eq("1000000000000000000");
-
-    });
-    it("the user did not set recollatFee", async () => {
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-
-        let befTraOwner = await tra.balanceOf(owner.address);
-
-        await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
-        let aftTraOwner = await tra.balanceOf(owner.address);
-
-        let diffTra = aftTraOwner.sub(befTraOwner);
-        expect(diffTra).to.be.eq("1007500000000000000000");
-
-
-    });
-    it("the user set recollatFee", async () => {
-        await stableCoinPool.setPoolParameters(
-            toWei('100000000000'),
-            "7500",
-            1,
-            0,
-            0,
-            0,
-            "5000"
-        );
-        expect(await stableCoinPool.recollatFee()).to.be.eq("5000");
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-
-        let befTraOwner = await tra.balanceOf(owner.address);
-
-        await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
-        let aftTraOwner = await tra.balanceOf(owner.address);
-
-        let diffTra = aftTraOwner.sub(befTraOwner);
-        expect(diffTra).to.be.eq("1002500000000000000000");
-
-
-    });
-    it("the user did not set buybackFee", async () => {
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-        await rusd.burn(toWei('1999999'));
-
-        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-
-        await stableCoinPool.recollateralizeStable(toWei('1'), "10");
-
-        let befUsdcOwner = await usdc.balanceOf(owner.address);
-        expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
-
-
-        await stableCoinPool.buyBackStock(toWei('0.0000001'), 0);
-        let aftUsdcOwner = await usdc.balanceOf(owner.address);
-        expect(aftUsdcOwner).to.be.eq("99999999998900249743107769424");
-        let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
-        expect(diffUsdc).to.be.eq("100000000000");
-
-
-    });
+    // it("the user did not set mintingFee and redemptionFee", async () => {
+    //     await oraclePrice();
+    //     await rusd.refreshCollateralRatio();
+    //
+    //     let befRusdOwner = await rusd.balanceOf(owner.address);
+    //     expect(befRusdOwner).to.be.eq("1999999000000000000000000");
+    //     await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
+    //     let aftRusdOwner = await rusd.balanceOf(owner.address);
+    //     expect(aftRusdOwner).to.be.eq("2000009025062656641604010");
+    //
+    //     let diffRusd = aftRusdOwner.sub(befRusdOwner);
+    //     expect(diffRusd).to.be.eq("10025062656641604010");
+    //
+    //     await stableCoinPool.redeemFractionalStable(toWei('1'), toWei('0.0000001'), 0);
+    //
+    //
+    //     let aft1RusdOwner = await rusd.balanceOf(owner.address);
+    //
+    //     expect(aft1RusdOwner).to.be.eq("2000008025062656641604010");
+    //     let diffRusdAft = aftRusdOwner.sub(aft1RusdOwner);
+    //     expect(diffRusdAft).to.be.eq("1000000000000000000");
+    //
+    //
+    // });
+    // it("the user set mintingFee and redemptionFee", async () => {
+    //     await stableCoinPool.setPoolParameters(
+    //         toWei('100000000000'),
+    //         "7500",
+    //         1,
+    //         "5000",
+    //         "5000",
+    //         0,
+    //         0
+    //     );
+    //     expect(await stableCoinPool.poolCeiling()).to.be.eq(toWei("100000000000"));
+    //     expect(await stableCoinPool.bonusRate()).to.be.eq("7500");
+    //     expect(await stableCoinPool.redemptionDelay()).to.be.eq(1);
+    //     expect(await stableCoinPool.mintingFee()).to.be.eq("5000");
+    //     expect(await stableCoinPool.redemptionFee()).to.be.eq("5000");
+    //     await oraclePrice();
+    //     await rusd.refreshCollateralRatio();
+    //
+    //     let befRusdOwner = await rusd.balanceOf(owner.address);
+    //     expect(befRusdOwner).to.be.eq("1999999000000000000000000");
+    //
+    //     await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
+    //     let aftRusdOwner = await rusd.balanceOf(owner.address);
+    //     expect(aftRusdOwner).to.be.eq("2000008974937343358395989");
+    //     let diffRusd = aftRusdOwner.sub(befRusdOwner);
+    //     expect(diffRusd).to.be.eq("9974937343358395989");
+    //
+    //     await stableCoinPool.redeemFractionalStable(toWei('1'), toWei('0.0000001'), 0);
+    //
+    //     let aft1RusdOwner = await rusd.balanceOf(owner.address);
+    //
+    //     expect(aft1RusdOwner).to.be.eq("2000007974937343358395989");
+    //     let diffRusdAft = aftRusdOwner.sub(aft1RusdOwner);
+    //     expect(diffRusdAft).to.be.eq("1000000000000000000");
+    //
+    // });
+    // it("the user did not set recollatFee", async () => {
+    //     await oraclePrice();
+    //     await rusd.refreshCollateralRatio();
+    //
+    //     let befTraOwner = await tra.balanceOf(owner.address);
+    //
+    //     await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
+    //     let aftTraOwner = await tra.balanceOf(owner.address);
+    //
+    //     let diffTra = aftTraOwner.sub(befTraOwner);
+    //     expect(diffTra).to.be.eq("1007500000000000000000");
+    //
+    //
+    // });
+    // it("the user set recollatFee", async () => {
+    //     await stableCoinPool.setPoolParameters(
+    //         toWei('100000000000'),
+    //         "7500",
+    //         1,
+    //         0,
+    //         0,
+    //         0,
+    //         "5000"
+    //     );
+    //     expect(await stableCoinPool.recollatFee()).to.be.eq("5000");
+    //     await oraclePrice();
+    //     await rusd.refreshCollateralRatio();
+    //
+    //     let befTraOwner = await tra.balanceOf(owner.address);
+    //
+    //     await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
+    //     let aftTraOwner = await tra.balanceOf(owner.address);
+    //
+    //     let diffTra = aftTraOwner.sub(befTraOwner);
+    //     expect(diffTra).to.be.eq("1002500000000000000000");
+    //
+    //
+    // });
+    // it("the user did not set buybackFee", async () => {
+    //     await oraclePrice();
+    //     await rusd.refreshCollateralRatio();
+    //     await rusd.burn(toWei('1999999'));
+    //
+    //     await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
+    //
+    //     await stableCoinPool.recollateralizeStable(toWei('1'), "10");
+    //
+    //     let befUsdcOwner = await usdc.balanceOf(owner.address);
+    //     expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
+    //
+    //
+    //     await stableCoinPool.buyBackStock(toWei('0.0000001'), 0);
+    //     let aftUsdcOwner = await usdc.balanceOf(owner.address);
+    //     expect(aftUsdcOwner).to.be.eq("99999999998900249743107769424");
+    //     let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
+    //     expect(diffUsdc).to.be.eq("100000000000");
+    //
+    //
+    // });
     it("the user set buybackFee", async () => {
         await stableCoinPool.setPoolParameters(
             toWei('100000000000'),
@@ -190,13 +190,47 @@ contract('PoolUSD', () => {
         let befUsdcOwner = await usdc.balanceOf(owner.address);
         expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
 
-
+        await expect(stableCoinPool.buyBackStock(toWei('1'), 0)).to.be.revertedWith("You are trying to buy back more than the excess!");
         await stableCoinPool.buyBackStock(toWei('0.0000001'), 0);
         let aftUsdcOwner = await usdc.balanceOf(owner.address);
         expect(aftUsdcOwner).to.be.eq("99999999998900249742607769424");
 
         let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
         expect(diffUsdc).to.be.eq("99500000000");
+
+
+    });
+    it("the user set buybackFe111111", async () => {
+        await stableCoinPool.setPoolParameters(
+            toWei('100000000000'),
+            "7500",
+            1,
+            0,
+            0,
+            "5000",
+            0
+        );
+        expect(await stableCoinPool.buybackFee()).to.be.eq("5000");
+        await oraclePrice();
+        await rusd.refreshCollateralRatio();
+        await rusd.burn(toWei('1999'));
+
+        await stableCoinPool.mintFractionalStable(toWei('0.5'), toWei('1'), 0);
+
+        await stableCoinPool.recollateralizeStable(toWei('1000000000000'), "10");
+
+        // let befUsdcOwner = await usdc.balanceOf(owner.address);
+        // expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
+
+        console.log("availableExcessCollatDV:"+await stableCoinPool.availableExcessCollatDV())
+
+
+        await stableCoinPool.buyBackStock("100000000000000000", 0);
+        // let aftUsdcOwner = await usdc.balanceOf(owner.address);
+        // expect(aftUsdcOwner).to.be.eq("99999999998900249742607769424");
+        //
+        // let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
+        // expect(diffUsdc).to.be.eq("99500000000");
 
 
     });
