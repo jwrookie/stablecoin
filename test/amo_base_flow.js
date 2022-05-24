@@ -7,8 +7,8 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
-contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
-    beforeEach(async function (){
+contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
+    beforeEach(async function () {
         [owner] = await ethers.getSigners();
 
         [rusd, tra, operatable] = await GetRusdAndTra();
@@ -26,8 +26,8 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await factory.createPair(tra.address, weth.address);
 
         await RouterApprove(usdc, toWei("1000"), [], owner);
-        await RouterApprove(rusd, toWei("1000"),[toWei("0.5")], owner);
-        await RouterApprove(tra, toWei("1000"),[toWei("0.1")], owner);
+        await RouterApprove(rusd, toWei("1000"), [toWei("0.5")], owner);
+        await RouterApprove(tra, toWei("1000"), [toWei("0.1")], owner);
 
         await SetETHUSDOracle();
         usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
@@ -51,7 +51,8 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
             rusd.address,
             usdc.address,
             pool.address,
-            rusd.address
+            rusd.address,
+            1
         );
 
         // Approve
