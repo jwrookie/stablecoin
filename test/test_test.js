@@ -33,5 +33,8 @@ contract("test", async function () {
         console.log(token1.address);
         console.log(stableCoinPool.address);
         console.log(factory.address);
+        console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
+        console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
+        console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
     });
 });

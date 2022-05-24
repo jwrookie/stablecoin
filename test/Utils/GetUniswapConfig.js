@@ -14,6 +14,22 @@ const ParameterObj = {
 
 const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grapplingCoin) => {
     let tempUniswapOracle;
+    let tempArray = new Array();
+
+    tempArray.push(
+        userAddress,
+        stableCoinPool,
+        factory,
+        coinPair,
+        grapplingCoin
+    );
+
+    for (let i = 0; i < tempArray.length; i++) {
+        if ("object" !== typeof tempArray[i] || undefined === tempArray[i].address) {
+            throw Error("Exist Invalid Parameters!");
+        }
+    }
+
     let tempTimeLock = await SetTimeLock(userAddress);
 
     tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
