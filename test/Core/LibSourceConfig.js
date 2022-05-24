@@ -16,7 +16,7 @@ const {
 const Weth = async (ownerAddress) => {
     return await deployContract(ownerAddress, {
         bytecode: WETH.bytecode,
-        abi: WETH.abi,
+        abi: WETH.abi
     });
 }
 
