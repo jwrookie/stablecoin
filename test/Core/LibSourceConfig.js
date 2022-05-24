@@ -1,4 +1,3 @@
-const {ethers} = require('hardhat');
 const {deployContract} = require("ethereum-waffle");
 const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
@@ -17,11 +16,12 @@ const {
 const Weth = async (ownerAddress) => {
     return await deployContract(ownerAddress, {
         bytecode: WETH.bytecode,
-        abi: WETH.abi,
+        abi: WETH.abi
     });
 }
 
 const Factory = async (ownerAddress) => {
+    // Pancake factory, The purpose is to create a trading pair and go to UnisWAP to get the trading pair price
     return await deployContract(ownerAddress, {
         bytecode: FACTORY.bytecode,
         abi: FACTORY.abi
@@ -51,6 +51,7 @@ const PoolRegistry = async (ownerAddress, registry) => {
 }
 
 const CRVFactory = async (ownerAddress, registry) => {
+    // We provide our own trading pool, which can carry out the exchange of specified coins
     return await deployContract(owner, {
         bytecode: CRVFACTORY.bytecode,
         abi: FACTORYABI.abi,
