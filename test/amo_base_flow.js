@@ -7,8 +7,8 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
-contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
-    beforeEach(async function (){
+contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
+    beforeEach(async function () {
         [owner] = await ethers.getSigners();
 
         [rusd, tra, operatable] = await GetRusdAndTra();
@@ -26,8 +26,8 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await factory.createPair(tra.address, weth.address);
 
         await RouterApprove(usdc, toWei("1000"), [], owner);
-        await RouterApprove(rusd, toWei("1000"),[toWei("0.5")], owner);
-        await RouterApprove(tra, toWei("1000"),[toWei("0.1")], owner);
+        await RouterApprove(rusd, toWei("1000"), [toWei("0.5")], owner);
+        await RouterApprove(tra, toWei("1000"), [toWei("0.1")], owner);
 
         await SetETHUSDOracle();
         usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
@@ -52,8 +52,10 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
             usdc.address,
             pool.address,
             pool.address, // 3pool Lp address
+            1,
             0
-        );
+        )
+        ;
 
         // Approve
         await usdc.approve(stableCoinPool.address, toWei("1"));
@@ -112,6 +114,8 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         await rusd.addPool(exchangeAMO.address);
         await rusd.approve(exchangeAMO.address, toWei("1"));
         // QUESTION
+        bal = await usdc.balanceOf(exchangeAMO.address);
+        console.log("bal:" + bal);
         await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
         expect(await rusd.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityRusd.add(toWei("0.5")));
         expect(await usdc.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityUsdc.add(toWei("0.1")));
