@@ -2,6 +2,7 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -15,28 +16,9 @@ import "../tools/AbstractPausable.sol";
 
 contract RStablecoin is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
-    event StableBurned(address indexed from, address indexed to, uint256 amount);
-    event StableMinted(address indexed from, address indexed to, uint256 amount);
-
-    event CollateralRatioRefreshed(uint256 globalCollateralRatio);
-    event PoolAdded(address pool);
-    event PoolRemoved(address pool);
-    event RedemptionFeeSet(uint256 redFee);
-    event MintingFeeSet(uint256 minFee);
-    event StableStepSet(uint256 newStep);
-    event PriceTargetSet(uint256 priceTarget);
-    event RefreshCooldownSet(uint256 cooldown);
-    event StockAddressSet(address _address);
-    event ETHUSDOracleSet(address ethusdConsumer);
-    event TimelockSet(address timelock);
-    event ControllerSet(address controller);
-    event PriceBandSet(uint256 priceBand);
-    event StableETHOracleSet(address oracle, address weth);
-    event StockEthOracleSet(address oracle, address weth);
-    event SetK(uint256 kDuration, uint256 k);
-
-    uint256 public constant GENESIS_SUPPLY = 2000000e18;
+    uint256 public constant GENESIS_SUPPLY = 2e6 * 1e18;
     // Constants for various precisions
     uint256 public constant PRICE_PRECISION = 1e6;
 
@@ -57,10 +39,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     address public ethUsdConsumerAddress;
 
     // The addresses in this array are added by the oracle and these contracts are able to mint stable
-    address[] public poolAddress;
+    EnumerableSet.AddressSet private poolAddress;
 
-    // Mapping is also used for faster verification
-    mapping(address => bool) public isStablePools;
 
     uint256 public globalCollateralRatio; // 6 decimals of precision, e.g. 924102 = 0.924102
     uint256 public redemptionFee; // 6 decimals of precision, divide by 1000000 in calculations for fee
@@ -78,13 +58,13 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     uint256 public kDuration = 1e7 * 1e18;
 
     modifier onlyPools() {
-        require(isStablePools[msg.sender] == true, "Only stable pools can call this function");
+        require(isStablePools(msg.sender), "Only pools");
         _;
     }
 
     modifier onlyByOperatorOrPool() {
         require(
-            msg.sender == operator() || isStablePools[msg.sender] == true,
+            msg.sender == operator() || isStablePools(msg.sender),
             "Not the owner, the governance  or a pool"
         );
         _;
@@ -168,21 +148,31 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     }
 
     function stablePoolAddressCount() public view returns (uint256) {
-        return (poolAddress.length);
+        return EnumerableSet.length(poolAddress);
     }
 
     function globalCollateralValue() public view returns (uint256) {
         uint256 totalCollateralValueD18 = 0;
 
-        for (uint256 i = 0; i < poolAddress.length; i++) {
+        for (uint256 i = 0; i < stablePoolAddressCount(); i++) {
             // Exclude null addresses
-            if (poolAddress[i] != address(0)) {
+            address _pool = EnumerableSet.at(poolAddress, i);
+            if (_pool != address(0)) {
                 totalCollateralValueD18 = totalCollateralValueD18.add(
-                    StablecoinPool(poolAddress[i]).collatDollarBalance()
+                    StablecoinPool(_pool).collatDollarBalance()
                 );
             }
         }
         return totalCollateralValueD18;
+    }
+
+    function isStablePools(address _address) public view returns (bool) {
+        return EnumerableSet.contains(poolAddress, _address);
+    }
+
+    function getPoolAddress(uint256 _index) public view returns (address) {
+        require(_index <= stablePoolAddressCount() - 1, ": index out of bounds");
+        return EnumerableSet.at(poolAddress, _index);
     }
 
     function _refreshOtherCR() private {
@@ -266,9 +256,8 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // Adds collateral addresses supported, such as tether
     function addPool(address _poolAddress) public onlyOperator {
         require(_poolAddress != address(0), "0 address");
-        require(isStablePools[_poolAddress] == false, "Address already exists");
-        isStablePools[_poolAddress] = true;
-        poolAddress.push(_poolAddress);
+        require(isStablePools(_poolAddress) == false, "Address already exists");
+        EnumerableSet.add(poolAddress, _poolAddress);
 
         emit PoolAdded(_poolAddress);
     }
@@ -276,19 +265,9 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // Remove a pool
     function removePool(address _poolAddress) public onlyOperator {
         require(_poolAddress != address(0), "0 address");
-        require(isStablePools[_poolAddress] == true, "Address nonexistant");
+        require(isStablePools(_poolAddress) == true, "Address nonexistant");
+        EnumerableSet.remove(poolAddress, _poolAddress);
 
-        // Delete from the mapping
-        delete isStablePools[_poolAddress];
-
-        // 'Delete' from the array by setting the address to 0x0
-        for (uint256 i = 0; i < poolAddress.length; i++) {
-            if (poolAddress[i] == _poolAddress) {
-                poolAddress[i] = address(0);
-                // This will leave a null in the array and keep the indices the same
-                break;
-            }
-        }
         emit PoolRemoved(_poolAddress);
     }
 
@@ -357,4 +336,23 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
         kDuration = _kDuration;
         emit SetK(kDuration, k);
     }
+
+    event StableBurned(address indexed from, address indexed to, uint256 amount);
+    event StableMinted(address indexed from, address indexed to, uint256 amount);
+    event CollateralRatioRefreshed(uint256 globalCollateralRatio);
+    event PoolAdded(address pool);
+    event PoolRemoved(address pool);
+    event RedemptionFeeSet(uint256 redFee);
+    event MintingFeeSet(uint256 minFee);
+    event StableStepSet(uint256 newStep);
+    event PriceTargetSet(uint256 priceTarget);
+    event RefreshCooldownSet(uint256 cooldown);
+    event StockAddressSet(address _address);
+    event ETHUSDOracleSet(address ethusdConsumer);
+    event ControllerSet(address controller);
+    event PriceBandSet(uint256 priceBand);
+    event StableETHOracleSet(address oracle, address weth);
+    event StockEthOracleSet(address oracle, address weth);
+    event SetK(uint256 kDuration, uint256 k);
+
 }
