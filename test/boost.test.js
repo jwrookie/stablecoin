@@ -6,7 +6,7 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
-contract('Boost', () => {
+contract('Boost test', () => {
     async function getPending(account) {
         let lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 1);
