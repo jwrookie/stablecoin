@@ -2,6 +2,7 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/utils/Context.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
@@ -11,19 +12,19 @@ import "../Rusd.sol";
 
 contract Stock is ERC20Burnable, AbstractPausable {
     using SafeMath for uint256;
+    using EnumerableSet for EnumerableSet.AddressSet;
 
     uint256 public constant GENESIS_SUPPLY = 3e8 * 1e18;
     uint256 public constant MAX_SUPPLY = 1e9 * 1e18;
 
-    address[] public poolAddress;
-    mapping(address => bool) public isPools;
+    EnumerableSet.AddressSet private poolAddress;
     address public stableAdd;
 
     address public oracle;
     RStablecoin private _stable;
 
     modifier onlyPools() {
-        require(isPools[msg.sender] == true, "Only pools can call this function");
+        require(isPools(msg.sender), "Only pools can call this function");
         _;
     }
 
@@ -36,6 +37,15 @@ contract Stock is ERC20Burnable, AbstractPausable {
         require((_oracle != address(0)), "0 address");
         oracle = _oracle;
         _mint(msg.sender, GENESIS_SUPPLY);
+    }
+
+    function isPools(address _address) public view returns (bool) {
+        return EnumerableSet.contains(poolAddress, _address);
+    }
+
+    function getPoolAddress(uint256 _index) public view returns (address) {
+        require(_index <= stablePoolAddressCount() - 1, ": index out of bounds");
+        return EnumerableSet.at(poolAddress, _index);
     }
 
 
@@ -53,35 +63,22 @@ contract Stock is ERC20Burnable, AbstractPausable {
     }
 
     function stablePoolAddressCount() public view returns (uint256) {
-        return (poolAddress.length);
+        return EnumerableSet.length(poolAddress);
     }
 
     // Adds collateral addresses supported, such as tether and busd, must be ERC20
     function addPool(address _pool) public onlyOperator {
         require(_pool != address(0), "0 address");
-        require(isPools[_pool] == false, "Address already exists");
-        isPools[_pool] = true;
-        poolAddress.push(_pool);
-
+        EnumerableSet.add(poolAddress, _pool);
         emit PoolAdded(_pool);
     }
 
     // Remove a pool
     function removePool(address _pool) public onlyOperator {
         require(_pool != address(0), "0 address");
-        require(isPools[_pool] == true, "Address nonexistant");
+        require(isPools(_pool), "Address nonexistant");
 
-        // Delete from the mapping
-        delete isPools[_pool];
-
-        // 'Delete' from the array by setting the address to 0x0
-        for (uint256 i = 0; i < poolAddress.length; i++) {
-            if (poolAddress[i] == _pool) {
-                poolAddress[i] = address(0);
-                // This will leave a null in the array and keep the indices the same
-                break;
-            }
-        }
+        EnumerableSet.remove(poolAddress, _pool);
         emit PoolRemoved(_pool);
     }
 

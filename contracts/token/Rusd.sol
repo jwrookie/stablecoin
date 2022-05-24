@@ -256,7 +256,6 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
     // Adds collateral addresses supported, such as tether
     function addPool(address _poolAddress) public onlyOperator {
         require(_poolAddress != address(0), "0 address");
-        require(isStablePools(_poolAddress) == false, "Address already exists");
         EnumerableSet.add(poolAddress, _poolAddress);
 
         emit PoolAdded(_poolAddress);
