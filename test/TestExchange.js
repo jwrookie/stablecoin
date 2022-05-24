@@ -291,7 +291,8 @@ contract('ExchangeAMO', async function () {
             frax.address,
             usdc.address,
             pool.address,
-            frax.address
+            frax.address,
+            1
         );
 
         // Insert exchange amo in amo
