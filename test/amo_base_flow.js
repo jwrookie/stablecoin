@@ -144,7 +144,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
     });
 
-    it('when user mint rusd will trigger exchange amo and do not with draw rusd', async function () {
+    it('when user mint rusd will trigger exchange amo and with draw', async function () {
         // Refresh tra uniswaporacle and usdc uniswap to get tra price, because tra price is bound usdc price
         await usdcUniswapOracle.setPeriod(1);
         await usdcUniswapOracle.update();
