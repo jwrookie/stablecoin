@@ -15,13 +15,13 @@ const SetMockChainLink = async () => {
     return await MockChainLink.deploy();
 }
 
-const SetChainlinkETHUSDPriceConsumer = async () => {
+const SetChainlinkETHUSDPriceConsumer = async (answerValue) => {
     let mockChainLink;
 
     const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
     mockChainLink = await SetMockChainLink();
     // Mock chain link answer
-    await mockChainLink.setAnswer(toWei('100'));
+    await mockChainLink.setAnswer(answerValue);
     return await ChainlinkETHUSDPriceConsumer.deploy(mockChainLink.address);
 }
 
