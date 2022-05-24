@@ -3,7 +3,7 @@ pragma solidity >=0.8.0;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "../tools/TransferHelper.sol";
 import "../interface/IAMO.sol";
@@ -13,22 +13,23 @@ import "../interface/IStablecoin.sol";
 import "../interface/IStock.sol";
 
 contract AMOMinter is CheckPermission {
+    using EnumerableSet for EnumerableSet.AddressSet;
+
     uint256 public constant PRICE_PRECISION = 1e6;
+
+    EnumerableSet.AddressSet private amos;
 
     IStablecoin public immutable stablecoin;
     IStock public immutable stock;
     ERC20 public immutable collateralToken;
-    IStablecoinPool public pool;
-
-    address[] public amosArray;
-    mapping(address => bool) public amos; // Mapping is also used for faster verification
+    IStablecoinPool public immutable pool;
 
     uint256 public collatBorrowCap = 10000000e6;
 
     uint256 public stableCoinMintCap = 100000000e18;
-    uint256 public fxsMintCap = 100000000e18;
+    uint256 public stockMintCap = 100000000e18;
 
-    // Minimum collateral ratio needed for new FRAX minting
+    // Minimum collateral ratio needed for new stable minting
     uint256 public minCR = 950000;
 
     mapping(address => uint256) public stableMintBalances;
@@ -65,7 +66,7 @@ contract AMOMinter is CheckPermission {
     }
 
     modifier validAMO(address _address) {
-        require(amos[_address], "Invalid AMO");
+        require(isAmo(_address), "Invalid AMO");
         _;
     }
 
@@ -79,8 +80,17 @@ contract AMOMinter is CheckPermission {
         collatValE18 = collatDollarBalanceStored;
     }
 
-    function allAMOsLength() external view returns (uint256) {
-        return amosArray.length;
+    function allAMOsLength() public view returns (uint256) {
+        return EnumerableSet.length(amos);
+    }
+
+    function isAmo(address _address) public view returns (bool) {
+        return EnumerableSet.contains(amos, _address);
+    }
+
+    function getAmo(uint256 _index) public view returns (address) {
+        require(_index <= allAMOsLength() - 1, ": index out of bounds");
+        return EnumerableSet.at(amos, _index);
     }
 
     function stableTrackedGlobal() external view returns (uint256) {
@@ -88,8 +98,8 @@ contract AMOMinter is CheckPermission {
     }
 
     function stableTrackedAMO(address amoAddress) external view returns (uint256) {
-        (uint256 fraxValE18,) = IAMO(amoAddress).dollarBalances();
-        uint256 stableValE18Corrected = fraxValE18 + correctionOffsetsAmos[amoAddress][0];
+        (uint256 stableValE18,) = IAMO(amoAddress).dollarBalances();
+        uint256 stableValE18Corrected = stableValE18 + correctionOffsetsAmos[amoAddress][0];
         return
         stableValE18Corrected -
         stableMintBalances[amoAddress] -
@@ -100,9 +110,9 @@ contract AMOMinter is CheckPermission {
     function syncDollarBalances() public {
         uint256 totalStableValueD18 = 0;
         uint256 totalCollateralValueD18 = 0;
-        for (uint256 i = 0; i < amosArray.length; i++) {
+        for (uint256 i = 0; i < allAMOsLength(); i++) {
             // Exclude null addresses
-            address _address = amosArray[i];
+            address _address = EnumerableSet.at(amos, i);
             if (_address != address(0)) {
                 (uint256 stableValE18, uint256 collatValE18) = IAMO(_address).dollarBalances();
                 totalStableValueD18 += stableValE18 + correctionOffsetsAmos[_address][0];
@@ -192,7 +202,7 @@ contract AMOMinter is CheckPermission {
 
     function mintStockForAMO(address destinationAmo, uint256 _amount) external onlyOperator validAMO(destinationAmo) {
         // Make sure you aren't minting more than the mint cap
-        require((stockMintSum + _amount) <= fxsMintCap, "Mint cap reached");
+        require((stockMintSum + _amount) <= stockMintCap, "Mint cap reached");
         stockMintBalances[destinationAmo] += _amount;
         stockMintSum += _amount;
 
@@ -249,9 +259,7 @@ contract AMOMinter is CheckPermission {
         (uint256 stableValE18, uint256 collatValE18) = IAMO(amoAddress).dollarBalances();
         require(stableValE18 >= 0 && collatValE18 >= 0, "Invalid AMO");
 
-        require(amos[amoAddress] == false, "Address already exists");
-        amos[amoAddress] = true;
-        amosArray.push(amoAddress);
+        EnumerableSet.add(amos, amoAddress);
 
         // Mint balances
         stableMintBalances[amoAddress] = 0;
@@ -267,22 +275,13 @@ contract AMOMinter is CheckPermission {
         emit AMOAdded(amoAddress);
     }
 
+
     // Removes an AMO
     function removeAMO(address amoAddress, bool _sync) public onlyOperator {
         require(amoAddress != address(0), "0 address");
-        require(amos[amoAddress] == true, "Address no exist");
+        require(isAmo(amoAddress), "Address no exist");
 
-        // Delete from the mapping
-        delete amos[amoAddress];
-
-        // 'Delete' from the array by setting the address to 0x0
-        for (uint256 i = 0; i < amosArray.length; i++) {
-            if (amosArray[i] == amoAddress) {
-                amosArray[i] = address(0);
-                // This will leave a null in the array and keep the indices the same
-                break;
-            }
-        }
+        EnumerableSet.remove(amos, amoAddress);
 
         if (_sync) syncDollarBalances();
 
@@ -294,7 +293,7 @@ contract AMOMinter is CheckPermission {
     }
 
     function setStockMintCap(uint256 _stockMintCap) external onlyOperator {
-        fxsMintCap = _stockMintCap;
+        stockMintCap = _stockMintCap;
     }
 
     function setCollatBorrowCap(uint256 _collatBorrowCap) external onlyOperator {
@@ -307,12 +306,11 @@ contract AMOMinter is CheckPermission {
 
     function setAMOCorrectionOffsets(
         address amoAddress,
-        uint256 fraxE18Correction,
+        uint256 stableE18Correction,
         uint256 collatE18Correction
     ) external onlyOperator {
-        correctionOffsetsAmos[amoAddress][0] = fraxE18Correction;
+        correctionOffsetsAmos[amoAddress][0] = stableE18Correction;
         correctionOffsetsAmos[amoAddress][1] = collatE18Correction;
-
         syncDollarBalances();
     }
 

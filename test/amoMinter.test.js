@@ -276,7 +276,7 @@ contract('amo minter test', async function () {
     //     await amoMinter.removeAMO(exchangeAMO.address, true);
     //     resultArrayLength = await amoMinter.allAMOsLength();
     //     expect(resultArrayLength).to.be.eq(1);
-    //     amoAddress = await amoMinter.amosArray(0);
+    //     amoAddress = await amoMinter.getAmo(0);
     //     expect(amoAddress).to.be.eq(zeroAddr);
     // });
 

@@ -6,7 +6,7 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
 
-contract('Boost', () => {
+contract('Boost test', () => {
     async function getPending(account) {
         let lastBlock = await time.latestBlock();
         await time.advanceBlockTo(parseInt(lastBlock) + 1);
@@ -28,7 +28,7 @@ contract('Boost', () => {
 
         const FRAXShares = await ethers.getContractFactory('Stock');
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
-
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
         const FRAXStablecoin = await ethers.getContractFactory('RStablecoin');
         frax = await FRAXStablecoin.deploy(checkPermission.address, "frax", "frax");
 

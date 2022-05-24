@@ -23,6 +23,7 @@ contract('Gauge', async function () {
         frax = await Frax.deploy(checkOper.address, "frax", "frax");
         const Fxs = await ethers.getContractFactory("Stock");
         fxs = await Fxs.deploy(checkOper.address, "fxs", "fxs", testOracle.address);
+        await fxs.transfer(addr1.address, "299000000000000000000000000");
         await fxs.setStableAddress(frax.address);
         await frax.setStockAddress(fxs.address);
         await frax.transfer(dev.address, toWei("0.5"));
