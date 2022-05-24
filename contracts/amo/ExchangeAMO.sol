@@ -161,7 +161,7 @@ contract ExchangeAMO is CheckPermission {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function metapoolDeposit(uint256 _stableAmount, uint256 _collateralAmount)
+    function poolDeposit(uint256 _stableAmount, uint256 _collateralAmount)
     external
     onlyOperator
     returns (uint256 lpReceived)
@@ -204,7 +204,7 @@ contract ExchangeAMO is CheckPermission {
         return lpReceived;
     }
 
-    function metapoolWithdrawAtCurRatio(
+    function poolWithdrawAtCurRatio(
         uint256 metapoolLpIn,
         bool burnTheStable,
         uint256 minStable,
@@ -241,41 +241,29 @@ contract ExchangeAMO is CheckPermission {
         }
     }
 
-    function metapoolWithdrawFrax(uint256 _metapoolLpIn, bool burnTheStable)
+    function poolWithdrawStable(uint256 _metapoolLpIn, bool burnTheStable)
     external
     onlyOperator
     returns (uint256 stableReceived)
     {
-        // Withdraw FRAX from the metapool
         uint256 minStableOut = _metapoolLpIn.mul(liqSlippage3crv).div(PRICE_PRECISION);
         stableReceived = threePool.remove_liquidity_one_coin(_metapoolLpIn, stablePoolIndex, minStableOut);
 
-        // Optionally burn the FRAX
         if (burnTheStable) {
             burnStable(stableReceived);
         }
     }
 
-    function metapoolWithdraw3pool(uint256 _metapoolLpIn) public onlyOperator {
-        // Withdraw 3pool from the metapool
-        uint256 min3poolOut = _metapoolLpIn.mul(liqSlippage3crv).div(PRICE_PRECISION);
-        threePool.remove_liquidity_one_coin(_metapoolLpIn, stablePoolIndex, min3poolOut);
-    }
-
-    function threePoolToCollateral(uint256 _poolIn) public onlyOperator {
+    function poolWithdrawCollateral(uint256 _poolIn) public onlyOperator {
         // Convert the 3pool into the collateral
         // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
         // May be related to https://github.com/vyperlang/vyper/blob/3e1ff1eb327e9017c5758e24db4bdf66bbfae371/examples/tokens/ERC20.vy#L85
         threePoolLp.approve(address(threePool), 0);
         threePoolLp.approve(address(threePool), _poolIn);
         uint256 minCollatOut = _poolIn.mul(liqSlippage3crv).div(PRICE_PRECISION * (10 ** missingDecimals));
-        threePool.remove_liquidity_one_coin(_poolIn, stablePoolIndex, minCollatOut);
+        threePool.remove_liquidity_one_coin(_poolIn, collateralPoolIndex, minCollatOut);
     }
 
-    function metapoolWithdrawAndConvert3pool(uint256 _metapoolLpIn) external onlyOperator {
-        metapoolWithdraw3pool(_metapoolLpIn);
-        threePoolToCollateral(threePoolLp.balanceOf(address(this)));
-    }
 
     // Give USDC profits back. Goes through the minter
     function giveCollatBack(uint256 collatAmount) external onlyOperator {

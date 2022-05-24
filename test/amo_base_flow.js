@@ -111,12 +111,12 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         expect(beforeAddPoolBalance).to.be.eq(toWei("300"));
         expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(0);
         await usdc.approve(exchangeAMO.address, toWei("10000"));
-        await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
+        await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
         expect(await rusd.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityRusd.add(toWei("0.5")));
         expect(await usdc.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityUsdc.add(toWei("0.1")));
         expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(BigNumber.from("599879617905205347"));
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
-        await exchangeAMO.metapoolWithdrawFrax(await pool.balanceOf(exchangeAMO.address, GAS), false);
+        await exchangeAMO.poolWithdrawStable(await pool.balanceOf(exchangeAMO.address, GAS), false);
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
     });
 
@@ -137,10 +137,10 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await amoMinter.setCollatBorrowCap(toWei("10"));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
 
-        await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
+        await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
 
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
-        await exchangeAMO.metapoolWithdrawFrax(await pool.balanceOf(exchangeAMO.address, GAS), true);
+        await exchangeAMO.poolWithdrawStable(await pool.balanceOf(exchangeAMO.address, GAS), true);
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
     });
 
@@ -161,10 +161,10 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await amoMinter.setCollatBorrowCap(toWei("10"));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
 
-        await exchangeAMO.metapoolDeposit(toWei("0.5"), toWei("0.1"));
+        await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
 
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1000000000000000000").sub(toWei("0.1")));
-        await exchangeAMO.metapoolWithdraw3pool(await pool.balanceOf(exchangeAMO.address, GAS));
+        await exchangeAMO.poolWithdraw3pool(await pool.balanceOf(exchangeAMO.address, GAS));
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
     });
 });
