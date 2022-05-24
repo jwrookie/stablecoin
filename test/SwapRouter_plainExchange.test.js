@@ -298,7 +298,7 @@ contract('plainPool', () => {
     //     await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
     //
     //     let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
-    //     let dx = "1000000";
+    //     let dx = toWei('1');
     //
     //     //token0 -> token1
     //     await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
@@ -320,8 +320,8 @@ contract('plainPool', () => {
     //     reward = await swapMining.rewardInfo(dev.address);
     //
     //     multiple = BigNumber.from(rewardMax).div(reward);
-    //     expect(rewardMax).to.be.gt(reward);
-    //     expect(multiple).to.be.eq(3);
+    //     expect(rewardMax).to.be.eq(reward);
+    //     expect(multiple).to.be.eq(1);
     //
     //
     // });
@@ -405,25 +405,31 @@ contract('plainPool', () => {
     it("query the rewards after acceleration of a single pool", async () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
+        await token0.connect(owner).approve(swapRouter.address, toWei('10000'));
+        await token1.connect(owner).approve(swapRouter.address, toWei('10000'));
 
         let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
-        let dx = "1000000";
+        let dx = toWei('1');
 
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.connect(owner).createLock(toWei('10'), parseInt(eta));
 
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
 
         let info = await swapMining.rewardPoolInfo(0, dev.address);
         let infoMax = await swapMining.rewardPoolInfoMax(0, dev.address);
+        console.log("infoMax:" + infoMax)
+        console.log("info:" + info)
 
         // let befReward = await fxs.balanceOf(dev.address);
-        // let multiple = infoMax / info;
-        // expect(multiple).to.be.eq(3.333333333333333);
-        let resultBef = infoMax / info
+
+        let resultBef = infoMax / 3
+        // console.log("resultBef:"+resultBef)
 
         await swapMining.connect(dev).vote(1, [pool.address], [toWei('1')]);
+        await swapMining.connect(owner).vote(2, [pool.address], [toWei('1')]);
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         infoMax = await swapMining.rewardPoolInfoMax(0, dev.address);
@@ -431,13 +437,11 @@ contract('plainPool', () => {
         console.log("infoMax:" + infoMax)
         console.log("info:" + info)
 
-        // let multiple1 = infoMax / info;
-        // expect(multiple1).to.be.eq(3.333333333316667);
-        // expect(multiple1).to.be.eq(multiple);
 
-        let resultAft = infoMax / info
-        expect(resultBef).to.be.eq(3.333333333333333)
-        expect(resultAft).to.be.eq(3.333333333316667)
+        // let resultAft = infoMax / info
+        let resultAft = infoMax / 3
+        expect(resultBef).to.be.eq(330555555555558850);
+        expect(resultAft).to.be.eq(388888888888892200);
 
 
         // let aftReward = await fxs.balanceOf(dev.address);
