@@ -79,15 +79,15 @@ contract SwapMining is AbstractBoost, ISwapMining {
 
     // Get details of the pool
     function getPoolInfo(uint256 _pid)
-        public
-        view
-        returns (
-            address,
-            address,
-            uint256,
-            uint256,
-            uint256
-        )
+    public
+    view
+    returns (
+        address,
+        address,
+        uint256,
+        uint256,
+        uint256
+    )
     {
         require(_pid <= poolInfo.length - 1, "SwapMining: Not find this pool");
         PoolInfo memory pool = poolInfo[_pid];
@@ -106,6 +106,55 @@ contract SwapMining is AbstractBoost, ISwapMining {
         return poolInfo.length;
     }
 
+    function rewardInfo(address account) public view returns (uint256) {
+        uint256 userSub;
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            PoolInfo storage pool = poolInfo[pid];
+            UserInfo storage user = userInfo[pid][account];
+            if (user.quantity > 0) {
+                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                userReward = getBoost(pool, account, userReward);
+                userSub = userSub.add(userReward);
+            }
+        }
+        return userSub;
+    }
+
+
+    function rewardInfoMax(address account) public view returns (uint256) {
+        uint256 userSub;
+        uint256 length = poolInfo.length;
+        for (uint256 pid = 0; pid < length; ++pid) {
+            PoolInfo storage pool = poolInfo[pid];
+            UserInfo storage user = userInfo[pid][account];
+            if (user.quantity > 0) {
+                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+                userSub = userSub.add(userReward);
+            }
+        }
+        return userSub;
+    }
+
+    function rewardPoolInfo(uint256 pid, address account) public view returns (uint256 userReward) {
+        PoolInfo memory pool = poolInfo[pid];
+        UserInfo memory user = userInfo[pid][account];
+        if (user.quantity > 0) {
+            userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+            userReward = getBoost(pool, account, userReward);
+        }
+        return userReward;
+    }
+
+    function rewardPoolInfoMax(uint256 pid, address account) public view returns (uint256 userReward) {
+        PoolInfo memory pool = poolInfo[pid];
+        UserInfo memory user = userInfo[pid][account];
+        if (user.quantity > 0) {
+            userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
+        }
+        return userReward;
+    }
+
     function addPair(
         uint256 _allocPoint,
         address _pool,
@@ -122,12 +171,12 @@ contract SwapMining is AbstractBoost, ISwapMining {
         totalAllocPoint = totalAllocPoint.add(_allocPoint);
         poolInfo.push(
             PoolInfo({
-                pair: _pool,
-                quantity: 0,
-                allocPoint: _allocPoint,
-                allocSwapTokenAmount: 0,
-                lastRewardBlock: lastRewardBlock
-            })
+        pair : _pool,
+        quantity : 0,
+        allocPoint : _allocPoint,
+        allocSwapTokenAmount : 0,
+        lastRewardBlock : lastRewardBlock
+        })
         );
         lpOfPid[_pool] = poolLength() - 1;
         emit AddPool(_pool, _allocPoint);
@@ -235,36 +284,6 @@ contract SwapMining is AbstractBoost, ISwapMining {
             return;
         }
         _safeTokenTransfer(msg.sender, userSub);
-    }
-
-    function rewardInfo(address account) public view returns (uint256) {
-        uint256 userSub;
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            PoolInfo storage pool = poolInfo[pid];
-            UserInfo storage user = userInfo[pid][account];
-            if (user.quantity > 0) {
-                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
-                userReward = getBoost(pool, account, userReward);
-                userSub = userSub.add(userReward);
-            }
-        }
-        return userSub;
-    }
-
-
-    function rewardInfoMax(address account) public view returns (uint256) {
-        uint256 userSub;
-        uint256 length = poolInfo.length;
-        for (uint256 pid = 0; pid < length; ++pid) {
-            PoolInfo storage pool = poolInfo[pid];
-            UserInfo storage user = userInfo[pid][account];
-            if (user.quantity > 0) {
-                uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
-                userSub = userSub.add(userReward);
-            }
-        }
-        return userSub;
     }
 
     // The user withdraws all the transaction rewards of one pool
