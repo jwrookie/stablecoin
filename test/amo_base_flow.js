@@ -116,7 +116,6 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function (){
         expect(await rusd.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityRusd.add(toWei("0.5")));
         expect(await usdc.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityUsdc.add(toWei("0.1")));
         expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(BigNumber.from("599879617905205347"));
-
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
         await exchangeAMO.metapoolWithdrawFrax(await pool.balanceOf(exchangeAMO.address, GAS), false);
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
