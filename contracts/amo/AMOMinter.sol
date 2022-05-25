@@ -144,7 +144,7 @@ contract AMOMinter is CheckPermission {
         pool.redeemFractionalStable(_amount, 0, 0);
     }
 
-    function poolCollectAndGive(address destinationAmo) external onlyOperator validAMO(destinationAmo) {
+    function poolCollectAndGive(address amo) external onlyOperator validAMO(amo) {
         // Get the amount to be collected
         uint256 collatAmount = pool.redeemCollateralBalances(address(this));
 
@@ -152,10 +152,10 @@ contract AMOMinter is CheckPermission {
         pool.collectRedemption();
 
         // Mark the destination amo's borrowed amount
-        collatBorrowedBalances[destinationAmo] += collatAmount;
+        collatBorrowedBalances[amo] += collatAmount;
 
         // Give the collateral to the AMO
-        TransferHelper.safeTransfer(address(collateralToken), destinationAmo, collatAmount);
+        TransferHelper.safeTransfer(address(collateralToken), amo, collatAmount);
 
         // Sync
         syncDollarBalances();

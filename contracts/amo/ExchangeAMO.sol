@@ -10,17 +10,19 @@ import "../tools/TransferHelper.sol";
 import "../token/Rusd.sol";
 import "../interface/IAMOMinter.sol";
 import "../tools/CheckPermission.sol";
+import "../interface/IStock.sol";
 
 contract ExchangeAMO is CheckPermission {
     using SafeMath for uint256;
 
     uint256 public constant PRICE_PRECISION = 1e6;
 
-    IStableSwap3Pool public threePool;
-    ERC20 public threePoolLp;
-    RStablecoin public stablecoin;
-    ERC20 public collateralToken;
+    IStableSwap3Pool public immutable threePool;
+    ERC20 public immutable threePoolLp;
+    RStablecoin public immutable stablecoin;
+    ERC20 public immutable collateralToken;
     IAMOMinter public amoMinter;
+    IStock public immutable stock;
 
     uint256 public missingDecimals;
 
@@ -35,6 +37,7 @@ contract ExchangeAMO is CheckPermission {
     // Discount
     bool public setDiscount;
     uint256 public discountRate;
+
     int128 stablePoolIndex;
     int128 collateralPoolIndex;
 
@@ -42,6 +45,7 @@ contract ExchangeAMO is CheckPermission {
         address _operatorMsg,
         address _amoMinterAddress,
         address stableCoinAddress,
+        address _stockAddress,
         address collateralAddress,
         address poolAddress,
         address poolTokenAddress,
@@ -49,6 +53,7 @@ contract ExchangeAMO is CheckPermission {
         int128 _stablePoolIndex
     ) CheckPermission(_operatorMsg) {
         stablecoin = RStablecoin(stableCoinAddress);
+        stock = IStock(_stockAddress);
         collateralToken = ERC20(collateralAddress);
         missingDecimals = uint256(18).sub(collateralToken.decimals());
         amoMinter = IAMOMinter(_amoMinterAddress);
@@ -62,12 +67,12 @@ contract ExchangeAMO is CheckPermission {
         setDiscount = false;
     }
 
-    modifier onlyByMinter() {
+    modifier onlyMinter() {
         require(msg.sender == address(amoMinter), "Not minter");
         _;
     }
 
-    function setIndex( int128 _collateralPoolIndex, int128 _stablePoolIndex) external onlyOperator {
+    function setIndex(int128 _collateralPoolIndex, int128 _stablePoolIndex) external onlyOperator {
         collateralPoolIndex = _collateralPoolIndex;
         stablePoolIndex = _stablePoolIndex;
     }
@@ -156,7 +161,7 @@ contract ExchangeAMO is CheckPermission {
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function metapoolDeposit(uint256 _stableAmount, uint256 _collateralAmount)
+    function poolDeposit(uint256 _stableAmount, uint256 _collateralAmount)
     external
     onlyOperator
     returns (uint256 lpReceived)
@@ -199,7 +204,7 @@ contract ExchangeAMO is CheckPermission {
         return lpReceived;
     }
 
-    function metapoolWithdrawAtCurRatio(
+    function poolWithdrawAtCurRatio(
         uint256 metapoolLpIn,
         bool burnTheStable,
         uint256 minStable,
@@ -236,41 +241,29 @@ contract ExchangeAMO is CheckPermission {
         }
     }
 
-    function metapoolWithdrawFrax(uint256 _metapoolLpIn, bool burnTheStable)
+    function poolWithdrawStable(uint256 _metapoolLpIn, bool burnTheStable)
     external
     onlyOperator
     returns (uint256 stableReceived)
     {
-        // Withdraw FRAX from the metapool
         uint256 minStableOut = _metapoolLpIn.mul(liqSlippage3crv).div(PRICE_PRECISION);
         stableReceived = threePool.remove_liquidity_one_coin(_metapoolLpIn, stablePoolIndex, minStableOut);
 
-        // Optionally burn the FRAX
         if (burnTheStable) {
             burnStable(stableReceived);
         }
     }
 
-    function metapoolWithdraw3pool(uint256 _metapoolLpIn) public onlyOperator {
-        // Withdraw 3pool from the metapool
-        uint256 min3poolOut = _metapoolLpIn.mul(liqSlippage3crv).div(PRICE_PRECISION);
-        threePool.remove_liquidity_one_coin(_metapoolLpIn, stablePoolIndex, min3poolOut);
-    }
-
-    function threePoolToCollateral(uint256 _poolIn) public onlyOperator {
+    function poolWithdrawCollateral(uint256 _poolIn) public onlyOperator {
         // Convert the 3pool into the collateral
         // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
         // May be related to https://github.com/vyperlang/vyper/blob/3e1ff1eb327e9017c5758e24db4bdf66bbfae371/examples/tokens/ERC20.vy#L85
         threePoolLp.approve(address(threePool), 0);
         threePoolLp.approve(address(threePool), _poolIn);
         uint256 minCollatOut = _poolIn.mul(liqSlippage3crv).div(PRICE_PRECISION * (10 ** missingDecimals));
-        threePool.remove_liquidity_one_coin(_poolIn, stablePoolIndex, minCollatOut);
+        threePool.remove_liquidity_one_coin(_poolIn, collateralPoolIndex, minCollatOut);
     }
 
-    function metapoolWithdrawAndConvert3pool(uint256 _metapoolLpIn) external onlyOperator {
-        metapoolWithdraw3pool(_metapoolLpIn);
-        threePoolToCollateral(threePoolLp.balanceOf(address(this)));
-    }
 
     // Give USDC profits back. Goes through the minter
     function giveCollatBack(uint256 collatAmount) external onlyOperator {
@@ -279,11 +272,10 @@ contract ExchangeAMO is CheckPermission {
     }
 
     function burnStock(uint256 _amount) public onlyOperator {
-        stablecoin.approve(address(amoMinter), _amount);
+        stock.approve(address(amoMinter), _amount);
         amoMinter.burnStockFromAMO(_amount);
     }
 
-    // Burn unneeded or excess stable. Goes through the minter
     function burnStable(uint256 stableAmount) public onlyOperator {
         stablecoin.approve(address(amoMinter), stableAmount);
         amoMinter.burnStableFromAMO(stableAmount);

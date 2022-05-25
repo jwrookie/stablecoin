@@ -294,6 +294,7 @@ contract('AMOMinter', async function () {
             operatable.address,
             amoMinter.address,
             frax.address,
+            fxs.address,
             usdc.address,
             pool.address,
             frax.address,
