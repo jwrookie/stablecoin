@@ -227,6 +227,7 @@ contract('amo minter test', async function () {
             checkOper.address,
             amoMinter.address,
             frax.address,
+            fxs.address,
             usdc.address,
             pool.address,
             frax.address, 0, 1

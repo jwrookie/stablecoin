@@ -18,13 +18,13 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let TRA = "0xBb879617B720cE0E3f75F398Bb8Da7EBCBE208E8"
-    let rusd = "0x14A27a62B6CD900cb4cEBbc1644BebD1b4cB278C"
+    let TRA = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
+    let rusd = "0xc792dDbC43b0FB824D3B2916bb4BCa9dF113E9Ac"
     // // //
     // // // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
-    let checkPermission = "0xe64aA9f0b547a7841CC5D2557B69094303fF6dcd"
-    let lock = "0x7D59BB148Da75A0ae1FC2125Ae0E5982F1b4ABF6"
-    let gaugeFactory = "0xCd9922105d6f5bEFa14Ac7d779CC52A6590cd9b0"
+    let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+    let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
+    //let gaugeFactory = "0xCd9922105d6f5bEFa14Ac7d779CC52A6590cd9b0"
     // let boost = ""
     let weth9 = "0xABD262d7E300B250bab890f5329E817B7768Fe3C"
 
@@ -82,27 +82,27 @@ async function main() {
     // gaugeFactory = await GaugeFactory.deploy(checkPermission);
     // console.log("gaugeFactory:" + gaugeFactory.address)
 
-    const Boost = await ethers.getContractFactory("Boost");
-    boost = await Boost.deploy(
-        checkPermission,
-        lock,
-        gaugeFactory,
-        TRA,
-        toWei('1'),
-        parseInt("19460057"),
-        "2592000"
-    );
-    console.log("boost:" + boost.address)
+    // const Boost = await ethers.getContractFactory("Boost");
+    // boost = await Boost.deploy(
+    //     checkPermission,
+    //     lock,
+    //     gaugeFactory,
+    //     TRA,
+    //     toWei('1'),
+    //     parseInt("19460057"),
+    //     "2592000"
+    // );
+    // console.log("boost:" + boost.address)
 
 
-    const GaugeController = await ethers.getContractFactory('GaugeController');
-    gaugeController = await GaugeController.deploy(
-        checkPermission,
-        boost.address,
-        lock,
-        "1200");
-
-    console.log("gaugeController:" + gaugeController.address)
+    // const GaugeController = await ethers.getContractFactory('GaugeController');
+    // gaugeController = await GaugeController.deploy(
+    //     checkPermission,
+    //     boost.address,
+    //     lock,
+    //     "1200");
+    //
+    // console.log("gaugeController:" + gaugeController.address)
     const SwapRouter = await ethers.getContractFactory('SwapRouter');
     swapRouter = await SwapRouter.deploy(checkPermission, weth9);
     console.log("swapRouter:" + swapRouter.address);
@@ -115,7 +115,7 @@ async function main() {
         deployer.address,
         swapRouter.address,
         toWei('1'),
-        "19460100",
+        "19582525",
         "259200"
     );
     console.log("swapMining:" + swapMining.address);
@@ -130,8 +130,8 @@ async function main() {
 
     console.log("swapController:" + swapController.address)
 
-    await boost.addController(gaugeController.address);
-    await swapMining.addController(swapController.address);
+    //await boost.addController(gaugeController.address);
+    //await swapMining.addController(swapController.address);
     // // await lock.removeBoosts(boost.address)
     // await lock.addBoosts(boost.address);
     // await lock.addBoosts(swapMining.address);

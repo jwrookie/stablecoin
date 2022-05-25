@@ -11,7 +11,7 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
-contract('PoolUSD_Set', () => {
+contract('pool set parameter', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
@@ -20,7 +20,7 @@ contract('PoolUSD_Set', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle(toWei("100"));
-        [weth, factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
+        [weth, factory, registry, poolRegistry, router] = await GetConfigAboutCRV(owner);
 
         await CrvFactoryDeploy([token0, rusd, token1], {});
 
@@ -52,6 +52,8 @@ contract('PoolUSD_Set', () => {
     it("the user did not set mintingFee and redemptionFee", async () => {
         await oraclePrice();
         await rusd.refreshCollateralRatio();
+        globalCollateralRatio = await rusd.globalCollateralRatio();
+        console.log("globalCollateralRatio:" + globalCollateralRatio);
 
         let befRusdOwner = await rusd.balanceOf(owner.address);
         expect(befRusdOwner).to.be.eq("1999999000000000000000000");
