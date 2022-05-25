@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
-const {toWei, fromWei, toBN} = web3.utils;
+const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetConfigAboutCRV, CrvFactoryDeploy} = require("./Tools/Deploy");
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
