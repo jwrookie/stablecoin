@@ -83,7 +83,6 @@ contract SwapMining is AbstractBoost, ISwapMining {
     view
     returns (
         address,
-        address,
         uint256,
         uint256,
         uint256
@@ -91,15 +90,12 @@ contract SwapMining is AbstractBoost, ISwapMining {
     {
         require(_pid <= poolInfo.length - 1, "SwapMining: Not find this pool");
         PoolInfo memory pool = poolInfo[_pid];
-        //todo token get form pool
-        address token0;
-        address token1;
         uint256 tokenAmount = pool.allocSwapTokenAmount;
         uint256 mul = block.number.sub(pool.lastRewardBlock);
         uint256 tokenReward = tokenPerBlock.mul(mul).mul(pool.allocPoint).div(totalAllocPoint);
         tokenAmount = tokenAmount.add(tokenReward);
         //token0,token1,Pool remaining reward,Total /Current transaction volume of the pool
-        return (token0, token1, tokenAmount, pool.quantity, pool.allocPoint);
+        return (pool.pair, tokenAmount, pool.quantity, pool.allocPoint);
     }
 
     function poolLength() public view returns (uint256) {
@@ -114,7 +110,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
             UserInfo storage user = userInfo[pid][account];
             if (user.quantity > 0) {
                 uint256 userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
-                userReward = getBoost(pool, account, userReward);
+                userReward = getBoost(pid, account, userReward);
                 userSub = userSub.add(userReward);
             }
         }
@@ -141,7 +137,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
         UserInfo memory user = userInfo[pid][account];
         if (user.quantity > 0) {
             userReward = pool.allocSwapTokenAmount.mul(user.quantity).div(pool.quantity);
-            userReward = getBoost(pool, account, userReward);
+            userReward = getBoost(pid, account, userReward);
         }
         return userReward;
     }
@@ -276,7 +272,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
                 pool.allocSwapTokenAmount = pool.allocSwapTokenAmount.sub(userReward);
                 user.quantity = 0;
                 user.blockNumber = block.number;
-                userReward = getBoost(pool, msg.sender, userReward);
+                userReward = getBoost(pid, msg.sender, userReward);
                 userSub = userSub.add(userReward);
             }
         }
@@ -304,21 +300,23 @@ contract SwapMining is AbstractBoost, ISwapMining {
         if (userSub <= 0) {
             return;
         }
-        userSub = getBoost(pool, msg.sender, userSub);
+        userSub = getBoost(pid, msg.sender, userSub);
         _safeTokenTransfer(msg.sender, userSub);
     }
 
     function getBoost(
-        PoolInfo memory pool,
+        uint256 pid,
         address account,
         uint256 amount
     ) public view returns (uint256) {
         uint256 _derived = (amount * 30) / 100;
         uint256 _adjusted = 0;
         uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
+        //        PoolInfo memory pool = poolInfo[pid];
+        UserInfo memory user = userInfo[pid][account];
         if (account == IVeToken(veToken).ownerOf(_tokenId) && totalWeight > 0) {
             uint256 useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
-            _adjusted = (((pool.quantity * useVe) / totalWeight) * 70) / 100;
+            _adjusted = (((user.quantity * useVe) / totalWeight) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), amount);
     }
