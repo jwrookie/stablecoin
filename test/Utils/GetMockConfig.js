@@ -18,7 +18,7 @@ const GetMockToken = async (deployMockTokenNumber, mintUser = [], mintNumber) =>
             }
             break;
         case "string":
-            parameterMintNumber = mintNumber;
+            parameterMintNumber = BigNumber.from(mintNumber);
             break;
         default:
             throw Error("Type Error: Parameter is mintNumber!");
