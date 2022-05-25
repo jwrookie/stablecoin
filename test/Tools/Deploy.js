@@ -5,9 +5,9 @@ const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
-const GetConfigAboutCRV = async (user) => {
+const GetCRV = async (user) => {
     let resultArray = new Array();
-    let crvFactoryMap = await ConfigCrvFactory(user);
+    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crv factory precondition
     let weth = crvFactoryMap.get("weth");
     let router = crvFactoryMap.get("router");
 
@@ -27,7 +27,7 @@ const GetConfigAboutCRV = async (user) => {
     return resultArray;
 }
 
-const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
+const DeployThreePoolByCrvFactory = async (tokenArray, {amplification, fee, gas} = {}) => {
     let recording = await GetCrvMap();
 
     if (recording.get("crvFactory") === undefined || recording.get("crvFactory") === ZEROADDRESS) {
@@ -53,6 +53,6 @@ const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
 }
 
 module.exports = {
-    GetConfigAboutCRV,
-    CrvFactoryDeploy
+    GetCRV,
+    DeployThreePoolByCrvFactory
 }
