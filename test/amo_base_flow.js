@@ -122,6 +122,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
             toWei("0.1"), // The amount that can be extracted can be calculated by CR
             0
         );
+
         // expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
     });
 
