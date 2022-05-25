@@ -1,5 +1,6 @@
 const {ethers} = require('hardhat');
 const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
+const {CheckParameter} = require("../Tools/Check");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
@@ -9,7 +10,7 @@ const GetRusdAndTra = async () => {
 
     let tempMap = await GetMap();
 
-    if (undefined !== tempMap.get("RUSD") || undefined !== tempMap.get("TRA")) {
+    if (await CheckParameter([tempMap.get("RUSD"), tempMap.get("TRA")])) {
         await SetRusdAndTraConfig(tempMap.get("RUSD"), tempMap.get("TRA"));
     }else {
         throw Error("Please check token factory and check rusd and tra contract!");

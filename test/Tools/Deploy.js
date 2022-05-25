@@ -1,5 +1,6 @@
 const {SetPoolByCrvFactory, SetPlainImplementations} = require("../Core/LibSourceConfig");
 const {ConfigCrvFactory, GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
+const {CheckParameter} = require("./Check");
 const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
@@ -44,7 +45,7 @@ const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
     // Get 3pool instantiation object
     let poolAddress = await recording.get("crvFactory").pool_list(0, GAS);
 
-    if (undefined === recording.get("plain3Balances").address || ZEROADDRESS === recording.get("plain3Balances").address) {
+    if (!await CheckParameter([recording.get("plain3Balances")])) {
         throw Error("Please check function ConfigCrvFactory!");
     }
 
