@@ -1,5 +1,6 @@
 const {SetTimeLock, SetUniswapOracle, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
+const {CheckParameter} = require("../Tools/Check");
 const {GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
 const {GetMap} = require("../Factory/StableAndMockFactory");
 const {ZEROADDRESS} = require("../Lib/Address");
@@ -15,20 +16,9 @@ const ParameterObj = {
 
 const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grapplingCoin) => {
     let tempUniswapOracle;
-    let tempArray = new Array();
 
-    tempArray.push(
-        userAddress,
-        stableCoinPool,
-        factory,
-        coinPair,
-        grapplingCoin
-    );
-
-    for (let i = 0; i < tempArray.length; i++) {
-        if ("object" !== typeof tempArray[i] || undefined === tempArray[i].address) {
-            throw Error("Exist Invalid Parameters!");
-        }
+    if (!await CheckParameter([userAddress, stableCoinPool, factory, coinPair, grapplingCoin])) {
+        throw Error("Exist Invalid Parameters!");
     }
 
     let tempTimeLock = await SetTimeLock(userAddress);
@@ -64,7 +54,7 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
         }
     }
 
-    if (undefined === coin || ZEROADDRESS === coin.address || undefined === user || ZEROADDRESS === user.address) {
+    if (!await CheckParameter([coin, user])) {
         throw Error("Invalid coin or user!");
     }
 

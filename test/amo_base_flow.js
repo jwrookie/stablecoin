@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
-const {toWei, fromWei, toBN} = web3.utils;
+const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetConfigAboutCRV, CrvFactoryDeploy} = require("./Tools/Deploy");
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
@@ -116,8 +116,11 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         expect(await usdc.balanceOf(pool.address)).to.be.eq(beforeAddLiquidityUsdc.add(toWei("0.1")));
         expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(BigNumber.from("599879617905205347"));
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
-        await exchangeAMO.poolWithdrawStable(await pool.balanceOf(exchangeAMO.address, GAS), false);
-        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
+        await exchangeAMO.poolWithdrawAtCurRatio(
+            await pool.balanceOf(exchangeAMO.address, GAS)
+        );
+
+        // expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1099760240237380756"));
     });
 
     it('when user mint rusd will trigger exchange amo and do not with draw rusd', async function () {

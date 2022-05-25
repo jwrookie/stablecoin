@@ -168,10 +168,8 @@ contract ExchangeAMO is CheckPermission {
     {
         uint256 threeCRVReceived = 0;
         if (_collateralAmount > 0) {
-            // Approve the collateral to be added to 3pool
             collateralToken.approve(address(threePool), _collateralAmount);
 
-            // Convert collateral into 3pool
             uint256[3] memory threePoolCollaterals;
             threePoolCollaterals[uint128(collateralPoolIndex)] = _collateralAmount;
             {
@@ -181,7 +179,6 @@ contract ExchangeAMO is CheckPermission {
                 threePool.add_liquidity(threePoolCollaterals, min3poolOut);
             }
 
-            // Approve the 3pool for the metapool
             threeCRVReceived = threePoolLp.balanceOf(address(this));
 
             // WEIRD ISSUE: NEED TO DO three_pool_erc20.approve(address(three_pool), 0); first before every time
@@ -190,55 +187,29 @@ contract ExchangeAMO is CheckPermission {
             threePoolLp.approve(address(threePool), threeCRVReceived);
         }
 
-        // Approve the FRAX for the metapool
         stablecoin.approve(address(threePool), _stableAmount);
-
-        {
-            // Add the FRAX and the collateral to the metapool
-            uint256 minLpOut = (_stableAmount.add(threeCRVReceived)).mul(liqSlippage3crv).div(PRICE_PRECISION);
-            uint256[3] memory amounts;
-            amounts[uint128(stablePoolIndex)] = _stableAmount;
-            lpReceived = threePool.add_liquidity(amounts, minLpOut);
-        }
+        uint256 minLpOut = (_stableAmount.add(threeCRVReceived)).mul(liqSlippage3crv).div(PRICE_PRECISION);
+        uint256[3] memory amounts;
+        amounts[uint128(stablePoolIndex)] = _stableAmount;
+        lpReceived = threePool.add_liquidity(amounts, minLpOut);
 
         return lpReceived;
     }
 
-    function poolWithdrawAtCurRatio(
-        uint256 metapoolLpIn,
-        bool burnTheStable,
-        uint256 minStable,
-        uint256 min3pool
-    ) external onlyOperator returns (uint256 stableReceived) {
-        // Approve the metapool LP tokens for the metapool contract
-        threePoolLp.approve(address(this), metapoolLpIn);
-
-        min3pool;
-        // Withdraw FRAX and 3pool from the metapool at the current balance
-        uint256 threePoolReceived;
-        {
-            uint256[3] memory minAmounts;
-            minAmounts[uint128(stablePoolIndex)] = minStable;
-            uint256[3] memory resultArr = threePool.remove_liquidity(metapoolLpIn, minAmounts);
-            stableReceived = resultArr[0];
-            threePoolReceived = resultArr[1];
-        }
+    function poolWithdrawAtCurRatio(uint256 lpIn) external onlyOperator {
+        threePoolLp.approve(address(this), lpIn);
 
         // Convert the 3pool into the collateral
         threePoolLp.approve(address(threePool), 0);
-        threePoolLp.approve(address(threePool), threePoolReceived);
+        threePoolLp.approve(address(threePool), lpIn);
         {
             // Add the stable and the collateral to the metapool
-            uint256 minCollatOut = threePoolReceived.mul(liqSlippage3crv).div(
+            uint256 minCollatOut = lpIn.mul(liqSlippage3crv).div(
                 PRICE_PRECISION * (10 ** missingDecimals)
             );
-            threePool.remove_liquidity_one_coin(threePoolReceived, stablePoolIndex, minCollatOut);
+            threePool.remove_liquidity_one_coin(lpIn, stablePoolIndex, minCollatOut);
         }
 
-        // Optionally burn the FRAX
-        if (burnTheStable) {
-            burnStable(stableReceived);
-        }
     }
 
     function poolWithdrawStable(uint256 _metapoolLpIn, bool burnTheStable)
