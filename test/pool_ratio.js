@@ -250,7 +250,120 @@ contract('PoolUSD', () => {
 
         expect(stockAft2).to.be.eq(stockAft1.add(diffStock));
     });
+    it("multi user re mortgage", async () => {
+        await oraclePrice();
+        await rusd.refreshCollateralRatio();
+        let collateralBef = await usdc.balanceOf(stableCoinPool.address);
+        let stockBefOwner = await tra.balanceOf(owner.address);
+        let stockBefDev = await tra.balanceOf(dev.address);
+        await stableCoinPool.recollateralizeStable(toWei('1'), "10");
+        await stableCoinPool.connect(dev).recollateralizeStable(toWei('2'), "10");
 
+
+        let collateralAft = await usdc.balanceOf(stableCoinPool.address);
+        let stockAftOwner = await tra.balanceOf(owner.address);
+        let stockAftDev = await tra.balanceOf(dev.address);
+        let diffCollateral = collateralAft.sub(collateralBef)
+        expect(diffCollateral).to.be.eq(toWei('3'))
+        let diffStockOwner = stockAftOwner.sub(stockBefOwner);
+        let diffStockDev = stockAftDev.sub(stockBefDev);
+        expect(diffStockDev).to.be.eq(diffStockOwner.mul(2));
+
+
+        let usdcPrice = await stableCoinPool.getCollateralPrice();
+        // let globalCollat = await rusd.globalCollateralValue();
+        // let rusdTotalSupply = await rusd.totalSupply();
+        //
+        // let ratio = await rusd.globalCollateralRatio();
+
+
+        let collatValueAttempted = BigNumber.from(toWei('1')).mul(usdcPrice).div(10 ** 6);
+        // let effectiveCollateralRatio = globalCollat.mul(10 ** 6).div(rusdTotalSupply);
+
+        // let step1 = ratio.mul(rusdTotalSupply)
+        // let step2 = rusdTotalSupply.mul(effectiveCollateralRatio)
+        // let step3 = step1.sub(step2)
+
+
+        let stockPaidBackStep1 = "1007500";
+        let stockPaidBackStep2 = BigNumber.from(collatValueAttempted).mul(stockPaidBackStep1).div(10 ** 7);
+
+        expect(diffStockOwner).to.be.eq(stockPaidBackStep2)
+        expect(diffStockDev).to.be.eq(stockPaidBackStep2.mul(2))
+
+        //  let stockPaidBack = collatValueAttempted.mul(10**18.add(7500)).div(10**7);
+
+
+        // let collateralAft1 = await usdc.balanceOf(stableCoinPool.address);
+        // let stockAft2 = await tra.balanceOf(owner.address);
+        //
+        // let diffStock = stockAft.sub(stockBef);
+        //
+        // expect(collateralAft1).to.be.eq(diffCollateral.mul(3));
+        //
+        // expect(stockAft2).to.be.eq(stockAft1.add(diffStock));
+        //
+
+    });
+
+    it("enter the correct repurchase quantity", async () => {
+        await oraclePrice();
+        await rusd.burn(toWei('1999999'));
+        await rusd.refreshCollateralRatio();
+
+        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
+
+        await stableCoinPool.recollateralizeStable(toWei('1'), "10");
+
+        let dv = await stableCoinPool.availableExcessCollatDV();
+        let usdcPrice = await stableCoinPool.getCollateralPrice();
+
+        let collatDv = dv.mul(10 ** 6).div(usdcPrice);
+
+        let befUsdc = await usdc.balanceOf(owner.address);
+
+        await expect(stableCoinPool.buyBackStock(collatDv1, 0)).to.be.revertedWith("You are trying to buy back more than the excess!");
+        await expect(stableCoinPool.buyBackStock(collatDv, collatDv1)).to.be.revertedWith("Slippage limit reached");
+
+        await stableCoinPool.buyBackStock(collatDv, collatDv);
+        let aftUsdc = await usdc.balanceOf(owner.address);
+
+        let diff = aftUsdc.sub(befUsdc);
+        expect(diff).to.be.eq(collatDv);
+
+
+    });
+    it("multi user repurchase", async () => {
+        await oraclePrice();
+        await rusd.burn(toWei('1999999'));
+        await rusd.refreshCollateralRatio();
+
+        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
+        await stableCoinPool.recollateralizeStable(toWei('1'), "10");
+
+        let dv = await stableCoinPool.availableExcessCollatDV();
+        let usdcPrice = await stableCoinPool.getCollateralPrice();
+
+        let collatDv = dv.mul(10 ** 6).div(usdcPrice);
+        let collatDv1 = collatDv.add(1);
+
+        let befUsdcOwner = await usdc.balanceOf(owner.address);
+        let befUsdcDev = await usdc.balanceOf(dev.address);
+
+        await stableCoinPool.buyBackStock(collatDv / 2, collatDv / 2);
+        await expect(stableCoinPool.connect(dev).buyBackStock(collatDv1, 0)).to.be.revertedWith("You are trying to buy back more than the excess!");
+
+        await stableCoinPool.connect(dev).buyBackStock(collatDv / 2, collatDv / 2);
+        let aftUsdcOwner = await usdc.balanceOf(owner.address);
+        let aftUsdcDev = await usdc.balanceOf(dev.address);
+        let diffOwner = aftUsdcOwner.sub(befUsdcOwner);
+        let diffDev = aftUsdcDev.sub(befUsdcDev);
+        let total = diffOwner.add(diffDev);
+
+        expect(total).to.be.eq(collatDv);
+
+
+    });
 
 
     async function oraclePrice() {
