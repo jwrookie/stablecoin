@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {time} = require("@openzeppelin/test-helpers");
-const $ = require("./common");
+const $ = require("../Core/common");
 
 const getStablecoinPool = async function (poolLibrary, checkPermission, frax, fxs, usdc) {
     const PoolUSD = await ethers.getContractFactory("PoolUSD", {
