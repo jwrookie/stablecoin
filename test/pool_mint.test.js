@@ -16,7 +16,7 @@ function encodeParameters(types, values) {
 }
 
 
-contract('PoolUSD', () => {
+contract('pool mint test', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         const TestERC20 = await ethers.getContractFactory('TestERC20');
@@ -247,7 +247,7 @@ contract('PoolUSD', () => {
         await frax.burn(toWei('1999999'));
         expect(await frax.totalSupply()).to.be.eq(toWei('1'));
 
-       //await frax.setStableStep("250000");
+        //await frax.setStableStep("250000");
         await frax.refreshCollateralRatio();
         expect(await pool.availableExcessCollatDV()).to.be.eq(0);
         await pool.mintFractionalStable(toWei('1'), toWei('10000000000'), 0);
