@@ -40,7 +40,11 @@ async function main() {
     //  // let rusdPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
     //  let rusd = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
     // let bond = "0x6Fd30E5D362E571a457C98C2E0CD0D8147b2A0C9"
- // let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+ let checkPermission = "0x43c992c1f499e259514a8409e2472Fa770D8da26"
+    let TRA = "0x511Ab81D33da3a3029E09a03cEe5748204535aAf"
+
+    // let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+    // let TRA = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
 
 
     for (const account of accounts) {
@@ -78,38 +82,38 @@ async function main() {
     // timeLock = await TimeLock.deploy(deployer.address, 0);
     // console.log("timeLock:" + timeLock.address);
 
-    const TestOracle = await ethers.getContractFactory("TestOracle");
-    oracle = await TestOracle.deploy();
-    console.log("oracle:" + oracle.address);
+    // const TestOracle = await ethers.getContractFactory("TestOracle");
+    // oracle = await TestOracle.deploy();
+    // console.log("oracle:" + oracle.address);
+    //
+    //
+    // const Operatable = await ethers.getContractFactory("Operatable");
+    // operatable = await Operatable.deploy();
+    //  console.log("operatable:" + operatable.address);
+    //
+    //
+    // const CheckPermission = await ethers.getContractFactory("CheckPermission");
+    // checkPermission = await CheckPermission.deploy(operatable.address);
+    //  console.log("checkPermission:" + checkPermission.address);
+    //
+    // const rusdShares = await ethers.getContractFactory('Stock');
+    // TRA = await rusdShares.deploy(checkPermission.address, "TRA", "TRA", oracle.address);
+    // console.log("TRA:" + TRA.address);
 
+    // const rusdStablecoin = await ethers.getContractFactory('RStablecoin');
+    // rusd = await rusdStablecoin.deploy(checkPermission.address, "rusd", "rusd");
+    // console.log("rusd:" + rusd.address);
 
-    const Operatable = await ethers.getContractFactory("Operatable");
-    operatable = await Operatable.deploy();
-     console.log("operatable:" + operatable.address);
-
-
-    const CheckPermission = await ethers.getContractFactory("CheckPermission");
-    checkPermission = await CheckPermission.deploy(operatable.address);
-     console.log("checkPermission:" + checkPermission.address);
-
-    const rusdShares = await ethers.getContractFactory('Stock');
-    TRA = await rusdShares.deploy(checkPermission.address, "TRA", "TRA", oracle.address);
-    console.log("TRA:" + TRA.address);
-
-    const rusdStablecoin = await ethers.getContractFactory('RStablecoin');
-    rusd = await rusdStablecoin.deploy(checkPermission.address, "rusd", "rusd");
-    console.log("rusd:" + rusd.address);
-
-    await TRA.setStableAddress(rusd.address);
-    await rusd.setStockAddress(TRA.address);
+    // await TRA.setStableAddress(rusd.address);
+    // await rusd.setStockAddress(TRA.address);
 
      const Locker = await ethers.getContractFactory('Locker');
-    lock = await Locker.deploy(checkPermission.address, TRA.address, "604800");
+    lock = await Locker.deploy(checkPermission, TRA, "300");
     console.log("Locker:" + lock.address)
 
-    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    gaugeFactory = await GaugeFactory.deploy(checkPermission.address);
-    console.log("gaugeFactory:" + gaugeFactory.address)
+    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    // gaugeFactory = await GaugeFactory.deploy(checkPermission);
+    // console.log("gaugeFactory:" + gaugeFactory.address)
     // const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
     // poolLibrary = await PoolLibrary.deploy();
     //

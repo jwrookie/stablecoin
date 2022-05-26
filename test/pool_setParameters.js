@@ -11,7 +11,7 @@ const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswap
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
-contract('pool set parameter', () => {
+contract('pool setParameter', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
@@ -53,7 +53,7 @@ contract('pool set parameter', () => {
         await oraclePrice();
         await rusd.refreshCollateralRatio();
         globalCollateralRatio = await rusd.globalCollateralRatio();
-        console.log("globalCollateralRatio:" + globalCollateralRatio);
+        //console.log("globalCollateralRatio:" + globalCollateralRatio);
 
         let befRusdOwner = await rusd.balanceOf(owner.address);
         expect(befRusdOwner).to.be.eq("1999999000000000000000000");
