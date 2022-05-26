@@ -1,9 +1,9 @@
-const {SetTimeLock, SetUniswapOracle, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
+const {SetTimeLock, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
+const {DeployUniswapFactory} = require("../Factory/UniswapPairOracleFactory");
 const {CheckParameter} = require("../Tools/Check");
 const {GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
 const {GetMap} = require("../Factory/StableAndMockFactory");
-const {ZEROADDRESS} = require("../Lib/Address");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
@@ -23,7 +23,7 @@ const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grappl
 
     let tempTimeLock = await SetTimeLock(userAddress);
 
-    tempUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
+    tempUniswapOracle = await DeployUniswapFactory(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
     return tempUniswapOracle;
 }
 
