@@ -154,6 +154,7 @@ contract('PoolUSD_ratio', () => {
 
         let befTraOwner = await tra.balanceOf(owner.address);
         let befRusdOwner = await rusd.balanceOf(owner.address);
+
         await stableCoinPool.mintAlgorithmicStable(toWei('1'), 10);
         let aftTraOwner = await tra.balanceOf(owner.address);
         let aftRusdOwner = await rusd.balanceOf(owner.address);
@@ -162,6 +163,7 @@ contract('PoolUSD_ratio', () => {
         let diffRusdOwner = aftRusdOwner.sub(befRusdOwner);
         let befTraDev = await tra.balanceOf(dev.address);
         let befRusdDev = await rusd.balanceOf(dev.address);
+
         await stableCoinPool.connect(dev).mintAlgorithmicStable(toWei('1'), 10);
         let aftTraDev = await tra.balanceOf(dev.address);
         let aftRusdDev = await rusd.balanceOf(dev.address);
