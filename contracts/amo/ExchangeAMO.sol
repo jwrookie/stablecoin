@@ -113,7 +113,7 @@ contract ExchangeAMO is CheckPermission {
         collatValE18 = (allocations[6]).mul(10 ** missingDecimals);
     }
 
-    // Returns hypothetical reserves of metapool if the stable price went to the CR,
+    // Returns hypothetical reserves of pool if the stable price went to the CR,
     function iterate() public view returns (uint256) {
         uint256 lpBalance = threePoolLp.balanceOf(address(threePool));
 
@@ -125,9 +125,9 @@ contract ExchangeAMO is CheckPermission {
         // Calculate the current output dy given input dx
         crv3Received = threePool.get_dy(0, 1, 1e18);
         dollarValue = crv3Received.mul(1e18).div(threePool.get_virtual_price());
-        if (
-            dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)
-        ) {} else if (dollarValue <= floorPrice.add(convergenceWindow)) {
+        if (dollarValue <= floorPrice.add(convergenceWindow) && dollarValue >= floorPrice.sub(convergenceWindow)) {
+
+        } else if (dollarValue <= floorPrice.add(convergenceWindow)) {
             uint256 crv3ToSwap = lpBalance.div(2);
             //todo Calculate the current output
             lpBalance = lpBalance.sub(threePool.get_dy(1, stablePoolIndex, crv3ToSwap));
@@ -194,22 +194,6 @@ contract ExchangeAMO is CheckPermission {
         lpReceived = threePool.add_liquidity(amounts, minLpOut);
 
         return lpReceived;
-    }
-
-    function poolWithdrawAtCurRatio(uint256 lpIn) external onlyOperator {
-        threePoolLp.approve(address(this), lpIn);
-
-        // Convert the 3pool into the collateral
-        threePoolLp.approve(address(threePool), 0);
-        threePoolLp.approve(address(threePool), lpIn);
-        {
-            // Add the stable and the collateral to the metapool
-            uint256 minCollatOut = lpIn.mul(liqSlippage3crv).div(
-                PRICE_PRECISION * (10 ** missingDecimals)
-            );
-            threePool.remove_liquidity_one_coin(lpIn, stablePoolIndex, minCollatOut);
-        }
-
     }
 
     function poolWithdrawStable(uint256 _metapoolLpIn, bool burnTheStable)
