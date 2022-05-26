@@ -1,10 +1,11 @@
+const {toWei} = web3.utils;
 const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
-const {toWei} = web3.utils;
+const {time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
+const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
@@ -82,13 +83,9 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
     });
 
     it('when user mint rusd will trigger exchange amo and do not with draw rusd', async function () {
-        // Refresh tra uniswaporacle and usdc uniswap to get tra price, because tra price is bound usdc price
-        await usdcUniswapOracle.setPeriod(1);
+        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
+        await time.increase(await time.duration.hours(1));
         await usdcUniswapOracle.update();
-        await traUniswapOracle.setPeriod(1);
-        await traUniswapOracle.update();
-        await rusdUniswapOracle.setPeriod(1);
-        await rusdUniswapOracle.update();
 
         await stableCoinPool.mint1t1Stable(toWei("1"), 0);
 
@@ -106,13 +103,9 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
     });
 
     it('when user mint rusd will trigger exchange amo and with draw', async function () {
-        // Refresh tra uniswaporacle and usdc uniswap to get tra price, because tra price is bound usdc price
-        await usdcUniswapOracle.setPeriod(1);
+        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
+        await time.increase(await time.duration.hours(1));
         await usdcUniswapOracle.update();
-        await traUniswapOracle.setPeriod(1);
-        await traUniswapOracle.update();
-        await rusdUniswapOracle.setPeriod(1);
-        await rusdUniswapOracle.update();
 
         await stableCoinPool.mint1t1Stable(toWei("1"), 0);
 
@@ -127,5 +120,31 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1000000000000000000").sub(toWei("0.1")));
         await exchangeAMO.poolWithdrawCollateral(await pool.balanceOf(exchangeAMO.address, GAS));
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq("500000000000000000");
+    });
+
+    it('No borrowing, no collateral coinage, investment profit', async function () {
+        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
+        await time.increase(await time.duration.hours(1));
+        await usdcUniswapOracle.update();
+
+        await amoMinter.setMinimumCollateralRatio(0);
+        await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
+
+        await exchangeAMO.poolDeposit(toWei("0.5"), 0);
+
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
+        await exchangeAMO.poolWithdrawCollateral(await pool.balanceOf(exchangeAMO.address, GAS));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("499798771300969441"));
+
+        // Add check logic
+        // await exchangeAMO.giveCollatBack(await usdc.balanceOf(exchangeAMO.address));
+    });
+
+    it('Borrowing stable coin and get reward by amo', async function () {
+        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
+        await time.increase(await time.duration.hours(1));
+        await usdcUniswapOracle.update();
+
+        expect(await rusd.globalCollateralRatio()).to.be.eq(BigNumber.from("1000000"));
     });
 });
