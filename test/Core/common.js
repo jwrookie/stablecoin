@@ -20,6 +20,8 @@ const setup = async () => {
         TestOracle: await ethers.getContractFactory('TestOracle'),
         MockToken: await ethers.getContractFactory('MockToken'),
         MockChainLink: await ethers.getContractFactory('MockChainLink'),
+        AMOMinter: await ethers.getContractFactory('AMOMinter'),
+        ExchangeAMO: await ethers.getContractFactory('ExchangeAMO'),
     }
 
     return {
