@@ -14,6 +14,7 @@ const {
 } = require("../Lib/QuoteMockJson");
 
 const Weth = async (ownerAddress) => {
+    // Need to create swap pairs and deassociate the mock token price with weth
     return await deployContract(ownerAddress, {
         bytecode: WETH.bytecode,
         abi: WETH.abi
@@ -37,6 +38,7 @@ const Router = async (ownerAddress, factory, eth) => {
 }
 
 const Registry = async (ownerAddress) => {
+    // Before deploy pool registry need to deploy registry
     return await deployContract(ownerAddress, {
         bytecode: REGISTRY.bytecode,
         abi: REGISTRY.abi
@@ -44,6 +46,7 @@ const Registry = async (ownerAddress) => {
 }
 
 const PoolRegistry = async (ownerAddress, registry) => {
+    // The pool is unregistered through the registry
     return await deployContract(ownerAddress, {
         bytecode: POOLREGISTRY.bytecode,
         abi: POOLREGISTRY.abi
@@ -59,6 +62,7 @@ const CRVFactory = async (ownerAddress, registry) => {
 }
 
 const Plain3Balances = async (ownerAddress) => {
+    // Deploy 3 coin pool
     return await deployContract(ownerAddress, {
         bytecode: PLAIN3BALANCE.bytecode,
         abi: POOLABI.abi
