@@ -55,7 +55,7 @@ const PoolRegistry = async (ownerAddress, registry) => {
 
 const CRVFactory = async (ownerAddress, registry) => {
     // We provide our own trading pool, which can carry out the exchange of specified coins
-    return await deployContract(owner, {
+    return await deployContract(ownerAddress, {
         bytecode: CRVFACTORY.bytecode,
         abi: FACTORYABI.abi,
     }, [ownerAddress.address, registry.address]);

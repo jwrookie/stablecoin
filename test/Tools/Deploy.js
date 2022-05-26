@@ -13,7 +13,7 @@ const GetCRV = async (user) => {
 
     await SetPlainImplementations(crvFactoryMap.get("crvFactory"), 3, [crvFactoryMap.get("plain3Balances")]);
 
-    await weth.deposit({value: toWei("10")});
+    await weth.deposit({value: toWei("1000")});
     await weth.approve(router.address, toWei("10000"));
 
     resultArray.push(
