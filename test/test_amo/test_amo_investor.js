@@ -148,6 +148,8 @@ contract('ExchangeAMO', async () => {
 
         cr = await frax.globalCollateralRatio();
 
+        expect(cr).to.be.gt(await amoMinter.minCR());
+
         await usdc.approve(stablecoinPool.address, toWei("100000000"));
         await fxs.approve(stablecoinPool.address, toWei("100000000"));
 
