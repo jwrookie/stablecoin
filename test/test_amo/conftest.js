@@ -20,7 +20,7 @@ const getStablecoinPool = async function (poolLibrary, checkPermission, frax, fx
         frax.address,
         fxs.address,
         usdc.address,
-        toWei("1000000"));
+        toWei("10000000000"));
 }
 
 const getPlain3Pool = async function (frax, usdc, usdt) {
