@@ -1,83 +1,43 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {toWei} = web3.utils;
-// const Router = require('../test/mock/Timelock.json');
-// const {BigNumber} = require('ethers');
-
-// const Timelock = require('../test/mock/Timelock.json');
-const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
-const {ethers, waffle} = require("hardhat");
-
-
-function encodeParameters(types, values) {
-    const abi = new ethers.utils.AbiCoder();
-    return abi.encode(types, values);
-}
+const {ethers} = require("hardhat");
 
 async function main() {
-    const accounts = await ethers.getSigners()
-    const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x488e9C271a58F5509e2868C8A758A345D28B9Db9"
-    // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let tra = "0x8bd1652946B614ccfe7ADdFE1d55ef8be49D5B29"
-    let rusd = "0x49FFC1e03D04986f646583E59D6e21ac193a4713"
+    const account = await ethers.getSigners();
 
-    // let operatable = ""
-    // let lock = ""
-    let pool_usdc = "0xEa9aF56c345674B3485b870d03153878711c3a05"
+    let deployer = account[0];
+    console.log("Deploy:\t" + deployer.address);
 
-    //
+    let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061";
+    let rusd = "0xc792dDbC43b0FB824D3B2916bb4BCa9dF113E9Ac";
+    let tra = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9";
+    let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A";
+    let pool = "0x7Ca05dA8Fa3fa2EE8Fb4A7d257E2eEa7236C8310";
+    let stableCoinPool = "0x9c35e3C876583E126D661e52AF5E0DF216aDCbAf";
 
+    const AMOMinter = await ethers.getContractFactory('AMOMinter');
+    let amoMinter = await AMOMinter.deploy(
+        checkPermission,
+        rusd,
+        tra,
+        usdc,
+        stableCoinPool
+    );
+    console.log("AMOMinter:\t" + amoMinter.address);
 
-    for (const account of accounts) {
-        //console.log('Account address' + account.address)
-    }
-
-    let deployer = accounts[0]
-    console.log('deployer:' + deployer.address)
-    // We get the contract to deploy
-    console.log('Account balance:', (await deployer.getBalance()).toString() / 10 ** 18)
-
-    //
-    // const Locker = await ethers.getContractFactory('Locker');
-    // lock = await Locker.deploy(tra, "300");
-    // console.log("Locker:" + lock.address)
-
-    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    // gaugeFactory = await GaugeFactory.deploy();
-    // console.log("gaugeFactory:" + gaugeFactory.address)
-    //
-    // Boost = await ethers.getContractFactory("Boost");
-    // boost = await Boost.deploy(
-    //     operatable,
-    //     lock,
-    //     gaugeFactory.address,
-    //     tra,
-    //     toWei('1'),
-    //     parseInt("10575868"),
-    //     "1000"
-    // );
-    // console.log("boost:" + boost.address)
-
-
-     const AMOMinter = await ethers.getContractFactory('AMOMinter');
-        minterAmo = await AMOMinter.deploy(
-            deployer.address,
-            rusd,
-            tra,
-            usdc,
-            pool_usdc
-        );
-        console.log("minterAmo:"+minterAmo.address)
-
-
-    // await rusd.addPool(boost.address);
-
-
-
+    const ExchangeAMO = await ethers.getContractFactory('ExchangeAMO');
+    let exchangeAMO = await ExchangeAMO.deploy(
+        checkPermission,
+        amoMinter.address,
+        rusd,
+        tra,
+        usdc,
+        pool,
+        pool, // 3pool Lp address
+        1,
+        0
+    );
+    console.log("ExchangeAMO:\t" + exchangeAMO.address);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main()
     .then(() => process.exit(0))
     .catch((error) => {
