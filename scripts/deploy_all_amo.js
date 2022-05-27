@@ -114,13 +114,7 @@ async function main() {
     let _stockAmount = BigNumber.from(toWei("80000000")).mul(1e6 - cr);
     await stableCoinPool.mintFractionalStable(toWei("80000000"), _stockAmount, 0);
 
-    let cv = await rusd.globalCollateralValue();
-
     await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("200"));
-
-    let rate = await exchangeAMO.stableDiscountRate();
-
-    let dbAft = await amoMinter.dollarBalances();
 
     await exchangeAMO.poolDeposit(toWei("100"), 0, {gasLimit: "9500000"});
 
