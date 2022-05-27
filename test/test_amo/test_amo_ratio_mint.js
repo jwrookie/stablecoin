@@ -38,7 +38,7 @@ contract('ExchangeAMO', async () => {
         await usdt.mint(owner.address, toWei("1000000"));
 
         weth = await $.deploy(owner, WETH9.bytecode, WETH9.abi);
-        await weth.deposit({value: toWei("1000")});
+        await weth.deposit({value: toWei("500")});
 
         const poolLibrary = await PoolLibrary.deploy();
         stablecoinPool = await Config.getStablecoinPool(poolLibrary, checkPermission, frax, fxs, usdc);

@@ -117,10 +117,11 @@ contract('ExchangeAMO', async () => {
             pool3.address,
             1, 0);
 
-        amoMinter.addAMO(exchangeAMO.address, true);
+        await amoMinter.addAMO(exchangeAMO.address, true);
+        await stablecoinPool.addAMOMinter(amoMinter.address);
     });
 
-    it('test cr > 0.95, without collateral invest', async () => {
+    it('test cr > 0.95, invest without borrow', async () => {
         let db = await amoMinter.dollarBalances();
         expect(db[0]).to.be.eq(0);
         expect(db[1]).to.be.eq(0);
@@ -211,18 +212,92 @@ contract('ExchangeAMO', async () => {
 
         // data
         let data = await exchangeAMO.showAllocations();
-        $.log("data_0", fromWei(toBN(data[0])));
-        $.log("data_1", fromWei(toBN(data[1])));
-        $.log("data_2", fromWei(toBN(data[2])));
-        $.log("data_3", fromWei(toBN(data[3])));
-        $.log("data_4", fromWei(toBN(data[4])));
-        $.log("data_5", fromWei(toBN(data[5])));
-        $.log("data_6", fromWei(toBN(data[6])));
-        $.log("data_7", fromWei(toBN(data[7])));
-        $.log("data_8", fromWei(toBN(data[8])));
+        // $.log("data_0", fromWei(toBN(data[0])));
+        // $.log("data_1", fromWei(toBN(data[1])));
+        // $.log("data_2", fromWei(toBN(data[2])));
+        // $.log("data_3", fromWei(toBN(data[3])));
+        // $.log("data_4", fromWei(toBN(data[4])));
+        // $.log("data_5", fromWei(toBN(data[5])));
+        // $.log("data_6", fromWei(toBN(data[6])));
+        // $.log("data_7", fromWei(toBN(data[7])));
+        // $.log("data_8", fromWei(toBN(data[8])));
 
         expect(data[0]).to.be.eq(toWei("110.020486475649728004"));
         expect(data[3]).to.be.eq(toWei("9.982502180553633868"));
         expect(data[7]).to.be.eq(toWei("69.857320000864925392"));
+    });
+
+    it('test invest with borrow', async () => {
+        let _deadline = new Date().getTime() + 1000;
+        await pancakeRouter.swapExactTokensForTokens(
+            toWei('0.1'),
+            0,
+            [weth.address, frax.address],
+            _owner.address,
+            _deadline
+        );
+        await time.increase(time.duration.hours(1));
+        await fraxEthOracle.update();
+        await frax.refreshCollateralRatio();
+
+        let cr = await frax.globalCollateralRatio();
+
+        expect(cr).to.be.eq(1e6 - 2500);
+
+        await usdc.approve(stablecoinPool.address, toWei("100000000"));
+        await fxs.approve(stablecoinPool.address, toWei("100000000"));
+
+        let _stockAmount = BigNumber.from(toWei("80000000")).mul(1e6 - cr);
+        await stablecoinPool.mintFractionalStable(toWei("80000000"), _stockAmount, 0);
+
+        let cv = await frax.globalCollateralValue();
+        expect(cv).to.be.eq(toWei("80000000"));
+
+        let usdcAmoBef = await usdc.balanceOf(exchangeAMO.address);
+        let fraxAmoBef = await frax.balanceOf(exchangeAMO.address);
+        let fxsAmoBef = await fxs.balanceOf(exchangeAMO.address);
+
+        await amoMinter.giveCollatToAMO(exchangeAMO.address, 100e6);
+
+        let usdcAmoAft = await usdc.balanceOf(exchangeAMO.address);
+        let fraxAmoAft = await frax.balanceOf(exchangeAMO.address);
+        let fxsAmoAft = await fxs.balanceOf(exchangeAMO.address);
+
+        expect(usdcAmoAft).to.be.eq(BigNumber.from(usdcAmoBef).add(100e6));
+        expect(fraxAmoAft).to.be.eq(fraxAmoBef);
+        expect(fxsAmoAft).to.be.eq(fxsAmoBef);
+
+        await frax.addPool(amoMinter.address);
+        await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("200"));
+
+        let usdcAmoAft1 = await usdc.balanceOf(exchangeAMO.address);
+        let fraxAmoAft1 = await frax.balanceOf(exchangeAMO.address);
+        let fxsAmoAft1 = await fxs.balanceOf(exchangeAMO.address);
+
+        expect(usdcAmoAft1).to.be.eq(usdcAmoAft);
+        expect(fraxAmoAft1).to.be.eq(BigNumber.from(fraxAmoAft).add(toWei("200")));
+        expect(fxsAmoAft1).to.be.eq(fxsAmoAft);
+
+        let lpAmoBef = await pool3.balanceOf(exchangeAMO.address, {gasLimit: "9500000"});
+        await exchangeAMO.poolDeposit(toWei("200"), 100e6, {gasLimit: "9500000"});
+        let lpAmoAft = await pool3.balanceOf(exchangeAMO.address, {gasLimit: "9500000"});
+
+        expect(lpAmoAft).to.be.gt(lpAmoBef);
+
+        let usdcAmoAft3 = await usdc.balanceOf(exchangeAMO.address);
+        let _calcUsdcAmount = await pool3.calc_withdraw_one_coin(toWei("50"), 1, {gasLimit: "9500000"});
+        await exchangeAMO.poolWithdrawCollateral(toWei("50"));
+        let usdcAmoAft4 = await usdc.balanceOf(exchangeAMO.address);
+
+        expect(usdcAmoAft4).to.be.eq(BigNumber.from(usdcAmoAft3).add(_calcUsdcAmount));
+
+        await exchangeAMO.giveCollatBack(100e6);
+
+        let usdcAmoAft5 = await usdc.balanceOf(exchangeAMO.address);
+
+        expect(usdcAmoAft5).to.be.eq(BigNumber.from(usdcAmoAft4).sub(100e6));
+
+        // let data = await exchangeAMO.showAllocations();
+        // console.log(data);
     });
 });
