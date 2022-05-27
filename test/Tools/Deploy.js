@@ -7,7 +7,7 @@ const {toWei} = web3.utils;
 
 const GetCRV = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
-    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crv factory precondition
+    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crGetCRVv factory precondition
     let weth = crvFactoryMap.get("weth");
     let router = crvFactoryMap.get("router");
 
