@@ -39,8 +39,7 @@ async function main() {
 }
 
 main()
-    .then(() => process.exit(0))
+    .then(() => console.log("Deploy Successfully!"))
     .catch((error) => {
-        console.error(error)
-        process.exit(1)
+        throw Error("Deploy fail! Error message:\t" + error);
     })

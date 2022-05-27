@@ -5,16 +5,20 @@ const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
-const GetConfigAboutCRV = async (user) => {
+const GetCRV = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
-    let crvFactoryMap = await ConfigCrvFactory(user);
+    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crv factory precondition
     let weth = crvFactoryMap.get("weth");
     let router = crvFactoryMap.get("router");
 
     await SetPlainImplementations(crvFactoryMap.get("crvFactory"), 3, [crvFactoryMap.get("plain3Balances")]);
 
-    await weth.deposit({value: toWei("10")});
-    await weth.approve(router.address, toWei("10000"));
+    if ("object" === typeof wethDeposit && "{}" !== JSON.stringify(wethDeposit)) {
+        await weth.deposit(wethDeposit);
+        await weth.approve(router.address, toWei("10000"));
+    }else {
+        throw Error("Please check weth deposit number!");
+    }
 
     resultArray.push(
         crvFactoryMap.get("weth"),
@@ -27,7 +31,7 @@ const GetConfigAboutCRV = async (user) => {
     return resultArray;
 }
 
-const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
+const DeployThreePoolByCrvFactory = async (tokenArray, {amplification, fee, gas} = {}) => {
     let recording = await GetCrvMap();
 
     if (recording.get("crvFactory") === undefined || recording.get("crvFactory") === ZEROADDRESS) {
@@ -53,6 +57,6 @@ const CrvFactoryDeploy = async (tokenArray, {amplification, fee, gas} = {}) => {
 }
 
 module.exports = {
-    GetConfigAboutCRV,
-    CrvFactoryDeploy
+    GetCRV,
+    DeployThreePoolByCrvFactory
 }

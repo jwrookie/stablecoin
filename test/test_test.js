@@ -2,7 +2,7 @@ const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
-const {GetConfigAboutCRV, CrvFactoryDeploy} = require("./Tools/Deploy");
+const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 
 contract("test", async function () {
@@ -11,9 +11,9 @@ contract("test", async function () {
         [rusd, tra] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc, 10000);
-        [weth,factory, registry, poolRegistry,router] = await GetConfigAboutCRV(owner);
+        [weth,factory, registry, poolRegistry,router] = await GetCRV(owner, {value: toWei("200")});
         // Create token pair
-        pool = await CrvFactoryDeploy([usdc, rusd, token1], {});
+        pool = await DeployThreePoolByCrvFactory([usdc, rusd, token1], {});
 
         await RouterApprove(usdc, toWei("1000"), [, toWei("0.1")], owner);
         await RouterApprove(rusd, toWei("1000"),[toWei("0.000001")], owner);

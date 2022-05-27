@@ -16,11 +16,11 @@ function encodeParameters(types, values) {
 async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
-    let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
+    //let usdc = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A"
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-   let TRA = "0xA601fC1a11432dd9B59AF8a82E8604fBb368c436"
-  //  let oracle = ""
-    let rusd = "0xA4E9B1b5Cdd331A946d832eC3F07B718AcBDF94c"
+  //  let TRA = "0xA601fC1a11432dd9B59AF8a82E8604fBb368c436"
+  // //  let oracle = ""
+  //   let rusd = "0xA4E9B1b5Cdd331A946d832eC3F07B718AcBDF94c"
     //  let operatable = "0x0504707B0d5740f600dA1156FE014953A7442CAe"
     //  //let bond = "0x0830b7Bb803965D47a2c5Dcfcd819d7BC4B69Ebf"
     //
@@ -40,7 +40,11 @@ async function main() {
     //  // let rusdPoolLibrary = "0x8fd8987A3B67C0D410BaC2E404923C5a8Ee2a723"
     //  let rusd = "0x4003b8891Dc10558342Fc3feC9c1d02C5B0C8e5D"
     // let bond = "0x6Fd30E5D362E571a457C98C2E0CD0D8147b2A0C9"
-  let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+ let checkPermission = "0x43c992c1f499e259514a8409e2472Fa770D8da26"
+    let TRA = "0x511Ab81D33da3a3029E09a03cEe5748204535aAf"
+
+    // let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+    // let TRA = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9"
 
 
     for (const account of accounts) {
@@ -93,28 +97,36 @@ async function main() {
     //  console.log("checkPermission:" + checkPermission.address);
     //
     // const rusdShares = await ethers.getContractFactory('Stock');
-    // TRA = await rusdShares.deploy(checkPermission, "TRA", "TRA", oracle);
+    // TRA = await rusdShares.deploy(checkPermission.address, "TRA", "TRA", oracle.address);
     // console.log("TRA:" + TRA.address);
 
     // const rusdStablecoin = await ethers.getContractFactory('RStablecoin');
-    // rusd = await rusdStablecoin.deploy(checkPermission, "rusd", "rusd");
+    // rusd = await rusdStablecoin.deploy(checkPermission.address, "rusd", "rusd");
     // console.log("rusd:" + rusd.address);
 
-    // // await TRA.setStableAddress(rusd.address);
-    // // await rusd.setStockAddress(TRA.address);
-    const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
-    poolLibrary = await PoolLibrary.deploy();
+    // await TRA.setStableAddress(rusd.address);
+    // await rusd.setStockAddress(TRA.address);
 
-    console.log("poolLibrary:" + poolLibrary.address);
+     const Locker = await ethers.getContractFactory('Locker');
+    lock = await Locker.deploy(checkPermission, TRA, "300");
+    console.log("Locker:" + lock.address)
 
-
-    const Pool_USDC = await ethers.getContractFactory('PoolUSD', {
-        libraries: {
-            PoolLibrary: poolLibrary.address,
-        },
-    });
-    pool = await Pool_USDC.deploy(checkPermission, rusd, TRA, usdc, toWei('10000000000'));
-    console.log("pool:" + pool.address)
+    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    // gaugeFactory = await GaugeFactory.deploy(checkPermission);
+    // console.log("gaugeFactory:" + gaugeFactory.address)
+    // const PoolLibrary = await ethers.getContractFactory('PoolLibrary')
+    // poolLibrary = await PoolLibrary.deploy();
+    //
+    // console.log("poolLibrary:" + poolLibrary.address);
+    //
+    //
+    // const Pool_USDC = await ethers.getContractFactory('PoolUSD', {
+    //     libraries: {
+    //         PoolLibrary: poolLibrary.address,
+    //     },
+    // });
+    // pool = await Pool_USDC.deploy(checkPermission, rusd, TRA, usdc, toWei('10000000000'));
+    // console.log("pool:" + pool.address)
     //
     // const MockChainLink = await ethers.getContractFactory("MockChainLink");
     // chainLink = await MockChainLink.deploy();

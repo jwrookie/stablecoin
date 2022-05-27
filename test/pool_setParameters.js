@@ -5,13 +5,13 @@ const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
 const {SetPlainImplementations, SetPoolByCrvFactory} = require("./Core/LibSourceConfig");
-const {GetConfigAboutCRV, CrvFactoryDeploy} = require("./Tools/Deploy");
+const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
 
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
-contract('pool set parameter', () => {
+contract('pool setParameter', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
@@ -20,9 +20,9 @@ contract('pool set parameter', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle(toWei("100"));
-        [weth, factory, registry, poolRegistry, router] = await GetConfigAboutCRV(owner);
+        [weth, factory, registry, poolRegistry, router] = await GetCRV(owner);
 
-        await CrvFactoryDeploy([token0, rusd, token1], {});
+        await DeployThreePoolByCrvFactory([token0, rusd, token1], {});
 
         await RouterApprove(usdc, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
         await RouterApprove(rusd, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
@@ -53,7 +53,7 @@ contract('pool set parameter', () => {
         await oraclePrice();
         await rusd.refreshCollateralRatio();
         globalCollateralRatio = await rusd.globalCollateralRatio();
-        console.log("globalCollateralRatio:" + globalCollateralRatio);
+        //console.log("globalCollateralRatio:" + globalCollateralRatio);
 
         let befRusdOwner = await rusd.balanceOf(owner.address);
         expect(befRusdOwner).to.be.eq("1999999000000000000000000");

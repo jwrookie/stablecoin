@@ -222,6 +222,7 @@ contract('Boost', () => {
         await boost.vote(2, [usdc.address], [toWei('1')]);
 
 
+
     });
     it("users can't vote multiple times, but the weight will be reset each time", async () => {
         let eta = time.duration.days(7);
