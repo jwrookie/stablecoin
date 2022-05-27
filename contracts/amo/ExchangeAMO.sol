@@ -115,7 +115,7 @@ contract ExchangeAMO is CheckPermission {
 
     // Returns hypothetical reserves of pool if the stable price went to the CR,
     function iterate() public view returns (uint256) {
-        uint256 lpBalance = threePoolLp.balanceOf(address(threePool));
+        uint256 lpBalance = threePoolLp.balanceOf(address(this));
 
         uint256 floorPrice = uint256(1e18).mul(stableFloor()).div(1e6);
         uint256 crv3Received;
