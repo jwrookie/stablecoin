@@ -22,7 +22,7 @@ const getUniswapPairOracle = async function (factory, tokenA, tokenB) {
     const _duration = await time.duration.days(5);
     const timelock = await Timelock.deploy(owner.address, parseInt(_duration));
 
-    const oracle = await UniswapPairOracle.deploy(factory.address, tokenA.address, tokenB.address, timelock.address);
+    const oracle = await UniswapPairOracle.deploy(factory.address, tokenA.address, tokenB.address);
 
     if (!(await oracle.canUpdate())) {
         await time.increase(time.duration.hours(1));

@@ -9,7 +9,6 @@ contract UniswapPairOracleStable is UniswapPairOracle {
     constructor(
         address factory,
         address tokenA,
-        address tokenB,
-        address timelockAddress
-    ) UniswapPairOracle(factory, tokenA, tokenB, timelockAddress) {}
+        address tokenB
+    ) UniswapPairOracle(factory, tokenA, tokenB) {}
 }

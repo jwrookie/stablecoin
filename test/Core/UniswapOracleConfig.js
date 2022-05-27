@@ -40,8 +40,7 @@ const SetUniswapPairOracle = async (factory, coinPairs, weth, timeLock) => {
     return await UniswapPairOracle.deploy(
         factory.address,
         coinPairs.address,
-        weth.address,
-        timeLock.address
+        weth.address
     );
 }
 
@@ -51,16 +50,16 @@ const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLo
 
     switch (coinPairs) {
         case GraphicMap.get("USDC"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
             break;
         case GraphicMap.get("RUSD"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
             await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
             expect(await GraphicMap.get("RUSD").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         case GraphicMap.get("TRA"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
             await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
             expect(await GraphicMap.get("RUSD").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;

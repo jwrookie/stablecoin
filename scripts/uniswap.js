@@ -57,13 +57,13 @@ async function main() {
 
 
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-    usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb, timeLock.address);
+    usdc_uniswapOracle = await UniswapPairOracle.deploy(factory, usdc, wbnb);
     console.log("usdc_uniswapOracle:" + usdc_uniswapOracle.address)
 
-    rusd_uniswapOracle = await UniswapPairOracle.deploy(factory, rusd, wbnb, timeLock.address);
+    rusd_uniswapOracle = await UniswapPairOracle.deploy(factory, rusd, wbnb);
     console.log("rusd_uniswapOracle:" + rusd_uniswapOracle.address)
 
-    tra_uniswapOracle = await UniswapPairOracle.deploy(factory, tra, wbnb, timeLock.address);
+    tra_uniswapOracle = await UniswapPairOracle.deploy(factory, tra, wbnb);
     console.log("tra_uniswapOracle:" + tra_uniswapOracle.address)
 
 
