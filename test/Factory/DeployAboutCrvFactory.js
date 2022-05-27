@@ -28,7 +28,7 @@ const ConfigCrvFactory = async (user) => {
         crvFactory = await CRVFactory(user, registry);
         plain3Balances = await Plain3Balances(user);
     }catch (err) {
-        throw Error("Error!");
+        throw Error("Error message:\t" + err);
     }
 
     GraphicCrvTokenMap.set("weth", weth);
