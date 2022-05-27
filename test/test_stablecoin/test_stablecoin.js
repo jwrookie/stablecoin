@@ -30,7 +30,7 @@ contract('StableCoin', async () => {
         await usdc.mint(owner.address, toWei("1000000"));
 
         weth = await $.deploy(owner, WETH9.bytecode, WETH9.abi);
-        await weth.deposit({value: toWei("1000")});
+        await weth.deposit({value: toWei("100")});
 
         const poolLibrary = await PoolLibrary.deploy();
         stablecoinPool = await Config.getStablecoinPool(poolLibrary, checkPermission, frax, fxs, usdc);

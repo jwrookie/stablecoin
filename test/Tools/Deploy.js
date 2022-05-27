@@ -5,7 +5,7 @@ const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
-const GetCRV = async (user) => {
+const GetCRV = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
     let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crv factory precondition
     let weth = crvFactoryMap.get("weth");
@@ -13,8 +13,12 @@ const GetCRV = async (user) => {
 
     await SetPlainImplementations(crvFactoryMap.get("crvFactory"), 3, [crvFactoryMap.get("plain3Balances")]);
 
-    await weth.deposit({value: toWei("10")});
-    await weth.approve(router.address, toWei("10000"));
+    if ("object" === typeof wethDeposit && "{}" !== JSON.stringify(wethDeposit)) {
+        await weth.deposit(wethDeposit);
+        await weth.approve(router.address, toWei("10000"));
+    }else {
+        throw Error("Please check weth deposit number!");
+    }
 
     resultArray.push(
         crvFactoryMap.get("weth"),

@@ -20,7 +20,7 @@ contract('PoolUSD_ratio', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle(toWei("100"));
-        [weth, factory, registry, poolRegistry, router] = await GetCRV(owner);
+        [weth, factory, registry, poolRegistry, router] = await GetCRV(owner, {value: toWei("200")});
 
         await DeployThreePoolByCrvFactory([token0, rusd, token1], {});
 

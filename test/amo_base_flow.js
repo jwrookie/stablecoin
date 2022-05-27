@@ -14,7 +14,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
 
         [rusd, tra, operatable] = await GetRusdAndTra();
 
-        [usdc, token1] = await GetMockToken(2, [owner], toWei("1000"));
+        [usdc, token1] = await GetMockToken(2, [owner], toWei("100000000"));
 
         stableCoinPool = await StableCoinPool(usdc, toWei("10000000000"));
 
@@ -26,9 +26,9 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await factory.createPair(rusd.address, weth.address);
         await factory.createPair(tra.address, weth.address);
 
-        await RouterApprove(usdc, toWei("1000"), [], owner);
-        await RouterApprove(rusd, toWei("1000"), [toWei("0.5")], owner);
-        await RouterApprove(tra, toWei("1000"), [toWei("0.1")], owner);
+        await RouterApprove(usdc, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        await RouterApprove(rusd, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        await RouterApprove(tra, toWei("100000"), [toWei("20000"), toWei("10")], owner);
 
         await SetETHUSDOracle();
         usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
