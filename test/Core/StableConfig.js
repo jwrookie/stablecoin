@@ -1,4 +1,5 @@
 const {ethers} = require('hardhat');
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const SetOracle = async () => {
     const TestOracle = await ethers.getContractFactory("TestOracle");
@@ -25,10 +26,46 @@ const SetTra = async (operatable, oracle) => {
     return await Stock.deploy(operatable.address, "Tra", "Tra", oracle.address);
 }
 
+const SetFraxPoolLib = async () => {
+    const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
+    return await FraxPoolLibrary.deploy();
+}
+
+const SetPoolAddress = async (poolLib) => {
+    if (undefined === poolLib || null === poolLib || ZEROADDRESS === poolLib.address) {
+        throw Error("Input right address!");
+    }
+
+    return await ethers.getContractFactory("PoolUSD", {
+        libraries: {
+            PoolLibrary: poolLib.address,
+        },
+    });
+}
+
+
+// Question Invalid Address
+const SetPoolLib = async (poolLib) => {
+    let poolLibAddress = JSON.stringify(poolLib);
+
+    if (ZEROADDRESS === poolLibAddress || "" === poolLibAddress) {
+        throw Error("SetPoolLib: Check address!");
+    }
+
+    return await ethers.getContractFactory("PoolUSD", {
+        libraries: {
+            PoolLibrary: poolLibAddress,
+        },
+    });
+}
+
 module.exports = {
     SetOracle,
     SetOperatable,
     SetCheckPermission,
     SetRusd,
-    SetTra
+    SetTra,
+    SetFraxPoolLib,
+    SetPoolAddress,
+    SetPoolLib
 }

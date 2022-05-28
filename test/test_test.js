@@ -1,11 +1,17 @@
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
+const {SetFraxPoolLib} = require("./Core/StableConfig");
+const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
 const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 
 contract("test", async function () {
+    let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061";
+    let rusdAddress = "0xc792dDbC43b0FB824D3B2916bb4BCa9dF113E9Ac";
+    let traAddress = "0x707E9Dc22a38d7E14318Fea24EFe6848dd5D7bE9";
+    let usdcAddress = "0x1d870E0bDF106B8E515Ed0276ACa660c30a58D3A";
+
     beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
         [rusd, tra] = await GetRusdAndTra();

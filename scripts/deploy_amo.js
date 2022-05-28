@@ -19,6 +19,7 @@ async function main() {
     let rusdUniswapOracle = "0x65a3a7343cEA06Da3079E661e10939975B60182E";
     let traUniswapOracle = "0xb52fE520BAB74F99c6E8949BC075b8b4f8455d49";
     let router = "0x18b284A13d8311b54cf10aC0F855c909894B6041";
+    let firstAMOMinter = "0x596f6C224B3eC6C52Cb9C69cE874DDb27b10dDac";
 
     const AMOMinter = await ethers.getContractFactory('AMOMinter');
     let amoMinter = await AMOMinter.deploy(
@@ -28,12 +29,12 @@ async function main() {
         usdc,
         stableCoinPool
     );
-    console.log("AMOMinter:\t" + amoMinter.address); // 0x596f6C224B3eC6C52Cb9C69cE874DDb27b10dDac
+    console.log("AMOMinter:\t" + amoMinter.address);
 
     const ExchangeAMO = await ethers.getContractFactory('ExchangeAMO');
     let exchangeAMO = await ExchangeAMO.deploy(
         checkPermission,
-        amoMinter.address,
+        firstAMOMinter,
         rusd,
         tra,
         usdc,
