@@ -188,7 +188,7 @@ contract('Boost test', () => {
 
 
     });
-    it('multiple pools to receive rewards', async () => {
+    it('receive multiple liquidity pool rewards at one time', async () => {
         await busd.connect(dev).approve(lock.address, toWei('10000000'));
         await usdc.connect(dev).approve(lock.address, toWei('10000000'));
         let eta = time.duration.days(1);

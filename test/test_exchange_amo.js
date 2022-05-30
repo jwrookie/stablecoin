@@ -302,14 +302,12 @@ contract('test exchange amo', async function () {
         expect(await frax_uniswapOracle.canUpdate()).to.be.eq(true);
         // Set oracle
         await frax_uniswapOracle.update();
-        console.log("frax_price:\t" + await frax.stablePrice());
 
         // Set redeem fee
         await usdcPool.setPoolParameters(0, 0, 0, 0, 0, REDEEM_FEE, 0);
         redeemPtionFee = await usdcPool.redemptionFee();
-        console.log("redeem_fee:\t" + redeemPtionFee);
         latestPrice = await chainlinkETHUSDPriceConsumer.getLatestPrice();
-        console.log(latestPrice);
+        // console.log(latestPrice);
         // expect(parseInt(latestPrice)).to.be.eq(1);
 
         expect(await usdc_uniswapOracle.period()).to.be.eq(3600);
@@ -324,14 +322,9 @@ contract('test exchange amo', async function () {
         // Get usdc price
         await usdc_uniswapOracle.update();
         colPriceUsd = await usdcPool.getCollateralPrice();
-        console.log("colPriceUsd:\t" + colPriceUsd);
-        // expect(parseInt(colPriceUsd)).to.be.eq(10);
-        console.log("price_target:\t" + await frax.priceTarget());
-        console.log("price_band:\t" + await frax.priceBand());
-        console.log("frax_price:\t" + await frax.stablePrice());
+
         await frax.refreshCollateralRatio();
         globalCollateralRatio = await frax.globalCollateralRatio();
-        console.log("global_collateral_ratio:\t" + globalCollateralRatio)
         // expect(parseInt(globalCollateralRatio)).to.be.eq(1000000);
 
         // Pool balances
@@ -345,32 +338,24 @@ contract('test exchange amo', async function () {
         // Set oracle
         await fxs_uniswapOracle.update();
         stockPrice = await frax.stockPrice();
-        console.log(stockPrice);
+        // console.log(stockPrice);
 
         // Find -> addPool
         let count = await frax.stablePoolAddressCount();
-        console.log("1\t" + await frax.ethUsdPrice());
 
-        console.log("usd_price:\t" + await frax.ethUsdPrice());
         expect(parseInt(await frax.stablePoolAddressCount())).to.be.eq(1);
-        console.log("owner_collat:\t" + await usdc.balanceOf(owner.address));
         // console.log("2\t" + await usdcPool.collatDollarBalance());
 
         // Mint usdc amount
-        console.log("global_collateral_value:\t" + await frax.globalCollateralValue());
-        console.log("1:\t" + await frax.totalSupply());
 
 
-        console.log("usdc in pool:", (await usdc.balanceOf(usdcPool.address)));
         // todo Stablecoin is automatically generated using the pool
         await usdc.mint(usdcPool.address, toWei('100'));
-        console.log("usdc in pool2:", (await usdc.balanceOf(usdcPool.address)));
         await usdc.approve(amoMinter.address, toWei('1'));
         await fxs.mint(amoMinter.address, toWei('1'));
         await fxs.approve(amoMinter.address, toWei('1'));
         //
         expect(parseInt(await fxs.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));
-        console.log("2");
         // await amoMinter.addAMO(owner.address, true);
         await usdc.mint(amoMinter.address, toWei('1'));
         expect(parseInt(await usdc.balanceOf(amoMinter.address))).to.be.eq(parseInt(toWei('1')));

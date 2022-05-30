@@ -169,7 +169,7 @@ contract('plainPool', () => {
 
 
     });
-     it('test swapStable have reward', async () => {
+    it('test swapStable have reward', async () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
@@ -179,12 +179,11 @@ contract('plainPool', () => {
 
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-           expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
 
         await swapMining.connect(dev).getReward(0)
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq("10000245000000000002999");
-
 
 
     });
@@ -469,6 +468,28 @@ contract('plainPool', () => {
         let diffPool1 = aft1Reward.sub(bef1Reward);
         expect(diffPool1).to.be.eq("559999999999999999");
 
+
+    });
+    it("receive multiple trading pool rewards at one time", async () => {
+        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let dx = toWei('1');
+
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+
+        let poolReward = await swapMining.rewardPoolInfo(0, dev.address);
+        expect(poolReward).to.be.eq("227500000000002999");
+        await swapRouter.connect(dev).swapStable(pool1.address, 0, 1, dx, 0, dev.address, times);
+
+        let pool1Reward = await swapMining.rewardPoolInfo(1, dev.address);
+        expect(pool1Reward).to.be.eq("489999999999999999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000000000000000000000");
+
+        await swapMining.connect(dev).getRewardAll();
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000787500000000002998");
 
     });
 

@@ -45,7 +45,6 @@ contract('pool setParameter', () => {
         await rusd.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
         await tra.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
         await usdc.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
-
         await tra.transfer(dev.address, toWei('1000'));
 
     });
