@@ -24,7 +24,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
 
         [weth, pancakeFactory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(
             owner,
-            {value: toWei("2000")}
+            {value: toWei("100")}
         );
         pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
 
