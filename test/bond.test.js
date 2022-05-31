@@ -228,7 +228,7 @@ contract('BondIssuer', () => {
         let diff = rewardAft.sub(rewardBef);
 
         expect(diff).to.be.eq("10");
-        await bondIssuer.redeemBond("65597");
+        await bondIssuer.redeemBond("65595");
         let rewardAft1 = await frax.balanceOf(owner.address);
 
         await bondIssuer.claimFee();
