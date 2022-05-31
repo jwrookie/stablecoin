@@ -73,10 +73,10 @@ abstract contract TokenReward is CheckPermission {
 
     // Set the number of swap produced by each block
     function setTokenPerBlock(uint256 _newPerBlock, bool _withUpdate) public onlyOperator {
+        tokenPerBlock = _newPerBlock;
         if (_withUpdate) {
             massUpdatePools();
         }
-        tokenPerBlock = _newPerBlock;
     }
 
     // Safe swap token transfer function, just in case if rounding error causes pool to not have enough swaps.

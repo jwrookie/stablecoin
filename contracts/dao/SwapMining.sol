@@ -241,6 +241,7 @@ contract SwapMining is AbstractBoost, ISwapMining {
     }
 
     function updatePool(uint256 _pid) public reduceBlockReward returns (bool) {
+        require(totalAllocPoint > 0, "total=0");
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return false;

@@ -109,6 +109,7 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     // Update reward variables of the given pool to be up-to-date.
     function updatePool(uint256 _pid) public reduceBlockReward {
+        require(totalAllocPoint > 0, "total=0");
         PoolInfo storage pool = poolInfo[_pid];
         if (block.number <= pool.lastRewardBlock) {
             return;

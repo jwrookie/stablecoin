@@ -177,11 +177,13 @@ contract('Boost_vote', () => {
         await gaugeController.connect(dev).vote(1, usdc.address);
 
         await time.increase(time.duration.days(1));
-        await gaugeController.connect(dev).reset(1);
+        await expectRevert(gaugeController.connect(dev).reset(1), "total=0");
 
         await time.increase(time.duration.days(1));
-
-        await gaugeController.connect(dev).vote(1, usdc.address);
+        await expectRevert(boost.createGauge(usdc.address, "100", true), "exists");
+        boost.createGauge(fxs.address, "100", true)
+        await expectRevert(gaugeController.connect(dev).vote(1, usdc.address), "tokenId voted");
+        await expectRevert(gaugeController.connect(dev).vote(1, frax.address), "must pool");
 
 
     });
@@ -223,7 +225,6 @@ contract('Boost_vote', () => {
         await gaugeController.connect(dev).vote(1, usdc.address);
 
     });
-
 
 
 });

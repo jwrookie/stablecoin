@@ -14,8 +14,6 @@ import "./Uniswap/UniswapV2Library.sol";
 contract UniswapPairOracle is Ownable {
     using FixedPoint for *;
 
-    address public timelockAddress;
-
     uint256 public  period = 3600; // 1 hour TWAP (time-weighted average price)
     uint256 public  consultLeniency = 120; // Used for being able to consult past the period end
     bool public allowStaleConsults = false; // If false, consult() will fail if the TWAP is stale
@@ -32,8 +30,8 @@ contract UniswapPairOracle is Ownable {
 
     modifier onlyByOwnGov() {
         require(
-            msg.sender == owner() || msg.sender == timelockAddress,
-            "You are not an owner or the governance timelock"
+            msg.sender == owner(),
+            "You are not an owner"
         );
         _;
     }
@@ -41,8 +39,7 @@ contract UniswapPairOracle is Ownable {
     constructor(
         address factory,
         address tokenA,
-        address tokenB,
-        address timelockAddress
+        address tokenB
     ) public {
         IUniswapV2Pair _pair = IUniswapV2Pair(UniswapV2Library.pairFor(factory, tokenA, tokenB));
         pair = _pair;
@@ -56,13 +53,6 @@ contract UniswapPairOracle is Ownable {
         uint112 reserve1;
         (reserve0, reserve1, blockTimestampLast) = _pair.getReserves();
         require(reserve0 != 0 && reserve1 != 0, "UniswapPairOracle: NO_RESERVES");
-        // Ensure that there's liquidity in the pair
-
-        timelockAddress = timelockAddress;
-    }
-
-    function setTimelock(address timelockAddress) external onlyByOwnGov {
-        timelockAddress = timelockAddress;
     }
 
     function setPeriod(uint256 _period) external onlyByOwnGov {
