@@ -26,7 +26,7 @@ const GetUniswapByPancakeFactory = async (userAddress, stableCoinPool, pancakeFa
     return tempUniswapOracle;
 }
 
-const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), parameter = [], operator) => {
+const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), coinLiquidity = [], operator) => {
     let date = Math.round(new Date() / 1000 + 2600000);
 
     for (let i = 0; i < pairOfCoin.length; i++) {
@@ -35,21 +35,21 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
         }
     }
 
-    for (let i = 0; i < parameter.length; i++) {
-        if ("number" === typeof parameter[i] || "string" === typeof parameter[i]) {
-            if (undefined !== parameter[i] && 0 <= parameter[i]) {
+    for (let i = 0; i < coinLiquidity.length; i++) {
+        if ("number" === typeof coinLiquidity[i] || "string" === typeof coinLiquidity[i]) {
+            if (undefined !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
                 switch (i) {
                     case 0:
-                        ParameterObj.tokenANumber = parameter[i];
+                        ParameterObj.tokenANumber = coinLiquidity[i];
                         break;
                     case 1:
-                        ParameterObj.tokenBNumber = parameter[i];
+                        ParameterObj.tokenBNumber = coinLiquidity[i];
                         break;
                     case 2:
-                        ParameterObj.amplification = parameter[i];
+                        ParameterObj.amplification = coinLiquidity[i];
                         break;
                     case 3:
-                        ParameterObj.fee = parameter[i];
+                        ParameterObj.fee = coinLiquidity[i];
                         break;
                 }
             }
@@ -57,8 +57,8 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
     }
 
     await pancakeFactory.createPair(pairOfCoin[0].address, pairOfCoin[1].address);
-    await pairOfCoin[0].approve(pancakeRouter.address, approveNumber);
-    await pairOfCoin[1].approve(pancakeRouter.address, approveNumber);
+    await pairOfCoin[0].approve(pancakeRouter.address, ParameterObj.tokenANumber);
+    await pairOfCoin[1].approve(pancakeRouter.address, ParameterObj.tokenBNumber);
     await SetAddLiquidity(pancakeRouter, pairOfCoin[0], pairOfCoin[1], ParameterObj.tokenANumber, ParameterObj.tokenBNumber, ParameterObj.amplification, ParameterObj.fee, operator, date);
 }
 

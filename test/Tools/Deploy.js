@@ -5,16 +5,14 @@ const {toWei} = web3.utils;
 
 const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
-
     let threePoolFactoryMap = await PanCakeFactoryAndThreeFactoryConfig(user); // Deploy pancake factory precondition
     let weth = threePoolFactoryMap.get("weth");
 
-    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crGetCRVv factory precondition
-    let weth = crvFactoryMap.get("weth");
-    let router = crvFactoryMap.get("router");
-
-    await SetPlainImplementations(crvFactoryMap.get("crvFactory"), 3, [crvFactoryMap.get("plain3Balances")]);
-
+    await SetPlainImplementations(
+        threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
+        3,
+        [threePoolFactoryMap.get("plain3Balances").address]
+    );
 
     if ("object" === typeof wethDeposit && "{}" !== JSON.stringify(wethDeposit)) {
         await weth.deposit(wethDeposit);
