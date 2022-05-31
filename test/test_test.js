@@ -1,7 +1,6 @@
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {SetFraxPoolLib} = require("./Core/StableConfig");
 const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
 const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
 const {
@@ -18,9 +17,10 @@ contract("test", async function () {
 
     beforeEach(async function () {
         [owner, dev] = await ethers.getSigners();
-        [rusd, tra] = await GetRusdAndTra();
+        [rusd, tra, , checkOpera] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc, 10000);
+        stableCoinPoolSecond = await StableCoinPoolFreeParameter(checkOpera.address, rusd.address, tra.address, usdc.address, 10000);
         [weth, pancakeFactory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(
             owner,
             {value: toWei("200")}
@@ -45,6 +45,7 @@ contract("test", async function () {
         console.log(token0.address);
         console.log(token1.address);
         console.log(stableCoinPool.address);
+        console.log(stableCoinPoolSecond.address);
         console.log(pancakeFactory.address);
         console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
         console.log("fraxUniswap:\t" + fraxUniswapOracle.address);

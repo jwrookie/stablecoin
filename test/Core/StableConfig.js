@@ -32,29 +32,13 @@ const SetFraxPoolLib = async () => {
 }
 
 const SetPoolAddress = async (poolLib) => {
-    if (undefined === poolLib || null === poolLib || ZEROADDRESS === poolLib.address) {
-        throw Error("Input right address!");
+    if ("object" !== typeof poolLib || "{}" === JSON.stringify(poolLib)) {
+        throw Error("SetPoolAddress: Empty Parameter!");
     }
 
     return await ethers.getContractFactory("PoolUSD", {
         libraries: {
             PoolLibrary: poolLib.address,
-        },
-    });
-}
-
-
-// Question Invalid Address
-const SetPoolLib = async (poolLib) => {
-    let poolLibAddress = JSON.stringify(poolLib);
-
-    if (ZEROADDRESS === poolLibAddress || "" === poolLibAddress) {
-        throw Error("SetPoolLib: Check address!");
-    }
-
-    return await ethers.getContractFactory("PoolUSD", {
-        libraries: {
-            PoolLibrary: poolLibAddress,
         },
     });
 }
@@ -67,5 +51,4 @@ module.exports = {
     SetTra,
     SetFraxPoolLib,
     SetPoolAddress,
-    SetPoolLib
 }

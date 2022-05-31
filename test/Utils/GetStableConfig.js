@@ -1,7 +1,6 @@
 const {BigNumber} = require("ethers");
 const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
-const {SetFraxPoolLib, SetPoolAddress, SetPoolLib} = require("../Core/StableConfig");
-const {CheckParameter} = require("../Tools/Check");
+const {SetFraxPoolLib, SetPoolAddress} = require("../Core/StableConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
@@ -10,12 +9,10 @@ const GetRusdAndTra = async () => {
     resultArray = await TokenFactory();
 
     let tempMap = await GetMap();
+    let rusd = tempMap.get("RUSD");
+    let tra = tempMap.get("TRA");
 
-    if (await CheckParameter([tempMap.get("RUSD"), tempMap.get("TRA")])) {
-        await SetRusdAndTraConfig(tempMap.get("RUSD"), tempMap.get("TRA"));
-    } else {
-        throw Error("Please check token factory and check rusd and tra contract!");
-    }
+    await SetRusdAndTraConfig(rusd, tra);
 
     return resultArray;
 }
@@ -86,9 +83,9 @@ const StableCoinPoolFreeParameter = async (checkoperaAddress, rusdAddress, traAd
         }
     }
 
-    let fraxPool = await SetFraxPoolLib();
+    let fraxPoolLibrary = await SetFraxPoolLib();
 
-    let PoolUsdc = await SetPoolLib(fraxPool.address);
+    let PoolUsdc = await SetPoolAddress(fraxPoolLibrary);
 
     return await PoolUsdc.deploy(
         checkoperaAddress,
