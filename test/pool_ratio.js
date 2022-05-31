@@ -219,7 +219,6 @@ contract('PoolUSD_ratio', () => {
         let aft1RusdOwner = await rusd.balanceOf(owner.address);
         await stableCoinPool.connect(dev).redeem1t1Stable(diffRusdDev, 0);
 
-
         let aft1RusdDev = await rusd.balanceOf(dev.address);
         let diff1RusdOwner = bef1RusdOwner.sub(aft1RusdOwner);
         let diff1RusdDev = bef1RusdDev.sub(aft1RusdDev);
@@ -233,7 +232,6 @@ contract('PoolUSD_ratio', () => {
         let collateralBef = await usdc.balanceOf(stableCoinPool.address);
         let stockBef = await tra.balanceOf(owner.address);
         await stableCoinPool.recollateralizeStable(toWei('1000'), "10");
-
 
         let collateralAft = await usdc.balanceOf(stableCoinPool.address);
         let stockAft = await tra.balanceOf(owner.address);
@@ -284,7 +282,7 @@ contract('PoolUSD_ratio', () => {
         expect(diffStockDev).to.be.eq(stockPaidBackStep2.mul(2));
 
     });
-    it("enter the correct repurchase quantity", async () => {
+    it("the correct repurchase quantity", async () => {
         await oraclePrice();
         await rusd.burn(toWei('1999999'));
         await rusd.refreshCollateralRatio();

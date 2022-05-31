@@ -45,7 +45,6 @@ contract('pool setParameter', () => {
         await rusd.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
         await tra.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
         await usdc.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
-
         await tra.transfer(dev.address, toWei('1000'));
 
     });
@@ -53,10 +52,12 @@ contract('pool setParameter', () => {
         await oraclePrice();
         await rusd.refreshCollateralRatio();
         globalCollateralRatio = await rusd.globalCollateralRatio();
-        //console.log("globalCollateralRatio:" + globalCollateralRatio);
 
         let befRusdOwner = await rusd.balanceOf(owner.address);
         expect(befRusdOwner).to.be.eq("1999999000000000000000000");
+
+        await expect(stableCoinPool.mintFractionalStable(toWei('100000000000'), toWei('100000000001'), 0)).to.be.revertedWith("Pool ceiling reached, no more FRAX can be minted with this collateral");
+
         await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
         let aftRusdOwner = await rusd.balanceOf(owner.address);
         expect(aftRusdOwner).to.be.eq("2000009025062656641604010");
@@ -75,6 +76,7 @@ contract('pool setParameter', () => {
 
 
     });
+
     it("the user set mintingFee and redemptionFee", async () => {
         await stableCoinPool.setPoolParameters(
             toWei('100000000000'),
@@ -202,6 +204,7 @@ contract('pool setParameter', () => {
 
 
     });
+
 
     async function oraclePrice() {
         await usdcUniswapOracle.update();
