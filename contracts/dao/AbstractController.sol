@@ -95,6 +95,7 @@ abstract contract AbstractController is CheckPermission {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         PoolVote storage poolVote = userPool[tokenId];
         require(poolVote.lastUse + duration < block.timestamp, "next duration use");
+        require(isPool(_poolVote), "must pool");
         _vote(tokenId, _poolVote);
         poolVote.pool = _poolVote;
         poolVote.lastUse = block.timestamp;
