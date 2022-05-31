@@ -68,10 +68,11 @@ abstract contract AbstractController is CheckPermission {
 
     function _reset(uint256 _tokenId) internal {
         uint256 _totalWeight = usedWeights[_tokenId];
-        emit Abstained(_tokenId, _totalWeight);
+        weights[userPool[_tokenId].pool] -= _totalWeight;
         totalWeight -= _totalWeight;
         usedWeights[_tokenId] = 0;
         delete userPool[_tokenId];
+        emit Abstained(_tokenId, _totalWeight);
     }
 
     function _vote(uint256 _tokenId, address _poolVote) internal {
