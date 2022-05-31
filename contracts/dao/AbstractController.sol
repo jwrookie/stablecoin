@@ -16,8 +16,6 @@ abstract contract AbstractController is CheckPermission {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    event Attach(address indexed owner, address indexed gauge, uint256 tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint256 tokenId);
     event Voted(address indexed voter, uint256 tokenId, uint256 weight);
     event Abstained(uint256 tokenId, uint256 weight);
 
