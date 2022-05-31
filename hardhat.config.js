@@ -5,7 +5,7 @@ require("@nomiclabs/hardhat-waffle");
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-truffle5");
 // require("hardhat-gas-reporter");
-// require('solidity-coverage');
+require('solidity-coverage');
 // require("@nomiclabs/hardhat-vyper");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -165,6 +165,7 @@ module.exports = {
         runOnCompile: true,
         disambiguatePaths: false,
     },
+    plugins: ["solidity-coverage"]
     // vyper: {
     // 	// version: "0.2.15"
     // 	// version: "0.2.16"
