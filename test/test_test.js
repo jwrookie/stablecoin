@@ -3,8 +3,12 @@ const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {SetFraxPoolLib} = require("./Core/StableConfig");
 const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
-const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
+const {
+    GetUniswapByPancakeFactory,
+    AddLiquidityByPancakeRouter,
+    SetETHUSDOracle
+} = require("./Utils/GetUniswapConfig");
 
 contract("test", async function () {
     let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061";
@@ -17,19 +21,22 @@ contract("test", async function () {
         [rusd, tra] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc, 10000);
-        [weth,factory, registry, poolRegistry,router] = await GetCRV(owner, {value: toWei("200")});
+        [weth, pancakeFactory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(
+            owner,
+            {value: toWei("200")}
+        );
         // Create token pair
-        pool = await DeployThreePoolByCrvFactory([usdc, rusd, token1], {});
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
 
-        await RouterApprove(usdc, toWei("1000"), [, toWei("0.1")], owner);
-        await RouterApprove(rusd, toWei("1000"),[toWei("0.000001")], owner);
-        await RouterApprove(tra, toWei("1000"),[, , , 0], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], router, toWei("1000"), [, toWei("0.1")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], router, toWei("1000"), [toWei("0.000001")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("1000"), [, , , 0], owner);
 
         await SetETHUSDOracle();
 
-        usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
-        fraxUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
-        fxsUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, tra, weth);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     });
     it('should ', async function () {
         console.log(rusd.address);
@@ -38,7 +45,7 @@ contract("test", async function () {
         console.log(token0.address);
         console.log(token1.address);
         console.log(stableCoinPool.address);
-        console.log(factory.address);
+        console.log(pancakeFactory.address);
         console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
         console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
         console.log("fxsUniswap:\t" + fxsUniswapOracle.address);

@@ -91,18 +91,16 @@ async function main() {
     expect(cr).to.be.eq(toWei("1", "mwei"));
 
     let _deadline = new Date().getTime() + 1000;
-    for (let i = 0; i < 10; i++) {
-        await router.swapExactTokensForTokens(
-            toWei('0.1'),
-            0,
-            [weth.address, rusd.address],
-            deployer.address,
-            _deadline
-        );
-        await time.increase(time.duration.hours(1));
-        await rusdUniswapOracle.update();
-        await rusd.refreshCollateralRatio();
-    }
+    await router.swapExactTokensForTokens(
+        toWei('0.1'),
+        0,
+        [weth.address, rusd.address],
+        deployer.address,
+        _deadline
+    );
+    await time.increase(time.duration.hours(1));
+    await rusdUniswapOracle.update();
+    await rusd.refreshCollateralRatio();
     await traUniswapOracle.update();
     await usdcUniswapOracle.update();
 

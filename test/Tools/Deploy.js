@@ -1,62 +1,53 @@
-const {SetPoolByCrvFactory, SetPlainImplementations} = require("../Core/LibSourceConfig");
-const {ConfigCrvFactory, GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
-const {CheckParameter} = require("./Check");
-const {ZEROADDRESS} = require("../Lib/Address");
+const {SetThreePoolsByThreePoolFactory, SetPlainImplementations} = require("../Core/LibSourceConfig");
+const {PanCakeFactoryAndThreeFactoryConfig} = require("../Factory/PancakeFactoryAndThreePoolFactory");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
-const GetCRV = async (user, wethDeposit = {value: toWei("100")}) => {
+const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
-    let crvFactoryMap = await ConfigCrvFactory(user); // Deploy crv factory precondition
-    let weth = crvFactoryMap.get("weth");
-    let router = crvFactoryMap.get("router");
-
-    await SetPlainImplementations(crvFactoryMap.get("crvFactory"), 3, [crvFactoryMap.get("plain3Balances")]);
+    let threePoolFactoryMap = await PanCakeFactoryAndThreeFactoryConfig(user); // Deploy pancake factory precondition
+    let weth = threePoolFactoryMap.get("weth");
 
     if ("object" === typeof wethDeposit && "{}" !== JSON.stringify(wethDeposit)) {
         await weth.deposit(wethDeposit);
-        await weth.approve(router.address, toWei("10000"));
-    }else {
+    } else {
         throw Error("Please check weth deposit number!");
     }
 
     resultArray.push(
-        crvFactoryMap.get("weth"),
-        crvFactoryMap.get("factory"),
-        crvFactoryMap.get("registry"),
-        crvFactoryMap.get("poolRegistry"),
-        crvFactoryMap.get("router")
+        threePoolFactoryMap.get("weth"),
+        threePoolFactoryMap.get("pancakeFactory"),
+        threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
+        threePoolFactoryMap.get("plain3Balances"),
+        threePoolFactoryMap.get("router")
     );
 
     return resultArray;
 }
 
-const DeployThreePoolByCrvFactory = async (tokenArray, {amplification, fee, gas} = {}) => {
-    let recording = await GetCrvMap();
-
-    if (recording.get("crvFactory") === undefined || recording.get("crvFactory") === ZEROADDRESS) {
-        throw Error("Please call function GetConfigAboutCRV first!");
+const DeployThreePoolByThreePoolFactory = async (poolOfThreeCoinsFactory, poolOfThreeCoins, coinInThreePool = []) => {
+    if ("object" !== typeof poolOfThreeCoins || "{}" === JSON.stringify(poolOfThreeCoins)) {
+        throw Error("DeployThreePoolByThreePoolsFactory: Check ThreePool Object!");
     }
 
-    await SetPoolByCrvFactory(
-        recording.get("crvFactory"),
-        tokenArray,
-        amplification,
-        fee,
-        gas
+    if ("object" !== typeof poolOfThreeCoinsFactory || "{}" === JSON.stringify(poolOfThreeCoinsFactory)) {
+        throw Error("DeployThreePoolByThreePoolsFactory: Check poolOfThreeCoinsFactory Object!");
+    }
+
+    await SetPlainImplementations(poolOfThreeCoinsFactory, 3, [poolOfThreeCoins.address]);
+
+    await SetThreePoolsByThreePoolFactory(
+        poolOfThreeCoinsFactory,
+        coinInThreePool,
     );
 
     // Get 3pool instantiation object
-    let poolAddress = await recording.get("crvFactory").pool_list(0, GAS);
+    let poolAddress = await poolOfThreeCoinsFactory.pool_list(0, GAS);
 
-    if (!await CheckParameter([recording.get("plain3Balances")])) {
-        throw Error("Please check function ConfigCrvFactory!");
-    }
-
-    return await recording.get("plain3Balances").attach(poolAddress);
+    return await poolOfThreeCoins.attach(poolAddress);
 }
 
 module.exports = {
-    GetCRV,
-    DeployThreePoolByCrvFactory
+    DeployThreePoolFactoryAndPancakeFactory,
+    DeployThreePoolByThreePoolFactory
 }
