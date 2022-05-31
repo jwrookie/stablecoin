@@ -1,8 +1,7 @@
 const {SetTimeLock, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
-const {DeployUniswapFactory} = require("../Factory/UniswapPairOracleFactory");
+const {DeployUniswapByPancakeFactory} = require("../Factory/UniswapPairOracleFactory");
 const {CheckParameter} = require("../Tools/Check");
-const {GetCrvMap} = require("../Factory/DeployAboutCrvFactory");
 const {GetMap} = require("../Factory/StableAndMockFactory");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
@@ -14,24 +13,27 @@ const ParameterObj = {
     fee: 0
 }
 
-const GetUniswap = async (userAddress, stableCoinPool, factory, coinPair, grapplingCoin) => {
+const GetUniswapByPancakeFactory = async (userAddress, stableCoinPool, pancakeFactoryAddress, pariOfCoins = []) => {
     let tempUniswapOracle;
 
-    if (!await CheckParameter([userAddress, stableCoinPool, factory, coinPair, grapplingCoin])) {
+    if (!await CheckParameter([userAddress])) {
         throw Error("Exist Invalid Parameters!");
     }
 
     let tempTimeLock = await SetTimeLock(userAddress);
 
-    tempUniswapOracle = await DeployUniswapFactory(stableCoinPool, factory, coinPair, grapplingCoin, tempTimeLock);
+    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pariOfCoins[0], pariOfCoins[1], tempTimeLock);
     return tempUniswapOracle;
 }
 
-const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [], user) => {
+const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), parameter = [], operator) => {
     let date = Math.round(new Date() / 1000 + 2600000);
-    let crvMap = await GetCrvMap();
-    let weth = crvMap.get("weth");
-    let router = crvMap.get("router");
+
+    for (let i = 0; i < pairOfCoin.length; i++) {
+        if ("object" !== typeof pairOfCoin[i] || "{}" === JSON.stringify(pairOfCoin[i])) {
+            throw Error("AddLiquidityByPancakeRouter: Check pairOfCoin!");
+        }
+    }
 
     for (let i = 0; i < parameter.length; i++) {
         if ("number" === typeof parameter[i] || "string" === typeof parameter[i]) {
@@ -54,16 +56,10 @@ const RouterApprove = async (coin, approveNumber = toWei("10000"), parameter = [
         }
     }
 
-    if (!await CheckParameter([coin, user])) {
-        throw Error("Invalid coin or user!");
-    }
-
-    if (weth === undefined) {
-        throw Error("RouterApprove: Please call function ConfigCrvFactory first!");
-    }
-
-    await coin.approve(router.address, approveNumber);
-    await SetAddLiquidity(router, coin, weth, ParameterObj.tokenANumber, ParameterObj.tokenBNumber, ParameterObj.amplification, ParameterObj.fee, user, date);
+    await pancakeFactory.createPair(pairOfCoin[0].address, pairOfCoin[1].address);
+    await pairOfCoin[0].approve(pancakeRouter.address, approveNumber);
+    await pairOfCoin[1].approve(pancakeRouter.address, approveNumber);
+    await SetAddLiquidity(pancakeRouter, pairOfCoin[0], pairOfCoin[1], ParameterObj.tokenANumber, ParameterObj.tokenBNumber, ParameterObj.amplification, ParameterObj.fee, operator, date);
 }
 
 const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
@@ -89,7 +85,7 @@ const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
 }
 
 module.exports = {
-    GetUniswap,
-    RouterApprove,
+    GetUniswapByPancakeFactory,
+    AddLiquidityByPancakeRouter,
     SetETHUSDOracle
 }

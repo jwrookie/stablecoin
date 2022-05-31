@@ -1,4 +1,5 @@
 const {GetMap} = require("../Factory/StableAndMockFactory");
+const {CheckParameter} = require("../Tools/Check");
 const {SetUniswapOracle} = require("../Core/UniswapOracleConfig");
 
 const UniswapMap = new Map();
@@ -7,7 +8,7 @@ const GetUniswapMap = async () => {
     return UniswapMap;
 }
 
-const DeployUniswapFactory = async (stableCoinPool, factory, coinPairs, weth, timeLock) => {
+const DeployUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
     let tempMap = await GetMap();
     let rusd = tempMap.get("RUSD");
     let tra = tempMap.get("TRA");
@@ -16,31 +17,27 @@ const DeployUniswapFactory = async (stableCoinPool, factory, coinPairs, weth, ti
     let rusdUniswapOracle;
     let traUniswapOracle;
 
-    for (let key in tempMap) {
-        if (undefined === tempMap.get(key)) {
-            throw Error("Undefined Error!");
-        }
-    }
+    await CheckParameter([rusd, tra, usdc]);
 
-    switch (coinPairs) {
-        case usdc:
-            usdcUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPairs, weth, timeLock);
+    switch (tokenAAddress) {
+        case usdc.address:
+            usdcUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
             UniswapMap.set("usdcUniswapOracle", usdcUniswapOracle.address);
             return usdcUniswapOracle;
-        case rusd:
-            rusdUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPairs, weth, timeLock);
+        case rusd.address:
+            rusdUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
             UniswapMap.set("rusdUniswapOracle", rusdUniswapOracle.address);
             return rusdUniswapOracle;
-        case tra:
-            traUniswapOracle = await SetUniswapOracle(stableCoinPool, factory, coinPairs, weth, timeLock);
+        case tra.address:
+            traUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
             UniswapMap.set("traUniswapOracle", traUniswapOracle.address);
             return traUniswapOracle;
         default:
-            throw Error("Coin pairs undefined!");
+            throw Error("Pairs of coins undefined!");
     }
 }
 
 module.exports = {
     GetUniswapMap,
-    DeployUniswapFactory
+    DeployUniswapByPancakeFactory
 }
