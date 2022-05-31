@@ -22,7 +22,7 @@ const TokenFactory = async () => {
         rusd = await SetRusd(operatable);
         tra = await SetTra(operatable, oracle);
     }catch (err) {
-        throw Error("Deploy token factory error!");
+        throw Error("Deploy token factory error! Error message:\t" + err);
     }
 
     GraphicTokenMap.set("CHECKOPERA", checkOpera);

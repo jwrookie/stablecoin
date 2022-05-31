@@ -21,7 +21,7 @@ const Weth = async (ownerAddress) => {
     });
 }
 
-const Factory = async (ownerAddress) => {
+const PancakeFactory = async (ownerAddress) => {
     // Pancake factory, The purpose is to create a trading pair and go to UnisWAP to get the trading pair price
     return await deployContract(ownerAddress, {
         bytecode: FACTORY.bytecode,
@@ -53,7 +53,7 @@ const PoolRegistry = async (ownerAddress, registry) => {
     }, [registry.address, ZEROADDRESS]);
 }
 
-const CRVFactory = async (ownerAddress, registry) => {
+const PoolOfThreeCoinsFactory = async (ownerAddress, registry) => {
     // We provide our own trading pool, which can carry out the exchange of specified coins
     return await deployContract(ownerAddress, {
         bytecode: CRVFACTORY.bytecode,
@@ -69,33 +69,25 @@ const Plain3Balances = async (ownerAddress) => {
     });
 }
 
-const SetPlainImplementations = async (crvFactory, coinInPoolNumber, poolArray = []) => {
-    let factoryArray = new Array();
+const SetPlainImplementations = async (poolOfThreeCoinsFactory, coinsInPoolNumber, poolArray = []) => {
+    let coinsArray = new Array();
     let pool;
-
-    if (0 === poolArray.length) {
-        throw Error("Error, Must add a 3pool!");
-    }
 
     for (let i = 0; i < 10; i++) {
         pool = poolArray[i];
         if (undefined === pool) {
-            factoryArray.push(ZEROADDRESS);
+            coinsArray.push(ZEROADDRESS);
         }else {
-            factoryArray.push(pool.address);
+            coinsArray.push(pool);
         }
     }
 
-    await crvFactory.set_plain_implementations(coinInPoolNumber, factoryArray);
+    await poolOfThreeCoinsFactory.set_plain_implementations(coinsInPoolNumber, coinsArray);
 }
 
-const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 0, fee = 0, gas = GAS) => {
+const SetThreePoolsByThreePoolFactory = async (threePoolsFactory, tokenArray = []) => {
     let tempTokenArray = new Array();
     let tempToken;
-
-    if (0 > fee || 0 > gas) {
-        throw Error("More fee or gas!");
-    }
 
     for (let i = 0; i < 4; i++) {
         tempToken = tokenArray[i];
@@ -115,26 +107,26 @@ const SetPoolByCrvFactory = async (crvFactory, tokenArray = [], amplification = 
         }
     }
 
-    await crvFactory.deploy_plain_pool(
+    await threePoolsFactory.deploy_plain_pool(
         "3pool",
         "3pool",
         tempTokenArray,
-        "2000",
-        "4000000",
-        amplification,
-        fee,
-        gas
+        "2000", // amplification
+        "4000000", // fee
+        0, // Asset types
+        0, // Index
+        GAS
     );
 }
 
 module.exports = {
     Weth,
-    Factory,
+    PancakeFactory,
     Router,
     Registry,
     PoolRegistry,
-    CRVFactory,
+    PoolOfThreeCoinsFactory,
     Plain3Balances,
     SetPlainImplementations,
-    SetPoolByCrvFactory
+    SetThreePoolsByThreePoolFactory
 }

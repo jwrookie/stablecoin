@@ -1,5 +1,3 @@
-
-
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {toWei} = web3.utils;
 
