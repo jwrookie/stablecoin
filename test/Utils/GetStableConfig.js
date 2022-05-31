@@ -1,6 +1,6 @@
-const {ethers} = require('hardhat');
+const {BigNumber} = require("ethers");
 const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
-const {CheckParameter} = require("../Tools/Check");
+const {SetFraxPoolLib, SetPoolAddress} = require("../Core/StableConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
 
 const GetRusdAndTra = async () => {
@@ -9,12 +9,10 @@ const GetRusdAndTra = async () => {
     resultArray = await TokenFactory();
 
     let tempMap = await GetMap();
+    let rusd = tempMap.get("RUSD");
+    let tra = tempMap.get("TRA");
 
-    if (await CheckParameter([tempMap.get("RUSD"), tempMap.get("TRA")])) {
-        await SetRusdAndTraConfig(tempMap.get("RUSD"), tempMap.get("TRA"));
-    }else {
-        throw Error("Please check token factory and check rusd and tra contract!");
-    }
+    await SetRusdAndTraConfig(rusd, tra);
 
     return resultArray;
 }
@@ -27,28 +25,14 @@ const SetRusdAndTraConfig = async (rusd, tra) => {
     await rusd.setStockAddress(tra.address);
 }
 
-const SetFraxPoolLib = async () => {
-    const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
-    return await FraxPoolLibrary.deploy();
-}
-
-const SetPoolAddress = async (poolLib) => {
-    if (undefined === poolLib || null === poolLib || ZEROADDRESS === poolLib.address) {
-        throw Error("Input right address!");
-    }
-
-    return await ethers.getContractFactory("PoolUSD", {
-        libraries: {
-            PoolLibrary: poolLib.address,
-        },
-    });
-}
-
 const StableCoinPool = async (usdc, poolCelling) => {
     let tempMap = await GetMap();
+    let poolCell;
 
-    if (0 >= poolCelling || undefined === usdc) {
-        throw Error("Invalid pool celling or contract!");
+    if ("string" === typeof poolCelling) {
+        poolCell = BigNumber.from(poolCelling);
+    } else if ("number" === typeof poolCelling) {
+        poolCell = BigNumber.from(poolCelling.toString())
     }
 
     let fraxPoolLibrary = await SetFraxPoolLib();
@@ -74,12 +58,48 @@ const StableCoinPool = async (usdc, poolCelling) => {
         tempMap.get("RUSD").address,
         tempMap.get("TRA").address,
         usdc.address,
-        poolCelling
+        poolCell
     );
+}
+
+const StableCoinPoolFreeParameter = async (checkoperaAddress, rusdAddress, traAddress, guaranteeAddress, poolCelling) => {
+    let tempArray = new Array();
+    let poolCell;
+
+    if ("string" === typeof poolCelling) {
+        poolCell = BigNumber.from(poolCelling);
+    } else if ("number" === typeof poolCelling) {
+        poolCell = BigNumber.from(poolCelling.toString())
+    }
+
+    tempArray.push(checkoperaAddress, rusdAddress, traAddress, guaranteeAddress);
+
+    for (let index in tempArray) {
+        if ("string" !== typeof tempArray[index]
+            || "" === tempArray[index]
+            || ZEROADDRESS === tempArray[index]
+            || undefined === tempArray[index]) {
+            throw Error("StableCoinPoolFreeParameter: Check parameters!");
+        }
+    }
+
+    let fraxPoolLibrary = await SetFraxPoolLib();
+
+    let PoolUsdc = await SetPoolAddress(fraxPoolLibrary);
+
+    return await PoolUsdc.deploy(
+        checkoperaAddress,
+        rusdAddress,
+        traAddress,
+        guaranteeAddress,
+        poolCell
+    );
+
 }
 
 module.exports = {
     StableCoinPool,
     GetRusdAndTra,
-    SetRusdAndTraConfig
+    SetRusdAndTraConfig,
+    StableCoinPoolFreeParameter
 }

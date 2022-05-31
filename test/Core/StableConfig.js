@@ -1,4 +1,5 @@
 const {ethers} = require('hardhat');
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const SetOracle = async () => {
     const TestOracle = await ethers.getContractFactory("TestOracle");
@@ -25,10 +26,29 @@ const SetTra = async (operatable, oracle) => {
     return await Stock.deploy(operatable.address, "Tra", "Tra", oracle.address);
 }
 
+const SetFraxPoolLib = async () => {
+    const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
+    return await FraxPoolLibrary.deploy();
+}
+
+const SetPoolAddress = async (poolLib) => {
+    if ("object" !== typeof poolLib || "{}" === JSON.stringify(poolLib)) {
+        throw Error("SetPoolAddress: Empty Parameter!");
+    }
+
+    return await ethers.getContractFactory("PoolUSD", {
+        libraries: {
+            PoolLibrary: poolLib.address,
+        },
+    });
+}
+
 module.exports = {
     SetOracle,
     SetOperatable,
     SetCheckPermission,
     SetRusd,
-    SetTra
+    SetTra,
+    SetFraxPoolLib,
+    SetPoolAddress,
 }

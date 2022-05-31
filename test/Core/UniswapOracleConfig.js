@@ -11,56 +11,57 @@ const SetTimeLock = async (userAddress, timeLockDuration = 259200) => {
 }
 
 const SetCollatETHOracle = async (stableCoinPool, setConfig, ethAddress) => {
-    await stableCoinPool.setCollatETHOracle(setConfig.address, ethAddress.address);
+    await stableCoinPool.setCollatETHOracle(setConfig.address, ethAddress);
 }
 
-const SetStableEthOracle = async (tokenObject, setConfig, ethAddress) => {
-    await tokenObject.setStableEthOracle(setConfig.address, ethAddress.address);
+const SetStableEthOracle = async (stableCoin, setConfig, ethAddress) => {
+    await stableCoin.setStableEthOracle(setConfig.address, ethAddress);
 }
 
-const SetStockEthOracle = async (tokenObject, setConfig, ethAddress) => {
-    await tokenObject.setStockEthOracle(setConfig.address, ethAddress.address);
+const SetStockEthOracle = async (stableCoin, setConfig, ethAddress) => {
+    await stableCoin.setStockEthOracle(setConfig.address, ethAddress);
 }
 
-const SetAddLiquidity = async (router, tokenA, tokenB, tokenANumber, tokenBNumber, amplification, fee, user, date) => {
-    await router.addLiquidity(
+const SetAddLiquidity = async (pancakeRouter, tokenA, tokenB, tokenANumber, tokenBNumber, amplification, fee, operator, date) => {
+    await pancakeRouter.addLiquidity(
         tokenA.address,
         tokenB.address,
         tokenANumber,
         tokenBNumber,
         amplification,
         fee,
-        user.address,
+        operator.address,
         date
     );
 }
 
-const SetUniswapPairOracle = async (factory, coinPairs, weth, timeLock) => {
+const SetUniswapPairOracle = async (pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
     return await UniswapPairOracle.deploy(
-        factory.address,
-        coinPairs.address,
-        weth.address
+
+        pancakeFactoryAddress,
+        tokenAAddress,
+        tokenBAddress,
     );
 }
 
-const SetUniswapOracle = async (stableCoinPool, factory, coinPairs, weth, timeLock) => {
+const SetUniswapOracle = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
     let GraphicMap = await GetMap();
     let uniswapOracle;
 
-    switch (coinPairs) {
-        case GraphicMap.get("USDC"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
-            await SetCollatETHOracle(stableCoinPool, uniswapOracle, weth);
+    switch (tokenAAddress) {
+        case GraphicMap.get("USDC").address:
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            await SetCollatETHOracle(stableCoinPool, uniswapOracle, tokenBAddress);
             break;
-        case GraphicMap.get("RUSD"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
-            await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
+        case GraphicMap.get("RUSD").address:
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, tokenBAddress);
             expect(await GraphicMap.get("RUSD").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
-        case GraphicMap.get("TRA"):
-            uniswapOracle = await SetUniswapPairOracle(factory, coinPairs, weth);
-            await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, weth);
+        case GraphicMap.get("TRA").address:
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, tokenBAddress);
             expect(await GraphicMap.get("RUSD").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         default:

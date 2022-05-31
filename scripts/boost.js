@@ -18,16 +18,16 @@ async function main() {
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     //let usdc = ""
     // let timeLock = " 0xf6d2Ac942b3C4a43F1936ab90249BB6d18E3b207"
-    let TRA = "0x511Ab81D33da3a3029E09a03cEe5748204535aAf"
+   // let TRA = "0x511Ab81D33da3a3029E09a03cEe5748204535aAf"
     // let rusd = "0x195862BFe2E63984cb0C2021C3A86bC4d567D9fb"
     // // //
     // // // let operatable = "0xb9F6ED924F0b46fA9912eBc62BcBeB64FbFcC005"
-    let checkPermission = "0x43c992c1f499e259514a8409e2472Fa770D8da26"
-    let lock = "0xcC1ed960580013baE262e9367867ce1EeDA5D2CF"
-    let gaugeFactory = "0xCa49ddf72D355e38cb9102a5C95DD0D4F73c810F"
+    let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061"
+    let lock = "0x8AB82A88072307862152BE773404D7Fa127720CE"
+    //let gaugeFactory = "0xCa49ddf72D355e38cb9102a5C95DD0D4F73c810F"
     // let boost = ""
-    // let swapMining = "0xeabF70a7F94e05558378c1d95968f09eD61916A9"
-    let weth9 = "0xB296bAb2ED122a85977423b602DdF3527582A3DA"
+    let swapMining = "0x5E1e0D50EbE7A314AA95BB9071041Aaf9D491493"
+   // let weth9 = "0xB296bAb2ED122a85977423b602DdF3527582A3DA"
 
     for (const account of accounts) {
         //console.log('Account address' + account.address)
@@ -79,9 +79,9 @@ async function main() {
     // lock = await Locker.deploy(checkPermission, TRA, "1800");
     // console.log("Locker:" + lock.address)
     //
-    const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
-    gaugeFactory = await GaugeFactory.deploy(checkPermission);
-    console.log("gaugeFactory:" + gaugeFactory.address)
+    // const GaugeFactory = await ethers.getContractFactory('GaugeFactory');
+    // gaugeFactory = await GaugeFactory.deploy(checkPermission);
+    // console.log("gaugeFactory:" + gaugeFactory.address)
 
     // const Boost = await ethers.getContractFactory("Boost");
     // boost = await Boost.deploy(
@@ -125,7 +125,7 @@ async function main() {
     const SwapController = await ethers.getContractFactory('SwapController');
     swapController = await SwapController.deploy(
         checkPermission,
-        swapMining.address,
+        swapMining,
         lock,
         "1200");
 
