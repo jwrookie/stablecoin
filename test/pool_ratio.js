@@ -5,7 +5,7 @@ const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
 const {SetPlainImplementations, SetPoolByCrvFactory} = require("./Core/LibSourceConfig");
-const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
 
 const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
@@ -20,7 +20,7 @@ contract('PoolUSD_ratio', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle(toWei("100"));
-        [weth, factory, registry, poolRegistry, router] = await GetCRV(owner, {value: toWei("200")});
+        [weth, factory, registry, poolRegistry, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("200")});
 
         await DeployThreePoolByCrvFactory([token0, rusd, token1], {});
 
