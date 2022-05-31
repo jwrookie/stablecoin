@@ -42,7 +42,7 @@ contract CheckPermission is ICheckPermission {
 
     function setOperContract(address _oper) public onlyOwner {
         require(_oper != address(0), "bad new operator");
-        address oldOperator = _oper;
+        address oldOperator = address(operatable);
         operatable = Operatable(_oper);
         emit SetOperatorContract(oldOperator, _oper);
     }
