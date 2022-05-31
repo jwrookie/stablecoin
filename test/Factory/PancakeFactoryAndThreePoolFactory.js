@@ -23,8 +23,8 @@ const PanCakeFactoryAndThreeFactoryConfig = async (user) => {
     let poolOfThreeCoinsFactory;
     let plain3Balances;
 
-    if ("object" !== typeof user || "{}" === JSON.stringify(user) || undefined === user.address) {
-        throw Error("Please enter the correct user address!");
+    if ("object" !== typeof user || "{}" === JSON.stringify(user)) {
+        throw Error("Please enter the correct user object!");
     }
 
     try {

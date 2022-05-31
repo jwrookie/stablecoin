@@ -63,17 +63,17 @@ contract('ExchangeAMO', async () => {
         let _deadline = new Date().getTime() + 1000;
         await pancakeRouter.addLiquidity(
             usdc.address, weth.address,
-            toWei("20000"), toWei("10"), 0, 0,
+            toWei("2000"), toWei("1"), 0, 0,
             owner.address, _deadline
         );
         await pancakeRouter.addLiquidity(
             fxs.address, weth.address,
-            toWei("20000"), toWei("10"), 0, 0,
+            toWei("2000"), toWei("1"), 0, 0,
             owner.address, _deadline
         );
         await pancakeRouter.addLiquidity(
             frax.address, weth.address,
-            toWei("20000"), toWei("10"), 0, 0,
+            toWei("2000"), toWei("1"), 0, 0,
             owner.address, _deadline
         );
 

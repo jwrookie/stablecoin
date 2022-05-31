@@ -73,10 +73,6 @@ const SetPlainImplementations = async (poolOfThreeCoinsFactory, coinsInPoolNumbe
     let coinsArray = new Array();
     let pool;
 
-    if (0 === poolArray.length) {
-        throw Error("Error, Must add a 3pool!");
-    }
-
     for (let i = 0; i < 10; i++) {
         pool = poolArray[i];
         if (undefined === pool) {

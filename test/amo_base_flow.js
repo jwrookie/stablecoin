@@ -3,9 +3,13 @@ const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
 const {time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
 const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
+const {
+    GetUniswapByPancakeFactory,
+    AddLiquidityByPancakeRouter,
+    SetETHUSDOracle
+} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
@@ -14,26 +18,25 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
 
         [rusd, tra, operatable] = await GetRusdAndTra();
 
-        [usdc, token1] = await GetMockToken(2, [owner], toWei("100000000"));
+        [usdc, token1] = await GetMockToken(2, [owner], toWei("2000000"));
 
         stableCoinPool = await StableCoinPool(usdc, toWei("10000000000"));
 
-        [weth, factory, registry, poolRegistry] = await GetCRV(owner);
-        pool = await DeployThreePoolByCrvFactory([rusd, usdc, token1], {});
+        [weth, pancakeFactory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(
+            owner,
+            {value: toWei("100")}
+        );
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
 
         // Create transaction pairs
-        await factory.createPair(usdc.address, weth.address);
-        await factory.createPair(rusd.address, weth.address);
-        await factory.createPair(tra.address, weth.address);
-
-        await RouterApprove(usdc, toWei("100000"), [toWei("20000"), toWei("10")], owner);
-        await RouterApprove(rusd, toWei("100000"), [toWei("20000"), toWei("10")], owner);
-        await RouterApprove(tra, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
 
         await SetETHUSDOracle();
-        usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
-        rusdUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
-        traUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, tra, weth);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
 
         // About amo and exchange amo
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
@@ -59,7 +62,7 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         );
 
         // Approve
-        await usdc.approve(stableCoinPool.address, toWei("1"));
+        await usdc.approve(stableCoinPool.address, toWei("10000"));
 
         // Add pool
         await rusd.addPool(amoMinter.address);
@@ -69,12 +72,12 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await tra.addPool(amoMinter.address);
 
         // Through registry center to add pool in pool registry
-        await registry.set_address(0, poolRegistry.address);
+        // await registry.set_address(0, poolRegistry.address);
 
         // Approve for pool
-        await usdc.approve(pool.address, toWei("10000"));
-        await token1.approve(pool.address, toWei("10000"));
-        await rusd.approve(pool.address, toWei("10000"));
+        await usdc.approve(pool.address, toWei("30000"));
+        await token1.approve(pool.address, toWei("30000"));
+        await rusd.approve(pool.address, toWei("30000"));
 
         // Add liquidity
         await pool.add_liquidity([toWei("100"), toWei("100"), toWei("100")], 0, GAS);
