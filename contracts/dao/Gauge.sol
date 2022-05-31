@@ -221,13 +221,13 @@ contract Gauge is ReentrancyGuard, CheckPermission {
 
     function notifyRewardAmount(address token, uint256 _rewardRate) external onlyBoost {
         require(token != stake, "no stake");
+        tokenPerBlock = _rewardRate;
         if (block.number <= lastRewardBlock) {
             return;
         }
-        tokenPerBlock = _rewardRate;
         if (totalSupply > 0) {
             uint256 mul = block.number.sub(lastRewardBlock);
-            accTokenPerShare = accTokenPerShare.add(_rewardRate.mul(mul).mul(1e12).div(totalSupply));
+            accTokenPerShare = accTokenPerShare.add(tokenPerBlock.mul(mul).mul(1e12).div(totalSupply));
             lastRewardBlock = block.number;
         }
         emit NotifyReward(msg.sender, token, _rewardRate);
