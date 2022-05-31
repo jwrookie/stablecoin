@@ -32,8 +32,6 @@ contract SwapMining is AbstractBoost, ISwapMining {
     address public router;
     // factory address
     address public factory;
-
-    address public targetToken;
     // pair corresponding pid
     mapping(address => uint256) public lpOfPid;
 
