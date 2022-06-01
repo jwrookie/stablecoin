@@ -16,8 +16,6 @@ abstract contract AbstractController is CheckPermission {
     using SafeMath for uint256;
     using EnumerableSet for EnumerableSet.AddressSet;
 
-    event Attach(address indexed owner, address indexed gauge, uint256 tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint256 tokenId);
     event Voted(address indexed voter, uint256 tokenId, uint256 weight);
     event Abstained(uint256 tokenId, uint256 weight);
 
@@ -78,16 +76,16 @@ abstract contract AbstractController is CheckPermission {
     function _vote(uint256 _tokenId, address _poolVote) internal {
         _reset(_tokenId);
         uint256 _weight = IVeToken(veToken).balanceOfNFT(_tokenId);
-
         weights[_poolVote] = weights[_poolVote].add(_weight);
-        emit Voted(msg.sender, _tokenId, _weight);
         IVeToken(veToken).voting(_tokenId);
         totalWeight += _weight;
         usedWeights[_tokenId] = _weight;
         updatePool();
+        emit Voted(msg.sender, _tokenId, _weight);
     }
 
     function poke(uint256 _tokenId, address _pool) external {
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
         _vote(_tokenId, _pool);
     }
 
