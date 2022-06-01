@@ -29,8 +29,8 @@ contract("test", async function () {
         pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
 
         await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("1000"), [, toWei("1")], owner);
-        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], router, toWei("1000"), [toWei("0.000001")], owner);
-        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("1000"), [, , , 0], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("1000"), [, , , 0], owner);
 
         await SetETHUSDOracle();
 

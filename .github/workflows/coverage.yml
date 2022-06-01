@@ -3,8 +3,7 @@ name: Test
 on:
   push:
     branches:
-      - release-v*
-  pull_request: {}
+      - master
   workflow_dispatch: {}
 
 jobs:
@@ -23,11 +22,8 @@ jobs:
       - name: Install JS dependencies
         run: yarn
 #      - run: yarn lint:sol
-      - run: yarn test
+      - run: yarn coverage
         env:
           FORCE_COLOR: 1
           ENABLE_GAS_REPORT: true
-      - run: yarn test:inheritance
-#      - name: Print gas report
-#        run: cat gas-report.txt
 

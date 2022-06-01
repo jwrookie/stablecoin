@@ -68,10 +68,11 @@ abstract contract AbstractController is CheckPermission {
 
     function _reset(uint256 _tokenId) internal {
         uint256 _totalWeight = usedWeights[_tokenId];
-        emit Abstained(_tokenId, _totalWeight);
+        weights[userPool[_tokenId].pool] -= _totalWeight;
         totalWeight -= _totalWeight;
         usedWeights[_tokenId] = 0;
         delete userPool[_tokenId];
+        emit Abstained(_tokenId, _totalWeight);
     }
 
     function _vote(uint256 _tokenId, address _poolVote) internal {
@@ -94,6 +95,7 @@ abstract contract AbstractController is CheckPermission {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId));
         PoolVote storage poolVote = userPool[tokenId];
         require(poolVote.lastUse + duration < block.timestamp, "next duration use");
+        require(isPool(_poolVote), "must pool");
         _vote(tokenId, _poolVote);
         poolVote.pool = _poolVote;
         poolVote.lastUse = block.timestamp;

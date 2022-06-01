@@ -47,8 +47,7 @@ contract('AMOMinter', async function () {
         uniswapOracle = await UniswapPairOracle.deploy(
             factory.address,
             coinPairs.address,
-            weth.address,
-            timelock.address
+            weth.address
         );
 
         switch (coinPairs) {
