@@ -8,7 +8,7 @@ const GetUniswapMap = async () => {
     return UniswapMap;
 }
 
-const DeployUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
+const DeployUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress) => {
     let tempMap = await GetMap();
     let rusd = tempMap.get("RUSD");
     let tra = tempMap.get("TRA");
@@ -21,15 +21,15 @@ const DeployUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddre
 
     switch (tokenAAddress) {
         case usdc.address:
-            usdcUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            usdcUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             UniswapMap.set("usdcUniswapOracle", usdcUniswapOracle.address);
             return usdcUniswapOracle;
         case rusd.address:
-            rusdUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            rusdUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             UniswapMap.set("rusdUniswapOracle", rusdUniswapOracle.address);
             return rusdUniswapOracle;
         case tra.address:
-            traUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            traUniswapOracle = await SetUniswapOracle(stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             UniswapMap.set("traUniswapOracle", traUniswapOracle.address);
             return traUniswapOracle;
         default:

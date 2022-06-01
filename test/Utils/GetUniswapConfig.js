@@ -1,21 +1,14 @@
-const {SetTimeLock, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
+const {SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
 const {DeployUniswapByPancakeFactory} = require("../Factory/UniswapPairOracleFactory");
-const {CheckParameter} = require("../Tools/Check");
 const {GetMap} = require("../Factory/StableAndMockFactory");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
-const GetUniswapByPancakeFactory = async (userAddress, stableCoinPool, pancakeFactoryAddress, pariOfCoins = []) => {
+const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, pariOfCoins = []) => {
     let tempUniswapOracle;
 
-    if (!await CheckParameter([userAddress])) {
-        throw Error("Exist Invalid Parameters!");
-    }
-
-    let tempTimeLock = await SetTimeLock(userAddress);
-
-    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pariOfCoins[0], pariOfCoins[1], tempTimeLock);
+    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pariOfCoins[0], pariOfCoins[1]);
     return tempUniswapOracle;
 }
 

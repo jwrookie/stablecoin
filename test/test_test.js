@@ -21,6 +21,7 @@ contract("test", async function () {
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc, 10000);
         stableCoinPoolSecond = await StableCoinPoolFreeParameter(checkOpera.address, rusd.address, tra.address, usdc.address, 10000);
+        stableCoinPoolThree = await StableCoinPoolFreeParameter(checkPermission, rusdAddress, traAddress, usdcAddress, 10000);
         [weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter] = await DeployThreePoolFactoryAndPancakeFactory(
             owner,
             {value: toWei("300")}
@@ -34,9 +35,9 @@ contract("test", async function () {
 
         await SetETHUSDOracle();
 
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     });
     it('should ', async function () {
         console.log(rusd.address);
@@ -46,6 +47,7 @@ contract("test", async function () {
         console.log(token1.address);
         console.log(stableCoinPool.address);
         console.log(stableCoinPoolSecond.address);
+        console.log("ThreeStableCoinPool:\t" + stableCoinPoolThree.address);
         console.log(pancakeFactory.address);
         console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
         console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
