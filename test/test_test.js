@@ -21,7 +21,6 @@ contract("test", async function () {
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
         stableCoinPool = await StableCoinPool(usdc.address, 10000);
         stableCoinPoolSecond = await StableCoinPoolFreeParameter(checkOpera.address, rusd.address, tra.address, usdc.address, 10000);
-        stableCoinPoolThird = await StableCoinPoolFreeParameter(checkPermission, rusdAddress, traAddress, usdc.address, 10000);
         [weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter] = await DeployThreePoolFactoryAndPancakeFactory(
             owner,
             {value: toWei("300")}
