@@ -37,6 +37,7 @@ const SetAddLiquidity = async (pancakeRouter, tokenA, tokenB, tokenANumber, toke
 
 const SetUniswapPairOracle = async (pancakeFactoryAddress, tokenAAddress, tokenBAddress) => {
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
+    throw Error("1111111");
     return await UniswapPairOracle.deploy(
         pancakeFactoryAddress,
         tokenAAddress,

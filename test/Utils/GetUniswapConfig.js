@@ -2,13 +2,16 @@ const {SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
 const {DeployUniswapByPancakeFactory} = require("../Factory/UniswapPairOracleFactory");
 const {GetMap} = require("../Factory/StableAndMockFactory");
+const {CheckParameter} = require("../Tools/Check");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
-const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, pariOfCoins = []) => {
+const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, pairOfCoins = []) => {
     let tempUniswapOracle;
 
-    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pariOfCoins[0], pariOfCoins[1]);
+    await CheckParameter([stableCoinPool, pairOfCoins[0], pairOfCoins[1]]);
+
+    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pairOfCoins[0], pairOfCoins[1]);
     return tempUniswapOracle;
 }
 
