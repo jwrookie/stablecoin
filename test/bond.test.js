@@ -149,14 +149,14 @@ contract('BondIssuer', () => {
         );
 
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
-        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address, timelock.address);
+        usdc_uniswapOracle = await UniswapPairOracle.deploy(factory.address, usdc.address, weth.address);
         await pool.setCollatETHOracle(usdc_uniswapOracle.address, weth.address);
 
-        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address, timelock.address);
+        frax_uniswapOracle = await UniswapPairOracle.deploy(factory.address, frax.address, weth.address);
         await frax.setStableEthOracle(frax_uniswapOracle.address, weth.address);
         expect(await frax.stableEthOracleAddress()).to.be.eq(frax_uniswapOracle.address);
 
-        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address, timelock.address);
+        fxs_uniswapOracle = await UniswapPairOracle.deploy(factory.address, fxs.address, weth.address);
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
@@ -228,7 +228,7 @@ contract('BondIssuer', () => {
         let diff = rewardAft.sub(rewardBef);
 
         expect(diff).to.be.eq("10");
-        await bondIssuer.redeemBond("65596");
+        await bondIssuer.redeemBond("65590");
         let rewardAft1 = await frax.balanceOf(owner.address);
 
         await bondIssuer.claimFee();

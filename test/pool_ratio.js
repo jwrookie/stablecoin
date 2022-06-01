@@ -3,11 +3,10 @@ const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetRusdAndTra, SetRusdAndTraConfig, StableCoinPool} = require("./Utils/GetStableConfig");
-const {SetPlainImplementations, SetPoolByCrvFactory} = require("./Core/LibSourceConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
+const {GetRusdAndTra, StableCoinPoolFreeParameter, StableCoinPool} = require("./Utils/GetStableConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
 
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
+const {GetUniswapByPancakeFactory, AddLiquidityByPancakeRouter, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 
@@ -20,17 +19,18 @@ contract('PoolUSD_ratio', () => {
         stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
 
         await SetETHUSDOracle(toWei("100"));
-        [weth, factory, registry, poolRegistry, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("200")});
+        [weth, factory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("100")});
 
-        await DeployThreePoolByCrvFactory([token0, rusd, token1], {});
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
 
-        await RouterApprove(usdc, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
-        await RouterApprove(rusd, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
-        await RouterApprove(tra, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
+        await AddLiquidityByPancakeRouter(factory, [usdc, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
+        await AddLiquidityByPancakeRouter(factory, [rusd, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
+        await AddLiquidityByPancakeRouter(factory, [tra, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
+       // await rusd.approve(router.address,toWei('1000'));
 
-        usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
-        fraxUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
-        fxsUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, tra, weth);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [tra.address, weth.address]);
 
         await tra.addPool(stableCoinPool.address);
         await rusd.addPool(stableCoinPool.address);
@@ -245,6 +245,7 @@ contract('PoolUSD_ratio', () => {
         let stockAft2 = await tra.balanceOf(owner.address);
 
         let diffStock = stockAft.sub(stockBef);
+
 
         expect(collateralAft1).to.be.eq(diffCollateral.mul(3));
 

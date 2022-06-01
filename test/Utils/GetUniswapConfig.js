@@ -56,8 +56,8 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
     }
 
     await pancakeFactory.createPair(pairOfCoin[0].address, pairOfCoin[1].address);
-    await pairOfCoin[0].approve(pancakeRouter.address, parameterObj.get("tokenANumber"));
-    await pairOfCoin[1].approve(pancakeRouter.address, parameterObj.get("tokenBNumber"));
+    await pairOfCoin[0].approve(pancakeRouter.address, approveNumber);
+    await pairOfCoin[1].approve(pancakeRouter.address, approveNumber);
     await SetAddLiquidity(
         pancakeRouter,
         pairOfCoin[0],

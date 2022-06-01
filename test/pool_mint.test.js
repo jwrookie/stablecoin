@@ -317,17 +317,6 @@ contract('pool mint test', () => {
 
 
     });
-    //    it('test fxs mint', async () => {
-    //       //  await fxs.addPool(dev.address)
-    //       // expect(await fxs.balanceOf(dev.address)).to.be.eq(0)
-    //
-    //        console.log("totalSupply:"+await fxs.totalSupply())
-    //        console.log("MAX_SUPPLY:"+await fxs.MAX_SUPPLY())
-    //   await fxs.transfer(pool.address,toWei('100'))
-    //                 //  expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('100'))
-    //
-    //
-    //
-    // });
+
 
 });

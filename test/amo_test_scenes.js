@@ -3,9 +3,9 @@ const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
 const {time} = require('@openzeppelin/test-helpers');
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetCRV, DeployThreePoolByCrvFactory} = require("./Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
 const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
+const {GetUniswapByPancakeFactory, AddLiquidityByPancakeRouter, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 contract('AMO Scenes', async function () {
@@ -17,23 +17,19 @@ contract('AMO Scenes', async function () {
         [usdc, token1] = await GetMockToken(2, [owner], toWei("100000000"));
 
         stableCoinPool = await StableCoinPool(usdc, toWei("10000000000"));
-
-        [weth, factory, registry, poolRegistry] = await GetCRV(owner);
-        pool = await DeployThreePoolByCrvFactory([rusd, usdc, token1], {});
-
-        // Create transaction pairs
-        await factory.createPair(usdc.address, weth.address);
-        await factory.createPair(rusd.address, weth.address);
-        await factory.createPair(tra.address, weth.address);
-
-        await RouterApprove(usdc, toWei("100000"), [toWei("20000"), toWei("10")], owner);
-        await RouterApprove(rusd, toWei("100000"), [toWei("20000"), toWei("10")], owner);
-        await RouterApprove(tra, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        [weth, factory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("100")});
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
 
         await SetETHUSDOracle();
-        usdcUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, usdc, weth);
-        rusdUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, rusd, weth);
-        traUniswapOracle = await GetUniswap(owner, stableCoinPool, factory, tra, weth);
+
+        await AddLiquidityByPancakeRouter(factory, [usdc, weth], router, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(factory, [rusd, weth], router, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(factory, [tra, weth], router, toWei("100000"), [toWei("20000"), toWei("10")], owner);
+
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [tra.address, weth.address]);
+
 
         // About amo and exchange amo
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
@@ -81,7 +77,7 @@ contract('AMO Scenes', async function () {
         await tra.addPool(amoMinter.address);
 
         // Through registry center to add pool in pool registry
-        await registry.set_address(0, poolRegistry.address);
+        // await registry.set_address(0, poolRegistry.address);
 
         // Approve for pool
         await usdc.approve(pool.address, toWei("10000"));
