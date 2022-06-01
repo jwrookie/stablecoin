@@ -25,7 +25,7 @@ const SetRusdAndTraConfig = async (rusd, tra) => {
     await rusd.setStockAddress(tra.address);
 }
 
-const StableCoinPool = async (usdc, poolCelling) => {
+const StableCoinPool = async (guaranteeAddress, poolCelling) => {
     let tempMap = await GetMap();
     let poolCell;
 
@@ -57,7 +57,7 @@ const StableCoinPool = async (usdc, poolCelling) => {
         tempMap.get("CHECKOPERA").address,
         tempMap.get("RUSD").address,
         tempMap.get("TRA").address,
-        usdc.address,
+        guaranteeAddress,
         poolCell
     );
 }
@@ -94,7 +94,6 @@ const StableCoinPoolFreeParameter = async (checkoperaAddress, rusdAddress, traAd
         guaranteeAddress,
         poolCell
     );
-
 }
 
 module.exports = {

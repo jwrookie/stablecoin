@@ -19,25 +19,25 @@ contract("test", async function () {
         [owner, dev] = await ethers.getSigners();
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("1"));
-        stableCoinPool = await StableCoinPool(usdc, 10000);
+        stableCoinPool = await StableCoinPool(usdc.address, 10000);
         stableCoinPoolSecond = await StableCoinPoolFreeParameter(checkOpera.address, rusd.address, tra.address, usdc.address, 10000);
-        stableCoinPoolThree = await StableCoinPoolFreeParameter(checkPermission, rusdAddress, traAddress, usdcAddress, 10000);
-        // [weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter] = await DeployThreePoolFactoryAndPancakeFactory(
-        //     owner,
-        //     {value: toWei("300")}
-        // );
+        stableCoinPoolThird = await StableCoinPoolFreeParameter(checkPermission, rusdAddress, traAddress, usdc.address, 10000);
+        [weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter] = await DeployThreePoolFactoryAndPancakeFactory(
+            owner,
+            {value: toWei("300")}
+        );
         // Create token pair
-        // pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
-        //
-        // await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("1000"), [, toWei("1")], owner);
-        // await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);
-        // await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("1000"), [, , , 0], owner);
-        //
-        // await SetETHUSDOracle();
-        //
-        // usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
-        // fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
-        // fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
+
+        await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("1000"), [, toWei("1")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("1000"), [, , , 0], owner);
+
+        await SetETHUSDOracle();
+
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     });
     it('should ', async function () {
         console.log(rusd.address);
@@ -45,12 +45,12 @@ contract("test", async function () {
         console.log(usdc.address);
         console.log(token0.address);
         console.log(token1.address);
-        // console.log(stableCoinPool.address);
-        // console.log(stableCoinPoolSecond.address);
-        // console.log("ThreeStableCoinPool:\t" + stableCoinPoolThree.address);
-        // console.log(pancakeFactory.address);
-        // console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
-        // console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
-        // console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
+        console.log(stableCoinPool.address);
+        console.log(stableCoinPoolSecond.address);
+        console.log("ThreeStableCoinPool:\t" + stableCoinPoolThird.address);
+        console.log(pancakeFactory.address);
+        console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
+        console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
+        console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
     });
 });
