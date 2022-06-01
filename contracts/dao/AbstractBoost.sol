@@ -12,8 +12,6 @@ import "../interface/IVeToken.sol";
 abstract contract AbstractBoost is TokenReward {
     using SafeMath for uint256;
 
-    event Attach(address indexed owner, address indexed gauge, uint256 tokenId);
-    event Detach(address indexed owner, address indexed gauge, uint256 tokenId);
     event Voted(address indexed voter, uint256 tokenId, int256 weight);
     event Abstained(uint256 tokenId, int256 weight);
     event ControllerAdded(address _address);

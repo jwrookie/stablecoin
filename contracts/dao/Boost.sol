@@ -34,7 +34,6 @@ contract Boost is ReentrancyGuard, AbstractBoost {
 
     uint256 public mintDuration = 7 * 28800; // rewards are released over 7 days
 
-    address[] public pools; // all pools viable for incentives
     mapping(address => address) public gauges; // pool => gauge
     mapping(address => address) public poolForGauge; // gauge => pool
     mapping(address => bool) public isGauge;
