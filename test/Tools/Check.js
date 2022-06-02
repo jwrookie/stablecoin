@@ -3,16 +3,21 @@ const {ZEROADDRESS} = require("../Lib/Address");
 const CheckParameter = async (param = []) => {
     if (0 < param.length) {
         for (let i = 0; i < param.length; i++) {
-            if ("object" !== typeof param[i]) {
-                throw Error("Need An Object!");
-            }
-            switch (param[i].address) {
-                case undefined:
-                    throw Error("Empty Object Error!");
-                case ZEROADDRESS:
-                    throw Error("Address Type Error!");
-                default:
+            switch (typeof param[i]) {
+                case "object":
+                    if ("{}" === JSON.stringify(param[i])) {
+                        throw Error("CheckParameter: Empty object!");
+                    }
                     break;
+                case "string":
+                    if (ZEROADDRESS === param[i]
+                        || "" === param[i]
+                        || undefined === param[i]) {
+                        throw Error("CheckParameter: Invalid address!");
+                    }
+                    break;
+                default:
+                    throw Error("CheckParameter: Invalid Type Of Parameters!");
             }
         }
     }else {
