@@ -43,14 +43,14 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
     for (let i = 0; i < deployMockTokenNumber; i++) {
         token = await SetMockToken();
         if (0 === mintUser.length) {
-            throw Error("Please enter the user who wants to mint coins!");
+            throw Error("MockTokenFactory: Please enter the user who wants to mint coins!");
         }
         for (let j = 0; j < mintUser.length; j++) {
-            if ("object" === typeof mintUser[j] && undefined !== mintUser[j].address) {
+            if ("object" === typeof mintUser[j] && "{}" !== JSON.stringify(mintUser[j])) {
                 user = mintUser[j];
                 await MintMockToken(token, user.address, mintNumber);
             } else {
-                throw Error("Please checking user addresses!");
+                throw Error("MockTokenFactory: Please checking user addresses!");
             }
         }
         resultArray.push(token);
