@@ -171,6 +171,50 @@ contract('AMO Scenes', async function () {
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei("195"));
     });
 
+    it('No borrow, mint rusd and redeem call the function give back', async function () {
+        let cr = await rusd.globalCollateralRatio();
+        expect(cr).to.be.eq(1e6);
+
+        // Swap by pancake route
+        let _deadline = new Date().getTime() + 1000;
+        for (let i = 0; i < 10; i++) {
+            await pancakeRouter.swapExactTokensForTokens(
+                toWei("1"),
+                0,
+                [weth.address, rusd.address],
+                owner.address,
+                _deadline
+            );
+            // Change stable coin price and refresh uniswap
+            await time.increase(time.duration.hours(1));
+            await rusdUniswapOracle.update();
+            await rusd.refreshCollateralRatio(); // Because new cr >= min cr
+        }
+        await traUniswapOracle.update();
+        await usdcUniswapOracle.update();
+
+        await usdc.approve(stableCoinPool.address, toWei("100000000"));
+        await tra.approve(stableCoinPool.address, toWei("100000000"));
+
+        cr = await rusd.globalCollateralRatio();
+
+        let _stockAmount = BigNumber.from(toWei("80000000")).mul(1e6 - cr);
+        await stableCoinPool.mintFractionalStable(toWei("80000000"), _stockAmount, 0);
+
+        cr = await rusd.globalCollateralRatio();
+        expect(cr).to.be.gt(await amoMinter.minCR());
+
+        await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("200"));
+
+        await amoMinter.setCollatBorrowCap(toWei("300"));
+        await amoMinter.poolRedeem(toWei("200"));
+        await operatable.addContract(amoMinter.address); // You need to manually add a whitelist
+        await amoMinter.poolCollectAndGive(exchangeAMO.address);
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei("195"));
+
+        await exchangeAMO.giveCollatBack(await usdc.balanceOf(exchangeAMO.address));
+    });
+
     it('Call the function setStableMintCap', async function () {
         await amoMinter.setStableMintCap(toWei("1"));
         expect(await amoMinter.stableCoinMintCap()).to.be.eq(toWei("1"));
