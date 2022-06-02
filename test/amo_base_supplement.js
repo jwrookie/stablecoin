@@ -26,7 +26,7 @@ contract('AMO Scenes', async function () {
             owner,
             {value: toWei("100")}
         );
-        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd.address, usdc.address, token1.address]);
 
         // Create transaction pairs
         await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], owner);

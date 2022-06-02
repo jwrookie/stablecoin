@@ -36,7 +36,7 @@ async function main() {
         deployer,
         {value: toWei("300")}
     );
-    let pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, usdt]);
+    let pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd.address, usdc.address, usdt.address]);
 
     await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
     await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);

@@ -26,7 +26,7 @@ contract("test", async function () {
             {value: toWei("300")}
         );
         // Create token pair
-        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd.address, usdc.address, token1.address]);
 
         await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("1000"), [, toWei("1")], owner);
         await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);

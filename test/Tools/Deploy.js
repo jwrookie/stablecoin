@@ -42,6 +42,12 @@ const DeployThreePoolByThreePoolFactory = async (poolOfThreeCoinsFactory, poolOf
 
     await SetPlainImplementations(poolOfThreeCoinsFactory, 3, [poolOfThreeCoins.address]);
 
+    for (let coin in coinInThreePool) {
+        if ("string" !== typeof coinInThreePool[coin]) {
+            throw Error("DeployThreePoolByThreePoolFactory: Invalid token address!");
+        }
+    }
+
     await SetThreePoolsByThreePoolFactory(
         poolOfThreeCoinsFactory,
         coinInThreePool,

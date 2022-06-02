@@ -101,8 +101,10 @@ const SetThreePoolsByThreePoolFactory = async (threePoolsFactory, tokenArray = [
                 break;
             case ZEROADDRESS:
                 throw Error("Exist Zero Address!");
+            case "":
+                throw Error("Exist Empty Address!");
             default:
-                tempTokenArray.push(tempToken.address);
+                tempTokenArray.push(tempToken);
                 break;
         }
     }
