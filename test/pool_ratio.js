@@ -16,21 +16,21 @@ contract('PoolUSD_ratio', () => {
         [rusd, tra, , checkOpera] = await GetRusdAndTra();
 
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("100000000000"));
-        stableCoinPool = await StableCoinPool(usdc, toWei('10000000000'));
+        stableCoinPool = await StableCoinPool(usdc.address, toWei('10000000000'));
 
-        await SetETHUSDOracle(toWei("100"));
+        await SetETHUSDOracle(rusd,toWei("100"));
         [weth, factory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("100")});
 
-        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc.address, rusd.address, token1.address]);
 
         await AddLiquidityByPancakeRouter(factory, [usdc, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
         await AddLiquidityByPancakeRouter(factory, [rusd, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
         await AddLiquidityByPancakeRouter(factory, [tra, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
        // await rusd.approve(router.address,toWei('1000'));
 
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(owner, stableCoinPool, factory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [usdc.address, weth.address]);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [rusd.address, weth.address]);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [tra.address, weth.address]);
 
         await tra.addPool(stableCoinPool.address);
         await rusd.addPool(stableCoinPool.address);
