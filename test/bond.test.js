@@ -228,8 +228,6 @@ contract('BondIssuer', () => {
         let diff = rewardAft.sub(rewardBef);
 
         expect(diff).to.be.eq("10");
-
-        // expect(await bond.balanceOf(owner.address)).to.be.eq("65590");
         await bondIssuer.redeemBond("65590");
         let rewardAft1 = await frax.balanceOf(owner.address);
 
@@ -367,7 +365,18 @@ contract('BondIssuer', () => {
 
 
     });
-    it('test recoverToken ', async () => {
+      it('test bond recoverToken ', async () => {
+        expect(await busd.balanceOf(bond.address)).to.be.eq(0);
+        await busd.mint(bond.address, "1000");
+        expect(await busd.balanceOf(bond.address)).to.be.eq("1000");
+        await busd.approve(bond.address, toWei('1000'));
+
+        await bond.recoverToken(busd.address, "1000");
+        expect(await busd.balanceOf(bond.address)).to.be.eq(0);
+
+
+    });
+    it('test bondIssuer recoverToken ', async () => {
         expect(await busd.balanceOf(bondIssuer.address)).to.be.eq(0);
         await busd.mint(bondIssuer.address, "1000");
         expect(await busd.balanceOf(bondIssuer.address)).to.be.eq("1000");
