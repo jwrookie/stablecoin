@@ -42,7 +42,7 @@ async function main() {
     await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
     await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
 
-    await SetETHUSDOracle(toWei("2000"));
+    await SetETHUSDOracle(rusd, toWei("2000"));
     let usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
     let rusdUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
     let traUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);

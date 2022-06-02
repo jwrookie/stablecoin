@@ -29,11 +29,11 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
 
         // Create transaction pairs
-        await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
-        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
-        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("1000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], router, toWei("30000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], router, toWei("30000"), [toWei("20000"), toWei("10")], owner);
+        await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("30000"), [toWei("20000"), toWei("10")], owner);
 
-        await SetETHUSDOracle();
+        await SetETHUSDOracle(rusd);
         usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
         fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
         fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);

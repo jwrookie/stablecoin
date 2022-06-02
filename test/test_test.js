@@ -32,7 +32,7 @@ contract("test", async function () {
         await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);
         await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("1000"), [, , , 0], owner);
 
-        await SetETHUSDOracle();
+        await SetETHUSDOracle(rusd);
 
         usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
         fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);

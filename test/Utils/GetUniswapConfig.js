@@ -72,9 +72,13 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
 }
 
 // Constants for various precisions
-const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
+const SetETHUSDOracle = async (stableCoinObject, setAnswerValue = toWei("1")) => {
     let tempMap = await GetMap();
     let chainlinkETHUSDPriceConsumer;
+
+    if ("object" !== typeof stableCoinObject || "{}" === JSON.stringify(stableCoinObject)) {
+        throw Error("SetETHUSDOracle: Need stable coin object to set oracle!");
+    }
 
     switch (typeof setAnswerValue) {
         case "number":
@@ -91,7 +95,7 @@ const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
         throw Error("Need to set rusd first!");
     }
 
-    await tempMap.get("RUSD").setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
+    await stableCoinObject.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
 }
 
 module.exports = {

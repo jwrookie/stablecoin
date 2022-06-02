@@ -33,7 +33,7 @@ contract('AMO Scenes', async function () {
         await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], owner);
         await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], owner);
 
-        await SetETHUSDOracle(toWei("2000"));
+        await SetETHUSDOracle(rusd, toWei("2000"));
         usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
         rusdUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
         traUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
@@ -165,10 +165,31 @@ contract('AMO Scenes', async function () {
         expect(await tra.balanceOf(stableCoinPool.address)).to.be.eq(toWei("5"));
         expect(await stableCoinPool.redeemStockBalances(amoMinter.address)).to.be.eq(toWei("5"));
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
-        console.log(await operatable.isContract(amoMinter.address));
-        // await operatable.addContract(amoMinter.address); // You need to manually add a whitelist
+        await operatable.addContract(amoMinter.address); // You need to manually add a whitelist
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
         await amoMinter.poolCollectAndGive(exchangeAMO.address);
-        console.log(fromWei(toBN(await usdc.balanceOf(exchangeAMO.address))));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei("195"));
+    });
+
+    it('Call the function setStableMintCap', async function () {
+        await amoMinter.setStableMintCap(toWei("1"));
+        expect(await amoMinter.stableCoinMintCap()).to.be.eq(toWei("1"));
+    });
+
+    it('Call the function setStockMintCap', async function () {
+        await amoMinter.setStockMintCap(toWei("1"));
+        expect(await amoMinter.stockMintCap()).to.be.eq(toWei("1"));
+    });
+
+    it('Call the function setAMOCorrectionOffsets', async function () {
+        expect(await amoMinter.correctionOffsetsAmos(exchangeAMO.address, 0)).to.be.eq(0);
+        expect(await amoMinter.correctionOffsetsAmos(exchangeAMO.address, 1)).to.be.eq(0);
+        await amoMinter.setAMOCorrectionOffsets(
+            exchangeAMO.address,
+            toWei("1"),
+            toWei("1")
+        );
+        expect(await amoMinter.correctionOffsetsAmos(exchangeAMO.address, 0)).to.be.eq(toWei("1"));
+        expect(await amoMinter.correctionOffsetsAmos(exchangeAMO.address, 1)).to.be.eq(toWei("1"));
     });
 });
