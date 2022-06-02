@@ -1,4 +1,5 @@
 const {BigNumber} = require("ethers");
+const {CheckParameter} = require("../Tools/Check");
 const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
 const {SetFraxPoolLib, SetPoolAddress} = require("../Core/StableConfig");
 const {ZEROADDRESS} = require("../Lib/Address");
@@ -63,7 +64,6 @@ const StableCoinPool = async (guaranteeAddress, poolCelling) => {
 }
 
 const StableCoinPoolFreeParameter = async (checkoperaAddress, rusdAddress, traAddress, guaranteeAddress, poolCelling) => {
-    let tempArray = new Array();
     let poolCell;
 
     if ("string" === typeof poolCelling) {
@@ -72,16 +72,7 @@ const StableCoinPoolFreeParameter = async (checkoperaAddress, rusdAddress, traAd
         poolCell = BigNumber.from(poolCelling.toString())
     }
 
-    tempArray.push(checkoperaAddress, rusdAddress, traAddress, guaranteeAddress);
-
-    for (let index in tempArray) {
-        if ("string" !== typeof tempArray[index]
-            || "" === tempArray[index]
-            || ZEROADDRESS === tempArray[index]
-            || undefined === tempArray[index]) {
-            throw Error("StableCoinPoolFreeParameter: Check parameters!");
-        }
-    }
+    await CheckParameter([checkoperaAddress, rusdAddress, traAddress, guaranteeAddress]);
 
     let fraxPoolLibrary = await SetFraxPoolLib();
 
