@@ -17,12 +17,12 @@ async function main() {
     const accounts = await ethers.getSigners()
     const zeroAddr = "0x0000000000000000000000000000000000000000"
     let checkPermission = "0x43c992c1f499e259514a8409e2472Fa770D8da26"
-    let lock = "0x44b7632BC9fc9E15BF316795538419779D4AC9C5"
-    let gaugeFactory = "0x59C77bbA8878A4aB00EF7aecAa1388733e2ac2e1"
-    let swapMining = "0x3323Ac00DA23A1BabE5fD9C6a2783F4e11a0D642"
+    let lock = "0x4A1bA81592301ABBe215a7FbB5c3BE4424a77c17"
+   let gaugeFactory = "0xA8e16Cbb10E21a8a107aA26216e31A1a6A0aB5aa"
+   // // let swapMining = "0x3323Ac00DA23A1BabE5fD9C6a2783F4e11a0D642"
    let weth9 = "0xB296bAb2ED122a85977423b602DdF3527582A3DA"
     let oracle = "0x2B2065Ad161636447fe1eeeE59650E70De881c16"
-    let Ken = "0xf7AAd56342e0de796001453416D168159D476f21"
+    let Ken = "0x8b7fBD7205Bcd6b129c5e61AC235Ec685dD35Be5"
 
 
     for (const account of accounts) {
@@ -79,55 +79,55 @@ async function main() {
     // gaugeFactory = await GaugeFactory.deploy(checkPermission);
     // console.log("gaugeFactory:" + gaugeFactory.address)
 
-    // const Boost = await ethers.getContractFactory("Boost");
-    // boost = await Boost.deploy(
-    //     checkPermission,
-    //     lock,
-    //     gaugeFactory,
-    //     Ken,
-    //     toWei('1'),
-    //     parseInt("11717770"),
-    //     "2592000"
-    // );
-    // console.log("boost:" + boost.address)
-    //
-    //
-    // const GaugeController = await ethers.getContractFactory('GaugeController');
-    // gaugeController = await GaugeController.deploy(
-    //     checkPermission,
-    //     boost.address,
-    //     lock,
-    //     "1200");
-    //
-    // console.log("gaugeController:" + gaugeController.address)
-    // const SwapRouter = await ethers.getContractFactory('SwapRouter');
-    // swapRouter = await SwapRouter.deploy(checkPermission, weth9);
-    // console.log("swapRouter:" + swapRouter.address);
-    //
-    // const SwapMining = await ethers.getContractFactory('SwapMining');
-    // swapMining = await SwapMining.deploy(
-    //     checkPermission,
-    //     lock,
-    //     Ken,
-    //     deployer.address,
-    //     swapRouter.address,
-    //     toWei('1'),
-    //     "11717870",
-    //     "259200"
-    // );
-    // console.log("swapMining:" + swapMining.address);
-    // await swapRouter.setSwapMining(swapMining.address);
+    const Boost = await ethers.getContractFactory("Boost");
+    boost = await Boost.deploy(
+        checkPermission,
+        lock,
+        gaugeFactory,
+        Ken,
+        toWei('1'),
+        parseInt("11730403"),
+        "2592000"
+    );
+    console.log("boost:" + boost.address)
+
+
+    const GaugeController = await ethers.getContractFactory('GaugeController');
+    gaugeController = await GaugeController.deploy(
+        checkPermission,
+        boost.address,
+        lock,
+        "1200");
+
+    console.log("gaugeController:" + gaugeController.address)
+    const SwapRouter = await ethers.getContractFactory('SwapRouter');
+    swapRouter = await SwapRouter.deploy(checkPermission, weth9);
+    console.log("swapRouter:" + swapRouter.address);
+
+    const SwapMining = await ethers.getContractFactory('SwapMining');
+    swapMining = await SwapMining.deploy(
+        checkPermission,
+        lock,
+        Ken,
+        deployer.address,
+        swapRouter.address,
+        toWei('1'),
+        "11730503",
+        "259200"
+    );
+    console.log("swapMining:" + swapMining.address);
+    await swapRouter.setSwapMining(swapMining.address);
 
     const SwapController = await ethers.getContractFactory('SwapController');
     swapController = await SwapController.deploy(
         checkPermission,
-        swapMining,
+        swapMining.address,
         lock,
-        "1200");
+        "300");
 
     console.log("swapController:" + swapController.address)
 
-    //await boost.addController(gaugeController.address);
+    // await boost.addController(gaugeController.address);
     //await swapMining.addController(swapController.address);
     // // await lock.removeBoosts(boost.address)
     // await lock.addBoosts(boost.address);
