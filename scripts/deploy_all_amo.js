@@ -1,15 +1,19 @@
 const {BigNumber} = require("ethers");
-const {time} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
-const {toWei, fromWei, toBN} = web3.utils;
+const {toWei, fromWei, toBN} = require("web3-utils");
+const {time} = require("@openzeppelin/test-helpers");
 const {GetMockToken} = require("../test/Utils/GetMockConfig");
-const {GetCRV, DeployThreePoolByCrvFactory} = require("../test/Tools/Deploy");
 const {GetRusdAndTra, StableCoinPool} = require("../test/Utils/GetStableConfig");
-const {GetUniswap, RouterApprove, SetETHUSDOracle} = require("../test/Utils/GetUniswapConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../test/Tools/Deploy");
+const {
+    GetUniswapByPancakeFactory,
+    AddLiquidityByPancakeRouter,
+    SetETHUSDOracle
+} = require("../test/Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 async function main() {
-    let rusd, tra, checkOpera, usdc, usdt, weth, factory, registry, router;
+    let rusd, tra, checkOpera, usdc, usdt, weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter;
 
     const account = await ethers.getSigners();
     
@@ -25,25 +29,23 @@ async function main() {
     console.log("usdc:\t" + usdc.address);
     console.log("usdt:\t" + usdt.address);
 
-    let stableCoinPool = await StableCoinPool(usdc, toWei("10000000000"));
+    let stableCoinPool = await StableCoinPool(usdc.address, toWei("10000000000"));
     console.log("stableCoinPool:\t" + stableCoinPool.address);
 
-    [weth, factory, registry, , router] = await GetCRV(deployer);
-    let pool = await DeployThreePoolByCrvFactory([rusd, usdc, usdt], {});
+    [weth, pancakeFactory, threePoolFactory, threePool, pancakeRouter] = await DeployThreePoolFactoryAndPancakeFactory(
+        deployer,
+        {value: toWei("300")}
+    );
+    let pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, usdt]);
 
-    // Create transaction pairs
-    await factory.createPair(usdc.address, weth.address);
-    await factory.createPair(rusd.address, weth.address);
-    await factory.createPair(tra.address, weth.address);
-
-    await RouterApprove(usdc, toWei("100000"), [toWei("20000"), toWei("10")], deployer);
-    await RouterApprove(rusd, toWei("100000"), [toWei("20000"), toWei("10")], deployer);
-    await RouterApprove(tra, toWei("100000"), [toWei("20000"), toWei("10")], deployer);
+    await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
+    await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
+    await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
 
     await SetETHUSDOracle(toWei("2000"));
-    let usdcUniswapOracle = await GetUniswap(deployer, stableCoinPool, factory, usdc, weth);
-    let rusdUniswapOracle = await GetUniswap(deployer, stableCoinPool, factory, rusd, weth);
-    let traUniswapOracle = await GetUniswap(deployer, stableCoinPool, factory, tra, weth);
+    let usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
+    let rusdUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
+    let traUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     console.log("usdcUniswapOracle:\t" + usdcUniswapOracle.address);
     console.log("rusdUniswapOracle:\t" + rusdUniswapOracle.address);
     console.log("traUniswapOracle:\t" + traUniswapOracle.address);
@@ -91,7 +93,7 @@ async function main() {
     expect(cr).to.be.eq(toWei("1", "mwei"));
 
     let _deadline = new Date().getTime() + 1000;
-    await router.swapExactTokensForTokens(
+    await pancakeRouter.swapExactTokensForTokens(
         toWei('0.1'),
         0,
         [weth.address, rusd.address],

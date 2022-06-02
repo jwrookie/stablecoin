@@ -32,7 +32,7 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
 
     for (let i = 0; i < coinLiquidity.length; i++) {
         if ("number" === typeof coinLiquidity[i] || "string" === typeof coinLiquidity[i]) {
-            if (undefined !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
+            if (undefined !== coinLiquidity[i] && "" !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
                 switch (i) {
                     case 0:
                         parameterObj.set("tokenANumber", coinLiquidity[i]);
@@ -51,9 +51,13 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
         }
     }
 
+    if (approveNumber < parameterObj.get("tokenANumber") || approveNumber < parameterObj.get("tokenBNumber")) {
+        throw Error("AddLiquidityByPancakeRouter: Transaction will be fail!");
+    }
+
     await pancakeFactory.createPair(pairOfCoin[0].address, pairOfCoin[1].address);
-    await pairOfCoin[0].approve(pancakeRouter.address, parameterObj.get("tokenANumber"));
-    await pairOfCoin[1].approve(pancakeRouter.address, parameterObj.get("tokenBNumber"));
+    await pairOfCoin[0].approve(pancakeRouter.address, approveNumber);
+    await pairOfCoin[1].approve(pancakeRouter.address, approveNumber);
     await SetAddLiquidity(
         pancakeRouter,
         pairOfCoin[0],
@@ -67,6 +71,7 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
     );
 }
 
+// Constants for various precisions
 const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
     let tempMap = await GetMap();
     let chainlinkETHUSDPriceConsumer;

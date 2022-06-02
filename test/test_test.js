@@ -26,7 +26,7 @@ contract("test", async function () {
             {value: toWei("300")}
         );
         // Create token pair
-        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc, rusd, token1]);
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd, usdc, token1]);
 
         await AddLiquidityByPancakeRouter(pancakeFactory, [usdc, weth], pancakeRouter, toWei("1000"), [, toWei("1")], owner);
         await AddLiquidityByPancakeRouter(pancakeFactory, [rusd, weth], pancakeRouter, toWei("1000"), [toWei("0.000001")], owner);
@@ -46,7 +46,6 @@ contract("test", async function () {
         console.log(token1.address);
         console.log(stableCoinPool.address);
         console.log(stableCoinPoolSecond.address);
-        console.log("ThreeStableCoinPool:\t" + stableCoinPoolThird.address);
         console.log(pancakeFactory.address);
         console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
         console.log("fraxUniswap:\t" + fraxUniswapOracle.address);

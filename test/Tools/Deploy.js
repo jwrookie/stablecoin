@@ -25,7 +25,7 @@ const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {valu
         threePoolFactoryMap.get("pancakeFactory"),
         threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
         threePoolFactoryMap.get("plain3Balances"),
-        threePoolFactoryMap.get("router")
+        threePoolFactoryMap.get("pancakeRouter")
     );
 
     return resultArray;
