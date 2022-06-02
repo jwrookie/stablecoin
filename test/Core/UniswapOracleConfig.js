@@ -35,32 +35,31 @@ const SetAddLiquidity = async (pancakeRouter, tokenA, tokenB, tokenANumber, toke
     );
 }
 
-const SetUniswapPairOracle = async (pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
+const SetUniswapPairOracle = async (pancakeFactoryAddress, tokenAAddress, tokenBAddress) => {
     const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
     return await UniswapPairOracle.deploy(
-
         pancakeFactoryAddress,
         tokenAAddress,
         tokenBAddress,
     );
 }
 
-const SetUniswapOracle = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock) => {
+const SetUniswapOracle = async (stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress) => {
     let GraphicMap = await GetMap();
     let uniswapOracle;
 
     switch (tokenAAddress) {
         case GraphicMap.get("USDC").address:
-            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             await SetCollatETHOracle(stableCoinPool, uniswapOracle, tokenBAddress);
             break;
         case GraphicMap.get("RUSD").address:
-            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             await SetStableEthOracle(GraphicMap.get("RUSD"), uniswapOracle, tokenBAddress);
             expect(await GraphicMap.get("RUSD").stableEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;
         case GraphicMap.get("TRA").address:
-            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress, timeLock);
+            uniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, tokenAAddress, tokenBAddress);
             await SetStockEthOracle(GraphicMap.get("RUSD"), uniswapOracle, tokenBAddress);
             expect(await GraphicMap.get("RUSD").stockEthOracleAddress()).to.be.eq(uniswapOracle.address);
             break;

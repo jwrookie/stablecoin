@@ -17,7 +17,7 @@ const GetPancakeAndThreePoolMap = async () => {
 const PanCakeFactoryAndThreeFactoryConfig = async (user) => {
     let weth;
     let pancakeFactory;
-    let router;
+    let pancakeRouter;
     let registry;
     let poolRegistry;
     let poolOfThreeCoinsFactory;
@@ -30,7 +30,7 @@ const PanCakeFactoryAndThreeFactoryConfig = async (user) => {
     try {
         weth = await Weth(user);
         pancakeFactory = await PancakeFactory(user);
-        router = await Router(user, pancakeFactory, weth);
+        pancakeRouter = await Router(user, pancakeFactory, weth);
         registry = await Registry(user);
         poolRegistry = await PoolRegistry(user, registry);
         poolOfThreeCoinsFactory = await PoolOfThreeCoinsFactory(user, registry);
@@ -41,7 +41,7 @@ const PanCakeFactoryAndThreeFactoryConfig = async (user) => {
 
     GraphicPancakeAndThreePoolTokenMap.set("weth", weth);
     GraphicPancakeAndThreePoolTokenMap.set("pancakeFactory", pancakeFactory);
-    GraphicPancakeAndThreePoolTokenMap.set("router", router);
+    GraphicPancakeAndThreePoolTokenMap.set("pancakeRouter", pancakeRouter);
     GraphicPancakeAndThreePoolTokenMap.set("registry", registry);
     GraphicPancakeAndThreePoolTokenMap.set("poolRegistry", poolRegistry);
     GraphicPancakeAndThreePoolTokenMap.set("poolOfThreeCoinsFactory", poolOfThreeCoinsFactory);
