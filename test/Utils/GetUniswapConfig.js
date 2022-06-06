@@ -1,21 +1,17 @@
-const {SetTimeLock, SetAddLiquidity} = require("../Core/UniswapOracleConfig");
+const {SetAddLiquidity} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
 const {DeployUniswapByPancakeFactory} = require("../Factory/UniswapPairOracleFactory");
-const {CheckParameter} = require("../Tools/Check");
 const {GetMap} = require("../Factory/StableAndMockFactory");
+const {CheckParameter} = require("../Tools/Check");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
-const GetUniswapByPancakeFactory = async (userAddress, stableCoinPool, pancakeFactoryAddress, pariOfCoins = []) => {
+const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, pairOfCoins = []) => {
     let tempUniswapOracle;
 
-    if (!await CheckParameter([userAddress])) {
-        throw Error("Exist Invalid Parameters!");
-    }
+    await CheckParameter([stableCoinPool, pairOfCoins[0], pairOfCoins[1]]);
 
-    let tempTimeLock = await SetTimeLock(userAddress);
-
-    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pariOfCoins[0], pariOfCoins[1], tempTimeLock);
+    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pairOfCoins[0], pairOfCoins[1]);
     return tempUniswapOracle;
 }
 
@@ -36,7 +32,7 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
 
     for (let i = 0; i < coinLiquidity.length; i++) {
         if ("number" === typeof coinLiquidity[i] || "string" === typeof coinLiquidity[i]) {
-            if (undefined !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
+            if (undefined !== coinLiquidity[i] && "" !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
                 switch (i) {
                     case 0:
                         parameterObj.set("tokenANumber", coinLiquidity[i]);
@@ -55,9 +51,13 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
         }
     }
 
+    if (approveNumber < parameterObj.get("tokenANumber") || approveNumber < parameterObj.get("tokenBNumber")) {
+        throw Error("AddLiquidityByPancakeRouter: Transaction will be fail!");
+    }
+
     await pancakeFactory.createPair(pairOfCoin[0].address, pairOfCoin[1].address);
-    await pairOfCoin[0].approve(pancakeRouter.address, parameterObj.get("tokenANumber"));
-    await pairOfCoin[1].approve(pancakeRouter.address, parameterObj.get("tokenBNumber"));
+    await pairOfCoin[0].approve(pancakeRouter.address, approveNumber);
+    await pairOfCoin[1].approve(pancakeRouter.address, approveNumber);
     await SetAddLiquidity(
         pancakeRouter,
         pairOfCoin[0],
@@ -71,9 +71,14 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
     );
 }
 
-const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
+// Constants for various precisions
+const SetETHUSDOracle = async (stableCoinObject, setAnswerValue = toWei("1")) => {
     let tempMap = await GetMap();
     let chainlinkETHUSDPriceConsumer;
+
+    if ("object" !== typeof stableCoinObject || "{}" === JSON.stringify(stableCoinObject)) {
+        throw Error("SetETHUSDOracle: Need stable coin object to set oracle!");
+    }
 
     switch (typeof setAnswerValue) {
         case "number":
@@ -90,7 +95,7 @@ const SetETHUSDOracle = async (setAnswerValue = toWei("1")) => {
         throw Error("Need to set rusd first!");
     }
 
-    await tempMap.get("RUSD").setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
+    await stableCoinObject.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
 }
 
 module.exports = {

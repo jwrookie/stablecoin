@@ -33,7 +33,7 @@ contract('pool mint test', () => {
         const Timelock = await ethers.getContractFactory('Timelock');
         timelock = await Timelock.deploy(owner.address, "259200");
 
-        Operatable = await ethers.getContractFactory("Operatable");
+        const Operatable = await ethers.getContractFactory("Operatable");
         operatable = await Operatable.deploy();
         const CheckPermission = await ethers.getContractFactory("CheckPermission");
         checkPermission = await CheckPermission.deploy(operatable.address);
@@ -160,7 +160,11 @@ contract('pool mint test', () => {
         await frax.setStockEthOracle(fxs_uniswapOracle.address, weth.address);
         expect(await frax.stockEthOracleAddress()).to.be.eq(fxs_uniswapOracle.address);
 
+        expect(await fxs.stablePoolAddressCount()).to.be.eq(0);
         await fxs.addPool(pool.address);
+
+        expect(await fxs.getPoolAddress(0)).to.be.eq(pool.address);
+        expect(await fxs.stablePoolAddressCount()).to.be.eq(1);
 
     });
     it('test mint1t1Stable and redeem1t1Stable  ', async () => {
@@ -274,5 +278,45 @@ contract('pool mint test', () => {
 
 
     });
+    it('test addAMOMinter and removeAMOMinter', async () => {
+        const AMOMinter = await ethers.getContractFactory('AMOMinter');
+        amoMinter = await AMOMinter.deploy(
+            checkPermission.address,
+            frax.address,
+            fxs.address,
+            usdc.address,
+            pool.address
+        );
+        expect(await pool.amoMinterAddresses(amoMinter.address)).to.be.eq(false);
+        await pool.addAMOMinter(amoMinter.address);
+        expect(await pool.amoMinterAddresses(amoMinter.address)).to.be.eq(true);
+
+        await pool.removeAMOMinter(amoMinter.address);
+        expect(await pool.amoMinterAddresses(amoMinter.address)).to.be.eq(false);
+
+
+    });
+    it('test addPool and removePool', async () => {
+        expect(await fxs.isPools(pool.address)).to.be.eq(true);
+        expect(await fxs.getPoolAddress(0)).to.be.eq(pool.address);
+        expect(await fxs.stablePoolAddressCount()).to.be.eq(1);
+        await fxs.removePool(pool.address);
+
+        expect(await fxs.stablePoolAddressCount()).to.be.eq(0);
+        expect(await fxs.isPools(pool.address)).to.be.eq(false);
+
+
+    });
+    it('test fxs setOracle', async () => {
+        expect(await fxs.oracle()).to.be.eq(oracle.address);
+
+        const TestOracle = await ethers.getContractFactory('TestOracle');
+        newOracle = await TestOracle.deploy();
+        await fxs.setOracle(newOracle.address)
+        expect(await fxs.oracle()).to.be.eq(newOracle.address);
+
+
+    });
+
 
 });

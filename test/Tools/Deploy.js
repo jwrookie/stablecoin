@@ -25,7 +25,7 @@ const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {valu
         threePoolFactoryMap.get("pancakeFactory"),
         threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
         threePoolFactoryMap.get("plain3Balances"),
-        threePoolFactoryMap.get("router")
+        threePoolFactoryMap.get("pancakeRouter")
     );
 
     return resultArray;
@@ -41,6 +41,12 @@ const DeployThreePoolByThreePoolFactory = async (poolOfThreeCoinsFactory, poolOf
     }
 
     await SetPlainImplementations(poolOfThreeCoinsFactory, 3, [poolOfThreeCoins.address]);
+
+    for (let coin in coinInThreePool) {
+        if ("string" !== typeof coinInThreePool[coin]) {
+            throw Error("DeployThreePoolByThreePoolFactory: Invalid token address!");
+        }
+    }
 
     await SetThreePoolsByThreePoolFactory(
         poolOfThreeCoinsFactory,
