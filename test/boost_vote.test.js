@@ -221,6 +221,8 @@ contract('Boost_vote', () => {
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
 
         await boost.connect(dev).reset(1);
+        let addresses =  await boost.getPoolVote(1);
+        expect(addresses).to.be.empty;
 
         await gaugeController.connect(dev).vote(1, usdc.address);
 
