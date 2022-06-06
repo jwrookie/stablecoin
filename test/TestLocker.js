@@ -331,7 +331,7 @@ contract('Locker', async () => {
 
         let lockBlock = await time.latestBlock();
         console.log("lockBlock:" + lockBlock)
-        let atNFT = await lock.balanceOfAtNFT(1, 155)
+        let atNFT = await lock.balanceOfAtNFT(1, parseInt(lockBlock));
 
         console.log("atNFT:" + atNFT)
     })
