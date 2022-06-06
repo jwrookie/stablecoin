@@ -14,7 +14,7 @@ const setup = async () => {
         RStablecoin: await ethers.getContractFactory('RStablecoin'),
         PoolLibrary: await ethers.getContractFactory("PoolLibrary"),
         ChainlinkETHUSDPriceConsumer: await ethers.getContractFactory('ChainlinkETHUSDPriceConsumer'),
-        ChainlinkFXSUSDPriceConsumer: await ethers.getContractFactory('ChainlinkFXSUSDPriceConsumer'),
+        ChainlinkETHUSDPriceConsumer: await ethers.getContractFactory('ChainlinkETHUSDPriceConsumer'),
         UniswapPairOracle: await ethers.getContractFactory('UniswapPairOracle'),
         UniswapPairOracleStable: await ethers.getContractFactory('UniswapPairOracleStable'),
         TestOracle: await ethers.getContractFactory('TestOracle'),
