@@ -1,5 +1,12 @@
 const {ethers, waffle} = require("hardhat");
+const {expectRevert, time} = require('@openzeppelin/test-helpers');
+
 const {expect} = require("chai");
+
+function encodeParameters(types, values) {
+    const abi = new ethers.utils.AbiCoder();
+    return abi.encode(types, values);
+}
 contract('Operatable', () => {
     beforeEach(async () => {
 
@@ -43,7 +50,6 @@ contract('Operatable', () => {
         expect(await operatable.check(owner.address)).to.be.eq(true);
         await operatable.removeContract(owner.address);
 
-
         expect(await operatable.contractWhiteList(owner.address)).to.be.eq(false);
 
 
@@ -67,8 +73,12 @@ contract('Operatable', () => {
         fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
 
         expect(await fxs.paused()).to.be.eq(false);
+
         await fxs.togglePause();
         expect(await fxs.paused()).to.be.eq(true);
+
+        await fxs.togglePause();
+        expect(await fxs.paused()).to.be.eq(false);
 
 
     });

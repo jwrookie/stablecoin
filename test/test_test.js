@@ -39,16 +39,16 @@ contract("test", async function () {
         fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     });
     it('should ', async function () {
-        console.log(rusd.address);
-        console.log(tra.address);
-        console.log(usdc.address);
-        console.log(token0.address);
-        console.log(token1.address);
-        console.log(stableCoinPool.address);
-        console.log(stableCoinPoolSecond.address);
-        console.log(pancakeFactory.address);
-        console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
-        console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
-        console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
+        // console.log(rusd.address);
+        // console.log(tra.address);
+        // console.log(usdc.address);
+        // console.log(token0.address);
+        // console.log(token1.address);
+        // console.log(stableCoinPool.address);
+        // console.log(stableCoinPoolSecond.address);
+        // console.log(pancakeFactory.address);
+        // console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
+        // console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
+        // console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
     });
 });

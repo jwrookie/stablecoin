@@ -106,7 +106,20 @@ contract('Timelock', () => {
 
 
     });
-
+    it("test setPendingAdmin", async () => {
+        let eta = (await time.latest()).add(time.duration.days(4));
+        await timelock.connect(bob).queueTransaction(
+            timelock.address, '0', 'setPendingAdmin(address)',
+            encodeParameters(['address'],
+                [bob.address]), parseInt(eta)
+        );
+        await time.increase(time.duration.days(4));
+        await timelock.connect(bob).executeTransaction(
+            timelock.address, '0', 'setPendingAdmin(address)',
+            encodeParameters(['address'],
+                [bob.address]), parseInt(eta)
+        );
+    })
 
 
 });
