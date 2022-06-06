@@ -324,17 +324,17 @@ contract('Locker', async () => {
         isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
         expect(isApproved).to.be.eq(true);
     })
-    // it("test balanceOfAtNFT", async () => {
-    //      await token0.approve(lock.address, toWei('10000'))
-    //     let eta = time.duration.days(7);
-    //     await lock.createLock(toWei('0.1'), parseInt(eta));
-    //
-    //     let lockBlock = await time.latestBlock();
-    //     console.log("lockBlock:" + lockBlock)
-    //     let atNFT = await lock.balanceOfAtNFT(1, 155)
-    //
-    //     console.log("atNFT:" + atNFT)
-    // })
+    it("test balanceOfAtNFT", async () => {
+         await token0.approve(lock.address, toWei('10000'))
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('0.1'), parseInt(eta));
+
+        let lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+        let atNFT = await lock.balanceOfAtNFT(1, parseInt(lockBlock));
+
+        console.log("atNFT:" + atNFT)
+    })
     it("test totalSupply", async () => {
 
         let lockBlock = await time.latestBlock();
