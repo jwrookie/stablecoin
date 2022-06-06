@@ -66,6 +66,7 @@ contract('pool mint test', () => {
 
         const ChainlinkETHUSDPriceConsumer = await ethers.getContractFactory("ChainlinkETHUSDPriceConsumer");
         chainlinkETHUSDPriceConsumer = await ChainlinkETHUSDPriceConsumer.deploy(chainLink.address);
+        expect(await chainlinkETHUSDPriceConsumer.getDecimals()).to.be.eq(18);
         await frax.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
 
         await chainLink.setAnswer(toWei('100'));

@@ -59,6 +59,19 @@ contract('Operatable', () => {
 
 
     });
+    it("test togglePause", async () => {
+        const TestOracle = await ethers.getContractFactory('TestOracle');
+        oracle = await TestOracle.deploy();
+
+        const FRAXShares = await ethers.getContractFactory('Stock');
+        fxs = await FRAXShares.deploy(checkPermission.address, "fxs", "fxs", oracle.address);
+
+        expect(await fxs.paused()).to.be.eq(false);
+        await fxs.togglePause();
+        expect(await fxs.paused()).to.be.eq(true);
+
+
+    });
 
 
 });
