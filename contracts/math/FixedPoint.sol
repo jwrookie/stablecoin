@@ -68,8 +68,4 @@ library FixedPoint {
         return Uq112x112(uint224(_Q224 / self._x));
     }
 
-    // square root of a UQ112x112
-    function sqrt(Uq112x112 memory self) internal pure returns (Uq112x112 memory) {
-        return Uq112x112(uint224(Math.sqrt(uint256(self._x)) << 56));
-    }
 }
