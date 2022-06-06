@@ -74,14 +74,10 @@ contract SwapRouter is CheckPermission {
                 uint256[2] memory amounts;
                 amounts[i] = amount;
                 quantity = ICryptoPool(pair).calc_token_amount(amounts);
-            } else if (n == 3) {
+            } else {
                 uint256[3] memory amounts;
                 amounts[i] = amount;
                 quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
-            } else {
-                uint256[4] memory amounts;
-                amounts[i] = amount;
-                quantity = ICryptoPool(pair).calc_token_amount(amounts);
             }
             ISwapMining(swapMining).swap(account, pair, quantity);
         }
