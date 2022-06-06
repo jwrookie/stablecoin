@@ -279,4 +279,91 @@ contract('Locker', async () => {
         result = await lock.tokenURI(1);
         decode = await lock.toString(result);
     });
+    it('test isApprovedForAll', async function () {
+
+        let isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
+        expect(isApproved).to.be.eq(false)
+    });
+    it('test transferFrom', async function () {
+        await token0.approve(lock.address, toWei('10000'))
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1'), parseInt(eta));
+
+        await lock.transferFrom(owner.address, seObject.address, 1);
+        // expect(isApproved).to.be.eq(false)
+    });
+    it('test addBoosts and removeBoosts ', async function () {
+        expect(await lock.boosts(owner.address)).to.be.eq(false)
+        await lock.addBoosts(owner.address)
+
+        expect(await lock.boosts(owner.address)).to.be.eq(true)
+
+        await lock.removeBoosts(owner.address)
+        expect(await lock.boosts(owner.address)).to.be.eq(false)
+
+    });
+    it("test merge", async () => {
+
+        await token0.approve(lock.address, toWei('10000'))
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('0.1'), parseInt(eta));
+        await token0.transfer(seObject.address, toWei('0.5'))
+        await token0.connect(seObject).approve(lock.address, toWei('10000'))
+        await lock.connect(seObject).createLock(toWei('0.1'), parseInt(eta));
+
+        await lock.isApprovedOrOwner(seObject.address, 1)
+        await lock.connect(seObject).isApprovedOrOwner(owner.address, 2)
+        //await lock.merge(owner.address,seObject.address)
+    })
+    it("test setApprovalForAll", async () => {
+
+        await lock.setApprovalForAll(seObject.address, true);
+
+        let isApproved = await lock.isApprovedForAll(owner.address, owner.address);
+        expect(isApproved).to.be.eq(false);
+        isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
+        expect(isApproved).to.be.eq(true);
+    })
+    it("test balanceOfAtNFT", async () => {
+         await token0.approve(lock.address, toWei('10000'))
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('0.1'), parseInt(eta));
+
+        let lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+        let atNFT = await lock.balanceOfAtNFT(1, 155)
+
+        console.log("atNFT:" + atNFT)
+    })
+    it("test totalSupply", async () => {
+
+        let lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+
+        expect(await lock.totalSupply()).to.be.eq(0)
+
+        await token0.approve(lock.address, toWei('10000'))
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('0.1'), parseInt(eta));
+        console.log("totalSupply:" + await lock.totalSupply());
+
+    })
+    it("test totalSupplyAt", async () => {
+
+        let lockBlock = await time.latestBlock();
+        console.log("lockBlock:" + lockBlock)
+
+        //  expect(await lock.totalSupply()).to.be.eq(0)
+
+        // await token0.approve(lock.address, toWei('10000'))
+        // let eta = time.duration.days(7);
+        // await lock.createLock(toWei('0.1'), parseInt(eta));
+        //   expect(await lock.totalSupply()).to.be.eq("449987315745968")
+
+
+        let supplyAt = await lock.totalSupplyAt(5);
+        expect(supplyAt).to.be.eq(0);
+    })
+
+
 });
