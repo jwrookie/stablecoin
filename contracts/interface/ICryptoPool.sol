@@ -34,9 +34,19 @@ interface ICryptoPool {
         address receiver
     ) external payable returns (uint256);
 
+    function exchange(
+        uint256 from,
+        uint256 to,
+        uint256 _from_amount,
+        uint256 _min_to_amount,
+        bool use_eth
+    ) external payable;
+
     function calc_token_amount(uint256[2] calldata amounts) external returns (uint256);
 
     function calc_token_amount(uint256[3] calldata amounts) external returns (uint256);
+
+    function calc_token_amount(uint256[3] calldata amounts, bool deposit) external returns (uint256);
 
     function calc_token_amount(uint256[4] calldata amounts) external returns (uint256);
 }
