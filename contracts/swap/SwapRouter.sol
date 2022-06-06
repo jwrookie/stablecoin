@@ -181,13 +181,11 @@ contract SwapRouter is CheckPermission {
         uint256 deadline
     ) external ensure(deadline) {
         address fromToken = ICryptoPool(pool).coins(from);
-        //        address toToken = IStablePool(pool).coins(to);
         if (IERC20(fromToken).allowance(address(this), pool) < fromAmount) {
             TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
         }
         TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), fromAmount);
         ICryptoPool(pool).exchange(from, to, fromAmount, minToAmount, false);
-//        _callStableSwapMining(receiver, pool, from, fromAmount);
         _callCryptoSwapMining(receiver, pool, from, fromAmount);
     }
 
