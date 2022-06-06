@@ -318,6 +318,59 @@ contract('pool mint test', () => {
 
 
     });
+    it("fxs mint upper limit", async () => {
+        await fxs.addPool(owner.address)
+        expect(await fxs.MAX_SUPPLY()).to.be.eq(toWei('1000000000'));
+        expect(await fxs.totalSupply()).to.be.eq(toWei('300000000'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999999'));
+
+        //amount.add(totalSupply()) > MAX_SUPPLY
+        await fxs.mint(owner.address, toWei('1000000000000'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999999'));
+        expect(await fxs.totalSupply()).to.be.eq(toWei('300000000'));
+
+        //amount.add(totalSupply()) > MAX_SUPPLY
+        await fxs.poolMint(owner.address, toWei('1000000000000'));
+        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999999'));
+
+        expect(await fxs.totalSupply()).to.be.eq(toWei('300000000'));
+
+    });
+    it("test poolBurn and removePool", async () => {
+        let bef = await frax.balanceOf(owner.address);
+        await frax.addPool(owner.address);
+        await frax.poolBurn(owner.address, toWei('10000'));
+        let aft = await frax.balanceOf(owner.address);
+
+        expect(aft).to.be.eq(bef.sub(toWei('10000')));
+
+        expect(await frax.stablePoolAddressCount()).to.be.eq(2);
+        await frax.removePool(owner.address);
+        expect(await frax.stablePoolAddressCount()).to.be.eq(1);
+
+    });
+    it("test setKAndKDuration", async () => {
+        console.log("k:" + await frax.k())
+        console.log("kDuration:" + await frax.kDuration())
+
+        console.log("maxCR:" + await frax.maxCR())
+        await frax.setKAndKDuration("10000", toWei('20000000'))
+        console.log("k:" + await frax.k())
+        console.log("maxCR:" + await frax.maxCR())
+        console.log("kDuration:" + await frax.kDuration())
+        console.log("lastQX:" + await frax.lastQX())
+        await usdc_uniswapOracle.setPeriod(1);
+        await usdc_uniswapOracle.update();
+        await frax_uniswapOracle.setPeriod(1);
+        await frax_uniswapOracle.update();
+        await fxs_uniswapOracle.setPeriod(1);
+        await fxs_uniswapOracle.update();
+        await frax.refreshCollateralRatio()
+        console.log("maxCR:" + await frax.maxCR())
+        console.log("lastQX:" + await frax.lastQX())
+
+
+    });
 
 
 });

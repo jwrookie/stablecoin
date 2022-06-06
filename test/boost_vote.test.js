@@ -225,6 +225,30 @@ contract('Boost_vote', () => {
         await gaugeController.connect(dev).vote(1, usdc.address);
 
     });
+    it("correct voting mode", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
+
+        await expect(gaugeController.poke(2, usdc.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await gaugeController.poke(1, usdc.address);
+
+        await expect(gaugeController.connect(dev).poke(1, usdc.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await gaugeController.connect(dev).poke(2, usdc.address);
+
+    });
+     it("correct voting mode", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
+
+        await expect(gaugeController.poke(2, usdc.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await gaugeController.poke(1, usdc.address);
+
+        await expect(gaugeController.connect(dev).poke(1, usdc.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await gaugeController.connect(dev).poke(2, usdc.address);
+
+    });
 
 
 });
