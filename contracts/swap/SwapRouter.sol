@@ -77,7 +77,7 @@ contract SwapRouter is CheckPermission {
             } else if (n == 3) {
                 uint256[3] memory amounts;
                 amounts[i] = amount;
-                quantity = ICryptoPool(pair).calc_token_amount(amounts);
+                quantity = ICryptoPool(pair).calc_token_amount(amounts, false);
             } else {
                 uint256[4] memory amounts;
                 amounts[i] = amount;
@@ -168,6 +168,26 @@ contract SwapRouter is CheckPermission {
         }
         TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), fromAmount);
         ICryptoPool(pool).exchange(from, to, fromAmount, minToAmount, false, receiver);
+        _callCryptoSwapMining(receiver, pool, from, fromAmount);
+    }
+
+    function swapToken3(
+        address pool,
+        uint256 from,
+        uint256 to,
+        uint256 fromAmount,
+        uint256 minToAmount,
+        address receiver,
+        uint256 deadline
+    ) external ensure(deadline) {
+        address fromToken = ICryptoPool(pool).coins(from);
+        //        address toToken = IStablePool(pool).coins(to);
+        if (IERC20(fromToken).allowance(address(this), pool) < fromAmount) {
+            TransferHelper.safeApprove(fromToken, pool, type(uint256).max);
+        }
+        TransferHelper.safeTransferFrom(fromToken, msg.sender, address(this), fromAmount);
+        ICryptoPool(pool).exchange(from, to, fromAmount, minToAmount, false);
+//        _callStableSwapMining(receiver, pool, from, fromAmount);
         _callCryptoSwapMining(receiver, pool, from, fromAmount);
     }
 

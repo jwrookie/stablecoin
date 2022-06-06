@@ -2,6 +2,8 @@ const CRVFactory = require('./mock/mockPool/factory.json');
 const FactoryAbi = require('./mock/mockPool/factory_abi.json');
 const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
 const PoolAbi = require('./mock/mockPool/3pool_abi.json');
+const Plain4Balances = require('./mock/mockPool/Plain4Balances.json');
+const Plain4BalancesAbi = require('./mock/mockPool/4pool_abi.json');
 const Registry = require("./mock/mockPool/Registry.json");
 const PoolRegistry = require("./mock/mockPool/PoolRegistry.json");
 const MetaPool = require('./mock/mockPool/MetaUSDBalances.json');
@@ -57,14 +59,21 @@ contract('plainPool', () => {
         await token0.mint(owner.address, toWei("10000"));
         await token1.mint(owner.address, toWei("10000"));
         await token2.mint(owner.address, toWei("10000"));
+        await token3.mint(owner.address, toWei("10000"));
 
         await token0.mint(dev.address, toWei("1000000"));
         await token1.mint(dev.address, toWei("10000000"));
         await token2.mint(dev.address, toWei("10000000"));
+        await token3.mint(dev.address, toWei("10000000"));
 
         plain3Balances = await deployContract(owner, {
             bytecode: Plain3Balances.bytecode,
             abi: PoolAbi.abi
+        });
+
+        plain4Balances = await deployContract(owner, {
+            bytecode: Plain4Balances.bytecode,
+            abi: Plain4BalancesAbi.abi
         })
 
         registry = await deployContract(owner, {
@@ -98,6 +107,19 @@ contract('plainPool', () => {
                 zeroAddr,
                 zeroAddr]);
 
+        await crvFactory.set_plain_implementations(4,
+            [
+                plain4Balances.address,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr,
+                zeroAddr]);
+
 
         // create  token0 token1 token2
         await crvFactory.deploy_plain_pool(
@@ -117,8 +139,17 @@ contract('plainPool', () => {
 
         poolAddress1 = await crvFactory.pool_list(1, gas);
 
+        await crvFactory.deploy_plain_pool(
+            "4pool",
+            "4pool",
+            [token0.address, token1.address, token2.address, token3.address],
+            "2000",
+            "4000000", 0, 0, gas);
+        poolAddress2 = await crvFactory.pool_list(2, gas);
+
         pool = await plain3Balances.attach(poolAddress);
         pool1 = await plain3Balances.attach(poolAddress1);
+        pool4 = await plain4Balances.attach(poolAddress2);
 
         await token0.approve(pool.address, toWei("10000"));
         await token1.approve(pool.address, toWei("10000"));
@@ -126,9 +157,14 @@ contract('plainPool', () => {
         await token0.approve(pool1.address, toWei("10000"));
         await token1.approve(pool1.address, toWei("10000"));
         await token2.approve(pool1.address, toWei("10000"));
+        await token0.approve(pool4.address, toWei("10000"));
+        await token1.approve(pool4.address, toWei("10000"));
+        await token2.approve(pool4.address, toWei("10000"));
+        await token3.approve(pool4.address, toWei("10000"));
 
         await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas);
-        await pool1.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
+        await pool1.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas);
+        await pool4.add_liquidity([toWei('100'), toWei('100'), toWei('100'), toWei('100')], 0, gas);
 
         // await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
         let lastBlock = await time.latestBlock();
@@ -146,7 +182,8 @@ contract('plainPool', () => {
 
         await swapRouter.setSwapMining(swapMining.address);
         await swapMining.addPair(100, pool.address, true);
-        await swapMining.addPair(200, pool1.address, true)
+        await swapMining.addPair(200, pool1.address, true);
+        await swapMining.addPair(100, pool4.address, true);
 
         await lock.addBoosts(swapMining.address);
         await fxs.connect(dev).approve(lock.address, toWei('10000'));
@@ -166,6 +203,7 @@ contract('plainPool', () => {
 
         await swapController.addPool(pool.address);
         await swapController.addPool(pool1.address);
+        await swapController.addPool(pool4.address);
 
 
     });
@@ -183,10 +221,27 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0)
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000245000000000002999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000196875000000003999");
 
 
     });
+    it('test 4pool swapStable have reward', async () => {
+        await token0.approve(swapRouter.address, toWei('10000'));
+        await token1.approve(swapRouter.address, toWei('10000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+
+        let dx = "1000000";
+
+        //token0 -> token1
+        await swapRouter.swapStable(pool4.address, 0, 3, dx, 0, owner.address, times);
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000000000000000000000");
+
+        await swapMining.getReward(0)
+
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000000000000000000000");
+    });
+
     it('test the acceleration without swapMining', async () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
@@ -203,7 +258,7 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990262500000000002999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990210000000000003999");
 
 
     });
@@ -226,7 +281,7 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990280000000000002999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990223125000000003999");
 
 
     });
@@ -252,8 +307,8 @@ contract('plainPool', () => {
         await swapMining.connect(dev).getReward(0);
         await swapMining.connect(owner).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000148750000000001499");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000166250000000001499");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000118125000000001999");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299990000131250000000002000");
 
 
     });
@@ -286,8 +341,8 @@ contract('plainPool', () => {
         await swapMining.connect(dev).getReward(0);
         await swapMining.connect(owner).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990183750000000001499");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990201250000000001499");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990144375000000001999");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990157500000000002000");
 
 
     });
@@ -368,8 +423,8 @@ contract('plainPool', () => {
         await swapMining.connect(dev).getReward(0);
         await swapMining.getReward(1);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990367500000000002999");
-        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990769999999999999999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990288750000000003999");
+        expect(await fxs.balanceOf(owner.address)).to.be.eq("299989990603750000000001999");
 
     });
     it("query the rewards before acceleration of a single pool", async () => {
@@ -397,7 +452,7 @@ contract('plainPool', () => {
         let aftReward = await fxs.balanceOf(dev.address);
 
         let diffReward = aftReward.sub(befReward);
-        expect(diffReward).to.be.eq("262500000000002999");
+        expect(diffReward).to.be.eq("210000000000003999");
 
 
     });
@@ -434,7 +489,7 @@ contract('plainPool', () => {
         let aftReward = await fxs.balanceOf(dev.address);
 
         let diffReward = aftReward.sub(befReward);
-        expect(diffReward).to.be.eq("297500000000002999");
+        expect(diffReward).to.be.eq("236250000000003999");
 
     });
     it("query the changes of rewards with different weights in multiple pools", async () => {
@@ -447,18 +502,18 @@ contract('plainPool', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let infoMaxPool = await swapMining.rewardPoolInfoMax(0, dev.address);
-        expect(infoMaxPool).to.be.eq("758333333333343333");
+        expect(infoMaxPool).to.be.eq("612500000000013333");
 
         let befReward = await fxs.balanceOf(dev.address);
         await swapMining.connect(dev).getReward(0);
         let aftReward = await fxs.balanceOf(dev.address);
         let diffPool = aftReward.sub(befReward);
-        expect(diffPool).to.be.eq("245000000000002999");
+        expect(diffPool).to.be.eq("196875000000003999");
 
         await swapRouter.connect(dev).swapStable(pool1.address, 0, 1, dx, 0, dev.address, times);
 
         let infoMaxPool1 = await swapMining.rewardPoolInfoMax(1, dev.address);
-        expect(infoMaxPool1).to.be.eq("1750000000000000000");
+        expect(infoMaxPool1).to.be.eq("1400000000000006666");
 
         let bef1Reward = await fxs.balanceOf(dev.address);
 
@@ -466,7 +521,7 @@ contract('plainPool', () => {
         let aft1Reward = await fxs.balanceOf(dev.address);
 
         let diffPool1 = aft1Reward.sub(bef1Reward);
-        expect(diffPool1).to.be.eq("559999999999999999");
+        expect(diffPool1).to.be.eq("446250000000001999");
 
 
     });
@@ -481,15 +536,15 @@ contract('plainPool', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let poolReward = await swapMining.rewardPoolInfo(0, dev.address);
-        expect(poolReward).to.be.eq("227500000000002999");
+        expect(poolReward).to.be.eq("183750000000003999");
         await swapRouter.connect(dev).swapStable(pool1.address, 0, 1, dx, 0, dev.address, times);
 
         let pool1Reward = await swapMining.rewardPoolInfo(1, dev.address);
-        expect(pool1Reward).to.be.eq("489999999999999999");
+        expect(pool1Reward).to.be.eq("393750000000001999");
         expect(await fxs.balanceOf(dev.address)).to.be.eq("10000000000000000000000");
 
         await swapMining.connect(dev).getRewardAll();
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000787500000000002998");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000630000000000005998");
 
     });
 
