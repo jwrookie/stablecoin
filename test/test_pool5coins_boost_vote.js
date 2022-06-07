@@ -560,6 +560,84 @@ contract('SwapRouter5Coins', () => {
         await swapRouter.swapCryptoToken(depositZap.address, 4, 3, "10000000", 0, owner.address, times);
     });
 
+    it('remove controller', async () => {
+        let gaugeAddr = gaugeController.address;
+        await boost.addController(gaugeAddr);
+
+        await expect(boost.removeController(gaugeAddr)).emit(boost, 'ControllerRemoved').withArgs(gaugeAddr);
+
+        await expect(boost.removeController(gaugeAddr)).revertedWith("Address no exist");
+    });
+
+    it('test setTokenPerBlock', async () => {
+        await deposit_bind();
+
+        let fraxOwnerBef = await frax.balanceOf(owner.address);
+        let gaugeTotalBef = await gauge.totalSupply();
+
+        await gauge.deposit(toWei("10"), tokenId);
+
+        let fraxOwnerAft = await frax.balanceOf(owner.address);
+        let gaugeTotalAft = await gauge.totalSupply();
+
+        expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).sub(toWei("10")));
+        expect(gaugeTotalAft).to.be.eq(BigNumber.from(gaugeTotalBef).add(toWei("10")));
+
+        let rewardBlockBef = await gauge.lastRewardBlock();
+        let fxsOwnerBef = await fxs.balanceOf(owner.address);
+
+        await boost.vote(tokenId, [frax.address], [toWei("1")]);
+        await gauge.getReward(owner.address);
+
+        let rewardBlockAft = await gauge.lastRewardBlock();
+        let fxsOwnerAft = await fxs.balanceOf(owner.address);
+
+        let rewardBlocks = rewardBlockAft - rewardBlockBef;
+        let diff = fxsOwnerAft.sub(fxsOwnerBef);
+
+        await gauge.deposit(toWei("10"), tokenId);
+
+        let rewardBlockBef1 = await gauge.lastRewardBlock();
+        let fxsOwnerBef1 = await fxs.balanceOf(owner.address);
+
+        await boost.reset(tokenId);
+        await boost.setTokenPerBlock(toWei('2'), false);
+        await boost.vote(tokenId, [frax.address], [toWei("1")]);
+
+        await gauge.getReward(owner.address);
+
+        let rewardBlockAft1 = await gauge.lastRewardBlock();
+        let fxsOwnerAft1 = await fxs.balanceOf(owner.address);
+
+        let rewardBlocks1 = rewardBlockAft - rewardBlockBef;
+        let diff1 = fxsOwnerAft1.sub(fxsOwnerBef1);
+        expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
+
+        expect(rewardBlocks).to.be.eq(rewardBlocks1);
+        expect(diff).to.be.lt(diff1);
+
+        await boost.setMintMulti(toWei("10000000"));
+        expect(await boost.mintMulti()).eq(toWei("10000000"));
+
+        await time.advanceBlockTo("10000");
+        await boost.setHalvingPeriod("2000");
+
+        expect(await boost.period()).eq("2000");
+
+        await gauge.deposit(toWei("10"), tokenId);
+        let fxsOwnerBef2 = await fxs.balanceOf(owner.address);
+
+        await boost.reset(tokenId);
+        await boost.setTokenPerBlock(toWei('2'), false);
+        await boost.vote(tokenId, [frax.address], [toWei("1")]);
+
+        await gauge.getReward(owner.address);
+
+        let fxsOwnerAft2 = await fxs.balanceOf(owner.address);
+
+        expect(fxsOwnerAft2).to.be.gt(fxsOwnerBef2);
+    });
+
     async function deposit_bind() {
         await boost.createGauge(frax.address, "100", true);
 
