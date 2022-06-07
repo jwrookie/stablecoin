@@ -1,7 +1,6 @@
 const {deployContract} = require("ethereum-waffle");
 const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
-const {deploy} = require("./common");
 const {
     CRVFACTORY,
     FACTORY,
@@ -12,8 +11,6 @@ const {
     POOLREGISTRY,
     REGISTRY,
     ROUTER,
-    LOCKERFIRST,
-    LOCKERSECOND
 } = require("../Lib/QuoteMockJson");
 
 const Weth = async (deployer) => {
@@ -70,14 +67,6 @@ const Plain3Balances = async (deployer) => {
         bytecode: PLAIN3BALANCE.bytecode,
         abi: POOLABI.abi
     });
-}
-
-const LockerFirst = async (deployer, constructor = []) => {
-    return await deploy(deployer, LOCKERFIRST.bytecode, LOCKERFIRST.abi, constructor);
-}
-
-const LockerSecond = async (deployer, constructor = []) => {
-    return await deploy(deployer, LOCKERSECOND.bytecode, LOCKERSECOND.abi, constructor);
 }
 
 const SetPlainImplementations = async (poolOfThreeCoinsFactory, coinsInPoolNumber, poolArray = []) => {
