@@ -350,13 +350,11 @@ contract('Locker', async () => {
 
     })
     it("test totalSupplyAt", async () => {
-
         let lockBlock = await time.latestBlock();
         console.log("lockBlock:" + lockBlock)
 
         let supplyAt = await lock.totalSupplyAt(5);
         expect(supplyAt).to.be.eq(0);
     })
-
 
 });
