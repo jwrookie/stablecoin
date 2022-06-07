@@ -1,7 +1,6 @@
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetLocker} = require("./Utils/GetLocker");
 const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
 const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
 const {
@@ -27,12 +26,6 @@ contract("test", async function () {
             {value: toWei("300")}
         );
 
-        // Locker
-        locker = await GetLocker(
-            owner,
-            1, [checkOpera.address, tra.address, 86400]
-        );
-
         // Create token pair
         pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [rusd.address, usdc.address, token1.address]);
 
@@ -55,7 +48,6 @@ contract("test", async function () {
         console.log(stableCoinPool.address);
         console.log(stableCoinPoolSecond.address);
         console.log(pancakeFactory.address);
-        console.log("locker:\t" + locker.address);
         console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
         console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
         console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
