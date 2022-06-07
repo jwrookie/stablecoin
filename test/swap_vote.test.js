@@ -110,8 +110,8 @@ contract('SwapController', () => {
         await token1.connect(dev).approve(pool.address, toWei("10000"));
         await token2.connect(dev).approve(pool.address, toWei("10000"));
 
-        await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
-        await pool.connect(dev).add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
+        await pool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas);
+        await pool.connect(dev).add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas);
         // await poolRegistry.add_pool(poolAddress, 3, poolAddress, 18, "test", gas);
 
         await crvFactory.deploy_plain_pool(
@@ -123,11 +123,11 @@ contract('SwapController', () => {
         mulPoolAddress = await crvFactory.pool_list(1, gas);
 
         mulPool = await plain3Balances.attach(mulPoolAddress);
-        await pool.approve(mulPool.address, toWei("10000"))
-        await token1.approve(mulPool.address, toWei("10000"))
-        await token2.approve(mulPool.address, toWei("10000"))
+        await pool.approve(mulPool.address, toWei("10000"));
+        await token1.approve(mulPool.address, toWei("10000"));
+        await token2.approve(mulPool.address, toWei("10000"));
 
-        await mulPool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas)
+        await mulPool.add_liquidity([toWei('100'), toWei('100'), toWei('100')], 0, gas);
 
 
         const TestOracle = await ethers.getContractFactory('TestOracle');
@@ -278,6 +278,7 @@ contract('SwapController', () => {
     it('transaction mining users can accelerate, reset and vote again', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -289,21 +290,24 @@ contract('SwapController', () => {
 
         expect(info[2]).to.be.eq(weight);
         await time.increase(time.duration.days(1));
-        //todo  test total=0
 
-        // await swapController.connect(dev).reset(1);
-        //
-        // info = await swapMining.poolInfo(0);
-        //
-        // expect(info[2]).to.be.eq(weight);
-        // await time.increase(time.duration.days(1));
-        // await swapController.connect(dev).vote(1, pool.address);
+        await expect(swapController.connect(dev).reset(1)).to.be.revertedWith("total=0");
+        await swapController.vote(2, pool.address);
+        await swapController.connect(dev).reset(1);
+
+        info = await swapMining.poolInfo(0);
+
+        expect(info[2]).to.be.gt(weight);
+
+        await time.increase(time.duration.days(1));
+        await swapController.connect(dev).vote(1, pool.address);
 
 
     });
     it('users cannot vote again before the cycle', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+        await lock.createLock(toWei('10'), parseInt(eta));
 
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
@@ -318,17 +322,14 @@ contract('SwapController', () => {
         await expect(swapController.connect(dev).vote(1, pool.address)).to
             .be.revertedWith("next duration use");
         await time.increase(time.duration.days(1));
-        //todo  test total=0
+        await expect(swapController.connect(dev).reset(1)).to.be.revertedWith("total=0");
+        await swapController.vote(2, pool.address);
 
-        // await swapController.connect(dev).reset(1)
-        //
-        // await time.increase(time.duration.days(1));
-        // await swapController.connect(dev).vote(1, pool.address);
-        // let weight1 = await lock.balanceOfNFT(1);
-        // info = await swapMining.poolInfo(0);
-        //
-        // expect(weight1).to.be.not.eq(weight);
-        // expect(info[2]).to.be.eq(BigNumber.from(weight1).add(weight));
+        let weight1 = await lock.balanceOfNFT(1);
+        info = await swapMining.poolInfo(0);
+
+        expect(weight1).to.be.not.eq(weight);
+        expect(info[2]).to.be.eq(BigNumber.from(weight1).add(weight));
 
 
     });
@@ -361,7 +362,38 @@ contract('SwapController', () => {
 
 
     });
+   it("correct voting mode", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
+        await expect(swapController.poke(2, pool.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await swapController.poke(1, pool.address);
+
+        await expect(swapController.connect(dev).poke(1, pool.address)).to.be.revertedWith("Transaction reverted without a reason string");
+        await swapController.connect(dev).poke(2, pool.address);
+
+    });
+    it("correct acceleration mode", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+
+        await expect(swapMining.poke(2)).to.be.revertedWith("total weight is 0");
+        await swapMining.vote(1, [pool.address], [toWei('1')]);
+
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("total weight is 0");
+        await swapMining.connect(dev).vote(2, [pool.address], [toWei('1')]);
+        await swapMining.reset(1);
+        await swapMining.connect(dev).reset(2);
+
+        await expect(swapMining.poke(1)).to.be.revertedWith("total weight is 0");
+        await swapMining.connect(dev).vote(2, [pool.address], [toWei('1')]);
+
+        await swapMining.vote(1, [pool.address], [toWei('1')]);
+
+
+    });
 
 
 });
