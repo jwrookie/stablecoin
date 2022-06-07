@@ -54,6 +54,43 @@ contract('Dao locker specific', async function () {
         );
     });
 
+    it('Test about safeTransfer by abi and transfer to dev but dev is not owner of token id', async function () {
+        let lockerFirst = await deploy(owner, LOCKER.bytecode, LOCKERFIRST.abi, [checkOpera.address, tra.address, ONE_DAT_DURATION]);
+
+        // Tra will be giving to the user as reward
+        await tra.approve(lockerFirst.address, toWei("0.5"));
+        await tra.connect(dev).approve(lockerFirst.address, toWei("0.5"));
+
+        await lockerFirst.createLockFor(toWei("0.1"), ONE_DAT_DURATION, dev.address);
+        tokenId = await lockerFirst.tokenId();
+
+        transferValue = await web3.eth.abi.encodeParameter("");
+
+        await expectRevert(lockerFirst.safeTransferFrom(
+            owner.address,
+            dev.address,
+            tokenId,
+            transferValue
+        ), "no owner");
+    });
+
+    it('Test about safeTransferSecond by abi and transfer to dev but dev is not owner of token id', async function () {
+        let lockerSecond = await deploy(owner, LOCKER.bytecode, LOCKERSECOND.abi, [checkOpera.address, tra.address, ONE_DAT_DURATION]);
+
+        // Tra will be giving to the user as reward
+        await tra.approve(lockerSecond.address, toWei("0.5"));
+        await tra.connect(dev).approve(lockerSecond.address, toWei("0.5"));
+
+        await lockerSecond.createLockFor(toWei("0.1"), ONE_DAT_DURATION, dev.address);
+        tokenId = await lockerSecond.tokenId();
+
+        await expectRevert(lockerSecond.safeTransferFrom(
+            owner.address,
+            dev.address,
+            tokenId
+        ), "no owner");
+    });
+
     it('Test about safeTransfer by contract', async function () {
         const Locker = await ethers.getContractFactory("Locker");
         locker = await Locker.deploy(checkOpera.address, tra.address, ONE_DAT_DURATION);
