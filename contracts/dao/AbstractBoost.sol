@@ -90,7 +90,7 @@ abstract contract AbstractBoost is TokenReward {
         int256 _usedWeight = 0;
 
         for (uint256 i = 0; i < _poolCnt; i++) {
-            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : -_weights[i];
+            _totalVoteWeight += _weights[i] > 0 ? _weights[i] : - _weights[i];
         }
         require(_totalVoteWeight > 0, "total weight is 0");
 
@@ -108,7 +108,7 @@ abstract contract AbstractBoost is TokenReward {
                 weights[_pool] += _poolWeight;
                 votes[_tokenId][_pool] += _poolWeight;
                 if (_poolWeight > 0) {} else {
-                    _poolWeight = -_poolWeight;
+                    _poolWeight = - _poolWeight;
                 }
                 _usedWeight += _poolWeight;
                 _totalWeight += _poolWeight;
@@ -121,6 +121,7 @@ abstract contract AbstractBoost is TokenReward {
     }
 
     function poke(uint256 _tokenId) external {
+        require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
         address[] memory _poolVote = poolVote[_tokenId];
         uint256 _poolCnt = _poolVote.length;
         int256[] memory _weights = new int256[](_poolCnt);
@@ -128,7 +129,8 @@ abstract contract AbstractBoost is TokenReward {
         for (uint256 i = 0; i < _poolCnt; i++) {
             _weights[i] = votes[_tokenId][_poolVote[i]];
         }
-
+        _reset(_tokenId);
+        IVeToken(veToken).abstain(_tokenId);
         _vote(_tokenId, _poolVote, _weights);
     }
 

@@ -84,9 +84,12 @@ abstract contract AbstractController is CheckPermission {
         emit Voted(msg.sender, _tokenId, _weight);
     }
 
-    function poke(uint256 _tokenId, address _pool) external {
+    function poke(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId));
-        _vote(_tokenId, _pool);
+        PoolVote storage poolVote = userPool[_tokenId];
+        _reset(_tokenId);
+        IVeToken(veToken).abstain(_tokenId);
+        _vote(_tokenId, poolVote.pool);
     }
 
     function vote(uint256 tokenId, address _poolVote) external {
