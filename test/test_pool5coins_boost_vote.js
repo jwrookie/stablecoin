@@ -619,7 +619,7 @@ contract('SwapRouter5Coins', () => {
         await boost.setMintMulti(toWei("10000000"));
         expect(await boost.mintMulti()).eq(toWei("10000000"));
 
-        await time.advanceBlockTo("10000");
+        await time.advanceBlockTo("20000");
         await boost.setHalvingPeriod("2000");
 
         expect(await boost.period()).eq("2000");
