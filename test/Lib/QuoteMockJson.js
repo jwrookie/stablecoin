@@ -7,6 +7,8 @@ const POOLREGISTRY = require('../mock/mockPool/PoolRegistry.json');
 const FACTORY = require('../mock/PancakeFactory.json');
 const ROUTER = require('../mock/PancakeRouter.json');
 const WETH = require('../mock/WETH9.json');
+const LOCKERFIRST = require("../mock/LockerFirstAbi.json");
+const LOCKERSECOND = require("../mock/LockerSecondAbi.json");
 
 module.exports = {
     CRVFACTORY,
@@ -17,5 +19,7 @@ module.exports = {
     POOLREGISTRY,
     FACTORY,
     ROUTER,
-    WETH
+    WETH,
+    LOCKERFIRST,
+    LOCKERSECOND
 }

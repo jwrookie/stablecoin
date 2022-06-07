@@ -1,6 +1,7 @@
 const {deployContract} = require("ethereum-waffle");
 const {ZEROADDRESS} = require("../Lib/Address");
 const GAS = {gasLimit: "9550000"};
+const {deploy} = require("./common");
 const {
     CRVFACTORY,
     FACTORY,
@@ -10,63 +11,73 @@ const {
     PLAIN3BALANCE,
     POOLREGISTRY,
     REGISTRY,
-    ROUTER
+    ROUTER,
+    LOCKERFIRST,
+    LOCKERSECOND
 } = require("../Lib/QuoteMockJson");
 
-const Weth = async (ownerAddress) => {
+const Weth = async (deployer) => {
     // Need to create swap pairs and deassociate the mock token price with weth
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: WETH.bytecode,
         abi: WETH.abi
     });
 }
 
-const PancakeFactory = async (ownerAddress) => {
+const PancakeFactory = async (deployer) => {
     // Pancake factory, The purpose is to create a trading pair and go to UnisWAP to get the trading pair price
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: FACTORY.bytecode,
         abi: FACTORY.abi
-    }, [ownerAddress.address]);
+    }, [deployer.address]);
 }
 
-const Router = async (ownerAddress, factory, eth) => {
+const Router = async (deployer, factory, eth) => {
     // Source: https://github.com/pancakeswap/pancake-smart-contracts/blob/master/projects/exchange-protocol/contracts/PancakeRouter.sol
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: ROUTER.bytecode,
         abi: ROUTER.abi
     }, [factory.address, eth.address]);
 }
 
-const Registry = async (ownerAddress) => {
+const Registry = async (deployer) => {
     // Before deploy pool registry need to deploy registry
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: REGISTRY.bytecode,
         abi: REGISTRY.abi
-    }, [ownerAddress.address]);
+    }, [deployer.address]);
 }
 
-const PoolRegistry = async (ownerAddress, registry) => {
+const PoolRegistry = async (deployer, registry) => {
     // The pool is unregistered through the registry
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: POOLREGISTRY.bytecode,
         abi: POOLREGISTRY.abi
     }, [registry.address, ZEROADDRESS]);
 }
 
-const PoolOfThreeCoinsFactory = async (ownerAddress, registry) => {
+const PoolOfThreeCoinsFactory = async (deployer, registry) => {
     // We provide our own trading pool, which can carry out the exchange of specified coins
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: CRVFACTORY.bytecode,
         abi: FACTORYABI.abi,
-    }, [ownerAddress.address, registry.address]);
+    }, [deployer.address, registry.address]);
 }
 
-const Plain3Balances = async (ownerAddress) => {
+const Plain3Balances = async (deployer) => {
     // Deploy 3 coin pool
-    return await deployContract(ownerAddress, {
+    return await deployContract(deployer, {
         bytecode: PLAIN3BALANCE.bytecode,
         abi: POOLABI.abi
     });
+}
+
+const LockerFirst = async (deployer, constructor = []) => {
+    return await deploy(deployer, LOCKERFIRST.bytecode, LOCKERFIRST.abi, constructor);
+}
+
+const LockerSecond = async (deployer, constructor = []) => {
+    return await deploy(deployer, LOCKERSECOND.bytecode, LOCKERSECOND.abi, constructor);
 }
 
 const SetPlainImplementations = async (poolOfThreeCoinsFactory, coinsInPoolNumber, poolArray = []) => {
@@ -130,5 +141,7 @@ module.exports = {
     PoolOfThreeCoinsFactory,
     Plain3Balances,
     SetPlainImplementations,
-    SetThreePoolsByThreePoolFactory
+    SetThreePoolsByThreePoolFactory,
+    LockerFirst,
+    LockerSecond
 }
