@@ -7,6 +7,8 @@ const {BigNumber} = require('ethers');
 contract('Boost_vote', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
+        zeroAddr = "0x0000000000000000000000000000000000000000";
+
         const TestERC20 = await ethers.getContractFactory('TestERC20');
         usdc = await TestERC20.deploy();
         busd = await TestERC20.deploy();
@@ -249,6 +251,29 @@ contract('Boost_vote', () => {
 
         await expect(gaugeController.connect(dev).poke(1, usdc.address)).to.be.revertedWith("Transaction reverted without a reason string");
         await gaugeController.connect(dev).poke(2, usdc.address);
+
+    });
+    it("test removePool and getUserInfo", async () => {
+        expect(await gaugeController.getPoolLength()).to.be.eq(1);
+        expect(await gaugeController.isPool(usdc.address)).to.be.eq(true);
+
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
+        let info = await gaugeController.getUserInfo(1);
+
+        expect(info[0]).to.be.eq(zeroAddr);
+        expect(info[1]).to.be.eq(0);
+
+        await gaugeController.vote(1, usdc.address);
+        info = await gaugeController.getUserInfo(1);
+        let data = await time.latest();
+
+        expect(info[0]).to.be.eq(usdc.address);
+        expect(info[1]).to.be.eq(parseInt(data));
+        await gaugeController.removePool(usdc.address);
+        expect(await gaugeController.getPoolLength()).to.be.eq(0);
+        expect(await gaugeController.isPool(usdc.address)).to.be.eq(false);
 
     });
 
