@@ -131,6 +131,4 @@ module.exports = {
     Plain3Balances,
     SetPlainImplementations,
     SetThreePoolsByThreePoolFactory,
-    LockerFirst,
-    LockerSecond
 }
