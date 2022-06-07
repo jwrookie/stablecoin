@@ -265,7 +265,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     ) internal {
         require(!voted[_tokenId], "attached");
         // Check requirements
-        require(_isApprovedOrOwner(_sender, _tokenId));
+        require(_isApprovedOrOwner(_sender, _tokenId), "no owner");
         // Clear approval. Throws if `_from` is not the current owner
         _clearApproval(_from, _tokenId);
         // Remove NFT. Throws if `_tokenId` is not a valid NFT
@@ -396,7 +396,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
             }
         }
 
-        Point memory lastPoint = Point({bias: 0, slope: 0, ts: block.timestamp, blk: block.number});
+        Point memory lastPoint = Point({bias : 0, slope : 0, ts : block.timestamp, blk : block.number});
         if (_epoch > 0) {
             lastPoint = pointHistory[_epoch];
         }
@@ -560,8 +560,8 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     function merge(uint256 _from, uint256 _to) external {
         require(!voted[_from], "attached");
         require(_from != _to);
-        require(_isApprovedOrOwner(msg.sender, _from));
-        require(_isApprovedOrOwner(msg.sender, _to));
+        require(_isApprovedOrOwner(msg.sender, _from), "no owner");
+        require(_isApprovedOrOwner(msg.sender, _to), "no owner");
 
         LockedBalance memory _locked0 = locked[_from];
         LockedBalance memory _locked1 = locked[_to];
@@ -623,7 +623,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function increaseAmount(uint256 _tokenId, uint256 _value) external nonReentrant {
-        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "no owner");
 
         LockedBalance memory _locked = locked[_tokenId];
 
@@ -636,7 +636,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function increaseUnlockTime(uint256 _tokenId, uint256 _lockDuration) external nonReentrant {
-        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "no owner");
 
         LockedBalance memory _locked = locked[_tokenId];
         uint256 unlockTime = ((block.timestamp + _lockDuration) / duration) * duration;
@@ -651,7 +651,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function withdraw(uint256 _tokenId) external nonReentrant {
-        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "no owner");
         require(!voted[_tokenId], "attached");
 
         LockedBalance memory _locked = locked[_tokenId];
@@ -677,7 +677,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
     }
 
     function emergencyWithdraw(uint256 _tokenId) public nonReentrant {
-        assert(_isApprovedOrOwner(msg.sender, _tokenId));
+        require(_isApprovedOrOwner(msg.sender, _tokenId), "no owner");
         voted[_tokenId] = false;
         LockedBalance memory _locked = locked[_tokenId];
         require(block.timestamp >= _locked.end, "The lock didn't expire");
@@ -733,7 +733,7 @@ contract Locker is IERC721, IERC721Metadata, ReentrancyGuard, CheckPermission {
         require(_idToOwner[_tokenId] != address(0), "Query for nonexistent token");
         LockedBalance memory _locked = locked[_tokenId];
         return
-            _tokenURI(_tokenId, _balanceOfNFT(_tokenId, block.timestamp), _locked.end, uint256(int256(_locked.amount)));
+        _tokenURI(_tokenId, _balanceOfNFT(_tokenId, block.timestamp), _locked.end, uint256(int256(_locked.amount)));
     }
 
     function balanceOfNFT(uint256 _tokenId) external view returns (uint256) {
