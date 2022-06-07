@@ -83,15 +83,4 @@ contract('Dao locker', async function () {
         await expect(locker.setApprovalForAll(dev.address, true)).to.emit(locker, 'ApprovalForAll')
             .withArgs(owner.address, dev.address, true);
     });
-
-    it('Call the function about transfer', async function () {
-        await locker.createLockFor(toWei("0.1"), ONE_DAT_DURATION, dev.address);
-        secondTokenId = await locker.tokenId();
-
-        // await locker.safeTransferFrom(
-        //     owner.address,
-        //     dev.address,
-        //     tokenId
-        // );
-    });
 });
