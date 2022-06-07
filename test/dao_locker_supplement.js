@@ -88,10 +88,10 @@ contract('Dao locker', async function () {
         await locker.createLockFor(toWei("0.1"), ONE_DAT_DURATION, dev.address);
         secondTokenId = await locker.tokenId();
 
-        await locker.safeTransferFrom(
-            owner.address,
-            dev.address,
-            tokenId
-        );
+        // await locker.safeTransferFrom(
+        //     owner.address,
+        //     dev.address,
+        //     tokenId
+        // );
     });
 });

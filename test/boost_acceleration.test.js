@@ -241,17 +241,17 @@ contract('Boost', () => {
         await lock.createLock(toWei('1000'), parseInt(eta));
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
-        await expect(boost.poke(2)).to.be.revertedWith("total weight is 0");
+        await expect(boost.poke(2)).to.be.revertedWith("no owner");
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("total weight is 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
         await boost.reset(1);
-        await boost.connect(dev).reset(2);
-
+        boost.connect(dev).reset(2);
+        //
         await expect(boost.poke(1)).to.be.revertedWith("total weight is 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-
+        //
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
 
@@ -282,11 +282,11 @@ contract('Boost', () => {
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await boost.vote(1, [usdc.address], [toWei('1')])
-        // await boost.poke(1)
+        await boost.poke(1)
         await boost.reset(1)
-
-        // await boost.connect(dev).vote(2,[usdc.address],[toWei('1')])
-        // await boost.connect(dev).poke(2)
+        await boost.vote(1, [usdc.address], [toWei('1')])
+        await boost.connect(dev).vote(2,[usdc.address],[toWei('1')])
+        await boost.connect(dev).poke(2)
         await boost.poke(1)
 
     })
