@@ -91,7 +91,8 @@ contract('Dao locker', async function () {
         await locker.safeTransferFrom(
             owner.address,
             dev.address,
-            tokenId
+            tokenId,
+            ""
         );
     });
 });
