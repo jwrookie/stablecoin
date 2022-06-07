@@ -223,27 +223,41 @@ contract('Boost_vote', () => {
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
 
         await boost.connect(dev).reset(1);
-        let addresses =  await boost.getPoolVote(1);
+        let addresses = await boost.getPoolVote(1);
         expect(addresses).to.be.empty;
 
         await gaugeController.connect(dev).vote(1, usdc.address);
 
     });
-    it("correct voting mode", async () => {
+    it("correct poke mode", async () => {
         let eta = time.duration.days(7);
         await lock.createLock(toWei('1000'), parseInt(eta));
         await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
-        //todo test poke
 
-        // await gaugeController.vote(1);
-        // await expect(gaugeController.poke(2)).to.be.revertedWith("Transaction reverted without a reason string");
-        // await gaugeController.poke(1);
-        //
-        // await expect(gaugeController.connect(dev).poke(1)).to.be.revertedWith("Transaction reverted without a reason string");
-        // await gaugeController.connect(dev).poke(2);
+        await expect(gaugeController.poke(1)).to.be.revertedWith("total=0");
+        await gaugeController.vote(1, usdc.address);
+        await gaugeController.poke(1);
 
     });
+    it("correct two users poke mode", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
+        await gaugeController.vote(1, usdc.address);
+        console.log("weights:" + await gaugeController.weights(usdc.address));
+
+        console.log("usedWeights:" + await gaugeController.usedWeights(1));
+        await expect(gaugeController.poke(2)).to.be.revertedWith("no owner");
+        await gaugeController.poke(1);
+        expect(await gaugeController.weights(usdc.address)).to.be.eq(0);
+
+        console.log("usedWeights:" + await gaugeController.usedWeights(1));
+
+        await expect(gaugeController.connect(dev).poke(1)).to.be.revertedWith("no owner");
+        await gaugeController.connect(dev).poke(2);
+
+    });
     it("test removePool and getUserInfo", async () => {
         expect(await gaugeController.getPoolLength()).to.be.eq(1);
         expect(await gaugeController.isPool(usdc.address)).to.be.eq(true);

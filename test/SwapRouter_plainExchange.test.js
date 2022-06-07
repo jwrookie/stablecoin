@@ -558,12 +558,12 @@ contract('plainPool', () => {
         expect(await fxs.balanceOf(dev.address)).to.be.eq("10000630000000000005998");
 
     });
-    it("test pid =0, allocPoint = 200 reward",async () => {
+    it("test pid =0, allocPoint = 200 reward", async () => {
         let info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("100");
-        await swapMining.set(0,"200",true);
+        await swapMining.set(0, "200", true);
         info = await swapMining.poolInfo(0);
-          expect(info[2]).to.be.eq("200");
+        expect(info[2]).to.be.eq("200");
 
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
@@ -581,13 +581,13 @@ contract('plainPool', () => {
 
 
     });
-    it("test tokenPerBlock,minTokenReward = 0",async ()=> {
-        await swapMining.setMinTokenReward(0)
-        expect(await swapMining.tokenPerBlock()).to.be.eq("10000")
-        await swapMining.setTokenPerBlock(0,false)
-              expect(await swapMining.tokenPerBlock()).to.be.eq(0)
-        await swapMining.updatePool(0)
-              expect(await swapMining.tokenPerBlock()).to.be.eq(0)
+    it("test tokenPerBlock,minTokenReward = 0", async () => {
+        await swapMining.setMinTokenReward(0);
+        expect(await swapMining.tokenPerBlock()).to.be.eq("10000");
+        await swapMining.setTokenPerBlock(0, false);
+        expect(await swapMining.tokenPerBlock()).to.be.eq(0);
+        await swapMining.updatePool(0);
+        expect(await swapMining.tokenPerBlock()).to.be.eq(0);
 
     });
     it("no exchange,no reward", async () => {

@@ -113,7 +113,7 @@ contract('Boost test', () => {
         let usdcDevBef = await usdc.balanceOf(dev.address);
         let usdcOwnerBef = await usdc.balanceOf(owner.address);
 
-        await boost.updatePool(0);
+        await boost.updateAll();
         expect(await boost.poolLength()).to.be.eq(2);
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(0);
@@ -210,6 +210,90 @@ contract('Boost test', () => {
         let rewardAft = await fxs.balanceOf(dev.address);
 
         expect(rewardAft).to.be.eq("10001049999999999999000");
+
+
+    });
+    it('test set and setMitDuration ', async () => {
+        let info = await boost.poolInfo(0);
+        expect(info[1]).to.be.eq("100");
+        await boost.set(0, "200", true);
+        info = await boost.poolInfo(0);
+        expect(info[1]).to.be.eq("200");
+        expect(await boost.mintDuration()).to.be.eq("201600")
+
+        await boost.setMitDuration(5 * 28800);
+        expect(await boost.mintDuration()).to.be.eq("144000");
+
+        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        let eta = time.duration.days(1);
+        await lock.connect(dev).createLock("1000", parseInt(eta));
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+
+        expect(await fxs.balanceOf(boost.address)).to.be.eq(0);
+        await boost.updatePool(0);
+        expect(await fxs.balanceOf(boost.address)).to.be.eq("95999999999999999904000");
+
+        let rewardBef = await fxs.balanceOf(dev.address);
+        expect(rewardBef).to.be.eq("9999999999999999999000");
+
+        await gauge_usdc.connect(dev).getReward(dev.address);
+
+        let rewardAft = await fxs.balanceOf(dev.address);
+
+        expect(rewardAft).to.be.eq("10000399999999999599000");
+
+
+    });
+    it("test depositAll and withdrawAll", async () => {
+        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        let eta = time.duration.days(1);
+        await lock.connect(dev).createLock("1000", parseInt(eta));
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+        await gauge_usdc.connect(dev).depositAll(1);
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(0);
+
+        await boost.updatePool(0);
+        let befDev = await fxs.balanceOf(dev.address);
+        expect(befDev).to.be.eq("9999999999999999999000");
+
+        await gauge_usdc.connect(dev).getReward(dev.address);
+        let aftDev = await fxs.balanceOf(dev.address);
+        expect(aftDev).to.be.eq("10000299999999999999000");
+
+        await gauge_usdc.connect(dev).withdrawAll();
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+
+    });
+    it("test deposit and withdrawToken tokenId is 0", async () => {
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+        await gauge_usdc.connect(dev).deposit(toWei('1'), 0);
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('9999'));
+
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 0);
+        expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+
+    });
+    it("test pendingMax is 0", async () => {
+        await usdc.connect(dev).approve(lock.address, toWei('10000000'));
+        let eta = time.duration.days(1);
+        await lock.connect(dev).createLock("1000", parseInt(eta));
+
+        await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
+        await gauge_usdc.connect(dev).depositAll(1);
+
+        let pend = await gauge_usdc.pendingMax(dev.address);
+        expect(pend).to.be.eq(0);
+
+        await boost.updatePool(0);
+        pend = await gauge_usdc.pendingMax(dev.address);
+        expect(pend).to.be.eq("500000000000000000");
 
 
     });
