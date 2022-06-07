@@ -181,6 +181,7 @@ contract('plainPool', () => {
         );
 
         await swapRouter.setSwapMining(swapMining.address);
+        await swapMining.setRouter(swapRouter.address);
         await swapMining.addPair(100, pool.address, true);
         await swapMining.addPair(200, pool1.address, true);
         await swapMining.addPair(100, pool4.address, true);
@@ -218,6 +219,15 @@ contract('plainPool', () => {
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+        let pend = await swapMining.pending(0, dev.address)
+        console.log("userSub:" + pend[0]);
+
+        let info = await swapMining.getPoolInfo(0);
+
+        expect(info[0]).to.be.eq(pool.address);
+        expect(info[1]).to.be.eq(pend[0]);
+        expect(info[2]).to.be.eq(pend[1]);
+        expect(info[3]).to.be.eq("100");
 
         await swapMining.connect(dev).getReward(0)
 
@@ -251,6 +261,7 @@ contract('plainPool', () => {
         let dx = "1000000";
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
@@ -547,6 +558,47 @@ contract('plainPool', () => {
         expect(await fxs.balanceOf(dev.address)).to.be.eq("10000630000000000005998");
 
     });
+    it("test pid =0, allocPoint = 200 reward",async () => {
+        let info = await swapMining.poolInfo(0);
+        expect(info[2]).to.be.eq("100");
+        await swapMining.set(0,"200",true);
+        info = await swapMining.poolInfo(0);
+          expect(info[2]).to.be.eq("200");
 
+        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
+
+        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+
+        let dx = "1000000";
+
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+
+        await swapMining.connect(dev).getReward(0);
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000336000000000003999");
+
+
+    });
+    it("test tokenPerBlock,minTokenReward = 0",async ()=> {
+        await swapMining.setMinTokenReward(0)
+        expect(await swapMining.tokenPerBlock()).to.be.eq("10000")
+        await swapMining.setTokenPerBlock(0,false)
+              expect(await swapMining.tokenPerBlock()).to.be.eq(0)
+        await swapMining.updatePool(0)
+              expect(await swapMining.tokenPerBlock()).to.be.eq(0)
+
+    });
+    it("no exchange,no reward", async () => {
+        let bef = await fxs.balanceOf(dev.address);
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
+
+        await swapMining.connect(dev).getReward(0);
+        let aft = await fxs.balanceOf(dev.address);
+        expect(aft).to.be.eq(bef);
+
+
+    });
 
 });

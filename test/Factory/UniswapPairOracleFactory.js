@@ -17,7 +17,7 @@ const DeployUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddre
     let rusdUniswapOracle;
     let traUniswapOracle;
 
-    await CheckParameter([rusd, tra, usdc]);
+    await CheckParameter([rusd, tra, usdc, stableCoinPool, pancakeFactoryAddress, tokenAAddress, tokenBAddress]);
 
     switch (tokenAAddress) {
         case usdc.address:

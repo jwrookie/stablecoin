@@ -222,7 +222,6 @@ contract('Boost', () => {
         await boost.vote(2, [usdc.address], [toWei('1')]);
 
 
-
     });
     it("users can't vote multiple times, but the weight will be reset each time", async () => {
         let eta = time.duration.days(7);
@@ -242,23 +241,55 @@ contract('Boost', () => {
         await lock.createLock(toWei('1000'), parseInt(eta));
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
-        await expect(boost.poke(2)).to.be.revertedWith("total weight is 0");
+        await expect(boost.poke(2)).to.be.revertedWith("no owner");
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("total weight is 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
         await boost.reset(1);
-        await boost.connect(dev).reset(2);
-
+        boost.connect(dev).reset(2);
+        //
         await expect(boost.poke(1)).to.be.revertedWith("total weight is 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
-
+        //
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
 
     });
+    it("test getPoolVote and addController,removeController", async () => {
+
+        expect(await boost.controllers(usdc.address)).to.be.eq(false);
+        await boost.addController(usdc.address);
+        expect(await boost.controllers(usdc.address)).to.be.eq(true);
+
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        let info = await boost.getPoolVote(1);
+        await boost.vote(1, [usdc.address], [toWei('1')]);
+        let info1 = await boost.getPoolVote(1);
+
+        expect(info1).to.be.not.eq(info)
+
+        await boost.removeController(usdc.address);
+        expect(await boost.controllers(usdc.address)).to.be.eq(false);
 
 
+    });
+    it("test poke", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await fxs.connect(dev).approve(lock.address, toWei('10000'))
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+
+        await boost.vote(1, [usdc.address], [toWei('1')])
+        await boost.poke(1)
+        await boost.reset(1)
+        await boost.vote(1, [usdc.address], [toWei('1')])
+        await boost.connect(dev).vote(2,[usdc.address],[toWei('1')])
+        await boost.connect(dev).poke(2)
+        await boost.poke(1)
+
+    })
 
 
 });
