@@ -190,7 +190,7 @@ contract RStablecoin is ERC20Burnable, AbstractPausable {
             if (isReduce) {
                 maxCR = maxCR.mul(1e6 - k).div(1e6);
             } else {
-                maxCR = maxCR.div(1e6 - k).mul(1e6);
+                maxCR = maxCR.mul(1e6).div(1e6 - k);
             }
         }
         if (maxCR > PRICE_PRECISION) {
