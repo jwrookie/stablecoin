@@ -594,7 +594,7 @@ contract('plainPool', () => {
         let bef = await fxs.balanceOf(dev.address);
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
 
-        await swapMining.connect(dev).getReward(0);
+        await swapMining.connect(dev).getRewardAll();
         let aft = await fxs.balanceOf(dev.address);
         expect(aft).to.be.eq(bef);
 
