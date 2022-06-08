@@ -1,4 +1,3 @@
-
 const {time, balance} = require('@openzeppelin/test-helpers');
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
@@ -15,7 +14,7 @@ contract('Locker', async () => {
     }
 
     beforeEach(async function () {
-        [owner, seObject] = await ethers.getSigners();
+        [owner, seObject, dev] = await ethers.getSigners();
         const TestERC20 = await ethers.getContractFactory("TestERC20");
         const Locker = await ethers.getContractFactory("Locker");
         token0 = await TestERC20.deploy();
@@ -26,6 +25,8 @@ contract('Locker', async () => {
         operatable = await Operatable.deploy();
 
         await token0.mint(owner.address, toWei("1"));
+        await token0.mint(seObject.address, toWei("1"));
+        await token0.mint(dev.address, toWei("1"));
 
         durationTime = await getDurationTime(1);
         lock = await Locker.deploy(operatable.address, token0.address, durationTime);
@@ -285,76 +286,101 @@ contract('Locker', async () => {
         let isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
         expect(isApproved).to.be.eq(false)
     });
-    it('test transferFrom', async function () {
-        await token0.approve(lock.address, toWei('10000'))
+    it('test transferFrom tokenId1 -> tokenId2', async function () {
+        await token0.approve(lock.address, toWei('10000'));
+        await token0.connect(seObject).approve(lock.address, toWei('10000'));
         let eta = time.duration.days(7);
         await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(seObject).createLock(toWei('1'), parseInt(eta));
+
+
+        expect(await lock.balanceOf(owner.address)).to.be.eq(1);
+        expect(await lock.balanceOf(seObject.address)).to.be.eq(1);
+        await lock.transferFrom(owner.address, seObject.address, 1);
+        expect(await lock.balanceOf(seObject.address)).to.be.eq(2);
+        expect(await lock.balanceOf(owner.address)).to.be.eq(0);
+
+
+    });
+    it('test transferFrom tokenId1 -> tokenId2 -> tokenId3', async function () {
+        await token0.approve(lock.address, toWei('10000'));
+        await token0.connect(seObject).approve(lock.address, toWei('10000'));
+        await token0.connect(dev).approve(lock.address, toWei('10000'));
+
+        let eta = time.duration.days(1);
+        await lock.createLock(toWei('1'), parseInt(eta));
+        await lock.connect(seObject).createLock(toWei('1'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
+        expect(await lock.tokenOfOwnerByIndex(owner.address, 0)).to.be.eq(1);
 
         await lock.transferFrom(owner.address, seObject.address, 1);
-        // expect(isApproved).to.be.eq(false)
+        expect(await lock.tokenOfOwnerByIndex(seObject.address, 0)).to.be.eq(2);
+
+        expect(await lock.balanceOf(owner.address)).to.be.eq(0);
+        expect(await lock.balanceOf(seObject.address)).to.be.eq(2);
+        await lock.connect(seObject).transferFrom(seObject.address, dev.address, 1);
+        expect(await lock.tokenOfOwnerByIndex(dev.address, 0)).to.be.eq(3);
+        expect(await lock.balanceOf(dev.address)).to.be.eq(2);
+        await lock.connect(seObject).transferFrom(seObject.address, dev.address, 2);
+        expect(await lock.balanceOf(dev.address)).to.be.eq(3);
+
+        await lock.connect(dev).transferFrom(dev.address, owner.address, 1);
+        expect(await lock.balanceOf(dev.address)).to.be.eq(2);
+        expect(await lock.balanceOf(owner.address)).to.be.eq(1);
+
+
     });
     it('test addBoosts and removeBoosts ', async function () {
-        expect(await lock.boosts(owner.address)).to.be.eq(false)
-        await lock.addBoosts(owner.address)
+         expect(await lock.boosts(owner.address)).to.be.eq(false);
+         await lock.addBoosts(owner.address);
 
-        expect(await lock.boosts(owner.address)).to.be.eq(true)
+         expect(await lock.boosts(owner.address)).to.be.eq(true);
 
-        await lock.removeBoosts(owner.address)
-        expect(await lock.boosts(owner.address)).to.be.eq(false)
+         await lock.removeBoosts(owner.address);
+         expect(await lock.boosts(owner.address)).to.be.eq(false);
 
-    });
-    it("test merge", async () => {
+     });
 
-        await token0.approve(lock.address, toWei('10000'))
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('0.1'), parseInt(eta));
-        await token0.transfer(seObject.address, toWei('0.5'))
-        await token0.connect(seObject).approve(lock.address, toWei('10000'))
-        await lock.connect(seObject).createLock(toWei('0.1'), parseInt(eta));
+     it("test setApprovalForAll", async () => {
 
-        await lock.isApprovedOrOwner(seObject.address, 1)
-        await lock.connect(seObject).isApprovedOrOwner(owner.address, 2)
-        //await lock.merge(owner.address,seObject.address)
-    })
-    it("test setApprovalForAll", async () => {
+         await lock.setApprovalForAll(seObject.address, true);
 
-        await lock.setApprovalForAll(seObject.address, true);
+         let isApproved = await lock.isApprovedForAll(owner.address, owner.address);
+         expect(isApproved).to.be.eq(false);
+         isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
+         expect(isApproved).to.be.eq(true);
+     })
+     it("test balanceOfAtNFT", async () => {
+          await token0.approve(lock.address, toWei('10000'))
+         let eta = time.duration.days(7);
+         await lock.createLock(toWei('0.1'), parseInt(eta));
 
-        let isApproved = await lock.isApprovedForAll(owner.address, owner.address);
-        expect(isApproved).to.be.eq(false);
-        isApproved = await lock.isApprovedForAll(owner.address, seObject.address);
-        expect(isApproved).to.be.eq(true);
-    })
-    it("test balanceOfAtNFT", async () => {
-         await token0.approve(lock.address, toWei('10000'))
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('0.1'), parseInt(eta));
+         let lockBlock = await time.latestBlock();
+         console.log("lockBlock:" + lockBlock)
+         let atNFT = await lock.balanceOfAtNFT(1, parseInt(lockBlock));
 
-        let lockBlock = await time.latestBlock();
-        console.log("lockBlock:" + lockBlock)
-        let atNFT = await lock.balanceOfAtNFT(1, parseInt(lockBlock));
+         console.log("atNFT:" + atNFT)
+     })
+     it("test totalSupply", async () => {
 
-        console.log("atNFT:" + atNFT)
-    })
-    it("test totalSupply", async () => {
+         let lockBlock = await time.latestBlock();
+         console.log("lockBlock:" + lockBlock);
 
-        let lockBlock = await time.latestBlock();
-        console.log("lockBlock:" + lockBlock)
+         expect(await lock.totalSupply()).to.be.eq(0);
 
-        expect(await lock.totalSupply()).to.be.eq(0)
+         await token0.approve(lock.address, toWei('10000'));
+         let eta = time.duration.days(7);
+         await lock.createLock(toWei('0.1'), parseInt(eta));
+         console.log("totalSupply:" + await lock.totalSupply());
 
-        await token0.approve(lock.address, toWei('10000'))
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('0.1'), parseInt(eta));
-        console.log("totalSupply:" + await lock.totalSupply());
+     })
+     it("test totalSupplyAt", async () => {
+         let lockBlock = await time.latestBlock();
+         console.log("lockBlock:" + lockBlock)
 
-    })
-    it("test totalSupplyAt", async () => {
-        let lockBlock = await time.latestBlock();
-        console.log("lockBlock:" + lockBlock)
+         let supplyAt = await lock.totalSupplyAt(5);
+         expect(supplyAt).to.be.eq(0);
+     })
 
-        let supplyAt = await lock.totalSupplyAt(5);
-        expect(supplyAt).to.be.eq(0);
-    })
 
 });
