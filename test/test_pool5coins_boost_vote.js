@@ -601,7 +601,7 @@ contract('SwapRouter5Coins', () => {
         let fxsOwnerBef1 = await fxs.balanceOf(owner.address);
 
         await boost.reset(tokenId);
-        await boost.setTokenPerBlock(toWei('2'), false);
+        await boost.setTokenPerBlock(toWei('2'), true);
         await boost.vote(tokenId, [frax.address], [toWei("1")]);
 
         await gauge.getReward(owner.address);
@@ -619,10 +619,10 @@ contract('SwapRouter5Coins', () => {
         await boost.setMintMulti(toWei("10000000"));
         expect(await boost.mintMulti()).eq(toWei("10000000"));
 
-        await time.advanceBlockTo("20000");
         await boost.setHalvingPeriod("2000");
-
         expect(await boost.period()).eq("2000");
+
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 2000);
 
         await gauge.deposit(toWei("10"), tokenId);
         let fxsOwnerBef2 = await fxs.balanceOf(owner.address);

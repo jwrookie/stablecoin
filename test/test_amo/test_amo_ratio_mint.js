@@ -7,6 +7,7 @@ const PancakePair = require("../mock/PancakePair.json");
 const PancakeRouter = require("../mock/PancakeRouter.json");
 const {BigNumber} = require("ethers");
 const {time} = require("@openzeppelin/test-helpers");
+const {StableCoinPool} = require("../Utils/GetStableConfig");
 
 contract('ExchangeAMO', async () => {
 
@@ -117,7 +118,10 @@ contract('ExchangeAMO', async () => {
             pool3.address,
             1, 0);
 
-        amoMinter.addAMO(exchangeAMO.address, true);
+        await exchangeAMO.setIndex(1, 0);
+
+        await amoMinter.addAMO(exchangeAMO.address, true);
+        await exchangeAMO.setAMOMinter(amoMinter.address);
     });
 
     it('test price', async () => {
@@ -202,6 +206,19 @@ contract('ExchangeAMO', async () => {
 
         expect(usdcOwnerAft).to.be.eq(BigNumber.from(usdcOwnerBef).sub(toWei("200")));
         expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).add(toWei("200")).add(BigNumber.from(fxsOwnerBef).sub(fxsOwnerAft)));
+
+        let cdbBef = await stablecoinPool.collatDollarBalance();
+        expect(cdbBef).to.be.eq(toWei("200"));
+
+        await stablecoinPool.togglePause();
+        expect(await stablecoinPool.paused()).to.be.true;
+
+        let cdbAft = await stablecoinPool.collatDollarBalance();
+        expect(cdbAft).to.be.eq(0);
+        expect(await stablecoinPool.getCollateralPrice()).to.be.eq(0);
+
+        await stablecoinPool.togglePause();
+        expect(await stablecoinPool.paused()).to.be.false;
     });
 
     it('test cr = 0 mint', async () => {
@@ -267,5 +284,56 @@ contract('ExchangeAMO', async () => {
         expect(usdcOwnerAft).to.be.eq(usdcOwnerBef);
         expect(fraxOwnerAft).to.be.eq(BigNumber.from(fraxOwnerBef).add(toWei("100")));
         expect(fxsOwnerAft).to.be.eq(BigNumber.from(fxsOwnerBef).sub(toWei("100")));
+    });
+
+    it('test recover', async () => {
+        await usdc.transfer(amoMinter.address, toWei("1"));
+        await usdc.transfer(exchangeAMO.address, toWei("1"));
+
+        let usdcBef = await usdc.balanceOf(amoMinter.address);
+        await amoMinter.recoverERC20(usdc.address, usdcBef);
+        let usdcAft = await usdc.balanceOf(amoMinter.address);
+
+        expect(usdcAft).to.be.eq(0);
+
+        let usdcAmoBef = await usdc.balanceOf(exchangeAMO.address);
+        await exchangeAMO.recoverERC20(usdc.address, usdcAmoBef);
+        let usdcAmoAft = await usdc.balanceOf(exchangeAMO.address);
+
+        expect(usdcAmoAft).to.be.eq(0);
+    });
+
+    it('test amoMinter execute', async () => {
+        await usdc.transfer(amoMinter.address, toWei("1"));
+
+        let usdcBef = await usdc.balanceOf(amoMinter.address);
+
+        let calldata = web3.eth.abi.encodeFunctionCall({
+            name: 'transfer',
+            type: 'function',
+            inputs: [{type: 'address', name: 'recipient'}, {type: 'uint256', name: 'amount'}]
+        }, [_owner.address, usdcBef]);
+
+        await amoMinter.execute(usdc.address, 0, calldata);
+        let usdcAft = await usdc.balanceOf(amoMinter.address);
+
+        expect(usdcAft).to.be.eq(0);
+    });
+
+    it('test exchangeAMO execute', async () => {
+        await usdc.transfer(exchangeAMO.address, toWei("1"));
+
+        let usdcBef = await usdc.balanceOf(exchangeAMO.address);
+
+        let calldata = web3.eth.abi.encodeFunctionCall({
+            name: 'transfer',
+            type: 'function',
+            inputs: [{type: 'address', name: 'recipient'}, {type: 'uint256', name: 'amount'}]
+        }, [_owner.address, usdcBef]);
+
+        await exchangeAMO.execute(usdc.address, 0, calldata);
+        let usdcAft = await usdc.balanceOf(exchangeAMO.address);
+
+        expect(usdcAft).to.be.eq(0);
     });
 });

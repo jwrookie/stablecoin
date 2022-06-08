@@ -210,6 +210,15 @@ contract('ExchangeAMO', async () => {
 
         expect(usdcAmoAft2).to.be.gt(usdcAmoAft1);
 
+        // custom
+        await exchangeAMO.setCustomFloor(true, 1.5e6);
+        expect(await exchangeAMO.stableFloor()).to.be.eq(1.5e6);
+        // await exchangeAMO.setCustomFloor(false, 1.5e6);
+
+        await exchangeAMO.setDiscountRate(true, 1.1e6);
+        expect(await exchangeAMO.stableDiscountRate()).to.be.eq(1.1e6);
+        // await exchangeAMO.setDiscountRate(false, 1.1e6);
+
         // data
         let data = await exchangeAMO.showAllocations();
         // $.log("data_0", fromWei(toBN(data[0])));
@@ -269,6 +278,9 @@ contract('ExchangeAMO', async () => {
 
         await frax.addPool(amoMinter.address);
         await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("200"));
+
+        let mintedAmount = await exchangeAMO.mintedBalance();
+        expect(mintedAmount).to.be.eq(toWei("200"));
 
         let usdcAmoAft1 = await usdc.balanceOf(exchangeAMO.address);
         let fraxAmoAft1 = await frax.balanceOf(exchangeAMO.address);
