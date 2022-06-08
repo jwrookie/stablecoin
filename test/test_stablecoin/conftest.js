@@ -1,6 +1,7 @@
 const {ethers} = require("hardhat");
 const {time} = require("@openzeppelin/test-helpers");
 const $ = require("../Core/common");
+const {toWei} = require("web3-utils");
 
 const getStablecoinPool = async function (poolLibrary, checkPermission, frax, fxs, usdc) {
     const PoolUSD = await ethers.getContractFactory("PoolUSD", {
@@ -13,7 +14,7 @@ const getStablecoinPool = async function (poolLibrary, checkPermission, frax, fx
         frax.address,
         fxs.address,
         usdc.address,
-        1000);
+        toWei("1000000000"));
 }
 
 const getUniswapPairOracle = async function (factory, tokenA, tokenB) {
