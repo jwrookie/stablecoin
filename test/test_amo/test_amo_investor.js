@@ -60,7 +60,7 @@ contract('ExchangeAMO', async () => {
         await frax.approve(pancakeRouter.address, toWei("100000"));
         await weth.approve(pancakeRouter.address, toWei("10000"));
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         await pancakeRouter.addLiquidity(
             usdc.address, weth.address,
             toWei("20000"), toWei("10"), 0, 0,
@@ -131,7 +131,7 @@ contract('ExchangeAMO', async () => {
 
         // await frax.setStableStep(1e4);
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei('0.1'),
@@ -237,7 +237,7 @@ contract('ExchangeAMO', async () => {
     });
 
     it('test invest with borrow', async () => {
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         await pancakeRouter.swapExactTokensForTokens(
             toWei('0.1'),
             0,

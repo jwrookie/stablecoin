@@ -61,7 +61,7 @@ contract('ExchangeAMO', async () => {
         await frax.approve(pancakeRouter.address, toWei("100000"));
         await weth.approve(pancakeRouter.address, toWei("10000"));
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         await pancakeRouter.addLiquidity(
             usdc.address, weth.address,
             toWei("2000"), toWei("1"), 0, 0,
@@ -169,7 +169,7 @@ contract('ExchangeAMO', async () => {
         let stablePriceBef = await frax.stablePrice();
         let CRBef = await frax.globalCollateralRatio();
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         await pancakeRouter.swapExactTokensForTokens(
             toWei('1'),
             0,
@@ -222,7 +222,7 @@ contract('ExchangeAMO', async () => {
     });
 
     it('test cr = 0 mint', async () => {
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         await pancakeRouter.swapExactTokensForTokens(
             toWei('100'),
             0,

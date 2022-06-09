@@ -92,7 +92,7 @@ async function main() {
     let cr = await rusd.globalCollateralRatio();
     expect(cr).to.be.eq(toWei("1", "mwei"));
 
-    let _deadline = new Date().getTime() + 1000;
+    let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
     await pancakeRouter.swapExactTokensForTokens(
         toWei('0.1'),
         0,

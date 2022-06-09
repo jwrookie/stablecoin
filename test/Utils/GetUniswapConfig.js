@@ -16,7 +16,7 @@ const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress,
 }
 
 const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), coinLiquidity = [], operator) => {
-    let date = Math.round(new Date() / 1000 + 2600000);
+    let date = Math.round(new Date() / 1000 + 260000000);
     let parameterObj = new Map();
 
     parameterObj.set("tokenANumber", toWei("1"));
