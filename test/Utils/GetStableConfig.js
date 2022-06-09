@@ -40,19 +40,7 @@ const StableCoinPool = async (guaranteeAddress, poolCelling) => {
 
     let PoolUsdc = await SetPoolAddress(fraxPoolLibrary);
 
-    switch (undefined) {
-        case tempMap.get("CHECKOPERA"):
-            throw Error("Please call the function GetRusdAndTra first!");
-            break;
-        case tempMap.get("RUSD"):
-            throw Error("Please call the function GetRusdAndTra first!");
-            break;
-        case tempMap.get("TRA"):
-            throw Error("Please call the function GetRusdAndTra first!");
-            break;
-        default:
-            break;
-    }
+    await CheckParameter([tempMap.get("CHECKOPERA"), tempMap.get("RUSD"), tempMap.get("TRA"), guaranteeAddress]);
 
     return await PoolUsdc.deploy(
         tempMap.get("CHECKOPERA").address,
