@@ -98,7 +98,9 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await amoMinter.setCollatBorrowCap(toWei("10"));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
 
+        expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(0);
         await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
+        expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(BigNumber.from("599879617905205347"));
 
         expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
         await exchangeAMO.poolWithdrawStable(await pool.balanceOf(exchangeAMO.address, GAS), true);
