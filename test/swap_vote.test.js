@@ -420,16 +420,16 @@ contract('SwapController', () => {
         await swapController.vote(1, pool.address);
         console.log("venft:" + await lock.balanceOfNFT(1))
 
-        await boost.reset(1)
+        await expectRevert(boost.reset(1), "use weight > 0");
         console.log("venft:" + await lock.balanceOfNFT(1))
 
-        await boost.vote(1, [pool.address], [toWei('1')])
+        // await boost.vote(1, [pool.address], [toWei('1')])
 
         console.log("venft:" + await lock.balanceOfNFT(1))
 
 
-        await swapMining.reset(1);
-        await gaugeController.vote(1, pool.address);
+        await expectRevert(swapMining.reset(1), "use weight > 0");
+        // await gaugeController.vote(1, pool.address);
 
         //await swapMining.vote(1, [pool.address], [toWei('1')])
         console.log("venft:" + await lock.balanceOfNFT(1))

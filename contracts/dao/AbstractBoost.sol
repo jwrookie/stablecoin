@@ -47,6 +47,7 @@ abstract contract AbstractBoost is TokenReward {
 
     function reset(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
+        require(usedWeights[_tokenId]>0,"use weight > 0");
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
     }
@@ -122,6 +123,7 @@ abstract contract AbstractBoost is TokenReward {
 
     function poke(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
+        require(usedWeights[_tokenId] > 0, "use weight > 0");
         address[] memory _poolVote = poolVote[_tokenId];
         uint256 _poolCnt = _poolVote.length;
         int256[] memory _weights = new int256[](_poolCnt);
