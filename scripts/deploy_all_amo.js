@@ -4,7 +4,7 @@ const {toWei, fromWei, toBN} = require("web3-utils");
 const {time} = require("@openzeppelin/test-helpers");
 const {GetMockToken} = require("../test/Utils/GetMockConfig");
 const {GetRusdAndTra, StableCoinPool} = require("../test/Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../test/Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../test/Utils/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
