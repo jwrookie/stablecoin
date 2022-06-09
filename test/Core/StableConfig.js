@@ -1,4 +1,5 @@
 const {ethers} = require('hardhat');
+const {ZEROADDRESS} = require("../Lib/Address");
 
 const SetOracle = async () => {
     const TestOracle = await ethers.getContractFactory("TestOracle");
@@ -16,7 +17,7 @@ const SetCheckPermission = async (operatable) => {
 }
 
 const SetRusd = async (operatable) => {
-    const RStableCoin = await ethers.getContractFactory("RStablecoin");
+    RStableCoin = await ethers.getContractFactory("RStablecoin");
     return await RStableCoin.deploy(operatable.address, "Rusd", "Rusd");
 }
 

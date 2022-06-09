@@ -1,4 +1,4 @@
-const {time, expectRevert} = require("@openzeppelin/test-helpers");
+const {time} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
@@ -82,10 +82,5 @@ contract('Dao locker', async function () {
         expect(await locker.isApprovedForAll(owner.address, owner.address)).to.be.eq(false);
         await expect(locker.setApprovalForAll(dev.address, true)).to.emit(locker, 'ApprovalForAll')
             .withArgs(owner.address, dev.address, true);
-    });
-
-    it('Test modifier onlyBoost', async function () {
-        await locker.addBoosts(gaugeController.address);
-        await expectRevert(locker.voting(tokenId), "only voter");
     });
 });
