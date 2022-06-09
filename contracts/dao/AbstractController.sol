@@ -56,6 +56,7 @@ abstract contract AbstractController is CheckPermission {
 
     function reset(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
+        require(usedWeights[_tokenId] > 0, "use weight > 0");
         PoolVote storage poolVote = userPool[_tokenId];
         require(poolVote.lastUse + duration < block.timestamp, "next duration use");
         _reset(_tokenId);
@@ -86,6 +87,7 @@ abstract contract AbstractController is CheckPermission {
 
     function poke(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
+        require(usedWeights[_tokenId] > 0, "use weight > 0");
         PoolVote storage poolVote = userPool[_tokenId];
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
@@ -94,6 +96,7 @@ abstract contract AbstractController is CheckPermission {
 
     function vote(uint256 tokenId, address _poolVote) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, tokenId), "no owner");
+        require(IVeToken(veToken).balanceOfNFT(tokenId) > 0, "ve token >0");
         PoolVote storage poolVote = userPool[tokenId];
         require(poolVote.lastUse + duration < block.timestamp, "next duration use");
         require(isPool(_poolVote), "must pool");
