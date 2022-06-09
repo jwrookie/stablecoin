@@ -327,10 +327,4 @@ contract('ExchangeAMO', async function () {
         await exchangeAMO.setSlippages(900000);
         expect(await exchangeAMO.liqSlippage3crv()).to.be.eq(900000);
     });
-
-    // it('test recoverERC20', async function () {
-    //     initFraxBalanceOfOwner = await getBalances(frax, exchangeAMO);
-    //     await amoMinter.recoverERC20(frax.address, toWei("1"));
-    //     expect(await getBalances(frax, exchangeAMO)).to.be.eq(initFraxBalanceOfOwner - toWei("1"));
-    // });
 })
