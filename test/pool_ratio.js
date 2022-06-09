@@ -4,7 +4,7 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, StableCoinPoolFreeParameter, StableCoinPool} = require("./Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Utils/GetThreePoolAndPancakePoolConfig");
 
 const {GetUniswapByPancakeFactory, AddLiquidityByPancakeRouter, SetETHUSDOracle} = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};

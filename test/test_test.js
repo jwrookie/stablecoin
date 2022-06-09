@@ -2,7 +2,7 @@ const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("./Utils/GetMockConfig");
 const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Tools/Deploy");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Utils/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
@@ -39,17 +39,17 @@ contract("test", async function () {
         fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
         fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
     });
-    // it('should ', async function () {
-    //     console.log(rusd.address);
-    //     console.log(tra.address);
-    //     console.log(usdc.address);
-    //     console.log(token0.address);
-    //     console.log(token1.address);
-    //     console.log(stableCoinPool.address);
-    //     console.log(stableCoinPoolSecond.address);
-    //     console.log(pancakeFactory.address);
-    //     console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
-    //     console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
-    //     console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
-    // });
+    it('should ', async function () {
+        console.log(rusd.address);
+        console.log(tra.address);
+        console.log(usdc.address);
+        console.log(token0.address);
+        console.log(token1.address);
+        console.log(stableCoinPool.address);
+        console.log(stableCoinPoolSecond.address);
+        console.log(pancakeFactory.address);
+        console.log("usdcUniswap:\t" + usdcUniswapOracle.address);
+        console.log("fraxUniswap:\t" + fraxUniswapOracle.address);
+        console.log("fxsUniswap:\t" + fxsUniswapOracle.address);
+    });
 });
