@@ -234,7 +234,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         await frax.approve(router.address, toWei("1000"));
@@ -246,7 +246,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         await fxs.approve(router.address, toWei("1000"));
@@ -258,7 +258,7 @@ contract('ExchangeAMO', async function () {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         // About oracle and uniswap
@@ -298,10 +298,6 @@ contract('ExchangeAMO', async function () {
 
         // Insert exchange amo in amo
         await amoMinter.addAMO(exchangeAMO.address, true);
-    });
-
-    it('test setAMOMinter', async function () {
-        await exchangeAMO.setAMOMinter(amoMinter.address);
     });
 
     it('test setConvergenceWindow', async function () {

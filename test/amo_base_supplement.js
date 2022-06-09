@@ -91,7 +91,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),
@@ -129,7 +129,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),
@@ -176,7 +176,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),

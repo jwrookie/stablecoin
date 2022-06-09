@@ -42,7 +42,7 @@ contract('StableCoin', async () => {
         await frax.addPool(stablecoinPool.address);
         await fxs.addPool(stablecoinPool.address);
 
-        const pancakeFactory = await $.deploy(owner, PancakeFactory.bytecode, PancakeFactory.abi, [owner.address]);
+        pancakeFactory = await $.deploy(owner, PancakeFactory.bytecode, PancakeFactory.abi, [owner.address]);
         await pancakeFactory.createPair(usdc.address, weth.address);
         await pancakeFactory.createPair(fxs.address, weth.address);
         await pancakeFactory.createPair(frax.address, weth.address);
@@ -51,13 +51,12 @@ contract('StableCoin', async () => {
 
         pancakeRouter = await $.deploy(owner, PancakeRouter.bytecode, PancakeRouter.abi,
             [pancakeFactory.address, weth.address]);
-
         await usdc.approve(pancakeRouter.address, toWei("1000"));
         await fxs.approve(pancakeRouter.address, toWei("1000"));
         await frax.approve(pancakeRouter.address, toWei("1000"));
         await weth.approve(pancakeRouter.address, toWei("100"));
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         await pancakeRouter.addLiquidity(
             usdc.address, weth.address,
             toWei("10"), toWei("10"), 0, 0,
@@ -91,30 +90,30 @@ contract('StableCoin', async () => {
         await stablecoinPool.setCollatETHOracle(usdcEthOracle.address, weth.address);
     });
 
-    // it('test pair', async () => {
-    //     let usdc_weth_pair = await pancakeFactory.getPair(usdc.address, weth.address);
-    //     let usdc_weth = await pancakePair.attach(usdc_weth_pair);
-    //
-    //     expect(usdc_weth_pair).to.be.eq(usdc_weth.address);
-    //
-    //
-    //     let fxs_weth_pair = await pancakeFactory.getPair(fxs.address, weth.address);
-    //     let fxs_weth = await pancakePair.attach(fxs_weth_pair);
-    //
-    //     expect(fxs_weth_pair).to.be.eq(fxs_weth.address);
-    //
-    //
-    //     let frax_weth_pair = await pancakeFactory.getPair(frax.address, weth.address);
-    //     let frax_weth = await pancakePair.attach(frax_weth_pair);
-    //
-    //     expect(frax_weth_pair).to.be.eq(frax_weth.address);
-    // });
+    it('test pair', async () => {
+        let usdc_weth_pair = await pancakeFactory.getPair(usdc.address, weth.address);
+        let usdc_weth = await pancakePair.attach(usdc_weth_pair);
 
-    it('test refreshCR', async () => {
+        expect(usdc_weth_pair).to.be.eq(usdc_weth.address);
+
+
+        let fxs_weth_pair = await pancakeFactory.getPair(fxs.address, weth.address);
+        let fxs_weth = await pancakePair.attach(fxs_weth_pair);
+
+        expect(fxs_weth_pair).to.be.eq(fxs_weth.address);
+
+
+        let frax_weth_pair = await pancakeFactory.getPair(frax.address, weth.address);
+        let frax_weth = await pancakePair.attach(frax_weth_pair);
+
+        expect(frax_weth_pair).to.be.eq(frax_weth.address);
+    });
+
+    it('test maxCR and setK', async () => {
         let stablePriceBef = await frax.stablePrice();
         let CRBef = await frax.globalCollateralRatio();
 
-        let _deadline = new Date().getTime() + 1000;
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         await pancakeRouter.swapExactTokensForTokens(
             toWei('1'),
             0,
@@ -134,44 +133,52 @@ contract('StableCoin', async () => {
         expect(stablePriceAft).to.be.gt(stablePriceBef);
         expect(CRAft).to.be.eq(BigNumber.from(CRBef).sub(2500));
 
-
         await usdc.approve(stablecoinPool.address, toWei("20000000"));
         await fxs.approve(stablecoinPool.address, toWei("2000000"));
-        await frax.approve(stablecoinPool.address, toWei("10000000"));
+        await frax.approve(stablecoinPool.address, toWei("20000000"));
 
         expect(await frax.totalSupply()).eq(toWei("2000000"));
+        expect(await frax.maxCR()).eq(1e6);
 
-        await time.increase(time.duration.hours(1));
-        await stablecoinPool.mintFractionalStable(toWei("10000000"), toWei("1000000"), 0);
-        // expect(await frax.totalSupply()).eq(toWei("2000100.2506265664160401"));
-        await fraxEthOracle.update();
-        await fxsEthOracle.update();
-        await usdcEthOracle.update();
-        // console.log(fromWei(toBN(await frax.totalSupply())));
-        // console.log(fromWei(toBN(await frax.lastQX())));
-        // console.log(await frax.refesh())
+        await wait();
+
+        let fraxOwnerBef = await frax.balanceOf(owner.address);
+        await stablecoinPool.mintFractionalStable(toWei("20000000"), toWei("2000000"), 0);
+
+        let fraxOwnerAft = await frax.balanceOf(owner.address);
+        let diff = BigNumber.from(fraxOwnerAft).sub(BigNumber.from(fraxOwnerBef));
+
         await frax.refreshCollateralRatio();
-        console.log(await frax.maxCR());
+        expect(diff).to.be.gt(toWei("20000000"));
+        expect(await frax.maxCR()).eq(998001);
 
-        // console.log(await frax.globalCollateralRatio());
+        await wait();
 
-        await time.increase(time.duration.hours(1));
-        await stablecoinPool.redeemFractionalStable(toWei("10000"), 0, 0);
-        // expect(await frax.totalSupply()).eq(toWei("2000090.2506265664160401"));
-        await fraxEthOracle.update();
-        await fxsEthOracle.update();
-        await usdcEthOracle.update();
-        // console.log(fromWei(toBN(await frax.totalSupply())));
-        // console.log(fromWei(toBN(await frax.lastQX())));
-        // console.log(await frax.refesh())
+        await stablecoinPool.redeemFractionalStable(toWei("10000000"), 0, 0);
         await frax.refreshCollateralRatio();
-        console.log(await frax.maxCR());
+        expect(await frax.maxCR()).eq(999000);
 
-        // console.log(await frax.globalCollateralRatio());
+        await wait();
+
+        await frax.setKAndKDuration(1e2, toWei("10000"));
+
+        await stablecoinPool.redeemFractionalStable(toWei("10001"), 0, 0);
+        await frax.refreshCollateralRatio();
+        expect(await frax.maxCR()).eq(999099);
+
+        await wait();
+
+        await frax.setKAndKDuration(1e4, toWei("10000"));
+
+        await stablecoinPool.redeemFractionalStable(toWei("10001"), 0, 0);
+        await frax.refreshCollateralRatio();
+        expect(await frax.maxCR()).eq(1e6);
     });
 
-    // it('test K', async () => {
-    //     await frax.setKAndKDuration(1e3, toWei("10000000"));
-    //     console.log(await frax.maxCR());
-    // });
+    async function wait() {
+        await time.increase(time.duration.hours(1));
+        await fraxEthOracle.update();
+        await fxsEthOracle.update();
+        await usdcEthOracle.update();
+    }
 });
