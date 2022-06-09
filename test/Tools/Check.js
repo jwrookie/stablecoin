@@ -5,7 +5,8 @@ const CheckParameter = async (param = []) => {
         for (let i = 0; i < param.length; i++) {
             switch (typeof param[i]) {
                 case "object":
-                    if ("{}" === JSON.stringify(param[i])) {
+                    if ("{}" === JSON.stringify(param[i])
+                        || undefined === param[i]) {
                         throw Error("CheckParameter: Empty object!");
                     }
                     break;
@@ -20,8 +21,8 @@ const CheckParameter = async (param = []) => {
                     throw Error("CheckParameter: Invalid Type Of Parameters!");
             }
         }
-    }else {
-        return false;
+    } else {
+        throw Error("CheckParameter: The array of parameters is empty!");
     }
     return true;
 }
