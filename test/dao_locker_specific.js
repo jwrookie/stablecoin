@@ -27,9 +27,6 @@ contract('Dao locker specific', async function () {
         await lockerFirst.createLockFor(toWei("0.1"), ONE_DAT_DURATION, owner.address);
         tokenId = await lockerFirst.tokenId();
 
-        await lockerFirst.createLockFor(toWei("0.1", ONE_DAT_DURATION, dev.address));
-        secondTokenId = await lockerFirst.tokenId();
-
         transferValue = await web3.eth.abi.encodeParameter("");
 
         await lockerFirst.safeTransferFrom(
@@ -38,8 +35,6 @@ contract('Dao locker specific', async function () {
             tokenId,
             transferValue
         );
-
-
     });
 
     it('Test about safeTransferSecond by abi', async function () {
