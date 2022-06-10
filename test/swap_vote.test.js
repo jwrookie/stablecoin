@@ -214,9 +214,6 @@ contract('SwapController', () => {
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
         await fxs.connect(dev).approve(lock.address, toWei('10000000'));
-
-        // await boost.createGauge(usdc.address, "100", true);
-
         const GaugeController = await ethers.getContractFactory('GaugeController');
         gaugeController = await GaugeController.deploy(
             checkPermission.address,
@@ -362,128 +359,31 @@ contract('SwapController', () => {
 
 
     });
-    it("correct voting mode", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-
-        await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
-        await swapController.vote(1, pool.address);
-        await swapController.poke(1);
-
-    });
-    it("correct two users poke mode", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
-
-        await swapController.vote(1, pool.address);
-        console.log("weights:" + await swapController.weights(pool.address));
-
-        console.log("usedWeights:" + await swapController.usedWeights(1));
-        await expect(swapController.poke(2)).to.be.revertedWith("no owner");
-        await swapController.poke(1);
-        expect(await swapController.weights(pool.address)).to.be.eq(0);
-
-        console.log("usedWeights:" + await swapController.usedWeights(1));
-
-        await expect(swapController.connect(dev).poke(1)).to.be.revertedWith("no owner");
-
-        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
-        await swapController.connect(dev).vote(2, pool.address);
-
-        await swapController.connect(dev).poke(2);
-
-    });
-    it("correct acceleration mode", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-
-        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
-        await swapMining.vote(1, [pool.address], [toWei('1')]);
-        await swapMining.poke(1);
-
-    });
-    it("correct two users acceleration mode", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-
-        await swapMining.vote(1, [pool.address], [toWei('1')]);
-        await swapMining.connect(dev).vote(2, [pool.address], [toWei('1')]);
-
-        await swapMining.poke(1);
-        await expect(swapMining.connect(dev).poke(1)).to.be.revertedWith("no owner");
-
-        await swapMining.connect(dev).poke(2);
-
-    });
-    it("swapMining vote reset, weight > 0", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await swapController.vote(1, pool.address);
-
-        await expectRevert(boost.reset(1), "use weight > 0");
-
-        await expectRevert(boost.vote(1, [pool.address], [toWei('1')]), "tokenId voted");
-
-        await expectRevert(swapMining.reset(1), "use weight > 0");
-
-
-    });
-    it("liquidity vote reset, weight > 0", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await gaugeController.vote(1, pool.address);
-
-        await expectRevert(swapMining.reset(1), "use weight > 0");
-
-        await expectRevert(swapMining.vote(1, [pool.address], [toWei('1')]), "tokenId voted");
-
-        await expectRevert(boost.reset(1), "use weight > 0");
-
-
-    });
-    it("swapMining accelerate, reset weight > 0", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await swapMining.vote(1, [pool.address], [toWei('1')]);
-
-        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
-        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
-
-
-    });
-
-    it("liquidity accelerate, reset weight > 0", async () => {
-        let eta = time.duration.days(7);
-        await lock.createLock(toWei('1000'), parseInt(eta));
-        await boost.vote(1, [pool.address], [toWei('1')]);
-
-        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
-        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
-
-
-    });
-
     it("two users liquidity accelerate, reset weight > 0", async () => {
         let eta = time.duration.days(7);
         await lock.createLock(toWei('1000'), parseInt(eta));
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
         await boost.vote(1, [pool.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [pool.address], [toWei('2')]);
-
         await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
         await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
-        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
 
         await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
 
+        await boost.connect(dev).vote(2, [pool.address], [toWei('2')]);
+        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
 
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await boost.connect(dev).reset(2);
+        await boost.reset(1);
 
 
     });
@@ -493,18 +393,93 @@ contract('SwapController', () => {
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
         await swapMining.vote(1, [pool.address], [toWei('1')]);
-        await swapMining.connect(dev).vote(2, [pool.address], [toWei('2')]);
-
         await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
         await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
-        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
 
         await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
 
+        await swapMining.connect(dev).vote(2, [pool.address], [toWei('2')]);
+        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
+
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await swapMining.connect(dev).reset(2);
+        await swapMining.reset(1);
+
+    });
+
+    it("two users swapMining vote, reset weight > 0", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
+
+        await swapController.vote(1, pool.address);
+        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+
+        await swapController.connect(dev).vote(2, pool.address);
+        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+
+        await time.increase(time.duration.days(7));
+
+        await swapController.reset(1);
+        expect(await swapController.usedWeights(1)).to.be.eq(0)
+
+        await swapController.connect(dev).reset(2);
+        expect(await swapController.usedWeights(2)).to.be.eq(0)
+
+
+    });
+    it("two users liquidity vote, reset weight > 0", async () => {
+        let eta = time.duration.days(7);
+        await lock.createLock(toWei('1000'), parseInt(eta));
+        await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
+
+        await gaugeController.vote(1, pool.address);
+
+        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+
+        await gaugeController.connect(dev).vote(2, pool.address);
+        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+
+        await time.increase(time.duration.days(7));
+        await gaugeController.reset(1);
+        expect(await gaugeController.usedWeights(1)).to.be.eq(0);
+
+        await gaugeController.connect(dev).reset(2);
+        expect(await gaugeController.usedWeights(2)).to.be.eq(0);
 
     });
     it("two users swapMining accelerate ,poke, weight > 0", async () => {
@@ -517,26 +492,32 @@ contract('SwapController', () => {
         await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
 
-
         await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
 
-
         await swapMining.vote(1, [pool.address], [toWei('1')]);
-        await swapMining.connect(dev).vote(2, [pool.address], [toWei('2')]);
         await swapMining.poke(1);
-        await swapMining.connect(dev).poke(2);
 
         await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
-
         await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
         await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+        await swapMining.connect(dev).vote(2, [pool.address], [toWei('2')]);
+        await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+        await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await swapMining.connect(dev).poke(2);
 
 
     });
@@ -547,18 +528,26 @@ contract('SwapController', () => {
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
         await swapController.vote(1, pool.address);
-        await swapController.connect(dev).vote(2, pool.address);
         await swapController.poke(1);
-        await swapController.connect(dev).poke(2);
 
         await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
-
         await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
         await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+        await swapController.connect(dev).vote(2, pool.address);
+        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+        await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await swapController.connect(dev).poke(2);
 
 
     });
@@ -569,18 +558,26 @@ contract('SwapController', () => {
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
         await boost.vote(1, [pool.address], [toWei('1')]);
-        await boost.connect(dev).vote(2, [pool.address], [toWei('2')]);
         await boost.poke(1);
-        await boost.connect(dev).poke(2);
-
         await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
         await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+
+        await boost.connect(dev).vote(2, [pool.address], [toWei('2')]);
+        await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
         await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await boost.connect(dev).poke(2);
 
 
     });
@@ -591,43 +588,57 @@ contract('SwapController', () => {
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
         await gaugeController.vote(1, pool.address);
-        await gaugeController.connect(dev).vote(2, pool.address);
         await gaugeController.poke(1);
-        await gaugeController.connect(dev).poke(2);
-
         await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
-
         await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
         await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
         await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight");
 
+
+        await gaugeController.connect(dev).vote(2, pool.address);
+        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
+
+        await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await gaugeController.connect(dev).poke(2);
 
     });
-     it("two users liquidity vote ,poke, weight > 0", async () => {
+    it("test vote and reset, other reset", async () => {
         let eta = time.duration.days(7);
         await lock.createLock(toWei('1000'), parseInt(eta));
         await lock.connect(dev).createLock(toWei('1000'), parseInt(eta));
 
-        await gaugeController.vote(1, pool.address);
-        await gaugeController.connect(dev).vote(2, pool.address);
-        await gaugeController.poke(1);
-        await gaugeController.connect(dev).poke(2);
-         await gaugeController.connect(dev).reset(2);
+        await boost.vote(1, [pool.address], [toWei('1')]);
+        await boost.poke(1);
 
-        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
-        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await boost.reset(1);
+        await expect(boost.vote(1, [pool.address], [toWei('2')])).to.be.emit(boost, "Voted");
 
-        await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
-        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(swapController.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.reset(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.reset(1)).to.be.revertedWith("use weight > 0");
 
         await expect(swapController.poke(1)).to.be.revertedWith("use weight > 0");
-        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight");
+        await expect(swapMining.poke(1)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.poke(1)).to.be.revertedWith("use weight > 0");
 
+        await boost.connect(dev).vote(2, [pool.address], [toWei('2')]);
+        await boost.connect(dev).poke(2);
 
+        await expect(swapController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).reset(2)).to.be.revertedWith("use weight > 0");
+
+        await expect(swapController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
+        await expect(swapMining.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
+        await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
     });
-
 
 });
