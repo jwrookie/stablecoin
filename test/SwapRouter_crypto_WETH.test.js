@@ -165,7 +165,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> weth
@@ -194,7 +194,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> weth
@@ -223,7 +223,7 @@ contract('Crypto', () => {
     it('test vote without swapMining', async () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
         //token0 -> weth
@@ -243,7 +243,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> weth
@@ -267,7 +267,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000";
 
         let token0Bef = await token0.balanceOf(owner.address);
@@ -287,7 +287,7 @@ contract('Crypto', () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await weth9.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000";
 
         let token0Bef = await token0.balanceOf(owner.address);

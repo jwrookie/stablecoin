@@ -268,7 +268,7 @@ contract('3metaPool', () => {
         await token3.approve(swapRouter.address, toWei("10000"));
         await pool.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
         await swapRouter.swapMeta(pool1.address, 0, 1, dx, 0, owner.address, times);
@@ -288,7 +288,7 @@ contract('3metaPool', () => {
         await token3.approve(swapRouter.address, toWei("10000"));
         await pool.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         await swapRouter.swapMeta(pool1.address, 0, 1, dx, 0, owner.address, times);
