@@ -69,7 +69,7 @@ contract('PoolUSD_ratio', () => {
 
         expect(await rusd.globalCollateralRatio()).to.be.eq(ratio - 2500);
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         for (let i = 0; i < 6; i++) {
             await router.swapExactTokensForTokens(
                 toWei('1'),

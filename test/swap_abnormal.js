@@ -161,7 +161,7 @@ contract('swapMining abnormal', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
@@ -179,7 +179,7 @@ contract('swapMining abnormal', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1

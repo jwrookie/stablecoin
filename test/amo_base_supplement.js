@@ -16,7 +16,7 @@ const {
 } = require("./Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
-contract('AMO Scenes', async function () {
+describe('AMO Scenes', function () {
     beforeEach(async function () {
         [owner] = await ethers.getSigners();
 
@@ -95,7 +95,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),
@@ -133,7 +133,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),
@@ -180,7 +180,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),
@@ -229,7 +229,7 @@ contract('AMO Scenes', async function () {
         expect(cr).to.be.eq(1e6);
 
         // Swap by pancake route
-        let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         for (let i = 0; i < 10; i++) {
             await pancakeRouter.swapExactTokensForTokens(
                 toWei("1"),

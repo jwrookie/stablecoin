@@ -78,7 +78,7 @@ async function main() {
     await frax.approve(pancakeRouter.address, toWei("100000"));
     await weth.approve(pancakeRouter.address, toWei("10000"));
 
-    let _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+    let _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
     await pancakeRouter.addLiquidity(
         usdc.address, weth.address,
         toWei("20000"), toWei("10"), 0, 0,
@@ -151,7 +151,7 @@ async function main() {
     await stablecoinPool.addAMOMinter(amoMinter.address);
 
     ////////////
-    _deadline = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+    _deadline = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
     for (let i = 0; i < 10; i++) {
         await pancakeRouter.swapExactTokensForTokens(
             toWei('0.1'),
