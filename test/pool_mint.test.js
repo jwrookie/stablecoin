@@ -121,7 +121,7 @@ contract('pool mint test', () => {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         await frax.approve(router.address, toWei('1000'));
@@ -134,7 +134,7 @@ contract('pool mint test', () => {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         await fxs.approve(router.address, toWei('1000'));
@@ -146,7 +146,7 @@ contract('pool mint test', () => {
             0,
             0,
             owner.address,
-            Math.round(new Date() / 1000 + 2600000)
+            Math.round(new Date() / 1000 + 260000000)
         );
 
         const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");

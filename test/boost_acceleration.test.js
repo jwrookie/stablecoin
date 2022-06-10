@@ -244,12 +244,12 @@ contract('Boost', () => {
         await expect(boost.poke(2)).to.be.revertedWith("no owner");
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
-        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("total weight is 0");
+        await expect(boost.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
         await boost.reset(1);
-        boost.connect(dev).reset(2);
+        await boost.connect(dev).reset(2);
 
-        await expect(boost.poke(1)).to.be.revertedWith("total weight is 0");
+        await expect(boost.poke(1)).to.be.revertedWith("use weight > 0");
         await boost.connect(dev).vote(2, [usdc.address], [toWei('1')]);
 
         await boost.vote(1, [usdc.address], [toWei('1')]);

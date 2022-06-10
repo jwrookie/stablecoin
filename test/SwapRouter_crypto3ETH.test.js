@@ -177,7 +177,7 @@ contract('swap3eth_test', () => {
         await token1.approve(swapRouter.address, toWei("10000"));
         await token2.approve(swapRouter.address, toWei('100000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         //token0 -> weth
         await swapRouter.swapToken3(pool.address, 0, 2, toWei("1"), 0, owner.address, times);

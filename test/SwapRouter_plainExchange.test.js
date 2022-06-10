@@ -212,7 +212,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
 
@@ -239,7 +239,7 @@ contract('plainPool', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
 
@@ -256,7 +256,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
         //token0 -> token1
@@ -277,7 +277,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
@@ -302,7 +302,7 @@ contract('plainPool', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
@@ -329,7 +329,7 @@ contract('plainPool', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
@@ -361,7 +361,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
         //token0 -> token1
@@ -414,7 +414,7 @@ contract('plainPool', () => {
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         let eta = time.duration.days(7);
@@ -442,7 +442,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
         let eta = time.duration.days(7);
@@ -471,7 +471,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
         let eta = time.duration.days(7);
@@ -507,7 +507,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
@@ -540,7 +540,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
         //token0 -> token1
@@ -568,7 +568,7 @@ contract('plainPool', () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
-        let times = Number((new Date().getTime() / 1000 + 2600000).toFixed(0));
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
 
