@@ -71,4 +71,15 @@ describe('Dao Locker Q', function() {
         await expect(gauge.connect(dev).withdrawToken(0, tokenId)).to.be.reverted;
         await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5"), tokenId), "withdrawSwap: not good");
     });
+
+    it('Two user,first deposit and transfer and second withdrawToken', async function () {
+        await locker.createLock(toWei("0.5"), ONE_DAT_DURATION);
+        tokenId = await locker.tokenId();
+
+        await gauge.deposit(toWei("1.5"), tokenId);
+        await locker.transferFrom(owner.address, dev.address, tokenId);
+        await expect(gauge.connect(dev).withdrawToken(0, tokenId)).to.be.reverted;
+        await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5"), tokenId), "withdrawSwap: not good");
+        await gauge.withdrawToken(toWei("1.5"), tokenId);
+    });
 });
