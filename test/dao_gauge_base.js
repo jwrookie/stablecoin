@@ -195,7 +195,7 @@ contract('Gauge', async function () {
 
         // About gauge
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
-        await gauge.deposit(toWei("0.000001"), tokenId);
+        await gauge.deposit(toWei("0.000001"));
 
         // Vote
         await gaugeController.vote(tokenId, await gaugeController.getPool(0));
@@ -239,7 +239,7 @@ contract('Gauge', async function () {
         await gaugeController.setDuration(await getDurationTime());
         await gaugeController.addPool(frax.address);
 
-        await gauge.deposit(toWei("0.000001"), tokenId);
+        await gauge.deposit(toWei("0.000001"));
 
         // Get reward
         beforeGetRewardBalanceOfFxs = await fxs.balanceOf(owner.address);

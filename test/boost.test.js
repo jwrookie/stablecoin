@@ -137,8 +137,8 @@ contract('Boost test', () => {
         let reward = BigNumber.from("50000000000100000").mul(2);
         expect(diff).to.be.eq(pendOwner.add(reward));
 
-        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 1);
-        await gauge_usdc.connect(owner).withdrawToken(toWei('2'), 2);
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'));
+        await gauge_usdc.connect(owner).withdrawToken(toWei('2'));
 
         let usdcDevAft = await usdc.balanceOf(dev.address);
         let usdcOwnerAft = await usdc.balanceOf(owner.address);
@@ -177,8 +177,8 @@ contract('Boost test', () => {
         let diff1 = aft1Dev.sub(aftDev);
         expect(diff1).to.be.eq(diff);
 
-        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 1);
-        await gauge_busd.connect(dev).withdrawToken(toWei('1'), 1);
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'));
+        await gauge_busd.connect(dev).withdrawToken(toWei('1'));
 
         let usdcDevAft = await usdc.balanceOf(dev.address);
         let busdDevAft = await busd.balanceOf(dev.address);
