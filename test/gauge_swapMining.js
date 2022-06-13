@@ -235,27 +235,30 @@ contract('gauge,swapMining', () => {
 
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+        await swapMining.updatePool(0);
         let befDev = await fxs.balanceOf(dev.address);
-        expect(befDev).to.be.eq(toWei('9990'));
+
+        let pend = await swapMining.rewardPoolInfo(0, dev.address);
+        console.log("userReward:" + pend / 10 ** 18);
+
+        await swapMining.connect(dev).getReward(0);
+        let aftDev = await fxs.balanceOf(dev.address);
+        expect(aftDev).to.be.eq(toWei('9997.2'));
 
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
 
         let befOwner = await fxs.balanceOf(owner.address);
         expect(befOwner).to.be.eq(toWei('299990000'));
 
-        await swapMining.connect(dev).getReward(0);
-        let aftDev = await fxs.balanceOf(dev.address);
-        expect(aftDev).to.be.eq(toWei('9993.6'));
-
         await swapMining.getReward(0);
         let aftOwner = await fxs.balanceOf(owner.address);
-        expect(aftOwner).to.be.eq(toWei('299990003.84'));
+        expect(aftOwner).to.be.eq(toWei('299990000.48'));
 
         let devDiff = aftDev.sub(befDev);
-        expect(devDiff).to.be.eq(toWei('3.6'));
+        expect(devDiff).to.be.eq(toWei('7.2'));
 
         let ownerDiff = aftOwner.sub(befOwner);
-        expect(ownerDiff).to.be.eq(toWei('3.84'));
+        expect(ownerDiff).to.be.eq(toWei('0.48'));
 
 
     });
@@ -273,6 +276,7 @@ contract('gauge,swapMining', () => {
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
+
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         let befDev = await fxs.balanceOf(dev.address);
@@ -280,23 +284,27 @@ contract('gauge,swapMining', () => {
 
         await swapMining.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
+        let pend = await swapMining.rewardPoolInfo(0, dev.address);
+        console.log("userReward:" + pend / 10 ** 18);
+
+        await swapMining.connect(dev).getReward(0);
+        let aftDev = await fxs.balanceOf(dev.address);
+        expect(aftDev).to.be.eq(toWei('9997.2'));
+
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
         let befOwner = await fxs.balanceOf(owner.address);
         expect(befOwner).to.be.eq(toWei('299990000'));
 
-        await swapMining.connect(dev).getReward(0);
-        let aftDev = await fxs.balanceOf(dev.address);
-        expect(aftDev).to.be.eq(toWei('9993.72'));
-
         await swapMining.getReward(0);
         let aftOwner = await fxs.balanceOf(owner.address);
-        expect(aftOwner).to.be.eq(toWei('299990003.96'));
+        expect(aftOwner).to.be.eq(toWei('299990000.48'));
+
 
         let devDiff = aftDev.sub(befDev);
-        expect(devDiff).to.be.eq(toWei('3.72'));
+        expect(devDiff).to.be.eq(toWei('7.2'));
 
         let ownerDiff = aftOwner.sub(befOwner);
-        expect(ownerDiff).to.be.eq(toWei('3.96'));
+        expect(ownerDiff).to.be.eq(toWei('0.48'));
 
 
     });
@@ -319,24 +327,26 @@ contract('gauge,swapMining', () => {
         expect(befDev).to.be.eq(toWei('9990'));
 
         await swapController.connect(dev).vote(1, pool.address);
+        let pend = await swapMining.rewardPoolInfo(0, dev.address);
+        console.log("userReward:" + pend / 10 ** 18);
+
+        await swapMining.connect(dev).getReward(0);
+        let aftDev = await fxs.balanceOf(dev.address);
+        expect(aftDev).to.be.eq(toWei('9997.2'));
 
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
         let befOwner = await fxs.balanceOf(owner.address);
         expect(befOwner).to.be.eq(toWei('299990000'));
 
-        await swapMining.connect(dev).getReward(0);
-        let aftDev = await fxs.balanceOf(dev.address);
-        expect(aftDev).to.be.eq(toWei('9993.72'));
-
         await swapMining.getReward(0);
         let aftOwner = await fxs.balanceOf(owner.address);
-        expect(aftOwner).to.be.eq(toWei('299990003.96'));
+        expect(aftOwner).to.be.eq(toWei('299990000.48'));
 
         let devDiff = aftDev.sub(befDev);
-        expect(devDiff).to.be.eq(toWei('3.72'));
+        expect(devDiff).to.be.eq(toWei('7.2'));
 
         let ownerDiff = aftOwner.sub(befOwner);
-        expect(ownerDiff).to.be.eq(toWei('3.96'));
+        expect(ownerDiff).to.be.eq(toWei('0.48'));
 
 
     });
