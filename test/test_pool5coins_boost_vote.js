@@ -267,7 +267,7 @@ contract('SwapRouter5Coins', () => {
         let fraxOwnerBef = await frax.balanceOf(owner.address);
         let gaugeTotalBef = await gauge.totalSupply();
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let fraxOwnerAft = await frax.balanceOf(owner.address);
         let gaugeTotalAft = await gauge.totalSupply();
@@ -301,7 +301,7 @@ contract('SwapRouter5Coins', () => {
         let fraxOwnerBef = await frax.balanceOf(owner.address);
         let gaugeTotalBef = await gauge.totalSupply();
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let rewardBlockBef = await gauge.lastRewardBlock();
         let fraxOwnerAft = await frax.balanceOf(owner.address);
@@ -341,7 +341,7 @@ contract('SwapRouter5Coins', () => {
         let fraxOwnerBef = await frax.balanceOf(owner.address);
         let gaugeTotalBef = await gauge.totalSupply();
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let fraxOwnerAft = await frax.balanceOf(owner.address);
         let gaugeTotalAft = await gauge.totalSupply();
@@ -361,7 +361,7 @@ contract('SwapRouter5Coins', () => {
         let rewardBlocks = rewardBlockAft - rewardBlockBef;
         let diff = fxsOwnerAft.sub(fxsOwnerBef);
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let rewardBlockBef1 = await gauge.lastRewardBlock();
         let fxsOwnerBef1 = await fxs.balanceOf(owner.address);
@@ -575,7 +575,7 @@ contract('SwapRouter5Coins', () => {
         let fraxOwnerBef = await frax.balanceOf(owner.address);
         let gaugeTotalBef = await gauge.totalSupply();
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let fraxOwnerAft = await frax.balanceOf(owner.address);
         let gaugeTotalAft = await gauge.totalSupply();
@@ -595,7 +595,7 @@ contract('SwapRouter5Coins', () => {
         let rewardBlocks = rewardBlockAft - rewardBlockBef;
         let diff = fxsOwnerAft.sub(fxsOwnerBef);
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
 
         let rewardBlockBef1 = await gauge.lastRewardBlock();
         let fxsOwnerBef1 = await fxs.balanceOf(owner.address);
@@ -624,7 +624,7 @@ contract('SwapRouter5Coins', () => {
 
         await time.advanceBlockTo(parseInt(await time.latestBlock()) + 2000);
 
-        await gauge.deposit(toWei("10"), tokenId);
+        await gauge.deposit(toWei("10"));
         let fxsOwnerBef2 = await fxs.balanceOf(owner.address);
 
         await boost.reset(tokenId);

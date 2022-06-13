@@ -86,7 +86,7 @@ contract('Gauge', async function () {
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
         accTokenPerShare = await gauge.accTokenPerShare();
         expect(accTokenPerShare).to.be.eq(0);
-        await gauge.deposit(toWei("1"), tokenId);
+        await gauge.deposit(toWei("1"));
         expect(await gauge.tokenPerBlock()).to.be.eq(0);
         await expect(boost.updatePool(0)).to.emit(gauge, 'NotifyReward')
             .withArgs(boost.address, fxs.address, toWei("3"));
