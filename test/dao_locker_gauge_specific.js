@@ -4,7 +4,7 @@ const {toWei, fromWei, toBN} = web3.utils;
 const {GetRusdAndTra} = require("./Utils/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
-describe('Dao Locker Q', function() {
+describe('Dao Locker Q', function () {
     const ONE_DAT_DURATION = 86400;
 
     async function getGaugesInBoost(poolAddress, approveNumber = toWei("100")) {
@@ -65,21 +65,21 @@ describe('Dao Locker Q', function() {
         expect(await tra.balanceOf(dev.address)).to.be.eq(0);
         tokenId = await locker.tokenId();
 
-        await gauge.deposit(toWei("1.5"), 0);
+        await gauge.deposit(toWei("1.5"));
         await locker.connect(dev).transferFrom(dev.address, owner.address, tokenId);
-        await expect(gauge.withdrawToken(toWei("1.5"), tokenId)).to.be.reverted;
-        await expect(gauge.connect(dev).withdrawToken(0, tokenId)).to.be.reverted;
-        await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5"), tokenId), "withdrawSwap: not good");
+        await gauge.withdrawToken(toWei("1.5"));
+        await gauge.connect(dev).withdrawToken(0);
+        await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5")), "withdrawSwap: not good");
     });
 
     it('Two user,first deposit and transfer and second withdrawToken', async function () {
         await locker.createLock(toWei("0.5"), ONE_DAT_DURATION);
         tokenId = await locker.tokenId();
 
-        await gauge.deposit(toWei("1.5"), tokenId);
+        await gauge.deposit(toWei("1.5"));
         await locker.transferFrom(owner.address, dev.address, tokenId);
-        await expect(gauge.connect(dev).withdrawToken(0, tokenId)).to.be.reverted;
-        await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5"), tokenId), "withdrawSwap: not good");
-        await gauge.withdrawToken(toWei("1.5"), tokenId);
+        await gauge.connect(dev).withdrawToken(0);
+        await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5")), "withdrawSwap: not good");
+        await gauge.withdrawToken(toWei("1.5"));
     });
 });

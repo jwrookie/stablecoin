@@ -94,8 +94,8 @@ contract('Locker', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('96'), 1);
-        await gauge_usdc.connect(dev).deposit(toWei('96'), 2);
+        await gauge_usdc.deposit(toWei('96'));
+        await gauge_usdc.connect(dev).deposit(toWei('96'));
 
         let gasFeeOwnerBef = await lock.estimateGas.increaseAmount(1, toWei('100'));
         let gasFeeDevBef = await lock.connect(dev).estimateGas.increaseAmount(2, toWei('200'));
@@ -126,8 +126,8 @@ contract('Locker', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('96'), 1);
-        await gauge_usdc.connect(dev).deposit(toWei('96'), 2);
+        await gauge_usdc.deposit(toWei('96'));
+        await gauge_usdc.connect(dev).deposit(toWei('96'));
         await time.increase(time.duration.days(1));
 
         let gasFeeOwnerBef = await lock.estimateGas.increaseUnlockTime(1, parseInt(eta));
@@ -157,7 +157,7 @@ contract('Locker', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
 
-        await gauge_usdc.deposit(toWei('96'), 1);
+        await gauge_usdc.deposit(toWei('96'));
 
         let gasFeeOwnerBef = await lock.estimateGas.increaseAmount(1, toWei('100'));
         await time.increase(time.duration.days("1"));
