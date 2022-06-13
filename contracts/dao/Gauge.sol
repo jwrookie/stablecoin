@@ -16,8 +16,8 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     using SafeMath for uint256;
 
 
-    event Deposit(address indexed from, uint256 tokenId, uint256 amount);
-    event Withdraw(address indexed from, uint256 tokenId, uint256 amount);
+    event Deposit(address indexed from, uint256 amount);
+    event Withdraw(address indexed from, uint256 amount);
     event NotifyReward(address indexed from, address indexed reward, uint256 rewardRate);
     event ClaimRewards(address indexed from, address indexed reward, uint256 amount);
 
@@ -32,7 +32,6 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     address public immutable boost;
     address public immutable rewardToken;
 
-    mapping(address => uint256) public tokenIds;
 
     uint256 public tokenPerBlock;
     uint256 public accTokenPerShare; // Accumulated swap token per share, times 1e12.
@@ -108,11 +107,11 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         return Math.min((_derived + _adjusted), _balance);
     }
 
-    function depositAll(uint256 tokenId) external {
-        deposit(IERC20(stake).balanceOf(msg.sender), tokenId);
+    function depositAll() external {
+        deposit(IERC20(stake).balanceOf(msg.sender));
     }
 
-    function deposit(uint256 amount, uint256 tokenId) public nonReentrant {
+    function deposit(uint256 amount) public nonReentrant {
         require(amount > 0, "amount is 0");
         updatePool();
         UserInfo storage user = userInfo[msg.sender];
@@ -127,17 +126,9 @@ contract Gauge is ReentrancyGuard, CheckPermission {
             totalSupply += amount;
             user.amount = user.amount.add(amount);
         }
-        if (tokenId > 0) {
-            require(IVeToken(veToken).ownerOf(tokenId) == msg.sender);
-            if (tokenIds[msg.sender] == 0) {
-                tokenIds[msg.sender] = tokenId;
-            }
-            require(tokenIds[msg.sender] == tokenId);
-        } else {
-            tokenId = tokenIds[msg.sender];
-        }
+
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
-        emit Deposit(msg.sender, tokenId, amount);
+        emit Deposit(msg.sender, amount);
     }
 
     function withdrawAll() external {
@@ -145,14 +136,10 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     }
 
     function withdraw(uint256 amount) public {
-        uint256 tokenId = 0;
-        if (amount == userInfo[msg.sender].amount) {
-            tokenId = tokenIds[msg.sender];
-        }
-        withdrawToken(amount, tokenId);
+        withdrawToken(amount);
     }
 
-    function withdrawToken(uint256 _amount, uint256 tokenId) public nonReentrant {
+    function withdrawToken(uint256 _amount) public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdrawSwap: not good");
         updatePool();
@@ -168,13 +155,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
 
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
 
-        if (tokenId > 0) {
-            require(tokenId == tokenIds[msg.sender]);
-            tokenIds[msg.sender] = 0;
-        } else {
-            tokenId = tokenIds[msg.sender];
-        }
-        emit Withdraw(msg.sender, tokenId, _amount);
+        emit Withdraw(msg.sender, _amount);
     }
 
     function updatePool() public {
