@@ -232,7 +232,7 @@ contract('SwapController', () => {
     it('liquidity mining and transaction mining acceleration will fail', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-        await gauge_pool.connect(dev).deposit("1000", 1);
+        await gauge_pool.connect(dev).deposit("1000");
 
         await boost.connect(dev).vote(1, [pool.address], [toWei('1')]);
 
@@ -267,7 +267,7 @@ contract('SwapController', () => {
     it('trading mining voting and liquidity voting will fail', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-        await gauge_pool.connect(dev).deposit("1000", 1);
+        await gauge_pool.connect(dev).deposit("1000");
 
         await gaugeController.connect(dev).vote(1, pool.address);
 

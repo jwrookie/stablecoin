@@ -85,7 +85,7 @@ contract('Boost', () => {
         await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('10'), 1);
+        await gauge_usdc.deposit(toWei('10'));
 
         await boost.updatePool(0);
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
@@ -100,7 +100,7 @@ contract('Boost', () => {
         await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('10'), 1);
+        await gauge_usdc.deposit(toWei('10'));
 
         await boost.vote(1, [usdc.address], [toWei('1')]);
 
@@ -117,7 +117,7 @@ contract('Boost', () => {
         await lock.createLock(toWei('1000'), parseInt(eta));
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('10'), 1);
+        await gauge_usdc.deposit(toWei('10'));
         await boost.updatePool(0);
 
         let pendingMax = await gauge_usdc.pendingMax(owner.address);
@@ -145,8 +145,8 @@ contract('Boost', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('10'), 1);
-        await gauge_usdc.connect(dev).deposit(toWei('10'), 2);
+        await gauge_usdc.deposit(toWei('10'));
+        await gauge_usdc.connect(dev).deposit(toWei('10'));
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989'));
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9'));
 
@@ -166,8 +166,8 @@ contract('Boost', () => {
 
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.deposit(toWei('10'), 1);
-        await gauge_usdc.connect(dev).deposit(toWei('10'), 2);
+        await gauge_usdc.deposit(toWei('10'));
+        await gauge_usdc.connect(dev).deposit(toWei('10'));
 
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989'));
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9'));
@@ -191,7 +191,7 @@ contract('Boost', () => {
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('10'));
 
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
 
@@ -209,8 +209,8 @@ contract('Boost', () => {
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
-        await gauge_usdc.deposit(toWei('10'), 2);
+        await gauge_usdc.connect(dev).deposit(toWei('10'));
+        await gauge_usdc.deposit(toWei('10'));
 
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
         await boost.vote(2, [usdc.address], [toWei('1')]);
@@ -228,7 +228,7 @@ contract('Boost', () => {
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.connect(dev).deposit(toWei('10'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('10'));
 
         await boost.connect(dev).vote(1, [usdc.address], [toWei('1')]);
 

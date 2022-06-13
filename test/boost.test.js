@@ -107,8 +107,8 @@ contract('Boost test', () => {
         await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await fxs.approve(gauge_usdc.address, toWei('10000000'));
 
-        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
-        await gauge_usdc.connect(owner).deposit(toWei('2'), 2);
+        await gauge_usdc.connect(dev).deposit(toWei('1'));
+        await gauge_usdc.connect(owner).deposit(toWei('2'));
 
         let usdcDevBef = await usdc.balanceOf(dev.address);
         let usdcOwnerBef = await usdc.balanceOf(owner.address);
@@ -156,10 +156,10 @@ contract('Boost test', () => {
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
         await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
 
-        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('1'));
         let usdcDevBef = await usdc.balanceOf(dev.address);
 
-        await gauge_busd.connect(dev).deposit(toWei('1'), 1);
+        await gauge_busd.connect(dev).deposit(toWei('1'));
         let busdDevBef = await busd.balanceOf(dev.address);
 
         await boost.updatePool(0);
@@ -198,8 +198,8 @@ contract('Boost test', () => {
         await busd.connect(dev).approve(gauge_busd.address, toWei('10000000'));
 
 
-        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
-        await gauge_busd.connect(dev).deposit(toWei('1'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('1'));
+        await gauge_busd.connect(dev).deposit(toWei('1'));
         let rewardBef = await fxs.balanceOf(dev.address);
         expect(rewardBef).to.be.eq("9999999999999999999000");
 
@@ -229,7 +229,7 @@ contract('Boost test', () => {
         await lock.connect(dev).createLock("1000", parseInt(eta));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
 
-        await gauge_usdc.connect(dev).deposit(toWei('1'), 1);
+        await gauge_usdc.connect(dev).deposit(toWei('1'));
 
         expect(await fxs.balanceOf(boost.address)).to.be.eq(0);
         await boost.updatePool(0);
@@ -254,7 +254,7 @@ contract('Boost test', () => {
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
 
         expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
-        await gauge_usdc.connect(dev).depositAll(1);
+        await gauge_usdc.connect(dev).depositAll();
         expect(await usdc.balanceOf(dev.address)).to.be.eq(0);
 
         await boost.updatePool(0);
@@ -273,10 +273,10 @@ contract('Boost test', () => {
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
 
         expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
-        await gauge_usdc.connect(dev).deposit(toWei('1'), 0);
+        await gauge_usdc.connect(dev).deposit(toWei('1'));
         expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('9999'));
 
-        await gauge_usdc.connect(dev).withdrawToken(toWei('1'), 0);
+        await gauge_usdc.connect(dev).withdrawToken(toWei('1'));
         expect(await usdc.balanceOf(dev.address)).to.be.eq(toWei('10000'));
 
     });
@@ -286,7 +286,7 @@ contract('Boost test', () => {
         await lock.connect(dev).createLock("1000", parseInt(eta));
 
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000000'));
-        await gauge_usdc.connect(dev).depositAll(1);
+        await gauge_usdc.connect(dev).depositAll();
 
         let pend = await gauge_usdc.pendingMax(dev.address);
         expect(pend).to.be.eq(0);
