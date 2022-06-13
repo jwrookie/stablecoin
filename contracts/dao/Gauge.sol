@@ -95,7 +95,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     }
 
     function derivedBalance(address account, uint256 _balance) public view returns (uint256) {
-        uint256 _tokenId = tokenIds[account];
+        uint256 _tokenId = IVeToken(veToken).tokenOfOwnerByIndex(account, 0);
         uint256 _derived = (_balance * 30) / 100;
         uint256 _adjusted = 0;
         uint256 _supply = IBoost(boost).weights(stake);
