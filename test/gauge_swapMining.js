@@ -12,8 +12,7 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const WETH9 = require('./mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
-const {BigNumber} = require('ethers');
-const {fromWei, toBN} = require("web3-utils");
+
 contract('gauge,swapMining', () => {
     beforeEach(async () => {
         [owner, dev, addr1] = await ethers.getSigners();
