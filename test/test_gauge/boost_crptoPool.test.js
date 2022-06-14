@@ -1,12 +1,12 @@
-const Registry = require('./mock/mockPool/Registry.json');
-const CryptoRegistry = require('./mock/mockPool/CryptoRegistry.json');
-const CurveCryptoSwap2ETH = require('./mock/mockPool/CurveCryptoSwap2ETH.json');
-const CurveCryptoSwap2ETHAbi = require('./mock/mockPool/curve_crypto_swap2_eth_abi.json');
-const CurveTokenV5 = require('./mock/mockPool/CurveTokenV5.json');
-const CurveTokenV5Abi = require('./mock/mockPool/curve_token_v5_abi.json');
-const CryptoFactory = require('./mock/mockPool/CryptoFactory.json');
-const CryptoFactoryAbi = require('./mock/mockPool/crpto_factory_abi.json');
-const WETH = require('../test/mock/WETH9.json');
+const Registry = require('../mock/mockPool/Registry.json');
+const CryptoRegistry = require('../mock/mockPool/CryptoRegistry.json');
+const CurveCryptoSwap2ETH = require('../mock/mockPool/CurveCryptoSwap2ETH.json');
+const CurveCryptoSwap2ETHAbi = require('../mock/mockPool/curve_crypto_swap2_eth_abi.json');
+const CurveTokenV5 = require('../mock/mockPool/CurveTokenV5.json');
+const CurveTokenV5Abi = require('../mock/mockPool/curve_token_v5_abi.json');
+const CryptoFactory = require('../mock/mockPool/CryptoFactory.json');
+const CryptoFactoryAbi = require('../mock/mockPool/crpto_factory_abi.json');
+const WETH = require('../mock/WETH9.json');
 
 const {deployContract} = require('ethereum-waffle');
 const {expectRevert, time} = require('@openzeppelin/test-helpers');

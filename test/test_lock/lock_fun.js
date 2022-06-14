@@ -2,8 +2,10 @@ const {time, balance} = require('@openzeppelin/test-helpers');
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
 const {toWei} = require('web3-utils');
+const {GetMockToken} = require("../Utils/GetMockConfig");
+const {GetRusdAndTra} = require("../Utils/GetStableConfig");
 const {BigNumber} = require('ethers');
-const {type} = require('os');
+const ONE_DAT_DURATION = 86400;
 
 contract('Locker', async () => {
     async function getDurationTime(day = 1) {
@@ -13,23 +15,61 @@ contract('Locker', async () => {
         return parseInt(await time.duration.days(day));
     }
 
+    async function getGaugesInBoost(poolAddress, approveNumber = toWei("100")) {
+        const Gauge = await ethers.getContractFactory("Gauge");
+        gaugeAddress = await boost.gauges(poolAddress.address);
+        gauge = await Gauge.attach(gaugeAddress);
+        await poolAddress.approve(gauge.address, approveNumber);
+        return gauge;
+    }
+
     beforeEach(async function () {
         [owner, seObject, dev] = await ethers.getSigners();
-        const TestERC20 = await ethers.getContractFactory("TestERC20");
+        [rusd, tra, , checkOpera] = await GetRusdAndTra();
+        await rusd.transfer(dev.address, toWei("10"));
+        await tra.transfer(dev.address, toWei("10"));
+        await tra.transfer(seObject.address, toWei("10"));
+
         const Locker = await ethers.getContractFactory("Locker");
-        token0 = await TestERC20.deploy();
-        secondTestERC20 = await TestERC20.deploy();
-        thirdTestERC20 = await TestERC20.deploy();
 
-        const Operatable = await ethers.getContractFactory("Operatable");
-        operatable = await Operatable.deploy();
+        lock = await Locker.deploy(checkOpera.address, tra.address, ONE_DAT_DURATION);
 
-        await token0.mint(owner.address, toWei("1"));
-        await token0.mint(seObject.address, toWei("1"));
-        await token0.mint(dev.address, toWei("1"));
+        // Tra will be giving to the user as reward
+        await tra.approve(lock.address, toWei("1000000"));
+        await tra.connect(dev).approve(lock.address, toWei("1000000"));
+        await tra.connect(seObject).approve(lock.address, toWei("1000000"));
 
-        durationTime = await getDurationTime(1);
-        lock = await Locker.deploy(operatable.address, token0.address, durationTime);
+        const GaugeFactory = await ethers.getContractFactory("GaugeFactory");
+        gaugeFactory = await GaugeFactory.deploy(checkOpera.address);
+
+        startBlock = await time.latestBlock();
+        initStartBlock = parseInt(startBlock);
+
+        const Boost = await ethers.getContractFactory("Boost");
+        boost = await Boost.deploy(
+            checkOpera.address,
+            lock.address,
+            gaugeFactory.address,
+            tra.address,
+            10000,
+            parseInt(initStartBlock),
+            10
+        );
+
+        const GaugeController = await ethers.getContractFactory("GaugeController");
+        gaugeController = await GaugeController.deploy(
+            checkOpera.address,
+            boost.address,
+            lock.address,
+            ONE_DAT_DURATION
+        );
+
+        await tra.addPool(boost.address);
+        // Create a gauge pool
+        await boost.createGauge(rusd.address, 100000, false);
+        await boost.addController(gaugeController.address); // Vote
+        gauge = await getGaugesInBoost(rusd);
+
     });
 
     it('test function supportsInterface', async function () {
@@ -41,7 +81,6 @@ contract('Locker', async () => {
     it('test getLastUserSlope', async function () {
         let lockSlop;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         tokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
         // console.log("tokenId::\t" + tokenId); // But this is a object so we need to change the paramter to 1
@@ -50,13 +89,13 @@ contract('Locker', async () => {
 
         lockMap = await lock.pointHistory(0);
         lockSlop = lockMap[1];
-        assert.equal(lockSlop, 0);
+        expect(lockSlop).to.be.eq(0);
 
         arrayName = await lock.ownerOf(1);
         expect(arrayName).to.be.not.eq(null);
 
         nftCount = await lock.balanceOf(arrayName);
-        assert.equal(nftCount, 1);
+        expect(nftCount).to.be.eq(1);
     });
 
     it('test userPointHistoryTs', async function () {
@@ -65,7 +104,6 @@ contract('Locker', async () => {
         lockMap = await lock.pointHistory(0);
         lockMapTimeStamp = lockMap[2];
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         tokenId = await lock.createLock(1000, durationTime);
 
@@ -77,7 +115,6 @@ contract('Locker', async () => {
     it('test lockedEnd', async function () {
         let functionReturnEnd;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         tokenId = await lock.createLock(1000, durationTime);
 
@@ -90,7 +127,6 @@ contract('Locker', async () => {
     });
 
     it('test balanceOf、ownerOf', async function () {
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         tokenId = await lock.createLock(1000, durationTime);
 
@@ -99,7 +135,7 @@ contract('Locker', async () => {
 
         nftCount = await lock.balanceOf(arrayName);
 
-        assert.equal(nftCount, 1);
+        expect(nftCount).to.be.eq(1);
     });
 
     it('test approve、getApprove、isApprovedOrOwner', async function () {
@@ -108,10 +144,8 @@ contract('Locker', async () => {
         let poolTokenAddress;
         let needBoolean;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         firstTokenId = await lock.createLock(1000, durationTime);
-        await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         secondTokenId = await lock.createLockFor(1000, durationTime, seObject.address);
 
@@ -134,46 +168,43 @@ contract('Locker', async () => {
         let secondVoteBoolean;
         let secondAddress;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
-        await token0.connect(seObject).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         secondTokenId = await lock.createLockFor(1000, durationTime, seObject.address); // The token id is 2
 
         initFirstVoteBoolean = await lock.voted(1);
-        assert.equal(initFirstVoteBoolean, false);
+        expect(initFirstVoteBoolean).to.be.eq(false);
 
         await lock.addBoosts(owner.address);
 
         await lock.voting(1);
         firstVoteBoolean = await lock.voted(1);
-        assert.equal(firstVoteBoolean, true);
+        expect(firstVoteBoolean).to.be.eq(true);
 
         await lock.abstain(1);
         firstVoteBoolean = await lock.voted(1);
-        assert.equal(firstVoteBoolean, false);
+        expect(firstVoteBoolean).to.be.eq(false);
 
         await lock.voting(1);
 
         initSecondVoteBoolea = await lock.voted(2);
-        assert.equal(initSecondVoteBoolea, false);
+        expect(initSecondVoteBoolea).to.be.eq(false);
 
         secondAddress = await lock.ownerOf(2);
         expect(secondAddress).to.be.not.eq(null);
         await lock.addBoosts(secondAddress);
-        assert.equal(await lock.boosts(secondAddress), true);
+        expect(await lock.boosts(secondAddress)).to.be.eq(true);
 
         secondVoteBoolean = await lock.connect(seObject).voted(2);
     });
     it('test checkPoint、_checkPoint', async function () {
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1);
         firstTokenId = await lock.createLock(1000, durationTime);
 
         lockMap = await lock.pointHistory(0);
         lastPointBias = lockMap[0];
-        assert.equal(lastPointBias, 0);
+        expect(lastPointBias).to.be.eq(0);
         lastPointSlope = lockMap[1];
         lastPointBlk = lockMap[3];
         lastPointTs = lockMap[2];
@@ -197,9 +228,6 @@ contract('Locker', async () => {
     });
 
     it('test block_number', async function () {
-        let returnBlock;
-
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
@@ -211,7 +239,6 @@ contract('Locker', async () => {
         let initLockBalanceAmount;
         let initLockBalanceEnd;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
@@ -236,7 +263,6 @@ contract('Locker', async () => {
         let paraTime;
         let timeStamp;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
@@ -270,7 +296,6 @@ contract('Locker', async () => {
         let result;
         let decode;
 
-        await token0.connect(owner).approve(lock.address, toWei("1000"));
         durationTime = await getDurationTime(1); // Lock one day
         firstTokenId = await lock.createLock(1000, durationTime); // This function return a value type is uint
 
@@ -280,6 +305,7 @@ contract('Locker', async () => {
 
         result = await lock.tokenURI(1);
         decode = await lock.toString(result);
+
     });
     it('test isApprovedForAll', async function () {
 
@@ -287,10 +313,9 @@ contract('Locker', async () => {
         expect(isApproved).to.be.eq(false)
     });
     it('test transferFrom tokenId1 -> tokenId2', async function () {
-        await token0.approve(lock.address, toWei('10000'));
-        await token0.connect(seObject).approve(lock.address, toWei('10000'));
         let eta = time.duration.days(7);
         await lock.createLock(toWei('1'), parseInt(eta));
+
         await lock.connect(seObject).createLock(toWei('1'), parseInt(eta));
 
 
@@ -303,10 +328,6 @@ contract('Locker', async () => {
 
     });
     it('test transferFrom tokenId1 -> tokenId2 -> tokenId3', async function () {
-        await token0.approve(lock.address, toWei('10000'));
-        await token0.connect(seObject).approve(lock.address, toWei('10000'));
-        await token0.connect(dev).approve(lock.address, toWei('10000'));
-
         let eta = time.duration.days(1);
         await lock.createLock(toWei('1'), parseInt(eta));
         await lock.connect(seObject).createLock(toWei('1'), parseInt(eta));
@@ -350,7 +371,6 @@ contract('Locker', async () => {
         expect(isApproved).to.be.eq(true);
     })
     it("test balanceOfAtNFT", async () => {
-        await token0.approve(lock.address, toWei('10000'))
         let eta = time.duration.days(7);
         await lock.createLock(toWei('0.1'), parseInt(eta));
 
@@ -366,7 +386,6 @@ contract('Locker', async () => {
 
         expect(await lock.totalSupply()).to.be.eq(0);
 
-        await token0.approve(lock.address, toWei('10000'));
         let eta = time.duration.days(7);
         await lock.createLock(toWei('0.1'), parseInt(eta));
         console.log("totalSupply:" + await lock.totalSupply());
@@ -375,9 +394,6 @@ contract('Locker', async () => {
     it("test totalSupplyAt", async () => {
         let lockBlock = await time.latestBlock();
         console.log("lockBlock:" + lockBlock);
-
-        await token0.approve(lock.address, toWei('10000'));
-        await token0.connect(seObject).approve(lock.address, toWei('10000'));
 
         let eta = time.duration.days(1);
         await lock.createLock(toWei('1'), parseInt(eta));
@@ -393,8 +409,7 @@ contract('Locker', async () => {
 
 
     });
-      it("test balanceOfNFT tokenid = 0", async () => {
-        await token0.approve(lock.address, toWei('10000'));
+    it("test balanceOfNFT tokenid = 0", async () => {
         let eta = time.duration.days(1);
         await lock.createLock(toWei('1'), parseInt(eta));
 
@@ -406,9 +421,6 @@ contract('Locker', async () => {
 
     });
     it("test merge", async () => {
-        await token0.approve(lock.address, toWei('10000'));
-        await token0.connect(seObject).approve(lock.address, toWei('10000'));
-
         let eta = time.duration.days(1);
         await lock.createLock(toWei('1'), parseInt(eta));
         await lock.connect(seObject).createLock(toWei('1'), parseInt(eta));
@@ -434,9 +446,26 @@ contract('Locker', async () => {
         expect(amountSeObject[0]).to.be.eq(toWei('2'));
 
     });
+     it('Call the function removeBoosts', async () => {
+        await lock.addBoosts(gaugeController.address);
+        expect(await lock.boosts(gaugeController.address)).to.be.eq(true);
+        await expect(lock.removeBoosts(gaugeController.address)).to.emit(lock, 'BoostRemoved')
+            .withArgs(gaugeController.address);
+        expect(await lock.boosts(gaugeController.address)).to.be.eq(false);
+    });
 
+    it('Call the function about approve and change operator',async () => {
+         await lock.createLock(toWei("0.1"), ONE_DAT_DURATION); // Stake toWei("0.1") tra token
+        firsttokenId = await lock.tokenId();
+        await lock.createLockFor(toWei("0.1"), ONE_DAT_DURATION, dev.address);
+        secondTokenId = await lock.tokenId();
+        expect(firsttokenId).to.be.eq(1);
+        expect(secondTokenId).to.be.eq(2);
 
-
+        expect(await lock.isApprovedForAll(owner.address, owner.address)).to.be.eq(false);
+        await expect(lock.setApprovalForAll(dev.address, true)).to.emit(lock, 'ApprovalForAll')
+            .withArgs(owner.address, dev.address, true);
+    });
 
 
 });

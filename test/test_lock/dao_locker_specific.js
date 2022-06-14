@@ -1,11 +1,11 @@
 const {time, expectRevert} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
-const {GetRusdAndTra} = require("./Utils/GetStableConfig");
-const {deploy} = require("./Core/common");
-const LOCKER = require("./mock/Locker.json");
-const LOCKERFIRST = require("./mock/LockerFirstAbi.json");
-const LOCKERSECOND = require("./mock/LockerSecondAbi.json");
+const {GetRusdAndTra} = require("../Utils/GetStableConfig");
+const {deploy} = require("../Core/common");
+const LOCKER = require("../mock/Locker.json");
+const LOCKERFIRST = require("../mock/LockerFirstAbi.json");
+const LOCKERSECOND = require("../mock/LockerSecondAbi.json");
 
 contract('Dao locker specific', async function () {
     const ONE_DAT_DURATION = 86400;

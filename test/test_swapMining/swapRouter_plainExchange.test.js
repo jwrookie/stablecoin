@@ -1,20 +1,20 @@
-const CRVFactory = require('./mock/mockPool/factory.json');
-const FactoryAbi = require('./mock/mockPool/factory_abi.json');
-const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
-const PoolAbi = require('./mock/mockPool/3pool_abi.json');
-const Plain4Balances = require('./mock/mockPool/Plain4Balances.json');
-const Plain4BalancesAbi = require('./mock/mockPool/4pool_abi.json');
-const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/PoolRegistry.json");
-const MetaPool = require('./mock/mockPool/MetaUSDBalances.json');
-const MetaPoolAbi = require('./mock/mockPool/meta_pool.json');
+const CRVFactory = require('../mock/mockPool/factory.json');
+const FactoryAbi = require('../mock/mockPool/factory_abi.json');
+const Plain3Balances = require('../mock/mockPool/Plain3Balances.json');
+const PoolAbi = require('../mock/mockPool/3pool_abi.json');
+const Plain4Balances = require('../mock/mockPool/Plain4Balances.json');
+const Plain4BalancesAbi = require('../mock/mockPool/4pool_abi.json');
+const Registry = require("../mock/mockPool/Registry.json");
+const PoolRegistry = require("../mock/mockPool/PoolRegistry.json");
+const MetaPool = require('../mock/mockPool/MetaUSDBalances.json');
+const MetaPoolAbi = require('../mock/mockPool/meta_pool.json');
 
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {waffle, ethers} = require("hardhat");
 const {deployContract} = waffle;
 const {expect} = require("chai");
 const {toWei} = web3.utils;
-const WETH9 = require('./mock/WETH9.json');
+const WETH9 = require('../mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 contract('plainPool', () => {
@@ -206,12 +206,14 @@ contract('plainPool', () => {
         await swapController.addPool(pool1.address);
         await swapController.addPool(pool4.address);
 
-
-    });
-    it('test swapStable have reward', async () => {
+        await token0.approve(swapRouter.address, toWei('10000'));
+        await token1.approve(swapRouter.address, toWei('10000'));
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
+
+    });
+    it('test swapStable have reward', async () => {
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
@@ -231,7 +233,7 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0)
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000196875000000003999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000223125000000003999");
 
 
     });
@@ -253,9 +255,6 @@ contract('plainPool', () => {
     });
 
     it('test the acceleration without swapMining', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
@@ -269,14 +268,11 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990210000000000003999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990236250000000003999");
 
 
     });
     it('test the acceleration with swapMining', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -292,16 +288,11 @@ contract('plainPool', () => {
 
         await swapMining.connect(dev).getReward(0);
 
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990223125000000003999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("9990249375000000003999");
 
 
     });
     it('two users have no transaction mining acceleration', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -324,18 +315,12 @@ contract('plainPool', () => {
 
     });
     it('mining acceleration of two user transactions', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
-
 
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('299990000'));
@@ -358,9 +343,6 @@ contract('plainPool', () => {
 
     });
     it("the swapMining acceleration multiplier is 3.3", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'))
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'))
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
@@ -391,8 +373,6 @@ contract('plainPool', () => {
 
     });
     it('test plain3Pool can swapStable', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await token1.approve(swapRouter.address, toWei("10000"));
         await token2.approve(swapRouter.address, toWei("10000"));
 
         let times = Number((new Date().getTime() + 1000).toFixed(0));
@@ -409,11 +389,6 @@ contract('plainPool', () => {
     });
     it("transaction mining, single user swap, multi pool acceleration," +
         " receive reward", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -439,9 +414,6 @@ contract('plainPool', () => {
 
     });
     it("query the rewards before acceleration of a single pool", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
@@ -463,14 +435,11 @@ contract('plainPool', () => {
         let aftReward = await fxs.balanceOf(dev.address);
 
         let diffReward = aftReward.sub(befReward);
-        expect(diffReward).to.be.eq("210000000000003999");
+        expect(diffReward).to.be.eq("236250000000003999");
 
 
     });
     it("query the rewards after acceleration of a single pool", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
@@ -500,31 +469,28 @@ contract('plainPool', () => {
         let aftReward = await fxs.balanceOf(dev.address);
 
         let diffReward = aftReward.sub(befReward);
-        expect(diffReward).to.be.eq("236250000000003999");
+        expect(diffReward).to.be.eq("262500000000003999");
 
     });
     it("query the changes of rewards with different weights in multiple pools", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let infoMaxPool = await swapMining.rewardPoolInfoMax(0, dev.address);
-        expect(infoMaxPool).to.be.eq("612500000000013333");
+        expect(infoMaxPool).to.be.eq("700000000000013333");
 
         let befReward = await fxs.balanceOf(dev.address);
         await swapMining.connect(dev).getReward(0);
         let aftReward = await fxs.balanceOf(dev.address);
         let diffPool = aftReward.sub(befReward);
-        expect(diffPool).to.be.eq("196875000000003999");
+        expect(diffPool).to.be.eq("223125000000003999");
 
         await swapRouter.connect(dev).swapStable(pool1.address, 0, 1, dx, 0, dev.address, times);
 
         let infoMaxPool1 = await swapMining.rewardPoolInfoMax(1, dev.address);
-        expect(infoMaxPool1).to.be.eq("1400000000000006666");
+        expect(infoMaxPool1).to.be.eq("1575000000000006666");
 
         let bef1Reward = await fxs.balanceOf(dev.address);
 
@@ -532,14 +498,11 @@ contract('plainPool', () => {
         let aft1Reward = await fxs.balanceOf(dev.address);
 
         let diffPool1 = aft1Reward.sub(bef1Reward);
-        expect(diffPool1).to.be.eq("446250000000001999");
+        expect(diffPool1).to.be.eq("498750000000001999");
 
 
     });
     it("receive multiple trading pool rewards at one time", async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = toWei('1');
 
@@ -547,15 +510,15 @@ contract('plainPool', () => {
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
 
         let poolReward = await swapMining.rewardPoolInfo(0, dev.address);
-        expect(poolReward).to.be.eq("183750000000003999");
+        expect(poolReward).to.be.eq("210000000000003999");
         await swapRouter.connect(dev).swapStable(pool1.address, 0, 1, dx, 0, dev.address, times);
 
         let pool1Reward = await swapMining.rewardPoolInfo(1, dev.address);
-        expect(pool1Reward).to.be.eq("393750000000001999");
+        expect(pool1Reward).to.be.eq("446250000000001999");
         expect(await fxs.balanceOf(dev.address)).to.be.eq("10000000000000000000000");
 
         await swapMining.connect(dev).getRewardAll();
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000630000000000005998");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000708750000000005998");
 
     });
     it("test pid =0, allocPoint = 200 reward", async () => {
@@ -564,9 +527,6 @@ contract('plainPool', () => {
         await swapMining.set(0, "200", true);
         info = await swapMining.poolInfo(0);
         expect(info[2]).to.be.eq("200");
-
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
 
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
@@ -577,7 +537,7 @@ contract('plainPool', () => {
         expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('10000'));
 
         await swapMining.connect(dev).getReward(0);
-        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000336000000000003999");
+        expect(await fxs.balanceOf(dev.address)).to.be.eq("10000378000000000003999");
 
 
     });

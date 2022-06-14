@@ -245,14 +245,10 @@ contract('Boost_vote', () => {
         await lock.connect(dev).createLock(toWei('1'), parseInt(eta));
 
         await gaugeController.vote(1, usdc.address);
-        console.log("weights:" + await gaugeController.weights(usdc.address));
 
-        console.log("usedWeights:" + await gaugeController.usedWeights(1));
         await expect(gaugeController.poke(2)).to.be.revertedWith("no owner");
         await gaugeController.poke(1);
         expect(await gaugeController.weights(usdc.address)).to.be.eq(0);
-
-        console.log("usedWeights:" + await gaugeController.usedWeights(1));
 
         await expect(gaugeController.connect(dev).poke(1)).to.be.revertedWith("no owner");
         await expect(gaugeController.connect(dev).poke(2)).to.be.revertedWith("use weight > 0");

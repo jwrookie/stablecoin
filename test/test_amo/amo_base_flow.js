@@ -2,14 +2,14 @@ const {toWei} = web3.utils;
 const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
 const {time} = require('@openzeppelin/test-helpers');
-const {GetMockToken} = require("./Utils/GetMockConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Utils/GetThreePoolAndPancakePoolConfig");
-const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
+const {GetMockToken} = require("../Utils/GetMockConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../Utils/GetThreePoolAndPancakePoolConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../Utils/GetStableConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("./Utils/GetUniswapConfig");
+} = require("../Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {

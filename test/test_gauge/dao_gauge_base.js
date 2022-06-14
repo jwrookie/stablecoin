@@ -211,10 +211,6 @@ contract('Gauge', async function () {
         boostAmount = await fxs.balanceOf(boost.address);
         gaugeAmount = await fxs.balanceOf(gauge.address);
         allowance=await fxs.allowance(boost.address,gauge.address);
-        console.log("pendingAmount:" + pendingAmount);
-        console.log("boostAmount:" + boostAmount);
-        console.log("gaugeAmount:" + gaugeAmount);
-        console.log("allowance:" + allowance);
 
         await gauge.getReward(owner.address);
         expect(await fxs.balanceOf(owner.address)).to.be.gt(initFxsBalanceOfOwner);
