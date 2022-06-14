@@ -1,18 +1,18 @@
-const CRVFactory = require('./mock/mockPool/factory.json');
-const FactoryAbi = require('./mock/mockPool/factory_abi.json');
-const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
-const PoolAbi = require('./mock/mockPool/3pool_abi.json');
-const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
-const MetaPool = require('./mock/mockPool/MetaUSDBalances.json');
-const MetaPoolAbi = require('./mock/mockPool/meta_pool.json');
+const CRVFactory = require('../mock/mockPool/factory.json');
+const FactoryAbi = require('../mock/mockPool/factory_abi.json');
+const Plain3Balances = require('../mock/mockPool/Plain3Balances.json');
+const PoolAbi = require('../mock/mockPool/3pool_abi.json');
+const Registry = require("../mock/mockPool/Registry.json");
+const PoolRegistry = require("../mock/mockPool/CryptoRegistry.json");
+const MetaPool = require('../mock/mockPool/MetaUSDBalances.json');
+const MetaPoolAbi = require('../mock/mockPool/meta_pool.json');
 
 const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
 const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {BigNumber} = require('ethers');
-const WETH9 = require('./mock/WETH9.json');
+const WETH9 = require('../mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 contract('3metaPool', () => {
@@ -230,14 +230,14 @@ contract('3metaPool', () => {
         await fxs.addPool(swapMining.address);
         await fxs.approve(lock.address, toWei('100000'));
 
-    });
-    it('test metaPool swapMeta have reward', async () => {
         await token0.approve(swapRouter.address, toWei("10000"));
         await token1.approve(swapRouter.address, toWei("10000"));
-        await token2.approve(swapRouter.address, toWei("10000"));
         await token3.approve(swapRouter.address, toWei("10000"));
+        await token2.approve(swapRouter.address, toWei("10000"));
         await pool.approve(swapRouter.address, toWei('100000'));
 
+    });
+    it('test metaPool swapMeta have reward', async () => {
         let times = Number((new Date().getTime() + 1000).toFixed(0));
         await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times);
         let reword = await swapMining.rewardInfo(owner.address);
@@ -262,12 +262,6 @@ contract('3metaPool', () => {
 
     });
     it('test vote without swapMining', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await token1.approve(swapRouter.address, toWei("10000"));
-        await token2.approve(swapRouter.address, toWei("10000"));
-        await token3.approve(swapRouter.address, toWei("10000"));
-        await pool.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
@@ -282,12 +276,6 @@ contract('3metaPool', () => {
 
     });
     it('test vote with swapMining', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await token1.approve(swapRouter.address, toWei("10000"));
-        await token2.approve(swapRouter.address, toWei("10000"));
-        await token3.approve(swapRouter.address, toWei("10000"));
-        await pool.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -307,12 +295,6 @@ contract('3metaPool', () => {
 
     });
     it('test metaPool can swapMeta', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await token1.approve(swapRouter.address, toWei("10000"));
-        await token3.approve(swapRouter.address, toWei("10000"));
-        await token2.approve(swapRouter.address, toWei("10000"));
-        await pool.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() + 1000).toFixed(0));
         await swapRouter.swapMeta(pool1.address, 0, 1, "10000000", 0, owner.address, times);
         await swapRouter.swapMeta(pool1.address, 0, 2, "10000000", 0, owner.address, times);

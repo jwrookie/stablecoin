@@ -1,18 +1,18 @@
-const CRVFactory = require('./mock/mockPool/CryptoFactory.json');
-const FactoryAbi = require('./mock/mockPool/crpto_factory_abi.json');
-const CurveCryptoSwap = require('./mock/mockPool/CurveCryptoSwap2ETH.json');
+const CRVFactory = require('../mock/mockPool/CryptoFactory.json');
+const FactoryAbi = require('../mock/mockPool/crpto_factory_abi.json');
+const CurveCryptoSwap = require('../mock/mockPool/CurveCryptoSwap2ETH.json');
 
-const PoolAbi = require('./mock/mockPool/curve_crypto_swap2_eth_abi.json');
-const CurveToken = require("./mock/mockPool/CurveTokenV5.json")
-const CurveTokenAbi = require("./mock/mockPool/curve_token_v5_abi.json")
-const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/CryptoRegistry.json");
+const PoolAbi = require('../mock/mockPool/curve_crypto_swap2_eth_abi.json');
+const CurveToken = require("../mock/mockPool/CurveTokenV5.json")
+const CurveTokenAbi = require("../mock/mockPool/curve_token_v5_abi.json")
+const Registry = require("../mock/mockPool/Registry.json");
+const PoolRegistry = require("../mock/mockPool/CryptoRegistry.json");
 
 const {deployContract, MockProvider, solidity, Fixture} = require('ethereum-waffle');
 const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
 const {toWei, fromWei, toBN} = web3.utils;
-const WETH9 = require('./mock/WETH9.json');
+const WETH9 = require('../mock/WETH9.json');
 const {BigNumber} = require('ethers');
 const gas = {gasLimit: "9550000"};
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
@@ -157,14 +157,13 @@ contract('Crypto', () => {
         );
         await swapMining.addController(swapController.address);
         await lock.addBoosts(swapController.address);
+        await token0.approve(swapRouter.address, toWei("10000"));
+        await weth9.approve(swapRouter.address, toWei("10000"));
 
 
     });
 
     it('test crypto pool swapToken have reward', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -191,9 +190,6 @@ contract('Crypto', () => {
     });
 
     it('test crypto pool swapEthForToken have reward', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -221,8 +217,6 @@ contract('Crypto', () => {
 
     });
     it('test vote without swapMining', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
 
         let dx = "1000000";
@@ -240,9 +234,6 @@ contract('Crypto', () => {
 
     });
     it('test vote with swapMining', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -264,9 +255,6 @@ contract('Crypto', () => {
     });
 
     it('test swapEth exchange eth->', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000";
 
@@ -284,9 +272,6 @@ contract('Crypto', () => {
     });
 
     it('test swapEth exchange eth<-', async () => {
-        await token0.approve(swapRouter.address, toWei("10000"));
-        await weth9.approve(swapRouter.address, toWei('100000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000";
 
