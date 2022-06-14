@@ -47,7 +47,7 @@ abstract contract AbstractBoost is TokenReward {
 
     function reset(uint256 _tokenId) external {
         require(IVeToken(veToken).isApprovedOrOwner(msg.sender, _tokenId), "no owner");
-        require(usedWeights[_tokenId]>0,"use weight > 0");
+        require(usedWeights[_tokenId] > 0, "use weight > 0");
         _reset(_tokenId);
         IVeToken(veToken).abstain(_tokenId);
     }
