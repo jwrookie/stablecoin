@@ -1,23 +1,37 @@
-const {SetAddLiquidity} = require("../Core/UniswapOracleConfig");
+const {SetAddLiquidity, SetUniswapPairOracle} = require("../Core/UniswapOracleConfig");
 const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
-const {DeployUniswapByPancakeFactory} = require("../Factory/UniswapPairOracleFactory");
-const {GetMap} = require("../Factory/StableAndMockFactory");
 const {CheckParameter} = require("../Tools/Check");
 const {BigNumber} = require('ethers');
 const {toWei} = web3.utils;
 
-const GetUniswapByPancakeFactory = async (stableCoinPool, pancakeFactoryAddress, pairOfCoins = []) => {
+const GetUniswapByPancakeFactory = async (pancakeFactoryAddress, pairOfCoins = []) => {
     let tempUniswapOracle;
 
-    await CheckParameter([stableCoinPool, pairOfCoins[0], pairOfCoins[1]]);
+    for (let i = 0; i < 2; i++) {
+        if ("string" !== typeof pairOfCoins[i]) {
+            throw Error("GetUniswapByPancakeFactory: Type Error!");
+        }
+    }
 
-    tempUniswapOracle = await DeployUniswapByPancakeFactory(stableCoinPool, pancakeFactoryAddress, pairOfCoins[0], pairOfCoins[1]);
+    if ("string" !== typeof pancakeFactoryAddress) {
+        throw Error("GetUniswapByPancakeFactory: Type Error!");
+    }
+
+    await CheckParameter([pancakeFactoryAddress, pairOfCoins[0], pairOfCoins[1]]);
+
+    tempUniswapOracle = await SetUniswapPairOracle(pancakeFactoryAddress, pairOfCoins[0], pairOfCoins[1]);
+
     return tempUniswapOracle;
 }
 
-const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), coinLiquidity = [], operator) => {
+const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], pancakeRouter, approveNumber = toWei("10000"), liquidityOfCoins = [], operator) => {
     let date = Math.round(new Date() / 1000 + 260000000);
     let parameterObj = new Map();
+    let pancakeRouterFactory = await pancakeRouter.factory();
+
+    if (pancakeRouterFactory !== pancakeFactory.address) {
+        throw Error("AddLiquidityByPancakeRouter: Routers that need to be deployed!");
+    }
 
     parameterObj.set("tokenANumber", toWei("1"));
     parameterObj.set("tokenBNumber", toWei("1"));
@@ -30,21 +44,21 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
         }
     }
 
-    for (let i = 0; i < coinLiquidity.length; i++) {
-        if ("number" === typeof coinLiquidity[i] || "string" === typeof coinLiquidity[i]) {
-            if (undefined !== coinLiquidity[i] && "" !== coinLiquidity[i] && 0 <= coinLiquidity[i]) {
+    for (let i = 0; i < liquidityOfCoins.length; i++) {
+        if ("number" === typeof liquidityOfCoins[i] || "string" === typeof liquidityOfCoins[i]) {
+            if (undefined !== liquidityOfCoins[i] && "" !== liquidityOfCoins[i] && 0 <= liquidityOfCoins[i]) {
                 switch (i) {
                     case 0:
-                        parameterObj.set("tokenANumber", coinLiquidity[i]);
+                        parameterObj.set("tokenANumber", liquidityOfCoins[i]);
                         break;
                     case 1:
-                        parameterObj.set("tokenBNumber", coinLiquidity[i]);
+                        parameterObj.set("tokenBNumber", liquidityOfCoins[i]);
                         break;
                     case 2:
-                        parameterObj.set("amplification", coinLiquidity[i]);
+                        parameterObj.set("amplification", liquidityOfCoins[i]);
                         break;
                     case 3:
-                        parameterObj.set("fee", coinLiquidity[i]);
+                        parameterObj.set("fee", liquidityOfCoins[i]);
                         break;
                 }
             }
@@ -73,7 +87,6 @@ const AddLiquidityByPancakeRouter = async (pancakeFactory, pairOfCoin = [], panc
 
 // Constants for various precisions
 const SetETHUSDOracle = async (stableCoinObject, setAnswerValue = toWei("1")) => {
-    let tempMap = await GetMap();
     let chainlinkETHUSDPriceConsumer;
 
     if ("object" !== typeof stableCoinObject || "{}" === JSON.stringify(stableCoinObject)) {
@@ -89,10 +102,6 @@ const SetETHUSDOracle = async (stableCoinObject, setAnswerValue = toWei("1")) =>
             break;
         default:
             throw Error("Unknow type of parameter!");
-    }
-
-    if (undefined === tempMap.get("RUSD")) {
-        throw Error("Need to set rusd first!");
     }
 
     await stableCoinObject.setETHUSDOracle(chainlinkETHUSDPriceConsumer.address);
