@@ -152,27 +152,7 @@ contract('pool setParameter', () => {
 
 
     });
-    // it("the user did not set buybackFee", async () => {
-    //     await oraclePrice();
-    //     await rusd.refreshCollateralRatio();
-    //     await rusd.burn(toWei('1999999'));
-    //
-    //     await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-    //
-    //     await stableCoinPool.recollateralizeStable(toWei('1'), "10");
-    //
-    //     let befUsdcOwner = await usdc.balanceOf(owner.address);
-    //     expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
-    //
-    //
-    //     await stableCoinPool.buyBackStock(toWei('0.0000001'), 0);
-    //     let aftUsdcOwner = await usdc.balanceOf(owner.address);
-    //     expect(aftUsdcOwner).to.be.eq("99999999998900249743107769424");
-    //     let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
-    //     expect(diffUsdc).to.be.eq("100000000000");
-    //
-    //
-    // });
+
     it("the user set buybackFee", async () => {
         await stableCoinPool.setPoolParameters(
             toWei('100000000000'),
