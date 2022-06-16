@@ -43,9 +43,12 @@ async function main() {
     await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], pancakeRouter, toWei("30000"), [toWei("20000"), toWei("10")], deployer);
 
     await SetETHUSDOracle(rusd, toWei("2000"));
-    let usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
-    let rusdUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
-    let traUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
+    let usdcUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [usdc.address, weth.address]);
+    await stableCoinPool.setCollatETHOracle(usdcUniswapOracle.address, weth.address);
+    let rusdUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [rusd.address, weth.address]);
+    await rusd.setStableEthOracle(rusdUniswapOracle.address, weth.address);
+    let traUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [tra.address, weth.address]);
+    await rusd.setStockEthOracle(traUniswapOracle.address, weth.address);
     console.log("usdcUniswapOracle:\t" + usdcUniswapOracle.address);
     console.log("rusdUniswapOracle:\t" + rusdUniswapOracle.address);
     console.log("traUniswapOracle:\t" + traUniswapOracle.address);
