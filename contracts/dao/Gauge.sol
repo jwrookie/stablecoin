@@ -98,11 +98,10 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         uint256 _derived = (_balance * 30) / 100;
         uint256 _adjusted = 0;
         uint256 _supply = IBoost(boost).weights(stake);
-        uint256 usedWeight = IBoost(boost).usedWeights(_tokenId);
-        if (_supply > 0 && usedWeight > 0) {
+        uint256 userVote = IBoost(boost).votes(_tokenId, stake);
+        if (_supply > 0 && userVote > 0) {
             uint256 useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
-            _adjusted = IBoost(boost).votes(_tokenId, stake).mul(1e12).mul(useVe).div(usedWeight);
-            _adjusted = (((totalSupply * _adjusted) / _supply) * 70) / 100;
+            _adjusted = (((totalSupply * userVote) / _supply) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
     }
