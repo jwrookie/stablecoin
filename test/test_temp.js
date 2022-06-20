@@ -35,9 +35,12 @@ contract("test", async function () {
 
         await SetETHUSDOracle(rusd);
 
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [usdc.address, weth.address]);
+        await stableCoinPool.setCollatETHOracle(usdcUniswapOracle.address, weth.address);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [rusd.address, weth.address]);
+        await rusd.setStableEthOracle(fraxUniswapOracle.address, weth.address);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [tra.address, weth.address]);
+        await rusd.setStockEthOracle(fxsUniswapOracle.address, weth.address);
     });
     it('should ', async function () {
         // console.log(rusd.address);

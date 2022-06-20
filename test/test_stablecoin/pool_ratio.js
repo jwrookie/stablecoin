@@ -28,9 +28,12 @@ contract('PoolUSD_ratio', () => {
         await AddLiquidityByPancakeRouter(factory, [tra, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
        // await rusd.approve(router.address,toWei('1000'));
 
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [usdc.address, weth.address]);
+        await stableCoinPool.setCollatETHOracle(usdcUniswapOracle.address, weth.address);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [rusd.address, weth.address]);
+        await rusd.setStableEthOracle(fraxUniswapOracle.address, weth.address);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [tra.address, weth.address]);
+        await rusd.setStockEthOracle(fxsUniswapOracle.address, weth.address);
 
         await tra.addPool(stableCoinPool.address);
         await rusd.addPool(stableCoinPool.address);
@@ -47,18 +50,6 @@ contract('PoolUSD_ratio', () => {
         await usdc.connect(dev).approve(stableCoinPool.address, toWei('10000000000'));
 
         await tra.transfer(dev.address, toWei('1000'));
-
-    });
-    it("frax price >1, the collateral ratio decreased", async () => {
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-        let ratio = 1000000;
-
-        expect(await rusd.globalCollateralRatio()).to.be.eq(ratio - 2500);
-
-        await rusd.refreshCollateralRatio();
-        expect(await rusd.globalCollateralRatio()).to.be.eq(ratio - 5000);
-
 
     });
     it("frax price < 1, the collateral ratio increases", async () => {

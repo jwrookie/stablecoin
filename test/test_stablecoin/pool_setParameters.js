@@ -1,17 +1,14 @@
-const {expectRevert, time} = require('@openzeppelin/test-helpers');
-const {ethers, waffle} = require("hardhat");
+const {ethers} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("../Utils/GetStableConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../Utils/GetStableConfig");
 const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../Utils/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
 } = require("../Utils/GetUniswapConfig");
-const GAS = {gasLimit: "9550000"};
-const {BigNumber} = require('ethers');
 
 contract('pool setParameter', () => {
     beforeEach(async () => {
@@ -29,9 +26,12 @@ contract('pool setParameter', () => {
         await AddLiquidityByPancakeRouter(factory, [rusd, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
         await AddLiquidityByPancakeRouter(factory, [tra, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
 
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, factory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [usdc.address, weth.address]);
+        await stableCoinPool.setCollatETHOracle(usdcUniswapOracle.address, weth.address);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [rusd.address, weth.address]);
+        await rusd.setStableEthOracle(fraxUniswapOracle.address, weth.address);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(factory.address, [tra.address, weth.address]);
+        await rusd.setStockEthOracle(fxsUniswapOracle.address, weth.address);
 
 
         await tra.addPool(stableCoinPool.address);
@@ -152,27 +152,7 @@ contract('pool setParameter', () => {
 
 
     });
-    it("the user did not set buybackFee", async () => {
-        await oraclePrice();
-        await rusd.refreshCollateralRatio();
-        await rusd.burn(toWei('1999999'));
 
-        await stableCoinPool.mintFractionalStable(toWei('1'), toWei('1'), 0);
-
-        await stableCoinPool.recollateralizeStable(toWei('1'), "10");
-
-        let befUsdcOwner = await usdc.balanceOf(owner.address);
-        expect(befUsdcOwner).to.be.eq("99999999998900249643107769424");
-
-
-        await stableCoinPool.buyBackStock(toWei('0.0000001'), 0);
-        let aftUsdcOwner = await usdc.balanceOf(owner.address);
-        expect(aftUsdcOwner).to.be.eq("99999999998900249743107769424");
-        let diffUsdc = aftUsdcOwner.sub(befUsdcOwner);
-        expect(diffUsdc).to.be.eq("100000000000");
-
-
-    });
     it("the user set buybackFee", async () => {
         await stableCoinPool.setPoolParameters(
             toWei('100000000000'),
