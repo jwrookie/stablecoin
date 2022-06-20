@@ -1,18 +1,18 @@
-const CRVFactory = require('./mock/mockPool/factory.json');
-const FactoryAbi = require('./mock/mockPool/factory_abi.json');
-const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
-const PoolAbi = require('./mock/mockPool/3pool_abi.json');
-const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/PoolRegistry.json");
-const MetaPool = require('./mock/mockPool/MetaUSDBalances.json');
-const MetaPoolAbi = require('./mock/mockPool/meta_pool.json');
+const CRVFactory = require('../mock/mockPool/factory.json');
+const FactoryAbi = require('../mock/mockPool/factory_abi.json');
+const Plain3Balances = require('../mock/mockPool/Plain3Balances.json');
+const PoolAbi = require('../mock/mockPool/3pool_abi.json');
+const Registry = require("../mock/mockPool/Registry.json");
+const PoolRegistry = require("../mock/mockPool/PoolRegistry.json");
+const MetaPool = require('../mock/mockPool/MetaUSDBalances.json');
+const MetaPoolAbi = require('../mock/mockPool/meta_pool.json');
 
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {waffle, ethers} = require("hardhat");
 const {deployContract} = waffle;
 const {expect} = require("chai");
 const {toWei} = web3.utils;
-const WETH9 = require('./mock/WETH9.json');
+const WETH9 = require('../mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 contract('swapMining_vote', () => {
@@ -149,59 +149,52 @@ contract('swapMining_vote', () => {
         await swapMining.addController(swapController.address);
         await lock.addBoosts(swapController.address);
         await swapController.addPool(pool.address);
-
-
-    });
-
-    it('user has no transaction mining voting', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
-        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
-
-        let dx = "1000000";
-        //token0 -> token1
-        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-        let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
-
-        await swapMining.connect(dev).getReward(0);
-
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.735'));
-
-
-    });
-    it('user transaction mining voting', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-
-        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
-        let dx = "1000000";
-
-        //token0 -> token1
-        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-
-        let eta = time.duration.days(7);
-        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
-
-        await swapController.connect(dev).vote(1,pool.address);
-
-        await swapMining.connect(dev).getReward(0);
-
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.7875'));
-
-
-    });
-    it('two users did not vote for mining transactions', async () => {
         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
         await token0.approve(swapRouter.address, toWei('10000'));
         await token1.approve(swapRouter.address, toWei('10000'));
 
+
+    });
+
+    it('user has no transaction mining voting', async () => {
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
+
+        let dx = "1000000";
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+        let eta = time.duration.days(7);
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
+
+        await swapMining.connect(dev).getReward(0);
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.84'));
+
+
+    });
+    it('user transaction mining voting', async () => {
+        let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
+        let dx = "1000000";
+
+        //token0 -> token1
+        await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
+
+        let eta = time.duration.days(7);
+        await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990'));
+
+        await swapController.connect(dev).vote(1, pool.address);
+
+        await swapMining.connect(dev).getReward(0);
+
+        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9990.8925'));
+
+
+    });
+    it('two users did not vote for mining transactions', async () => {
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -221,11 +214,6 @@ contract('swapMining_vote', () => {
 
     });
     it('mining voting for two user transactions', async () => {
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
@@ -240,8 +228,8 @@ contract('swapMining_vote', () => {
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
         await lock.connect(owner).createLock(toWei('10'), parseInt(eta));
 
-        await swapController.connect(dev).vote(1,pool.address);
-        await swapController.connect(owner).vote(2,pool.address);
+        await swapController.connect(dev).vote(1, pool.address);
+        await swapController.connect(owner).vote(2, pool.address);
 
         await swapMining.connect(dev).getReward(0);
         await swapMining.connect(owner).getReward(0);

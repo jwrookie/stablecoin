@@ -2,8 +2,8 @@ const {BigNumber} = require("ethers");
 const {time, expectRevert} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei, fromWei, toBN} = web3.utils;
-const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetRusdAndTra} = require("./Utils/GetStableConfig");
+const {GetMockToken} = require("../Utils/GetMockConfig");
+const {GetRusdAndTra} = require("../Utils/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
 describe('Dao Locker Supplement', function () {
@@ -61,6 +61,10 @@ describe('Dao Locker Supplement', function () {
         await boost.createGauge(usdc.address, 100000, false);
         await boost.addController(gaugeController.address); // Vote
         gauge = await getGaugesInBoost(usdc);
+
+        await gaugeController.addPool(usdc.address);
+        await locker.addBoosts(boost.address);
+        await locker.addBoosts(gaugeController.address);
     });
 
     it('Two user,first deposit and transfer and second withdrawToken', async function () {
@@ -75,6 +79,35 @@ describe('Dao Locker Supplement', function () {
         await expectRevert(gauge.connect(dev).withdrawToken(toWei("1.5")), "withdrawSwap: not good");
         await gauge.withdrawToken(toWei("0.5"));
         expect(await usdc.balanceOf(owner.address)).to.be.eq(initBalanceOfGuarantee);
+
+    });
+    it('Observe the effect of no vote acceleration', async function () {
+        await locker.createLock(toWei("0.5"), ONE_DAT_DURATION);
+        tokenId = await locker.tokenId();
+        await locker.connect(dev).createLock(toWei("0.5"), ONE_DAT_DURATION);
+        seTokenId = await locker.tokenId();
+
+        await gauge.deposit(toWei("0.5"));
+
+        await usdc.connect(dev).approve(gauge.address, toWei("1"));
+        await gauge.connect(dev).deposit(toWei("0.5"));
+        await boost.massUpdatePools();
+
+        let ownerBef = await tra.balanceOf(owner.address);
+        let devBef = await tra.balanceOf(dev.address);
+        expect(ownerBef).to.be.eq(toWei('299999999'));
+        expect(devBef).to.be.eq(0);
+
+        await gauge.getReward(owner.address);
+        await gauge.connect(dev).getReward(dev.address);
+
+        let ownerAft = await tra.balanceOf(owner.address);
+        let devAft = await tra.balanceOf(dev.address);
+
+        expect(ownerAft).to.be.eq(toWei('299999999.105'));
+        expect(devAft).to.be.eq(toWei('0.13125'));
+
+
     });
 
     it('Observe the voting effect', async function () {
@@ -86,17 +119,24 @@ describe('Dao Locker Supplement', function () {
         await gauge.deposit(toWei("0.5"));
         await usdc.connect(dev).approve(gauge.address, toWei("1"));
         await gauge.connect(dev).deposit(toWei("0.5"));
+        await boost.massUpdatePools();
 
-        expect(parseInt(await time.latestBlock())).to.be.gt(initStartBlock);
-        initOwnerBalance = await tra.balanceOf(owner.address);
-        expect(await tra.balanceOf(dev.address)).to.be.eq(0);
-        await gaugeController.addPool(usdc.address);
-        await locker.addBoosts(gaugeController.address);
+        let ownerBef = await tra.balanceOf(owner.address);
+        let devBef = await tra.balanceOf(dev.address);
+        expect(ownerBef).to.be.eq(toWei('299999999'));
+        expect(devBef).to.be.eq(0);
+
         await gaugeController.vote(tokenId, usdc.address);
-        let pendingValue = await gauge.pendingMax(owner.address);
         await gauge.getReward(owner.address);
         await gauge.connect(dev).getReward(dev.address);
-        expect(BigNumber.from(pendingValue)).to.be.gt(await tra.balanceOf(dev.address));
+
+        let ownerAft = await tra.balanceOf(owner.address);
+        let devAft = await tra.balanceOf(dev.address);
+
+        expect(ownerAft).to.be.eq(toWei('299999999.13125'));
+        expect(devAft).to.be.eq(toWei('0.1575'));
+
+
     });
 
     it('Observe the acceleration effect', async function () {
@@ -108,16 +148,22 @@ describe('Dao Locker Supplement', function () {
         await gauge.deposit(toWei("0.5"));
         await usdc.connect(dev).approve(gauge.address, toWei("1"));
         await gauge.connect(dev).deposit(toWei("0.5"));
-
-        expect(parseInt(await time.latestBlock())).to.be.gt(initStartBlock);
-        initOwnerBalance = await tra.balanceOf(owner.address);
-        expect(await tra.balanceOf(dev.address)).to.be.eq(0);
-        await locker.addBoosts(boost.address);
-        await boost.vote(tokenId, [usdc.address], [toWei("1")]);
         await boost.massUpdatePools();
-        let pendingValue = await gauge.pendingMax(owner.address);
+
+        let ownerBef = await tra.balanceOf(owner.address);
+        let devBef = await tra.balanceOf(dev.address);
+        expect(ownerBef).to.be.eq(toWei('299999999'));
+        expect(devBef).to.be.eq(0);
+
+        await boost.vote(tokenId, [usdc.address], [toWei("1")]);
+
         await gauge.getReward(owner.address);
         await gauge.connect(dev).getReward(dev.address);
-        expect(BigNumber.from(pendingValue)).to.be.gt(await tra.balanceOf(dev.address));
+
+        let ownerAft = await tra.balanceOf(owner.address);
+        let devAft = await tra.balanceOf(dev.address);
+        expect(ownerAft).to.be.eq(toWei('299999999.4375'));
+        expect(devAft).to.be.eq(toWei('0.1575'));
+
     });
 });

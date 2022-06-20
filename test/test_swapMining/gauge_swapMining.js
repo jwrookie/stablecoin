@@ -1,16 +1,16 @@
-const CRVFactory = require('./mock/mockPool/factory.json');
-const FactoryAbi = require('./mock/mockPool/factory_abi.json');
-const Plain3Balances = require('./mock/mockPool/Plain3Balances.json');
-const PoolAbi = require('./mock/mockPool/3pool_abi.json');
-const Registry = require("./mock/mockPool/Registry.json");
-const PoolRegistry = require("./mock/mockPool/PoolRegistry.json");
+const CRVFactory = require('../mock/mockPool/factory.json');
+const FactoryAbi = require('../mock/mockPool/factory_abi.json');
+const Plain3Balances = require('../mock/mockPool/Plain3Balances.json');
+const PoolAbi = require('../mock/mockPool/3pool_abi.json');
+const Registry = require("../mock/mockPool/Registry.json");
+const PoolRegistry = require("../mock/mockPool/PoolRegistry.json");
 
 const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {waffle, ethers} = require("hardhat");
 const {deployContract} = waffle;
 const {expect} = require("chai");
 const {toWei} = web3.utils;
-const WETH9 = require('./mock/WETH9.json');
+const WETH9 = require('../mock/WETH9.json');
 const gas = {gasLimit: "9550000"};
 
 contract('gauge,swapMining', () => {
@@ -219,22 +219,21 @@ contract('gauge,swapMining', () => {
         await gaugeController.addPool(pool.address);
         await lock.addBoosts(gaugeController.address);
 
+         await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
+        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
+        await token0.approve(swapRouter.address, toWei('10000'));
+        await token1.approve(swapRouter.address, toWei('10000'));
+
     });
     it('swapMining, two users did not accelerate to receive rewards', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
 
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
 
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
-        await swapMining.updatePool(0);
         let befDev = await fxs.balanceOf(dev.address);
 
         let pend = await swapMining.rewardPoolInfo(0, dev.address);
@@ -242,7 +241,7 @@ contract('gauge,swapMining', () => {
 
         await swapMining.connect(dev).getReward(0);
         let aftDev = await fxs.balanceOf(dev.address);
-        expect(aftDev).to.be.eq(toWei('9997.2'));
+        expect(aftDev).to.be.eq(toWei('9996.96'));
 
         await swapRouter.connect(owner).swapStable(pool.address, 0, 1, dx, 0, owner.address, times);
 
@@ -254,7 +253,7 @@ contract('gauge,swapMining', () => {
         expect(aftOwner).to.be.eq(toWei('299990000.48'));
 
         let devDiff = aftDev.sub(befDev);
-        expect(devDiff).to.be.eq(toWei('7.2'));
+        expect(devDiff).to.be.eq(toWei('6.96'));
 
         let ownerDiff = aftOwner.sub(befOwner);
         expect(ownerDiff).to.be.eq(toWei('0.48'));
@@ -267,14 +266,8 @@ contract('gauge,swapMining', () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
 
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
-
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";
-
 
         //token0 -> token1
         await swapRouter.connect(dev).swapStable(pool.address, 0, 1, dx, 0, dev.address, times);
@@ -298,7 +291,6 @@ contract('gauge,swapMining', () => {
         let aftOwner = await fxs.balanceOf(owner.address);
         expect(aftOwner).to.be.eq(toWei('299990000.48'));
 
-
         let devDiff = aftDev.sub(befDev);
         expect(devDiff).to.be.eq(toWei('7.2'));
 
@@ -311,11 +303,6 @@ contract('gauge,swapMining', () => {
         ' and another user voted to receive the reward', async () => {
         let eta = time.duration.days(7);
         await lock.connect(dev).createLock(toWei('10'), parseInt(eta));
-
-        await token0.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token1.connect(dev).approve(swapRouter.address, toWei('10000'));
-        await token0.approve(swapRouter.address, toWei('10000'));
-        await token1.approve(swapRouter.address, toWei('10000'));
 
         let times = Number((new Date().getTime() / 1000 + 260000000).toFixed(0));
         let dx = "1000000";

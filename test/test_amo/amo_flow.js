@@ -2,14 +2,17 @@ const {toWei} = web3.utils;
 const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
 const {time} = require('@openzeppelin/test-helpers');
-const {GetMockToken} = require("./Utils/GetMockConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Utils/GetThreePoolAndPancakePoolConfig");
-const {GetRusdAndTra, StableCoinPool} = require("./Utils/GetStableConfig");
+const {GetMockToken} = require("../Utils/GetMockConfig");
+const {
+    DeployThreePoolFactoryAndPancakeFactory,
+    DeployThreePoolByThreePoolFactory
+} = require("../Utils/GetThreePoolAndPancakePoolConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../Utils/GetStableConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("./Utils/GetUniswapConfig");
+} = require("../Utils/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
@@ -87,28 +90,55 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
 
     it('when user mint rusd will trigger exchange amo and do not with draw rusd', async function () {
         // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
+        await expect(usdcUniswapOracle.update()).to.be.revertedWith("UniswapPairOracle: PERIOD_NOT_ELAPSED");
         await time.increase(await time.duration.hours(1));
         await usdcUniswapOracle.update();
 
+        expect(await rusd.balanceOf(owner.address)).to.be.eq(toWei('1979900'));
         await stableCoinPool.mint1t1Stable(toWei("1"), 0);
+        expect(await rusd.balanceOf(owner.address)).to.be.eq(toWei('1979900.0005'));
 
         await amoMinter.setMinimumCollateralRatio(0);
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(0);
         await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei('1'));
 
         await amoMinter.setCollatBorrowCap(toWei("10"));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(toWei('1'));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
+        expect(await usdc.balanceOf(stableCoinPool.address)).to.be.eq(0);
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei('1'));
+        expect(await usdc.balanceOf(pool.address)).to.be.eq(toWei('100'));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(toWei('100'));
 
         expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(0);
         await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
-        expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(BigNumber.from("599879617905205347"));
+        expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq("599879617905205347");
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from(toWei('1')).sub(toWei('0.5')));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from(toWei('1')).sub(toWei("0.1")));
+        expect(await usdc.balanceOf(pool.address)).to.be.eq(BigNumber.from(toWei('100')).add(toWei('0.1')));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(BigNumber.from(toWei('100')).add(toWei('0.5')));
 
-        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
-        await exchangeAMO.poolWithdrawStable(await pool.balanceOf(exchangeAMO.address, GAS), true);
-        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("0.5"));
+        let poolAmountBef = await pool.balanceOf(exchangeAMO.address, GAS);
+        let poolAmount = poolAmountBef.div(2)
+        await exchangeAMO.poolWithdrawStable(poolAmount, true);
+
+        let poolAmountaAft = await pool.balanceOf(exchangeAMO.address, GAS);
+        expect(poolAmountaAft).to.be.eq("299939808952602674");
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei('0.5'));
+
+        //Confirm destruction
+        await exchangeAMO.poolWithdrawStable(poolAmountaAft, false);
+
+        poolAmountaAft = await pool.balanceOf(exchangeAMO.address, GAS);
+        expect(poolAmountaAft).to.be.eq(0);
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq("799879940839912524");
+
+
     });
 
     it('when user mint rusd will trigger exchange amo and with draw', async function () {
-        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
         await time.increase(await time.duration.hours(1));
         await usdcUniswapOracle.update();
 
@@ -119,37 +149,49 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
 
         await amoMinter.setCollatBorrowCap(toWei("10"));
         await amoMinter.giveCollatToAMO(exchangeAMO.address, toWei("1"));
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei("1"));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(toWei('1'));
+        expect(await pool.balanceOf(exchangeAMO.address, GAS)).to.be.eq(0);
 
+        expect(await usdc.balanceOf(pool.address)).to.be.eq(toWei('100'));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(toWei('100'));
         await exchangeAMO.poolDeposit(toWei("0.5"), toWei("0.1"));
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from(toWei('1')).sub(toWei('0.5')));
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from(toWei('1')).sub(toWei("0.1")));
+        expect(await usdc.balanceOf(pool.address)).to.be.eq(BigNumber.from(toWei('100')).add(toWei('0.1')));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(BigNumber.from(toWei('100')).add(toWei('0.5')));
 
-        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("1000000000000000000").sub(toWei("0.1")));
-        await exchangeAMO.poolWithdrawCollateral(await pool.balanceOf(exchangeAMO.address, GAS));
-        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq("500000000000000000");
+        let poolAmountBef = await pool.balanceOf(exchangeAMO.address, GAS);
+        await exchangeAMO.poolWithdrawCollateral(poolAmountBef);
+
+        let poolAmountaAft = await pool.balanceOf(exchangeAMO.address, GAS);
+        expect(poolAmountaAft).to.be.eq(0);
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq("1499758801972829521");
+
     });
 
     it('No borrowing, no collateral coinage, investment profit', async function () {
-        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
         await time.increase(await time.duration.hours(1));
         await usdcUniswapOracle.update();
 
         await amoMinter.setMinimumCollateralRatio(0);
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(0);
         await amoMinter.mintStableForAMO(exchangeAMO.address, toWei("1"));
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(toWei('1'));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(toWei('100'));
 
         await exchangeAMO.poolDeposit(toWei("0.5"), 0);
+        expect(await rusd.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from(toWei('1')).sub(toWei('0.5')));
+        expect(await rusd.balanceOf(pool.address)).to.be.eq(BigNumber.from(toWei('100')).add(toWei('0.5')));
 
         expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(0);
-        await exchangeAMO.poolWithdrawCollateral(await pool.balanceOf(exchangeAMO.address, GAS));
-        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq(BigNumber.from("499798771300969441"));
+        let poolAmountBef = await pool.balanceOf(exchangeAMO.address, GAS);
+        expect(poolAmountBef).to.be.eq("499899584754389221");
+        await exchangeAMO.poolWithdrawCollateral(poolAmountBef);
+        let poolAmountAft = await pool.balanceOf(exchangeAMO.address, GAS);
+        expect(poolAmountAft).to.be.eq(0);
+        expect(await usdc.balanceOf(exchangeAMO.address)).to.be.eq("499798771300969441");
 
-        // Add check logic
-        // await exchangeAMO.giveCollatBack(await usdc.balanceOf(exchangeAMO.address));
     });
 
-    it('Borrowing stable coin and get reward by amo', async function () {
-        // Because minting needs to obtain the price of collateral to USD, the predictor needs to be refreshed
-        await time.increase(await time.duration.hours(1));
-        await usdcUniswapOracle.update();
-
-        expect(await rusd.globalCollateralRatio()).to.be.eq(BigNumber.from("1000000"));
-    });
 });
