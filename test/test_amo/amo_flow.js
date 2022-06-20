@@ -37,9 +37,12 @@ contract('Rsud、StableCoinPool、AMO、ExchangeAMO', async function () {
         await AddLiquidityByPancakeRouter(pancakeFactory, [tra, weth], router, toWei("30000"), [toWei("20000"), toWei("10")], owner);
 
         await SetETHUSDOracle(rusd);
-        usdcUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [usdc.address, weth.address]);
-        fraxUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [rusd.address, weth.address]);
-        fxsUniswapOracle = await GetUniswapByPancakeFactory(stableCoinPool, pancakeFactory.address, [tra.address, weth.address]);
+        usdcUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [usdc.address, weth.address]);
+        await stableCoinPool.setCollatETHOracle(usdcUniswapOracle.address, weth.address);
+        fraxUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [rusd.address, weth.address]);
+        await rusd.setStableEthOracle(fraxUniswapOracle.address, weth.address);
+        fxsUniswapOracle = await GetUniswapByPancakeFactory(pancakeFactory.address, [tra.address, weth.address]);
+        await rusd.setStockEthOracle(fxsUniswapOracle.address, weth.address);
 
         // About amo and exchange amo
         const AMOMinter = await ethers.getContractFactory('AMOMinter');
