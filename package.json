@@ -39,6 +39,7 @@
     "@uniswap/v3-sdk": "^3.8.2",
     "apollo-cache-control": "^0.14.0",
     "bignumber.js": "^9.0.2",
+    "decimal.js": "^10.3.1",
     "bnc-sdk": "^3.7.1",
     "chalk": "^4.1.2",
     "dotenv": "^10.0.0",
