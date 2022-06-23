@@ -1,21 +1,28 @@
 const {BigNumber} = require("ethers");
-const {CheckParameter} = require("../Tools/Check");
-const {TokenFactory, GetMap} = require("../Factory/StableAndMockFactory");
-const {SetFraxPoolLib, SetPoolAddress} = require("../Core/StableConfig");
-const {ZEROADDRESS} = require("../Lib/Address");
+const {CheckParameter} = require("./Check");
+const {TokenFactory, GetMap, SetFraxPoolLib, SetPoolAddress} = require("../Src/StableAndMockFactory");
+const {ZEROADDRESS} = require("../Src/Address");
 
 const GetRusdAndTra = async () => {
-    let resultArray;
+    let tempArray = new Array();
 
-    resultArray = await TokenFactory();
-
-    let tempMap = await GetMap();
-    let rusd = tempMap.get("RUSD");
-    let tra = tempMap.get("TRA");
+    const {
+        rusd,
+        tra,
+        operatable,
+        checkOpera,
+        oracle
+    } = await TokenFactory();
 
     await SetRusdAndTraConfig(rusd, tra);
 
-    return resultArray;
+    tempArray.push(rusd,
+        tra,
+        operatable,
+        checkOpera,
+        oracle);
+
+    return tempArray;
 }
 
 const SetRusdAndTraConfig = async (rusd, tra) => {

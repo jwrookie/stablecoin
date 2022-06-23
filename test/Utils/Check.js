@@ -1,4 +1,4 @@
-const {ZEROADDRESS} = require("../Lib/Address");
+const {ZEROADDRESS} = require("../Src/Address");
 
 const CheckParameter = async (param = []) => {
     if (0 < param.length) {

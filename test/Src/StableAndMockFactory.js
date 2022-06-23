@@ -1,5 +1,5 @@
-const {SetOracle, SetOperatable, SetRusd, SetTra, SetCheckPermission} = require("../Core/StableConfig");
-const {SetMockToken, MintMockToken} = require("../Core/MockTokenConfig");
+const {ethers} = require('hardhat');
+const {SetMockToken, MintMockToken} = require("./MockTokenConfig");
 
 const GraphicTokenMap = new Map();
 
@@ -7,8 +7,49 @@ const GetMap = async () => {
     return GraphicTokenMap;
 }
 
+const SetOracle = async () => {
+    const TestOracle = await ethers.getContractFactory("TestOracle");
+    return await TestOracle.deploy();
+}
+
+const SetOperatable = async () => {
+    const TestOperatable = await ethers.getContractFactory("Operatable");
+    return await TestOperatable.deploy();
+}
+
+const SetCheckPermission = async (operatable) => {
+    const CheckOperator = await ethers.getContractFactory("CheckPermission");
+    return await CheckOperator.deploy(operatable.address);
+}
+
+const SetRusd = async (operatable) => {
+    const RStableCoin = await ethers.getContractFactory("RStablecoin");
+    return await RStableCoin.deploy(operatable.address, "Rusd", "Rusd");
+}
+
+const SetTra = async (operatable, oracle) => {
+    const Stock = await ethers.getContractFactory("Stock");
+    return await Stock.deploy(operatable.address, "Tra", "Tra", oracle.address);
+}
+
+const SetFraxPoolLib = async () => {
+    const FraxPoolLibrary = await ethers.getContractFactory("PoolLibrary");
+    return await FraxPoolLibrary.deploy();
+}
+
+const SetPoolAddress = async (poolLib) => {
+    if ("object" !== typeof poolLib || "{}" === JSON.stringify(poolLib)) {
+        throw Error("SetPoolAddress: Empty Parameter!");
+    }
+
+    return await ethers.getContractFactory("PoolUSD", {
+        libraries: {
+            PoolLibrary: poolLib.address,
+        },
+    });
+}
+
 const TokenFactory = async () => {
-    let resultArray = new Array();
     let oracle;
     let operatable;
     let checkOpera;
@@ -29,9 +70,13 @@ const TokenFactory = async () => {
     GraphicTokenMap.set("RUSD", rusd);
     GraphicTokenMap.set("TRA", tra);
 
-    resultArray.push(rusd, tra, operatable, checkOpera, oracle);
-
-    return resultArray;
+    return {
+        rusd,
+        tra,
+        operatable,
+        checkOpera,
+        oracle
+    }
 }
 
 const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNumber = toWei("1")) => {
@@ -63,6 +108,8 @@ const MockTokenFactory = async (deployMockTokenNumber = 1, mintUser = [], mintNu
 }
 
 module.exports = {
+    SetFraxPoolLib,
+    SetPoolAddress,
     TokenFactory,
     MockTokenFactory,
     GetMap
