@@ -1,17 +1,21 @@
-const {SetThreePoolsByThreePoolFactory, SetPlainImplementations} = require("../Core/LibSourceConfig");
-const {PanCakeFactoryAndThreeFactoryConfig} = require("../Factory/PancakeFactoryAndThreePoolFactory");
+const {PanCakeFactoryAndThreeFactoryConfig, SetThreePoolsByThreePoolFactory, SetPlainImplementations} = require("../Src/PancakeFactoryAndThreePoolFactory");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
 const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {value: toWei("100")}) => {
     let resultArray = new Array();
-    let threePoolFactoryMap = await PanCakeFactoryAndThreeFactoryConfig(user); // Deploy pancake factory precondition
-    let weth = threePoolFactoryMap.get("weth");
+    const {
+        weth,
+        pancakeFactory,
+        poolOfThreeCoinsFactory,
+        plain3Balances,
+        pancakeRouter
+    } = await PanCakeFactoryAndThreeFactoryConfig(user); // Deploy pancake factory precondition
 
     await SetPlainImplementations(
-        threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
+        poolOfThreeCoinsFactory,
         3,
-        [threePoolFactoryMap.get("plain3Balances").address]
+        [plain3Balances.address]
     );
 
     if ("object" === typeof wethDeposit && "{}" !== JSON.stringify(wethDeposit)) {
@@ -21,11 +25,11 @@ const DeployThreePoolFactoryAndPancakeFactory = async (user, wethDeposit = {valu
     }
 
     resultArray.push(
-        threePoolFactoryMap.get("weth"),
-        threePoolFactoryMap.get("pancakeFactory"),
-        threePoolFactoryMap.get("poolOfThreeCoinsFactory"),
-        threePoolFactoryMap.get("plain3Balances"),
-        threePoolFactoryMap.get("pancakeRouter")
+        weth,
+        pancakeFactory,
+        poolOfThreeCoinsFactory,
+        plain3Balances,
+        pancakeRouter
     );
 
     return resultArray;

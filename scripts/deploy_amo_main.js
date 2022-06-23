@@ -1,5 +1,5 @@
 const {ethers} = require("hardhat");
-const $ = require("../test/Core/common");
+const $ = require("../test/Src/common");
 const {toWei} = require("web3-utils");
 const WETH9 = require("../test/mock/WETH9.json");
 const Config = require("../test/test_amo/conftest");

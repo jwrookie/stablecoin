@@ -1,17 +1,15 @@
+const CRVFACTORY = require('../mock/mockPool/factory.json');
+const FACTORYABI = require('../mock/mockPool/factory_abi.json');
+const PLAIN3BALANCE = require('../mock/mockPool/Plain3Balances.json');
+const POOLABI = require('../mock/mockPool/3pool_abi.json');
+const REGISTRY = require('../mock/mockPool/Registry.json');
+const POOLREGISTRY = require('../mock/mockPool/PoolRegistry.json');
+const FACTORY = require('../mock/PancakeFactory.json');
+const ROUTER = require('../mock/PancakeRouter.json');
+const WETH = require('../mock/WETH9.json');
 const {deployContract} = require("ethereum-waffle");
-const {ZEROADDRESS} = require("../Lib/Address");
+const {ZEROADDRESS} = require("./Address");
 const GAS = {gasLimit: "9550000"};
-const {
-    CRVFACTORY,
-    FACTORY,
-    FACTORYABI,
-    POOLABI,
-    WETH,
-    PLAIN3BALANCE,
-    POOLREGISTRY,
-    REGISTRY,
-    ROUTER,
-} = require("../Lib/QuoteMockJson");
 
 const Weth = async (deployer) => {
     // Need to create swap pairs and deassociate the mock token price with weth
@@ -121,14 +119,44 @@ const SetThreePoolsByThreePoolFactory = async (threePoolsFactory, tokenArray = [
     );
 }
 
+const PanCakeFactoryAndThreeFactoryConfig = async (user) => {
+    let weth;
+    let pancakeFactory;
+    let pancakeRouter;
+    let registry;
+    let poolRegistry;
+    let poolOfThreeCoinsFactory;
+    let plain3Balances;
+
+    if ("object" !== typeof user || "{}" === JSON.stringify(user)) {
+        throw Error("Please enter the correct user object!");
+    }
+
+    try {
+        weth = await Weth(user);
+        pancakeFactory = await PancakeFactory(user);
+        pancakeRouter = await Router(user, pancakeFactory, weth);
+        registry = await Registry(user);
+        poolRegistry = await PoolRegistry(user, registry);
+        poolOfThreeCoinsFactory = await PoolOfThreeCoinsFactory(user, registry);
+        plain3Balances = await Plain3Balances(user); // pool of three coins
+    } catch (err) {
+        throw Error("Error message:\t" + err);
+    }
+
+    return {
+        weth,
+        pancakeFactory,
+        pancakeRouter,
+        registry,
+        poolRegistry,
+        poolOfThreeCoinsFactory,
+        plain3Balances
+    };
+}
+
 module.exports = {
-    Weth,
-    PancakeFactory,
-    Router,
-    Registry,
-    PoolRegistry,
-    PoolOfThreeCoinsFactory,
-    Plain3Balances,
     SetPlainImplementations,
     SetThreePoolsByThreePoolFactory,
+    PanCakeFactoryAndThreeFactoryConfig
 }

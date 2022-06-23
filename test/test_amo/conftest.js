@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {time} = require("@openzeppelin/test-helpers");
-const $ = require("../Core/common");
+const $ = require("../Src/common");
 const Plain3Pool = require("../mock/mockPool/Plain3Balances.json");
 const Plain3PoolAbi = require("../mock/mockPool/3pool_abi.json");
 const Registry = require("../mock/mockPool/Registry.json");
