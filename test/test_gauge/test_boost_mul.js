@@ -1,4 +1,4 @@
-const $ = require('../Core/common');
+const $ = require('../Src/common');
 const {time} = require('@openzeppelin/test-helpers');
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
