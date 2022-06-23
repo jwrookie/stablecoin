@@ -1,5 +1,5 @@
 const {BigNumber} = require('ethers');
-const {MockTokenFactory} = require("../Factory/StableAndMockFactory");
+const {MockTokenFactory} = require("../Src/StableAndMockFactory");
 
 const GetMockToken = async (deployMockTokenNumber, mintUser = [], mintNumber) => {
     let resultArray;

@@ -1,8 +1,30 @@
-const {SetAddLiquidity, SetUniswapPairOracle} = require("../Core/UniswapOracleConfig");
-const {SetChainlinkETHUSDPriceConsumer} = require("../Core/MockTokenConfig");
-const {CheckParameter} = require("../Tools/Check");
+const {SetChainlinkETHUSDPriceConsumer} = require("../Src/MockTokenConfig");
+const {CheckParameter} = require("./Check");
 const {BigNumber} = require('ethers');
+const {ethers} = require('hardhat');
 const {toWei} = web3.utils;
+
+const SetAddLiquidity = async (pancakeRouter, tokenA, tokenB, tokenANumber, tokenBNumber, amplification, fee, operator, date) => {
+    await pancakeRouter.addLiquidity(
+        tokenA.address,
+        tokenB.address,
+        tokenANumber,
+        tokenBNumber,
+        amplification,
+        fee,
+        operator.address,
+        date
+    );
+}
+
+const SetUniswapPairOracle = async (pancakeFactoryAddress, tokenAAddress, tokenBAddress) => {
+    const UniswapPairOracle = await ethers.getContractFactory("UniswapPairOracle");
+    return await UniswapPairOracle.deploy(
+        pancakeFactoryAddress,
+        tokenAAddress,
+        tokenBAddress,
+    );
+}
 
 const GetUniswapByPancakeFactory = async (pancakeFactoryAddress, pairOfCoins = []) => {
     let tempUniswapOracle;
