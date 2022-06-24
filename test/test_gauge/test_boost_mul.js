@@ -17,7 +17,7 @@ contract('BoostMul', () => {
 
         usdc = await $.mockToken("usdc", "usdc", 18, 0);
 
-        await usdc.mint(owner.address, toWei('100000'));
+        await usdc.mint(owner.address, toWei('10000000'));
         await usdc.mint(dev.address, toWei('100000'));
         await usdc.mint(addr1.address, toWei('100000'));
         await usdc.mint(addr2.address, toWei('100000'));
@@ -62,7 +62,7 @@ contract('BoostMul', () => {
 
         await fxs.addPool(boost.address);
 
-        await fxs.approve(locker.address, toWei('10000'));
+        await fxs.approve(locker.address, toWei('10000000'));
         // await fxs.approve(gauge_usdc.address, toWei('10000'));
         await fxs.connect(dev).approve(locker.address, toWei('10000'));
         // await fxs.connect(dev).approve(gauge_usdc.address, toWei('10000'));
@@ -71,7 +71,7 @@ contract('BoostMul', () => {
         await fxs.connect(addr2).approve(locker.address, toWei('10000'));
         // await fxs.connect(addr2).approve(gauge_usdc.address, toWei('10000'));
 
-        await usdc.approve(gauge_usdc.address, toWei('10000'));
+        await usdc.approve(gauge_usdc.address, toWei('10000000'));
         await usdc.connect(dev).approve(gauge_usdc.address, toWei('10000'));
         await usdc.connect(addr1).approve(gauge_usdc.address, toWei('10000'));
         await usdc.connect(addr2).approve(gauge_usdc.address, toWei('10000'));
@@ -190,5 +190,315 @@ contract('BoostMul', () => {
         expect(boostMulDevAft1).to.be.eq("1.00");
         expect(boostMulAddr1Aft1).to.be.eq("1.00");
         expect(boostMulAddr2Aft1).to.be.eq("1.00");
+    });
+
+    it("test users, boost mul", async () => {
+
+        await fxs.approve(locker.address, toWei("10000000"));
+        // 1、
+        let _duration = time.duration.years(4);
+        await locker.createLock(toWei('100000'), parseInt(_duration));
+        let tokenId1 = await locker.tokenId();
+
+        await gauge_usdc.deposit(toWei('1')); //10
+        await boost.vote(tokenId1, [usdc.address], [toWei('200000')]);//200000
+
+        //2、
+        _duration = time.duration.days(100);
+        await locker.connect(dev).createLock(toWei("2000"), parseInt(parseInt(_duration)));
+        let tokenId2 = await locker.tokenId();
+
+        await gauge_usdc.connect(dev).deposit(toWei('1')); //10
+        await boost.connect(dev).vote(tokenId2, [usdc.address], [toWei('1000')]);//1000
+
+        let pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        let pendingOwner = await gauge_usdc.pending(owner.address);
+        let pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        let pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        let boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        let boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 10 minutes=================");
+        await time.increase(await time.duration.minutes(10));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 10 minutes=================");
+        await time.increase(await time.duration.minutes(10));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        await gauge_usdc.getReward(owner.address);
+
+        console.log("=================owner getReward=================");
+        console.log("=================increase 1 hours=================");
+        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 1)
+        await time.increase(await time.duration.hours(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 5 hours=================");
+        await time.increase(await time.duration.hours(5));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 20 hours=================");
+        await time.increase(await time.duration.hours(20));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 1 days=================");
+        await time.increase(await time.duration.days(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 2 days=================");
+        await time.increase(await time.duration.days(2));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 1 weeks=================");
+        await time.increase(await time.duration.weeks(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 10 weeks=================");
+        await time.increase(await time.duration.weeks(10));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 3 weeks=================");
+        await time.increase(await time.duration.weeks(3));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 3 weeks=================");
+        await time.increase(await time.duration.weeks(3));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 1 years=================");
+        await time.increase(await time.duration.years(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 1 years=================");
+        await time.increase(await time.duration.years(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 2 years=================");
+        await time.increase(await time.duration.years(2));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
+
+        console.log("=================increase 1 years=================");
+        await time.increase(await time.duration.years(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        console.log("pendingMaxOwner: " + pendingMaxOwner);
+        console.log("pendingOwner: " + pendingOwner);
+        console.log("pendingMaxDev: " + pendingMaxDev);
+        console.log("pendingDev: " + pendingDev);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100));
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100));
+
+        console.log("boostMulOwner: " + boostMulOwner);
+        console.log("boostMulDev: " + boostMulDev);
     });
 });
