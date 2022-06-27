@@ -62,7 +62,6 @@ abstract contract AbstractBoost is TokenReward {
             int256 _votes = votes[_tokenId][_pool];
 
             if (_votes != 0) {
-                _updatePoolInfo(_pool);
                 weights[_pool] -= _votes;
                 votes[_tokenId][_pool] -= _votes;
                 if (_votes > 0) {
@@ -102,7 +101,6 @@ abstract contract AbstractBoost is TokenReward {
                 int256 _poolWeight = (_weights[i] * _weight) / _totalVoteWeight;
                 require(votes[_tokenId][_pool] == 0, "token pool is 0");
                 require(_poolWeight != 0, "weight is 0");
-                _updatePoolInfo(_pool);
 
                 poolVote[_tokenId].push(_pool);
 
