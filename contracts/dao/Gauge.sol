@@ -82,15 +82,16 @@ contract Gauge is ReentrancyGuard, CheckPermission {
 
     function getReward(address account) external nonReentrant {
         require(msg.sender == account || msg.sender == boost);
-        updatePool();
         UserInfo storage user = userInfo[account];
         uint256 pendingAmount = pendingMax(account);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, account, pendingAmount);
             emit ClaimRewards(msg.sender, rewardToken, pendingAmount);
         }
+        updatePool();
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
         IBoost(boost).distribute(address(this));
+
     }
 
     function derivedBalance(address account, uint256 _balance) public view returns (uint256) {
@@ -102,7 +103,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         if (_supply > 0 && usedWeight > 0) {
             uint256 useVe = IVeToken(veToken).balanceOfNFT(_tokenId);
             _adjusted = IBoost(boost).votes(_tokenId, stake).mul(useVe).div(usedWeight);
-            _adjusted = (((totalSupply * _adjusted) / _supply) * 70) / 100;
+            _adjusted = (((_balance * _adjusted) / _supply) * 70) / 100;
         }
         return Math.min((_derived + _adjusted), _balance);
     }
@@ -113,7 +114,6 @@ contract Gauge is ReentrancyGuard, CheckPermission {
 
     function deposit(uint256 amount) public nonReentrant {
         require(amount > 0, "amount is 0");
-        updatePool();
         UserInfo storage user = userInfo[msg.sender];
         if (user.amount > 0) {
             uint256 pendingAmount = pendingMax(msg.sender);
@@ -126,7 +126,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
             totalSupply += amount;
             user.amount = user.amount.add(amount);
         }
-
+        updatePool();
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
         emit Deposit(msg.sender, amount);
     }
@@ -142,7 +142,6 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     function withdrawToken(uint256 _amount) public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount >= _amount, "withdrawSwap: not good");
-        updatePool();
         uint256 pendingAmount = pendingMax(msg.sender);
         if (pendingAmount > 0) {
             _safeTokenTransfer(rewardToken, msg.sender, pendingAmount);
@@ -152,9 +151,8 @@ contract Gauge is ReentrancyGuard, CheckPermission {
             totalSupply = totalSupply.sub(_amount);
             TransferHelper.safeTransfer(stake, msg.sender, _amount);
         }
-
+        updatePool();
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
-
         emit Withdraw(msg.sender, _amount);
     }
 
