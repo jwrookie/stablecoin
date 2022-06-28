@@ -244,7 +244,6 @@ contract('Boost test', () => {
 
         expect(rewardAft).to.be.gt(rewardBef);
 
-
     });
     it("test depositAll and withdrawAll", async () => {
         await usdc.connect(dev).approve(lock.address, toWei('10000000'));
