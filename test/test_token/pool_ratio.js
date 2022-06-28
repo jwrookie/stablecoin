@@ -2,11 +2,11 @@ const {expectRevert, time} = require('@openzeppelin/test-helpers');
 const {ethers, waffle} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
-const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPoolFreeParameter, StableCoinPool} = require("../Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../Utils/GetThreePoolAndPancakePoolConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra, StableCoinPoolFreeParameter, StableCoinPool} = require("../util/GetStableConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../util/GetThreePoolAndPancakePoolConfig");
 
-const {GetUniswapByPancakeFactory, AddLiquidityByPancakeRouter, SetETHUSDOracle} = require("../Utils/GetUniswapConfig");
+const {GetUniswapByPancakeFactory, AddLiquidityByPancakeRouter, SetETHUSDOracle} = require("../util/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 const {BigNumber} = require('ethers');
 

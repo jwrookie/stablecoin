@@ -1,14 +1,14 @@
 const {ethers} = require("hardhat");
 const {expect} = require("chai");
 const {toWei} = web3.utils;
-const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPool} = require("../Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../Utils/GetThreePoolAndPancakePoolConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../util/GetStableConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../util/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("../Utils/GetUniswapConfig");
+} = require("../util/GetUniswapConfig");
 
 contract('pool setParameter', () => {
     beforeEach(async () => {

@@ -1,4 +1,4 @@
-const $ = require('../Src/common');
+const $ = require('../lib/common');
 const Config = require('./conftest');
 const {toWei, fromWei, toBN} = require("web3-utils");
 const WETH9 = require("../mock/WETH9.json");
@@ -7,7 +7,7 @@ const PancakePair = require("../mock/PancakePair.json");
 const PancakeRouter = require("../mock/PancakeRouter.json");
 const {BigNumber} = require("ethers");
 const {time} = require("@openzeppelin/test-helpers");
-const {StableCoinPool} = require("../Utils/GetStableConfig");
+const {StableCoinPool} = require("../util/GetStableConfig");
 
 contract('ExchangeAMO', async () => {
 

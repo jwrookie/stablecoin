@@ -2,8 +2,8 @@ const {time, balance} = require('@openzeppelin/test-helpers');
 const {ethers} = require('hardhat');
 const {expect} = require('chai');
 const {toWei} = require('web3-utils');
-const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra} = require("../Utils/GetStableConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra} = require("../util/GetStableConfig");
 const {BigNumber} = require('ethers');
 const ONE_DAT_DURATION = 86400;
 

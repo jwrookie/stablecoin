@@ -1,4 +1,4 @@
-const $ = require('../Src/common.js');
+const $ = require('../lib/common.js');
 const Config = require("./conftest.js");
 const WETH9 = require("../mock/WETH9.json");
 const {toWei, fromWei, toBN} = require("web3-utils");

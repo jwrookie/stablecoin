@@ -1,4 +1,4 @@
-const {PanCakeFactoryAndThreeFactoryConfig, SetThreePoolsByThreePoolFactory, SetPlainImplementations} = require("../Src/PancakeFactoryAndThreePoolFactory");
+const {PanCakeFactoryAndThreeFactoryConfig, SetThreePoolsByThreePoolFactory, SetPlainImplementations} = require("../lib/PancakeFactoryAndThreePoolFactory");
 const GAS = {gasLimit: "9550000"};
 const {toWei} = web3.utils;
 
