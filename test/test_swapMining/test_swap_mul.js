@@ -2,7 +2,7 @@ const $ = require('../Src/common');
 const {time} = require('@openzeppelin/test-helpers');
 const {waffle, ethers} = require("hardhat");
 const {expect} = require("chai");
-const {toWei, fromWei, toBN, hexToString} = web3.utils;
+const {toWei, fromWei, toBN} = web3.utils;
 const {Decimal} = require('decimal.js');
 const WETH9 = require('../mock/WETH9.json');
 

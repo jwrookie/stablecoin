@@ -278,7 +278,7 @@ contract('SwapRouter5Coins', () => {
         let fxsOwnerBef = await fxs.balanceOf(owner.address);
 
         await boost.massUpdatePools();
-        expect(await gauge.accTokenPerShare()).to.be.eq(toWei("100", "gwei"));
+        expect(await gauge.accTokenPerShare()).to.be.eq("9300000000000");
         expect(await gauge.pendingMax(owner.address)).to.be.eq(toWei("1"));
 
         await expect(gauge.getReward(owner.address)).to.emit(gauge, 'ClaimRewards')
