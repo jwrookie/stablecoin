@@ -104,8 +104,8 @@ describe('Dao Locker Supplement', function () {
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.eq(300000000653750000000000000);
-        expect(devAft).to.be.eq(toWei('0.13125'));
+        expect(ownerAft).to.be.gt(ownerBef);
+        expect(devAft).to.be.gt(devBef);
 
 
     });
@@ -133,8 +133,8 @@ describe('Dao Locker Supplement', function () {
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.eq("300000001546250000000000000");
-        expect(devAft).to.be.eq("2572500000000000000");
+        expect(ownerAft).to.be.gt(toWei("300000001"));
+        expect(devAft).to.be.gt(toWei("2"));
 
 
     });
@@ -162,8 +162,8 @@ describe('Dao Locker Supplement', function () {
 
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
-        expect(ownerAft).to.be.eq("300000010462362115926587847");
-        expect(devAft).to.be.eq(toWei('0.1575'));
+        expect(ownerAft).to.be.gt(toWei('300000010'));
+        expect(devAft).to.be.gt(toWei('3'));
 
     });
 });
