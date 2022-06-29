@@ -164,8 +164,8 @@ contract('Boost_vote', () => {
         await gauge_usdc.getReward(owner.address)
         await gauge_usdc.connect(dev).getReward(dev.address)
 
-        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('999989'));
-        expect(await fxs.balanceOf(dev.address)).to.be.gt(toWei('9'));
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('1000005.35'));
+        expect(await fxs.balanceOf(dev.address)).to.be.gt(toWei('25.5'));
 
 
     });
