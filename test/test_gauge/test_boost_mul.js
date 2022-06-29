@@ -264,11 +264,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(3, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(3, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.1836");
-        expect(boostMulDev).to.be.eq("1.1494");
+        expect(boostMulOwner).to.be.eq("3.183");
+        expect(boostMulDev).to.be.eq("1.149");
 
         // console.log("=================increase 20 hours=================");
         await time.increase(await time.duration.hours(20));
