@@ -1,13 +1,13 @@
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
-const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./Utils/GetThreePoolAndPancakePoolConfig");
+const {GetMockToken} = require("./util/GetMockConfig");
+const {GetRusdAndTra, StableCoinPool, StableCoinPoolFreeParameter} = require("./util/GetStableConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("./util/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("./Utils/GetUniswapConfig");
+} = require("./util/GetUniswapConfig");
 
 contract("test", async function () {
     let checkPermission = "0x87465916d6168fdC9f42B8649074B0EE361Eb061";

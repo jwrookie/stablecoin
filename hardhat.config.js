@@ -57,6 +57,7 @@ module.exports = {
             // gasPrice: 20000000000,
             // accounts: {mnemonic: mnemonic}
         },
+
     },
     solidity: {
         compilers: [

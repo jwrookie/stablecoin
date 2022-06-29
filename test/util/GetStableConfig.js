@@ -1,7 +1,7 @@
 const {BigNumber} = require("ethers");
 const {CheckParameter} = require("./Check");
-const {TokenFactory, GetMap, SetFraxPoolLib, SetPoolAddress} = require("../Src/StableAndMockFactory");
-const {ZEROADDRESS} = require("../Src/Address");
+const {TokenFactory, GetMap, SetFraxPoolLib, SetPoolAddress} = require("../lib/StableAndMockFactory");
+const {ZEROADDRESS} = require("../lib/Address");
 
 const GetRusdAndTra = async () => {
     let tempArray = new Array();

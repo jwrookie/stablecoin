@@ -1,4 +1,4 @@
-const {SetChainlinkETHUSDPriceConsumer} = require("../Src/MockTokenConfig");
+const {SetChainlinkETHUSDPriceConsumer} = require("../lib/MockTokenConfig");
 const {CheckParameter} = require("./Check");
 const {BigNumber} = require('ethers');
 const {ethers} = require('hardhat');

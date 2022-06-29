@@ -100,7 +100,7 @@ contract('Boost_vote', () => {
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
 
         await gauge_usdc.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990.6'));
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('998990'));
 
 
     });
@@ -117,7 +117,7 @@ contract('Boost_vote', () => {
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990'));
 
         await gauge_usdc.getReward(owner.address);
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('998990.9'));
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('999000.5'));
 
 
     });
@@ -138,8 +138,8 @@ contract('Boost_vote', () => {
 
         await gauge_usdc.getReward(owner.address)
         await gauge_usdc.connect(dev).getReward(dev.address)
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989.45'));
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9.6'));
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('999989'));
+        expect(await fxs.balanceOf(dev.address)).to.be.gt(toWei('9'));
 
 
     });
@@ -164,8 +164,8 @@ contract('Boost_vote', () => {
         await gauge_usdc.getReward(owner.address)
         await gauge_usdc.connect(dev).getReward(dev.address)
 
-        expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei('999989.75'));
-        expect(await fxs.balanceOf(dev.address)).to.be.eq(toWei('9.9'));
+        expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei('1000005.35'));
+        expect(await fxs.balanceOf(dev.address)).to.be.gt(toWei('25.5'));
 
 
     });

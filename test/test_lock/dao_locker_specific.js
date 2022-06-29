@@ -1,8 +1,8 @@
 const {time, expectRevert} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei} = web3.utils;
-const {GetRusdAndTra} = require("../Utils/GetStableConfig");
-const {deploy} = require("../Src/common");
+const {GetRusdAndTra} = require("../util/GetStableConfig");
+const {deploy} = require("../lib/common");
 const LOCKER = require("../mock/Locker.json");
 const LOCKERFIRST = require("../mock/LockerFirstAbi.json");
 const LOCKERSECOND = require("../mock/LockerSecondAbi.json");

@@ -1,6 +1,6 @@
 const {ethers} = require("hardhat");
 const {time} = require("@openzeppelin/test-helpers");
-const $ = require("../Src/common");
+const $ = require("../lib/common");
 const {toWei} = require("web3-utils");
 
 const getStablecoinPool = async function (poolLibrary, checkPermission, frax, fxs, usdc) {

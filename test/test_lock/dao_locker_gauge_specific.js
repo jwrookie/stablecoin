@@ -2,8 +2,8 @@ const {BigNumber} = require("ethers");
 const {time, expectRevert} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei, fromWei, toBN} = web3.utils;
-const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra} = require("../Utils/GetStableConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra} = require("../util/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
 describe('Dao Locker Supplement', function () {
@@ -104,8 +104,8 @@ describe('Dao Locker Supplement', function () {
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.eq(toWei('299999999.105'));
-        expect(devAft).to.be.eq(toWei('0.13125'));
+        expect(ownerAft).to.be.gt(ownerBef);
+        expect(devAft).to.be.gt(devBef);
 
 
     });
@@ -133,8 +133,8 @@ describe('Dao Locker Supplement', function () {
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.eq(toWei('299999999.13125'));
-        expect(devAft).to.be.eq(toWei('0.1575'));
+        expect(ownerAft).to.be.gt(toWei("300000001"));
+        expect(devAft).to.be.gt(toWei("2"));
 
 
     });
@@ -162,8 +162,8 @@ describe('Dao Locker Supplement', function () {
 
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
-        expect(ownerAft).to.be.eq(toWei('299999999.4375'));
-        expect(devAft).to.be.eq(toWei('0.1575'));
+        expect(ownerAft).to.be.gt(toWei('300000010'));
+        expect(devAft).to.be.gt(toWei('3'));
 
     });
 });

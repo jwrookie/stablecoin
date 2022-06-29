@@ -2,14 +2,14 @@ const {BigNumber} = require("ethers");
 const {ethers} = require("hardhat");
 const {toWei, fromWei, toBN} = require("web3-utils");
 const {time} = require("@openzeppelin/test-helpers");
-const {GetMockToken} = require("../test/Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPool} = require("../test/Utils/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../test/Utils/GetThreePoolAndPancakePoolConfig");
+const {GetMockToken} = require("../test/util/GetMockConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../test/util/GetStableConfig");
+const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../test/util/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("../test/Utils/GetUniswapConfig");
+} = require("../test/util/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 async function main() {

@@ -1,4 +1,4 @@
-const $ = require('../Src/common');
+const $ = require('../lib/common');
 const Config = require('./conftest');
 const {toWei, fromWei, toBN} = require("web3-utils");
 const WETH9 = require("../mock/WETH9.json");
@@ -7,7 +7,7 @@ const PancakePair = require("../mock/PancakePair.json");
 const PancakeRouter = require("../mock/PancakeRouter.json");
 const {BigNumber} = require("ethers");
 const {time} = require("@openzeppelin/test-helpers");
-const {StableCoinPool} = require("../Utils/GetStableConfig");
+const {StableCoinPool} = require("../util/GetStableConfig");
 
 contract('ExchangeAMO', async () => {
 
@@ -291,12 +291,14 @@ contract('ExchangeAMO', async () => {
         await usdc.transfer(exchangeAMO.address, toWei("1"));
 
         let usdcBef = await usdc.balanceOf(amoMinter.address);
+        expect(usdcBef).to.be.eq(toWei('1'));
         await amoMinter.recoverERC20(usdc.address, usdcBef);
         let usdcAft = await usdc.balanceOf(amoMinter.address);
 
         expect(usdcAft).to.be.eq(0);
 
         let usdcAmoBef = await usdc.balanceOf(exchangeAMO.address);
+        expect(usdcAmoBef).to.be.eq(toWei('1'));
         await exchangeAMO.recoverERC20(usdc.address, usdcAmoBef);
         let usdcAmoAft = await usdc.balanceOf(exchangeAMO.address);
 
@@ -307,6 +309,9 @@ contract('ExchangeAMO', async () => {
         await usdc.transfer(amoMinter.address, toWei("1"));
 
         let usdcBef = await usdc.balanceOf(amoMinter.address);
+        let ownerBef = await usdc.balanceOf(_owner.address);
+        expect(usdcBef).to.be.eq(toWei('1'));
+        expect(ownerBef).to.be.eq(toWei('997899'));
 
         let calldata = web3.eth.abi.encodeFunctionCall({
             name: 'transfer',
@@ -316,14 +321,21 @@ contract('ExchangeAMO', async () => {
 
         await amoMinter.execute(usdc.address, 0, calldata);
         let usdcAft = await usdc.balanceOf(amoMinter.address);
+        let ownerAft = await usdc.balanceOf(_owner.address);
 
         expect(usdcAft).to.be.eq(0);
+        expect(ownerAft).to.be.eq(ownerBef.add(toWei('1')));
+
     });
 
     it('test exchangeAMO execute', async () => {
         await usdc.transfer(exchangeAMO.address, toWei("1"));
 
         let usdcBef = await usdc.balanceOf(exchangeAMO.address);
+        let ownerBef = await usdc.balanceOf(_owner.address);
+
+        expect(usdcBef).to.be.eq(toWei('1'));
+        expect(ownerBef).to.be.eq(toWei('997899'));
 
         let calldata = web3.eth.abi.encodeFunctionCall({
             name: 'transfer',
@@ -333,7 +345,10 @@ contract('ExchangeAMO', async () => {
 
         await exchangeAMO.execute(usdc.address, 0, calldata);
         let usdcAft = await usdc.balanceOf(exchangeAMO.address);
+        let ownerAft = await usdc.balanceOf(_owner.address);
 
         expect(usdcAft).to.be.eq(0);
+        expect(ownerAft).to.be.eq(ownerBef.add(toWei('1')));
+
     });
 });

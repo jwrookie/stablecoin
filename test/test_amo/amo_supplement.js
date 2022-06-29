@@ -3,17 +3,17 @@ const {ethers} = require("hardhat");
 const {BigNumber} = require('ethers');
 const {expect} = require("chai");
 const {time} = require('@openzeppelin/test-helpers');
-const {GetMockToken} = require("../Utils/GetMockConfig");
-const {GetRusdAndTra, StableCoinPool} = require("../Utils/GetStableConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra, StableCoinPool} = require("../util/GetStableConfig");
 const {
     DeployThreePoolFactoryAndPancakeFactory,
     DeployThreePoolByThreePoolFactory
-} = require("../Utils/GetThreePoolAndPancakePoolConfig");
+} = require("../util/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
     SetETHUSDOracle
-} = require("../Utils/GetUniswapConfig");
+} = require("../util/GetUniswapConfig");
 const GAS = {gasLimit: "9550000"};
 
 describe('AMO Scenes', function () {

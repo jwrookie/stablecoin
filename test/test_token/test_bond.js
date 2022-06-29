@@ -284,20 +284,6 @@ contract('BondIssuer', () => {
         expect(await bondIssuer.maxInterestRate()).to.be.eq(1e10);
 
     });
-    it("exceeding maxinterestrate will fail", async () => {
-        expect(await bondIssuer.interestRate()).to.be.eq(1e4);
-        expect(await bondIssuer.minInterestRate()).to.be.eq(1e4);
-        expect(await bondIssuer.maxInterestRate()).to.be.eq(1e5);
-        await expect(bondIssuer.setInterestRate(1e6)).to.be.revertedWith("rate  in range");
-
-        await expect(bondIssuer.connect(dev).setRangeInterestRate(1e5, 1e10)).to.be.revertedWith("not operator");
-        await bondIssuer.setRangeInterestRate(1e5, 1e10);
-        await bondIssuer.setInterestRate(1e6);
-        expect(await bondIssuer.interestRate()).to.be.eq(1e6);
-        expect(await bondIssuer.minInterestRate()).to.be.eq(1e5);
-        expect(await bondIssuer.maxInterestRate()).to.be.eq(1e10);
-
-    });
     it('bond token totalSupply > maxBondOutstanding', async () => {
         expect(await bondIssuer.currentInterestRate()).to.be.eq(1e4);
         let amount = toWei('1');
@@ -321,10 +307,10 @@ contract('BondIssuer', () => {
         let bondOut = BigNumber.from(vBalStableBef).mul(1e6).div(exchangeRate);
         let fraxBef = await frax.balanceOf(owner.address);
 
-        await bondIssuer.redeemBond(toWei('1.3'));
+        await bondIssuer.redeemBond(toWei('1.2'));
         exchangeRate = await bondIssuer.exchangeRate();
 
-        let stableOut = BigNumber.from(toWei('1.3')).mul(exchangeRate).div(1e6);
+        let stableOut = BigNumber.from(toWei('1.2')).mul(exchangeRate).div(1e6);
         let vBalStableAft = await bondIssuer.vBalStable();
         expect(vBalStableAft).to.be.eq(vBalStableBef.sub(stableOut));
 
