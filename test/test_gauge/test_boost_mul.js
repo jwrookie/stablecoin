@@ -75,7 +75,7 @@ contract('BoostMul', () => {
     });
 
     it("test users to boost mul", async () => {
-        let _duration = time.duration.days(1);
+        let _duration = time.duration.years(1);
 
         // 1、
         await locker.createLock(toWei('1000'), parseInt(_duration));
@@ -128,16 +128,16 @@ contract('BoostMul', () => {
         expect(pendingMaxAddr1).to.be.gt(pendingAddr1);
         expect(pendingMaxAddr2).to.be.gt(pendingAddr2);
 
-        let boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        let boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
-        let boostMulAddr1 = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(2);
+        let boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulAddr1 = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
         let _boostMulAddr2 = pendingAddr2 / (pendingMaxAddr2 * 30 / 100);
-        let boostMulAddr2 = new Decimal(_boostMulAddr2).toFixed(2);
+        let boostMulAddr2 = new Decimal(_boostMulAddr2).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.22");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(boostMulAddr1).to.be.eq("1.11");
-        expect(boostMulAddr2).to.be.eq("1.00");
+        expect(boostMulOwner).to.be.eq("3.2201");
+        expect(boostMulDev).to.be.eq("1.0022");
+        expect(boostMulAddr1).to.be.eq("1.1110");
+        expect(boostMulAddr2).to.be.eq("1.0000");
         expect(_boostMulAddr2).to.be.gt(1);
 
         // mul will decrease
@@ -152,16 +152,16 @@ contract('BoostMul', () => {
         pendingMaxAddr2 = await gauge_usdc.pendingMax(addr2.address);
         pendingAddr2 = await gauge_usdc.pending(addr2.address);
 
-        let boostMulOwnerAft = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        let boostMulDevAft = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
-        let boostMulAddr1Aft = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(2);
+        let boostMulOwnerAft = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulDevAft = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulAddr1Aft = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
         let _boostMulAddr2Aft = pendingAddr2 / (pendingMaxAddr2 * 30 / 100);
-        let boostMulAddr2Aft = new Decimal(_boostMulAddr2).toFixed(2);
+        let boostMulAddr2Aft = new Decimal(_boostMulAddr2).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwnerAft).to.be.eq("2.19");
-        expect(boostMulDevAft).to.be.eq("1.00");
-        expect(boostMulAddr1Aft).to.be.eq("1.06");
-        expect(boostMulAddr2Aft).to.be.eq("1.00");
+        expect(boostMulOwnerAft).to.be.eq("3.2173");
+        expect(boostMulDevAft).to.be.eq("1.0022");
+        expect(boostMulAddr1Aft).to.be.eq("1.1108");
+        expect(boostMulAddr2Aft).to.be.eq("1.0000");
         expect(_boostMulAddr2Aft).to.be.gt(1);
 
         // // mul will expired
@@ -176,15 +176,15 @@ contract('BoostMul', () => {
         pendingMaxAddr2 = await gauge_usdc.pendingMax(addr2.address);
         pendingAddr2 = await gauge_usdc.pending(addr2.address);
 
-        let boostMulOwnerAft1 = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        let boostMulDevAft1 = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
-        let boostMulAddr1Aft1 = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(2);
-        let boostMulAddr2Aft1 = new Decimal(pendingAddr2 / (pendingMaxAddr2 * 30 / 100)).toFixed(2);
+        let boostMulOwnerAft1 = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulDevAft1 = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulAddr1Aft1 = new Decimal(pendingAddr1 / (pendingMaxAddr1 * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulAddr2Aft1 = new Decimal(pendingAddr2 / (pendingMaxAddr2 * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwnerAft1).to.be.eq("1.00");
-        expect(boostMulDevAft1).to.be.eq("1.00");
-        expect(boostMulAddr1Aft1).to.be.eq("1.00");
-        expect(boostMulAddr2Aft1).to.be.eq("1.00");
+        expect(boostMulOwnerAft1).to.be.eq("3.2112");
+        expect(boostMulDevAft1).to.be.eq("1.0022");
+        expect(boostMulAddr1Aft1).to.be.eq("1.1105");
+        expect(boostMulAddr2Aft1).to.be.eq("1.0000");
     });
 
     it("test users to boost mul and getReward", async () => {
@@ -192,32 +192,30 @@ contract('BoostMul', () => {
         await fxs.approve(locker.address, toWei("10000000"));
         // 1、
         let _duration = time.duration.years(4);
-        await locker.createLock(toWei('100000'), parseInt(_duration));
+        await locker.createLock(toWei('0.1'), parseInt(_duration));
         let tokenId1 = await locker.tokenId();
 
-        await gauge_usdc.deposit(toWei('1')); //10
-        await boost.vote(tokenId1, [usdc.address], [toWei('200000')]);//200000
+        await gauge_usdc.deposit(toWei('1500')); //10
+        await boost.vote(tokenId1, [usdc.address], [toWei('2000000')]);//200000
 
         //2、
         _duration = time.duration.days(100);
-        await locker.connect(dev).createLock(toWei("2000"), parseInt(parseInt(_duration)));
+        await locker.connect(dev).createLock(toWei("0.1"), parseInt(parseInt(_duration)));
         let tokenId2 = await locker.tokenId();
 
         await gauge_usdc.connect(dev).deposit(toWei('1')); //10
-        await boost.connect(dev).vote(tokenId2, [usdc.address], [toWei('1000')]);//1000
+        await boost.connect(dev).vote(tokenId2, [usdc.address], [toWei('1000000')]);//1000
 
         let pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
         let pendingOwner = await gauge_usdc.pending(owner.address);
         let pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         let pendingDev = await gauge_usdc.pending(dev.address);
 
-        let boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        let boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        let boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        let boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        // dev has boost mul but ≈ 1
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1837");
+        expect(boostMulDev).to.be.eq("1.1495");
 
         // console.log("=================increase 10 minutes=================");
         await time.increase(await time.duration.minutes(10));
@@ -226,12 +224,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1837");
+        expect(boostMulDev).to.be.eq("1.1495");
 
         // console.log("=================increase 10 minutes=================");
         await time.increase(await time.duration.minutes(10));
@@ -240,12 +237,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1837");
+        expect(boostMulDev).to.be.eq("1.1495");
 
         let ownerFxsBef = await fxs.balanceOf(owner.address);
         let userBef = await gauge_usdc.userInfo(owner.address);
@@ -258,7 +254,6 @@ contract('BoostMul', () => {
         expect(ownerFxsAft).to.be.gt(ownerFxsBef);
         expect(userBef.rewardDebt).to.be.eq(0);
         expect(userAft.rewardDebt).to.be.gt(userBef.rewardDebt);
-        // expect(userAft.rewardDebt).to.be.eq("78000000000000000000");
 
         // console.log("=================owner getReward=================");
         // console.log("=================increase 1 hours=================");
@@ -269,12 +264,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1836");
+        expect(boostMulDev).to.be.eq("1.1494");
 
         // console.log("=================increase 20 hours=================");
         await time.increase(await time.duration.hours(20));
@@ -283,12 +277,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1824");
+        expect(boostMulDev).to.be.eq("1.1482");
 
         // console.log("=================increase 2 days=================");
         await time.increase(await time.duration.days(2));
@@ -297,12 +290,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.33");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.1794");
+        expect(boostMulDev).to.be.eq("1.1452");
 
         // console.log("=================increase 10 weeks=================");
         await time.increase(await time.duration.weeks(10));
@@ -311,12 +303,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("3.21");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.lt(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("3.0747");
+        expect(boostMulDev).to.be.eq("1.0405");
 
         // console.log("=================increase 2 years=================");
         await time.increase(await time.duration.years(2));
@@ -325,26 +316,11 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
-        expect(boostMulOwner).to.be.eq("2.05");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.eq(BigNumber.from(pendingDev.toString()));
-
-        // console.log("=================increase 1 years=================");
-        await time.increase(await time.duration.years(1));
-        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
-        pendingOwner = await gauge_usdc.pending(owner.address);
-        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
-        pendingDev = await gauge_usdc.pending(dev.address);
-
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
-
-        expect(boostMulOwner).to.be.eq("1.47");
-        expect(boostMulDev).to.be.eq("1.00");
-        expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.eq(BigNumber.from(pendingDev.toString()));
+        expect(boostMulOwner).to.be.eq("1.9828");
+        expect(boostMulDev).to.be.eq("1.0000");
 
         // console.log("=================increase 1 years=================");
         await time.increase(await time.duration.years(1));
@@ -353,12 +329,25 @@ contract('BoostMul', () => {
         pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
         pendingDev = await gauge_usdc.pending(dev.address);
 
-        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(2);
-        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(2);
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+
+        expect(boostMulOwner).to.be.eq("1.4369");
+        expect(boostMulDev).to.be.eq("1.0000");
+
+        // console.log("=================increase 1 years=================");
+        await time.increase(await time.duration.years(1));
+        pendingMaxOwner = await gauge_usdc.pendingMax(owner.address);
+        pendingOwner = await gauge_usdc.pending(owner.address);
+        pendingMaxDev = await gauge_usdc.pendingMax(dev.address);
+        pendingDev = await gauge_usdc.pending(dev.address);
+
+        boostMulOwner = new Decimal(pendingOwner / (pendingMaxOwner * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
+        boostMulDev = new Decimal(pendingDev / (pendingMaxDev * 30 / 100)).toFixed(4, Decimal.ROUND_DOWN);
 
         expect(BigNumber.from(pendingMaxOwner.toString()).mul(30).div(100)).to.be.eq(BigNumber.from(pendingOwner.toString()));
         expect(BigNumber.from(pendingMaxDev.toString()).mul(30).div(100)).to.be.eq(BigNumber.from(pendingDev.toString()));
-        expect(boostMulOwner).to.be.eq("1.00");
-        expect(boostMulDev).to.be.eq("1.00");
+        expect(boostMulOwner).to.be.eq("0.9999");
+        expect(boostMulDev).to.be.eq("1.0000");
     });
 });
