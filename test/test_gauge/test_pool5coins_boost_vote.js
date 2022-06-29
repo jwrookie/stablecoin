@@ -279,17 +279,18 @@ contract('SwapRouter5Coins', () => {
 
         await boost.massUpdatePools();
         expect(await gauge.accTokenPerShare()).to.be.eq("9300000000000");
-        expect(await gauge.pendingMax(owner.address)).to.be.eq(toWei("1"));
+        
+        expect(await gauge.pendingMax(owner.address)).to.be.eq("93000000000000000000");
 
         await expect(gauge.getReward(owner.address)).to.emit(gauge, 'ClaimRewards')
-            .withArgs(owner.address, fxs.address, toWei("2"));
+            .withArgs(owner.address, fxs.address, "94000000000000000000");
 
         let fxsOwnerAft = await fxs.balanceOf(owner.address);
         expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
 
         let diff = BigNumber.from(fxsOwnerAft).sub(fxsOwnerBef);
 
-        expect(diff).to.be.eq(toWei("0.6"));
+        expect(diff).to.be.eq("28200000000000000000");
     });
 
     it('test gauge deposit with vote', async () => {
@@ -322,7 +323,7 @@ contract('SwapRouter5Coins', () => {
         let rewardBlockAft = await gauge.lastRewardBlock();
 
         await expect(gauge.getReward(owner.address)).to.emit(gauge, 'ClaimRewards')
-            .withArgs(owner.address, fxs.address, toWei("2"));
+            .withArgs(owner.address, fxs.address, "188000000000000000000");
 
         let fxsOwnerAft = await fxs.balanceOf(owner.address);
         expect(fxsOwnerAft).to.be.gt(fxsOwnerBef);
@@ -332,7 +333,7 @@ contract('SwapRouter5Coins', () => {
         expect(diff).to.be.eq(BigNumber.from(rewardBlocks + 1).mul(toWei("0.3")));
 
         let gaugeFxsAmount = await fxs.balanceOf(gauge.address);
-        expect(gaugeFxsAmount).to.be.eq(BigNumber.from(toWei("2")).sub(diff));
+        expect(gaugeFxsAmount).to.be.eq(BigNumber.from("188000000000000000000").sub(diff));
     });
 
     it('test gauge deposit with boost', async () => {
@@ -378,7 +379,7 @@ contract('SwapRouter5Coins', () => {
         expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
 
         expect(rewardBlocks).to.be.eq(rewardBlocks1);
-        expect(diff).to.be.lt(diff1);
+        expect(diff).to.be.gt(diff1);
     });
 
     it('test zap exchange_underlying', async () => {
@@ -614,7 +615,7 @@ contract('SwapRouter5Coins', () => {
         expect(fxsOwnerAft1).to.be.gt(fxsOwnerBef1);
 
         expect(rewardBlocks).to.be.eq(rewardBlocks1);
-        expect(diff).to.be.lt(diff1);
+        expect(diff).to.be.gt(diff1);
 
         await boost.setMintMulti(toWei("10000000"));
         expect(await boost.mintMulti()).eq(toWei("10000000"));
