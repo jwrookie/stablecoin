@@ -18,6 +18,7 @@ contract Gauge is ReentrancyGuard, CheckPermission {
 
     event Deposit(address indexed from, uint256 amount);
     event Withdraw(address indexed from, uint256 amount);
+    event EmergencyWithdraw(address indexed from, uint256 amount);
     event NotifyReward(address indexed from, address indexed reward, uint256 rewardRate);
     event ClaimRewards(address indexed from, address indexed reward, uint256 amount);
 
@@ -154,6 +155,17 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         updatePool();
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
         emit Withdraw(msg.sender, _amount);
+    }
+
+    function emergencyWithdraw() public nonReentrant {
+        UserInfo storage user = userInfo[msg.sender];
+        require(user.amount > 0, "amount >0");
+        user.amount = 0;
+        totalSupply = totalSupply.sub(user.amount);
+        TransferHelper.safeTransfer(stake, msg.sender, user.amount);
+        updatePool();
+        user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
+        emit EmergencyWithdraw(msg.sender, user.amount);
     }
 
     function updatePool() public {

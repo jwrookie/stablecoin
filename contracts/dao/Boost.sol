@@ -125,10 +125,12 @@ contract Boost is ReentrancyGuard, AbstractBoost {
         if (IERC20(swapToken).balanceOf(gauges[pool.lpToken]) < tokenReward.mul(mintDuration)) {
             bool minRet = swapToken.mint(address(this), tokenReward.mul(mintDuration));
             if (minRet) {
+                TransferHelper.safeTransfer(address(swapToken), gauges[pool.lpToken], tokenReward.mul(mintDuration));
                 IGauge(gauges[pool.lpToken]).notifyRewardAmount(
                     address(swapToken),
                     tokenReward
                 );
+
             }
             pool.lastRewardBlock = block.number;
         }
