@@ -163,7 +163,6 @@ contract Gauge is ReentrancyGuard, CheckPermission {
         user.amount = 0;
         totalSupply = totalSupply.sub(user.amount);
         TransferHelper.safeTransfer(stake, msg.sender, user.amount);
-        updatePool();
         user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
         emit EmergencyWithdraw(msg.sender, user.amount);
     }
