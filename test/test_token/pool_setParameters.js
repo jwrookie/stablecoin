@@ -3,7 +3,10 @@ const {expect} = require("chai");
 const {toWei} = web3.utils;
 const {GetMockToken} = require("../util/GetMockConfig");
 const {GetRusdAndTra, StableCoinPool} = require("../util/GetStableConfig");
-const {DeployThreePoolFactoryAndPancakeFactory, DeployThreePoolByThreePoolFactory} = require("../util/GetThreePoolAndPancakePoolConfig");
+const {
+    DeployThreePoolFactoryAndPancakeFactory,
+    DeployThreePoolByThreePoolFactory
+} = require("../util/GetThreePoolAndPancakePoolConfig");
 const {
     GetUniswapByPancakeFactory,
     AddLiquidityByPancakeRouter,
@@ -18,9 +21,9 @@ contract('pool setParameter', () => {
         [usdc, token0, token1] = await GetMockToken(3, [owner, dev], toWei("100000000000"));
         stableCoinPool = await StableCoinPool(usdc.address, toWei('10000000000'));
 
-       await SetETHUSDOracle(rusd,toWei("100"));
-      [weth, factory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("100")});
-       pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc.address, rusd.address, token1.address]);
+        await SetETHUSDOracle(rusd, toWei("100"));
+        [weth, factory, threePoolFactory, threePool, router] = await DeployThreePoolFactoryAndPancakeFactory(owner, {value: toWei("100")});
+        pool = await DeployThreePoolByThreePoolFactory(threePoolFactory, threePool, [usdc.address, rusd.address, token1.address]);
 
         await AddLiquidityByPancakeRouter(factory, [usdc, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
         await AddLiquidityByPancakeRouter(factory, [rusd, weth], router, toWei("1000"), [toWei("1"), toWei("0.1")], owner);
