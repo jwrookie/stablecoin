@@ -160,11 +160,12 @@ contract Gauge is ReentrancyGuard, CheckPermission {
     function emergencyWithdraw() public nonReentrant {
         UserInfo storage user = userInfo[msg.sender];
         require(user.amount > 0, "amount >0");
+        uint _amount = user.amount;
         user.amount = 0;
-        totalSupply = totalSupply.sub(user.amount);
-        TransferHelper.safeTransfer(stake, msg.sender, user.amount);
-        user.rewardDebt = user.amount.mul(accTokenPerShare).div(1e12);
-        emit EmergencyWithdraw(msg.sender, user.amount);
+        totalSupply = totalSupply.sub(_amount);
+        TransferHelper.safeTransfer(stake, msg.sender, _amount);
+        user.rewardDebt = _amount.mul(accTokenPerShare).div(1e12);
+        emit EmergencyWithdraw(msg.sender, _amount);
     }
 
     function updatePool() public {
