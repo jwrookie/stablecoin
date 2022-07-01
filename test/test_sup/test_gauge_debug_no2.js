@@ -109,17 +109,38 @@ describe('Dao Locker Supplement', function () {
         await gauge.deposit(toWei("0.1"));
         await boost.vote(tokenId, [usdc.address], [toWei("0.1")]);
         let beforGetReward = await tra.balanceOf(owner.address);
-        let pendingAmountNumber = await gauge.pending(owner.address);
         let userInfo = await gauge.userInfo(owner.address);
         let userAmount = userInfo[0];
         expect(userAmount).to.be.eq(toWei("0.1"));
-        let initTotalSupply = await gauge.totalSupply();
         await gauge.emergencyWithdraw();
         userInfo = await gauge.userInfo(owner.address);
         userAmount = userInfo[0];
         expect(userAmount).to.be.eq(0);
-        expect(await gauge.totalSupply()).to.be.lt(initTotalSupply);
+        expect(await gauge.totalSupply()).to.be.eq(0);
         let afterGetReward = await tra.balanceOf(owner.address);
-        expect(afterGetReward.sub(BigNumber.from(beforGetReward.toString()))).to.be.gt(pendingAmountNumber);
+        expect(afterGetReward.sub(BigNumber.from(beforGetReward.toString()))).to.be.eq(0);
+    });
+
+    it('more users to deposit and emergency withdraw', async function () {
+        let fourYearsDuration = parseInt(await time.duration.years(4));
+        await locker.createLock(toWei("0.3"), fourYearsDuration);
+        let tokenId = await locker.tokenId();
+        await locker.connect(dev).createLock(toWei("0.3"), fourYearsDuration);
+        let devTokenId = await locker.tokenId();
+
+        await usdc.approve(gauge.address, toWei("1000"));
+        await gauge.deposit(toWei("0.1"));
+        await usdc.connect(dev).approve(gauge.address, toWei("1000"));
+        await gauge.connect(dev).deposit(toWei("0.1"));
+
+        await boost.vote(tokenId, [usdc.address], [toWei("0.1")]);
+        await boost.connect(dev).vote(devTokenId, [usdc.address], [toWei("0.1")]);
+
+        let initTotalSupply = await gauge.totalSupply();
+        await gauge.emergencyWithdraw();
+        expect(await gauge.totalSupply()).to.be.eq(BigNumber.from(initTotalSupply).sub(BigNumber.from(toWei("0.1"))));
+        let ownerBalance = await tra.balanceOf(owner.address);
+        await gauge.getReward(owner.address);
+        expect(await tra.balanceOf(owner.address)).to.be.eq(ownerBalance);
     });
 });
