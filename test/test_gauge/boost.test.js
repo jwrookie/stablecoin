@@ -233,7 +233,7 @@ contract('Boost test', () => {
 
         expect(await fxs.balanceOf(boost.address)).to.be.eq(0);
         await boost.updatePool(0);
-        expect(await fxs.balanceOf(boost.address)).to.be.eq("95999999999999999904000");
+        expect(await fxs.balanceOf(gauge.address)).to.be.eq("0");
 
         let rewardBef = await fxs.balanceOf(dev.address);
         expect(rewardBef).to.be.eq("9999999999999999999000");

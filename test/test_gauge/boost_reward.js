@@ -96,7 +96,7 @@ contract('Gauge', async function () {
         expect(poolInfo[1]).to.be.eq("10");
 
         expect(await gauge.tokenPerBlock()).to.be.eq(toWei("3"));
-        boostAmount = await fxs.balanceOf(boost.address);
+        boostAmount = await fxs.balanceOf(gauge.address);
         expect(boostAmount).to.be.eq("604800000000000000000000");
         // pendingMax = await gauge.pendingMax(owner.address);
         // pendingAmount = await gauge.pending(owner.address);
@@ -106,7 +106,7 @@ contract('Gauge', async function () {
 
         // expect(pendingMax).to.be.eq(toWei("78"));
         // expect(pendingAmount).to.be.eq(toWei("23.4"));
-        expect(gaugeAmount).to.be.eq("0");
+        expect(gaugeAmount).to.be.eq("604800000000000000000000");
         expect(await fxs.balanceOf(owner.address)).to.be.eq(toWei("999999.4"));
         await gauge.getReward(owner.address);
         expect(await fxs.balanceOf(owner.address)).to.be.gt(toWei("999999.4"));

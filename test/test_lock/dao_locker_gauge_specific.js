@@ -98,14 +98,16 @@ describe('Dao Locker Supplement', function () {
         expect(ownerBef).to.be.eq(toWei('299999999'));
         expect(devBef).to.be.eq(0);
 
+        let rewardAmount = await gauge.derivedBalance(owner.address, await gauge.pendingMax(owner.address));
         await gauge.getReward(owner.address);
+        let rewardDevAmount = await gauge.derivedBalance(dev.address, await gauge.pendingMax(dev.address));
         await gauge.connect(dev).getReward(dev.address);
 
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.gt(ownerBef);
-        expect(devAft).to.be.gt(devBef);
+        expect(BigNumber.from(ownerAft.toString()).sub(BigNumber.from(ownerBef.toString()))).to.be.gt(rewardAmount);
+        expect(BigNumber.from(devAft.toString()).sub(BigNumber.from(devBef.toString()))).to.be.gt(rewardDevAmount);
 
 
     });
@@ -127,14 +129,16 @@ describe('Dao Locker Supplement', function () {
         expect(devBef).to.be.eq(0);
 
         await gaugeController.vote(tokenId, usdc.address);
+        let rewardAmount = await gauge.derivedBalance(owner.address, await gauge.pendingMax(owner.address));
         await gauge.getReward(owner.address);
+        let rewardDevAmount = await gauge.derivedBalance(dev.address, await gauge.pendingMax(dev.address));
         await gauge.connect(dev).getReward(dev.address);
 
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
 
-        expect(ownerAft).to.be.gt(toWei("300000001"));
-        expect(devAft).to.be.gt(toWei("2"));
+        expect(BigNumber.from(ownerAft.toString()).sub(BigNumber.from(ownerBef.toString()))).to.be.gt(rewardAmount);
+        expect(BigNumber.from(devAft.toString()).sub(BigNumber.from(devBef.toString()))).to.be.gt(rewardDevAmount);
 
 
     });
@@ -157,13 +161,15 @@ describe('Dao Locker Supplement', function () {
 
         await boost.vote(tokenId, [usdc.address], [toWei("1")]);
 
+        let rewardAmount = await gauge.derivedBalance(owner.address, await gauge.pendingMax(owner.address));
         await gauge.getReward(owner.address);
+        let rewardDevAmount = await gauge.derivedBalance(dev.address, await gauge.pendingMax(dev.address));
         await gauge.connect(dev).getReward(dev.address);
 
         let ownerAft = await tra.balanceOf(owner.address);
         let devAft = await tra.balanceOf(dev.address);
-        expect(ownerAft).to.be.gt(toWei('300000010'));
-        expect(devAft).to.be.gt(toWei('3'));
+        expect(BigNumber.from(ownerAft.toString()).sub(BigNumber.from(ownerBef.toString()))).to.be.gt(rewardAmount);
+        expect(BigNumber.from(devAft.toString()).sub(BigNumber.from(devBef.toString()))).to.be.gt(rewardDevAmount);
 
     });
 });
