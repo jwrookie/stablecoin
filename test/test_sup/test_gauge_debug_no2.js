@@ -50,6 +50,8 @@ describe('Dao Locker Supplement', function () {
             10
         );
 
+        await boost.setMitDuration(1);
+
         const GaugeController = await ethers.getContractFactory("GaugeController");
         gaugeController = await GaugeController.deploy(
             checkOpera.address,
@@ -69,39 +71,55 @@ describe('Dao Locker Supplement', function () {
         await locker.addBoosts(gaugeController.address);
     });
 
-    it('test boost so big', async function () {
-        await locker.createLock(toWei("0.3"), ONE_DAT_DURATION);
-        await locker.connect(dev).createLock(toWei("0.3"), ONE_DAT_DURATION);
+    it('test boost vote', async function () {
+        let fourYearsDuration = parseInt(await time.duration.years(4));
+        expect(await gauge.accTokenPerShare()).to.be.eq(0);
+        await locker.connect(third).createLock(toWei("0.3"), fourYearsDuration);
+        let thirdTokenId = await locker.tokenId();
+
+        await usdc.connect(third).approve(gauge.address, toWei("1000"));
+        await gauge.connect(third).deposit(toWei("0.1"));
+        await boost.connect(third).vote(thirdTokenId, [usdc.address], [toWei("0.1")]);
+        let balanceOfGauge = await tra.balanceOf(gauge.address);
+        let thirdBalanceOfGauge = await gauge.pending(third.address);
+        expect(thirdBalanceOfGauge).to.be.gt(balanceOfGauge);
+        await expect(gauge.connect(third).getReward(third.address)).to.be.revertedWith("TransferHelper: TRANSFER_FROM_FAILED");
+        await boost.setMitDuration(360 * 28800);
+        await boost.updateAll();
+        await gauge.connect(third).getReward(third.address);
+    });
+
+    it('test no deposit get reward', async function () {
+        let fourYearsDuration = parseInt(await time.duration.years(4));
+        await locker.createLock(toWei("0.3"), fourYearsDuration);
+
+        let initBalance = await tra.balanceOf(owner.address);
+        await gauge.getReward(owner.address);
+        let afterBalance = await tra.balanceOf(owner.address);
+        expect(initBalance).to.be.eq(afterBalance);
+        await expect(gauge.emergencyWithdraw()).to.be.revertedWith("amount >0");
+    });
+
+    it('test deposit and emergency withdraw', async function () {
+        let fourYearsDuration = parseInt(await time.duration.years(4));
+        await locker.createLock(toWei("0.3"), fourYearsDuration);
+        let tokenId = await locker.tokenId();
 
         await usdc.approve(gauge.address, toWei("1000"));
         await gauge.deposit(toWei("0.1"));
-        let beforeGetRewardBlock = await time.latestBlock();
-        let diffBlock = parseInt(beforeGetRewardBlock);
-        console.log(diffBlock);
-        await boost.massUpdatePools();
-        let beforGetRewardOwner = await tra.balanceOf(owner.address);
-        let acc = await gauge.accTokenPerShare();
-        let totalSupply = await gauge.totalSupply();
+        await boost.vote(tokenId, [usdc.address], [toWei("0.1")]);
+        let beforGetReward = await tra.balanceOf(owner.address);
+        let pendingAmountNumber = await gauge.pending(owner.address);
         let userInfo = await gauge.userInfo(owner.address);
         let userAmount = userInfo[0];
-        let userDe = userInfo[1];
-        console.log("userAmount:\t" + fromWei(toBN(userAmount)));
-        console.log("userDe:\t" + fromWei(toBN(userDe)));
-        console.log("acc:\t" + fromWei(toBN(acc)));
-        console.log("totalSupply:\t" + fromWei(toBN(totalSupply)));
-        let cal = userAmount.mul(acc).div(1e12).sub(userDe);
-        console.log("calReward:\t" + fromWei(toBN(cal.mul(30).div(100))));
-
-        await gauge.getReward(owner.address);
-        let afterGetRewardOwner = await tra.balanceOf(owner.address);
-        let ownerReward = afterGetRewardOwner.sub(beforGetRewardOwner);
-        console.log(fromWei(toBN(ownerReward)));
-        console.log("beforeBlock:\t" + parseInt(await time.latestBlock()));
-        await time.advanceBlockTo(parseInt(await time.latestBlock()) + 1);
-        console.log("afterBlock:\t" + parseInt(await time.latestBlock()));
-        await gauge.getReward(owner.address);
-        let afterAfterGetRewardOwner = await tra.balanceOf(owner.address);
-        let diffSecond = afterAfterGetRewardOwner.sub(afterGetRewardOwner);
-        console.log(fromWei(toBN(diffSecond)));
+        expect(userAmount).to.be.eq(toWei("0.1"));
+        let initTotalSupply = await gauge.totalSupply();
+        await gauge.emergencyWithdraw();
+        userInfo = await gauge.userInfo(owner.address);
+        userAmount = userInfo[0];
+        expect(userAmount).to.be.eq(0);
+        expect(await gauge.totalSupply()).to.be.lt(initTotalSupply);
+        let afterGetReward = await tra.balanceOf(owner.address);
+        expect(afterGetReward.sub(BigNumber.from(beforGetReward.toString()))).to.be.gt(pendingAmountNumber);
     });
 });

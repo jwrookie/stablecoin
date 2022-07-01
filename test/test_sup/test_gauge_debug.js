@@ -2,8 +2,8 @@ const {BigNumber} = require("ethers");
 const {time, expectRevert} = require("@openzeppelin/test-helpers");
 const {ethers} = require("hardhat");
 const {toWei, fromWei, toBN} = web3.utils;
-const {GetMockToken} = require("./Utils/GetMockConfig");
-const {GetRusdAndTra} = require("./Utils/GetStableConfig");
+const {GetMockToken} = require("../util/GetMockConfig");
+const {GetRusdAndTra} = require("../util/GetStableConfig");
 const GAS = {gasLimit: "9550000"};
 
 describe('Dao Locker Supplement', function () {
